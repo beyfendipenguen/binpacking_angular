@@ -2,7 +2,7 @@ import { createFeatureSelector, createSelector } from '@ngrx/store';
 import { StepperState } from './stepper.state';
 import { Order } from '../../models/order.interface';
 import { UiPackage } from '../../admin/components/stepper/components/ui-models/ui-package.model';
-import { toInteger } from 'lodash';
+import { toInteger } from 'lodash-es';
 
 // Feature selector
 export const selectStepperState = createFeatureSelector<StepperState>('stepper');
