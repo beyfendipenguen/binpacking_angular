@@ -1,62 +1,72 @@
 <div class="profile-container">
   <div class="profile-wrapper">
     <!-- Profile Header Section -->
-    <div class="profile-header-card" *ngIf="!isLoading">
-      <div class="cover-section">
-        <div class="profile-picture-wrapper">
-          <div class="profile-picture-container">
-            <img
-              [src]="profilePictureUrl"
-              alt="Profile picture"
-              class="profile-picture"
-              [class.loading]="isLoadingPicture"
-            >
-            <div class="picture-overlay" *ngIf="isLoadingPicture">
-              <mat-spinner diameter="30"></mat-spinner>
+    @if (!isLoading) {
+      <div class="profile-header-card">
+        <div class="cover-section">
+          <div class="profile-picture-wrapper">
+            <div class="profile-picture-container">
+              <img
+                [src]="profilePictureUrl"
+                alt="Profil fotoğrafı"
+                class="profile-picture"
+                [class.loading]="isLoadingPicture"
+              >
+              @if (isLoadingPicture) {
+                <div class="picture-overlay">
+                  <mat-spinner diameter="30"></mat-spinner>
+                </div>
+              }
+              <button
+                mat-mini-fab
+                class="upload-button"
+                (click)="fileInput.click()"
+                [disabled]="isLoading"
+              >
+                <mat-icon>photo_camera</mat-icon>
+              </button>
+              <input
+                #fileInput
+                type="file"
+                accept="image/*"
+                (change)="onFileSelected($event)"
+                style="display: none"
+              >
             </div>
-            <button
-              mat-mini-fab
-              class="upload-button"
-              (click)="fileInput.click()"
-              [disabled]="isLoading"
-            >
-              <mat-icon>photo_camera</mat-icon>
-            </button>
-            <input
-              #fileInput
-              type="file"
-              accept="image/*"
-              (change)="onFileSelected($event)"
-              style="display: none"
-            >
+          </div>
+
+          <div class="profile-info">
+            <h1 class="profile-name">
+              {{userProfile?.first_name}} {{userProfile?.last_name}}
+              @if (userProfile?.is_admin) {
+                <span class="admin-badge">Yönetici</span>
+              }
+            </h1>
+            <p class="profile-email">{{userProfile?.email}}</p>
+            @if (userProfile?.username) {
+              <p class="profile-username">{{userProfile?.username}}</p>
+            }
           </div>
         </div>
-
-        <div class="profile-info">
-          <h1 class="profile-name">
-            {{userProfile?.first_name}} {{userProfile?.last_name}}
-            <span class="admin-badge" *ngIf="userProfile?.is_admin">Admin</span>
-          </h1>
-          <p class="profile-email">{{userProfile?.email}}</p>
-          <p class="profile-username" *ngIf="userProfile?.username">{{userProfile?.username}}</p>
-        </div>
       </div>
-    </div>
+    }
 
     <!-- Loading Skeleton for Header -->
-    <div class="profile-header-card" *ngIf="isLoading">
-      <div class="cover-section">
-        <div class="profile-picture-wrapper">
-          <div class="profile-picture-container">
-            <div class="profile-picture skeleton"></div>
+    @if (isLoading) {
+      <div class="profile-header-card">
+        <div class="cover-section">
+          <div class="profile-picture-wrapper">
+            <div class="profile-picture-container">
+              <div class="profile-picture skeleton"></div>
+            </div>
+          </div>
+          <div class="profile-info">
+            <div class="skeleton-text title"></div>
+            <div class="skeleton-text subtitle"></div>
           </div>
         </div>
-        <div class="profile-info">
-          <div class="skeleton-text title"></div>
-          <div class="skeleton-text subtitle"></div>
-        </div>
       </div>
-    </div>
+    }
 
     <!-- Tabs Section -->
     <mat-card class="profile-content-card">
@@ -65,54 +75,54 @@
         <mat-tab>
           <ng-template mat-tab-label>
             <mat-icon class="tab-icon">person</mat-icon>
-            <span>Personal Information</span>
+            <span>Kişisel Bilgiler</span>
           </ng-template>
 
           <div class="tab-content">
             <form [formGroup]="profileForm" (ngSubmit)="onUpdateProfile()" class="profile-form">
               <div class="form-section">
-                <h3 class="section-title">Basic Information</h3>
+                <h3 class="section-title">Temel Bilgiler</h3>
 
                 <div class="form-row">
                   <mat-form-field appearance="outline" class="form-field">
-                    <mat-label>First Name</mat-label>
-                    <input matInput formControlName="first_name" placeholder="Enter first name">
+                    <mat-label>Ad</mat-label>
+                    <input matInput formControlName="first_name" placeholder="Adınızı girin">
                     <mat-icon matSuffix>person</mat-icon>
-                    <mat-error *ngIf="profileForm.get('first_name')?.hasError('required')">
-                      First name is required
-                    </mat-error>
+                    @if (profileForm.get('first_name')?.hasError('required')) {
+                      <mat-error>Ad alanı zorunludur</mat-error>
+                    }
                   </mat-form-field>
 
                   <mat-form-field appearance="outline" class="form-field">
-                    <mat-label>Last Name</mat-label>
-                    <input matInput formControlName="last_name" placeholder="Enter last name">
+                    <mat-label>Soyad</mat-label>
+                    <input matInput formControlName="last_name" placeholder="Soyadınızı girin">
                     <mat-icon matSuffix>person</mat-icon>
-                    <mat-error *ngIf="profileForm.get('last_name')?.hasError('required')">
-                      Last name is required
-                    </mat-error>
+                    @if (profileForm.get('last_name')?.hasError('required')) {
+                      <mat-error>Soyad alanı zorunludur</mat-error>
+                    }
                   </mat-form-field>
                 </div>
 
                 <div class="form-row">
                   <mat-form-field appearance="outline" class="form-field">
-                    <mat-label>Username</mat-label>
-                    <input matInput formControlName="username" placeholder="Enter username">
+                    <mat-label>Kullanıcı Adı</mat-label>
+                    <input matInput formControlName="username" placeholder="Kullanıcı adınızı girin">
                     <mat-icon matSuffix>alternate_email</mat-icon>
-                    <mat-error *ngIf="profileForm.get('username')?.hasError('required')">
-                      Username is required
-                    </mat-error>
+                    @if (profileForm.get('username')?.hasError('required')) {
+                      <mat-error>Kullanıcı adı zorunludur</mat-error>
+                    }
                   </mat-form-field>
 
                   <mat-form-field appearance="outline" class="form-field">
-                    <mat-label>Email</mat-label>
-                    <input matInput formControlName="email" type="email" placeholder="Enter email">
+                    <mat-label>E-posta</mat-label>
+                    <input matInput formControlName="email" type="email" placeholder="E-posta adresinizi girin">
                     <mat-icon matSuffix>email</mat-icon>
-                    <mat-error *ngIf="profileForm.get('email')?.hasError('required')">
-                      Email is required
-                    </mat-error>
-                    <mat-error *ngIf="profileForm.get('email')?.hasError('email')">
-                      Please enter a valid email
-                    </mat-error>
+                    @if (profileForm.get('email')?.hasError('required')) {
+                      <mat-error>E-posta alanı zorunludur</mat-error>
+                    }
+                    @if (profileForm.get('email')?.hasError('email')) {
+                      <mat-error>Geçerli bir e-posta adresi girin</mat-error>
+                    }
                   </mat-form-field>
                 </div>
               </div>
@@ -120,15 +130,17 @@
               <mat-divider></mat-divider>
 
               <div class="form-section">
-                <h3 class="section-title">Contact Information</h3>
+                <h3 class="section-title">İletişim Bilgileri</h3>
 
                 <div class="form-row">
                   <mat-form-field appearance="outline" class="form-field country-code">
                     <mat-label>Ülke Kodu</mat-label>
                     <mat-select formControlName="countryCode">
-                      <mat-option *ngFor="let country of countryCodes" [value]="country.code">
-                        {{country.country}} ({{country.code}})
-                      </mat-option>
+                      @for (country of countryCodes; track country.code) {
+                        <mat-option [value]="country.code">
+                          {{country.country}} ({{country.code}})
+                        </mat-option>
+                      }
                     </mat-select>
                     <mat-icon matSuffix>public</mat-icon>
                   </mat-form-field>
@@ -139,15 +151,15 @@
                           (input)="onPhoneInput($event)" maxlength="13">
                     <mat-icon matSuffix>phone</mat-icon>
                     <mat-hint>Başında 0 olmadan girin</mat-hint>
-                    <mat-error *ngIf="profileForm.get('phone')?.hasError('pattern')">
-                      Sadece rakam girebilirsiniz
-                    </mat-error>
+                    @if (profileForm.get('phone')?.hasError('pattern')) {
+                      <mat-error>Sadece rakam girebilirsiniz</mat-error>
+                    }
                   </mat-form-field>
                 </div>
 
                 <mat-form-field appearance="outline" class="form-field full-width">
-                  <mat-label>Address</mat-label>
-                  <textarea matInput formControlName="address" rows="3" placeholder="Enter your address"></textarea>
+                  <mat-label>Adres</mat-label>
+                  <textarea matInput formControlName="address" rows="3" placeholder="Adresinizi girin"></textarea>
                   <mat-icon matSuffix>location_on</mat-icon>
                 </mat-form-field>
               </div>
@@ -160,8 +172,12 @@
                   [disabled]="isLoading || profileForm.invalid  || !formChanged "
                   class="submit-button"
                 >
-                  <mat-spinner diameter="20" *ngIf="isLoading"></mat-spinner>
-                  <span *ngIf="!isLoading">Update Profile</span>
+                  @if (isLoading) {
+                    <mat-spinner diameter="20"></mat-spinner>
+                  }
+                  @if (!isLoading) {
+                    <span>Profili Güncelle</span>
+                  }
                 </button>
 
                 <button
@@ -171,7 +187,7 @@
                   [disabled]="isLoading"
                   class="cancel-button"
                 >
-                  Reset
+                  Sıfırla
                 </button>
               </div>
             </form>
@@ -182,51 +198,51 @@
         <mat-tab>
           <ng-template mat-tab-label>
             <mat-icon class="tab-icon">lock</mat-icon>
-            <span>Security</span>
+            <span>Güvenlik</span>
           </ng-template>
 
           <div class="tab-content">
             <form [formGroup]="passwordForm" (ngSubmit)="onChangePassword()" class="profile-form">
               <div class="form-section">
-                <h3 class="section-title">Change Password</h3>
+                <h3 class="section-title">Parola Değiştir</h3>
 
                 <mat-form-field appearance="outline" class="form-field full-width">
-                  <mat-label>Current Password</mat-label>
+                  <mat-label>Mevcut Parola</mat-label>
                   <input matInput [type]="hidePassword ? 'password' : 'text'" formControlName="old_password">
-                  <button mat-icon-button matSuffix (click)="hidePassword = !hidePassword" [attr.aria-label]="'Hide password'" [attr.aria-pressed]="hidePassword" type="button">
+                  <button mat-icon-button matSuffix (click)="hidePassword = !hidePassword" [attr.aria-label]="'Parolayı gizle'" [attr.aria-pressed]="hidePassword" type="button">
                     <mat-icon>{{hidePassword ? 'visibility_off' : 'visibility'}}</mat-icon>
                   </button>
-                  <mat-error *ngIf="passwordForm.get('old_password')?.hasError('required')">
-                    Current password is required
-                  </mat-error>
+                  @if (passwordForm.get('old_password')?.hasError('required')) {
+                    <mat-error>Mevcut parola zorunludur</mat-error>
+                  }
                 </mat-form-field>
 
                 <mat-form-field appearance="outline" class="form-field full-width">
-                  <mat-label>New Password</mat-label>
+                  <mat-label>Yeni Parola</mat-label>
                   <input matInput [type]="hideNewPassword ? 'password' : 'text'" formControlName="new_password">
-                  <button mat-icon-button matSuffix (click)="hideNewPassword = !hideNewPassword" [attr.aria-label]="'Hide password'" [attr.aria-pressed]="hideNewPassword" type="button">
+                  <button mat-icon-button matSuffix (click)="hideNewPassword = !hideNewPassword" [attr.aria-label]="'Parolayı gizle'" [attr.aria-pressed]="hideNewPassword" type="button">
                     <mat-icon>{{hideNewPassword ? 'visibility_off' : 'visibility'}}</mat-icon>
                   </button>
-                  <mat-error *ngIf="passwordForm.get('new_password')?.hasError('required')">
-                    New password is required
-                  </mat-error>
-                  <mat-error *ngIf="passwordForm.get('new_password')?.hasError('minlength')">
-                    Password must be at least 8 characters
-                  </mat-error>
+                  @if (passwordForm.get('new_password')?.hasError('required')) {
+                    <mat-error>Yeni parola zorunludur</mat-error>
+                  }
+                  @if (passwordForm.get('new_password')?.hasError('minlength')) {
+                    <mat-error>Parola en az 8 karakter olmalıdır</mat-error>
+                  }
                 </mat-form-field>
 
                 <mat-form-field appearance="outline" class="form-field full-width">
-                  <mat-label>Confirm New Password</mat-label>
+                  <mat-label>Yeni Parolayı Onayla</mat-label>
                   <input matInput [type]="hideConfirmPassword ? 'password' : 'text'" formControlName="confirm_password">
-                  <button mat-icon-button matSuffix (click)="hideConfirmPassword = !hideConfirmPassword" [attr.aria-label]="'Hide password'" [attr.aria-pressed]="hideConfirmPassword" type="button">
+                  <button mat-icon-button matSuffix (click)="hideConfirmPassword = !hideConfirmPassword" [attr.aria-label]="'Parolayı gizle'" [attr.aria-pressed]="hideConfirmPassword" type="button">
                     <mat-icon>{{hideConfirmPassword ? 'visibility_off' : 'visibility'}}</mat-icon>
                   </button>
-                  <mat-error *ngIf="passwordForm.get('confirm_password')?.hasError('required')">
-                    Please confirm your password
-                  </mat-error>
-                  <mat-error *ngIf="passwordForm.hasError('mismatch') && !passwordForm.get('confirm_password')?.hasError('required')">
-                    Passwords do not match
-                  </mat-error>
+                  @if (passwordForm.get('confirm_password')?.hasError('required')) {
+                    <mat-error>Lütfen parolanızı onaylayın</mat-error>
+                  }
+                  @if (passwordForm.hasError('mismatch') && !passwordForm.get('confirm_password')?.hasError('required')) {
+                    <mat-error>Parolalar eşleşmiyor</mat-error>
+                  }
                 </mat-form-field>
               </div>
 
@@ -234,7 +250,7 @@
                 <div class="strength-indicator" [class.weak]="getPasswordStrength() === 'weak'"
                      [class.medium]="getPasswordStrength() === 'medium'"
                      [class.strong]="getPasswordStrength() === 'strong'">
-                  <span>Password strength: {{getPasswordStrength()}}</span>
+                  <span>Parola gücü: {{getPasswordStrength()}}</span>
                 </div>
               </div>
 
@@ -246,8 +262,12 @@
                   [disabled]="isLoading || passwordForm.invalid"
                   class="submit-button"
                 >
-                  <mat-spinner diameter="20" *ngIf="isLoading"></mat-spinner>
-                  <span *ngIf="!isLoading">Change Password</span>
+                  @if (isLoading) {
+                    <mat-spinner diameter="20"></mat-spinner>
+                  }
+                  @if (!isLoading) {
+                    <span>Parolayı Değiştir</span>
+                  }
                 </button>
 
                 <button
@@ -257,15 +277,15 @@
                   [disabled]="isLoading"
                   class="cancel-button"
                 >
-                  Clear
+                  Temizle
                 </button>
               </div>
             </form>
 
-            <!-- Şifremi Unuttum linkleri -->
+            <!-- Parolamı Unuttum linkleri -->
             <div class="forgot-password-section">
               <mat-divider></mat-divider>
-              <p class="forgot-text">Şifrenizi mi unuttunuz?</p>
+              <p class="forgot-text">Parolanızı mi unuttunuz?</p>
               <button
                 mat-stroked-button
                 color="accent"
@@ -273,7 +293,7 @@
                 (click)="openForgotPasswordDialog()"
               >
                 <mat-icon>lock_reset</mat-icon>
-                Şifremi Unuttum
+                Parolamı Unuttum
               </button>
             </div>
           </div>
@@ -283,34 +303,36 @@
         <mat-tab>
           <ng-template mat-tab-label>
             <mat-icon class="tab-icon">settings</mat-icon>
-            <span>Settings</span>
+            <span>Ayarlar</span>
           </ng-template>
 
           <div class="tab-content">
             <div class="settings-section">
-              <h3 class="section-title">Account Information</h3>
+              <h3 class="section-title">Hesap Bilgileri</h3>
 
               <div class="info-card">
                 <div class="info-item">
                   <mat-icon>verified_user</mat-icon>
                   <div>
-                    <p class="info-label">Account Type</p>
-                    <p class="info-value">{{userProfile?.is_admin ? 'Administrator' : 'Regular User'}}</p>
+                    <p class="info-label">Hesap Türü</p>
+                    <p class="info-value">{{userProfile?.is_admin ? 'Yönetici' : 'Normal Kullanıcı'}}</p>
                   </div>
                 </div>
 
-                <div class="info-item" *ngIf="userProfile?.company">
-                  <mat-icon>business</mat-icon>
-                  <div>
-                    <p class="info-label">Company</p>
-                    <p class="info-value">{{userProfile?.company?.company_name}}</p>
+                @if (userProfile?.company) {
+                  <div class="info-item">
+                    <mat-icon>business</mat-icon>
+                    <div>
+                      <p class="info-label">Şirket</p>
+                      <p class="info-value">{{userProfile?.company?.company_name}}</p>
+                    </div>
                   </div>
-                </div>
+                }
 
                 <div class="info-item">
                   <mat-icon>fingerprint</mat-icon>
                   <div>
-                    <p class="info-label">User ID</p>
+                    <p class="info-label">Kullanıcı ID</p>
                     <p class="info-value">{{userProfile?.id}}</p>
                   </div>
                 </div>
@@ -318,11 +340,11 @@
             </div>
 
             <div class="settings-section">
-              <h3 class="section-title">Danger Zone</h3>
+              <h3 class="section-title">Tehlikeli Bölge</h3>
               <div class="danger-zone">
                 <button mat-stroked-button color="warn" class="danger-button">
                   <mat-icon>delete_forever</mat-icon>
-                  Delete Account
+                  Hesabı Sil
                 </button>
               </div>
             </div>

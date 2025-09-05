@@ -42,7 +42,6 @@ import { UIStateManager } from './managers/ui-state.manager';
 import { InvoiceDataLoaderService } from './services/invoice-data-loader.service';
 import { InvoiceCalculatorService } from './services/invoice-calculator.service';
 
-import * as StepperSelectors from '../../../../../store/stepper/stepper.selectors';
 import * as StepperActions from '../../../../../store/stepper/stepper.actions';
 // Types and constants
 import {
@@ -58,13 +57,12 @@ import { Store } from '@ngrx/store';
 import {
   selectOrder, selectStep1OrderDetails, selectStep1IsDirty,
   selectStep1HasFile, selectStep1FileName,
-  selectAverageOrderDetailHeight
+  selectAverageOrderDetailHeight,selectIsStepLoading,selectIsEditMode,
 } from '../../../../../store/stepper/stepper.selectors';
 import { CompanyRelation } from '../../../../../models/company-relation.interface';
 import { Truck } from '../../../../../models/truck.interface';
 import { combineLatest } from 'rxjs';
-import { auditTime, debounceTime, distinctUntilChanged, map, takeUntil } from 'rxjs/operators';
-import { debounce } from 'lodash';
+import { debounceTime, distinctUntilChanged, map, takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'app-invoice-upload',
@@ -114,8 +112,8 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
   public isDirtySignal = this.store.selectSignal(selectStep1IsDirty);
   public hasUploadFileSignal = this.store.selectSignal(selectStep1HasFile);
   public fileNameSignal = this.store.selectSignal(selectStep1FileName);
-  public isLoadingSignal = this.store.selectSignal(StepperSelectors.selectIsStepLoading(1));
-  public isEditModeSignal = this.store.selectSignal(StepperSelectors.selectIsEditMode);
+  public isLoadingSignal = this.store.selectSignal(selectIsStepLoading(1));
+  public isEditModeSignal = this.store.selectSignal(selectIsEditMode);
 
   private readonly unitProductHeight = this.store.selectSignal(selectAverageOrderDetailHeight)
   unitsControl = new FormControl(20);
@@ -127,7 +125,7 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
   public step1FileName$ = this.store.select(selectStep1FileName);
 
   // NgRx Observables
-  public isEditMode$ = this.store.select(StepperSelectors.selectIsEditMode);
+  public isEditMode$ = this.store.select(selectIsEditMode);
 
   // Form and data
   uploadForm!: FormGroup;
@@ -150,7 +148,7 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
 
   // UI State getters
   isLoading$ = combineLatest([
-    this.store.select(StepperSelectors.selectIsStepLoading(0)),
+    this.store.select(selectIsStepLoading(0)),
     this.uiState$
   ]).pipe(
     map(([ngrxLoading, uiLoading]) => ngrxLoading || uiLoading)

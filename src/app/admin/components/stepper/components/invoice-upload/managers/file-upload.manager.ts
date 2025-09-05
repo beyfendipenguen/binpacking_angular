@@ -1,11 +1,14 @@
 import { Injectable, inject } from '@angular/core';
 import { AbstractControl, ValidationErrors } from '@angular/forms';
-import { Observable, tap, finalize } from 'rxjs';
+import { Observable, tap, finalize, EMPTY, take, switchMap } from 'rxjs';
 import { RepositoryService } from '../../../services/repository.service';
 import { FileState, FileValidationResult } from '../models/invoice-upload-interfaces';
 import { INVOICE_UPLOAD_CONSTANTS } from '../constants/invoice-upload.constants';
 import { ToastService } from '../../../../../../services/toast.service';
-
+import { Store } from '@ngrx/store';
+import { AppState } from '../../../../../../store';
+import { setFileExists } from '../../../../../../store/stepper/stepper.actions';
+import { selectFileExists } from '../../../../../../store/stepper/stepper.selectors';
 @Injectable({
   providedIn: 'root'
 })
@@ -16,6 +19,7 @@ export class FileUploadManager {
   // helper gorevi gorecek
   private readonly repositoryService = inject(RepositoryService);
   private readonly toastService = inject(ToastService);
+  private readonly store = inject(Store<AppState>);
 
   private fileState: FileState = {
     file: null,
@@ -61,6 +65,7 @@ export class FileUploadManager {
 
       if (validation.isValid) {
         this.fileState.file = file;
+        this.store.dispatch(setFileExists());
         this.toastService.success(INVOICE_UPLOAD_CONSTANTS.MESSAGES.SUCCESS.FILE_SELECTED);
         return true;
       } else {
@@ -94,8 +99,16 @@ export class FileUploadManager {
     if (!this.fileState.tempFile) {
       throw new Error('No temp file available');
     }
-
-    return this.repositoryService.uploadFile(this.fileState.tempFile, orderId);
+    return this.store.select(selectFileExists).pipe(
+    take(1),
+    switchMap(fileExists => {
+      if (fileExists && this.fileState.tempFile) {
+        this.store.dispatch(setFileExists());
+        return this.repositoryService.uploadFile(this.fileState.tempFile, orderId);
+      }
+      return EMPTY;
+    })
+  );
   }
 
   resetFileInput(): void {

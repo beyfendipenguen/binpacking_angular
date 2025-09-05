@@ -1817,7 +1817,7 @@ export class ResultStepComponent implements OnInit, OnDestroy {
     }
 
     const changeSummary = this.getDataChangeSummary();
-    const confirmMessage = '...'
+    const confirmMessage = 'Sevkiyat tamamlanacak, onaylıyor musunuz?'
 
     const confirmed = confirm(confirmMessage);
     if (!confirmed) return;

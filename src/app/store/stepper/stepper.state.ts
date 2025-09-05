@@ -7,8 +7,7 @@ export interface StepperState {
   order: any | null;
   currentStep: number;
   completedStep: number;
-
-
+  fileExists:boolean;
 
   isEditMode: boolean;
 
@@ -98,7 +97,7 @@ export const initialStepperState: StepperState = {
   order: null,
   currentStep: 1,
   completedStep:0,
-
+  fileExists:false,
 
   isEditMode: false,
 

@@ -20,6 +20,10 @@ export const selectStep2State = createSelector(
   (state) => state.step2State
 );
 
+export const selectFileExists = createSelector(
+  selectStepperState,
+  (state) => state.fileExists
+)
 
 export const selectUiPackages = createSelector(selectStepperState, (state) =>
   state.step2State.packages.map((uiPackage: any) => new UiPackage({ ...uiPackage }))

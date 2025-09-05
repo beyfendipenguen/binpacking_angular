@@ -20,11 +20,6 @@ const NAV_LIST_ITEM: INavListItem[] = [
     icon: 'home'
   },
   {
-    routerLink: ['/employees'],
-    title: 'Employees',
-    icon: 'group'
-  },
-  {
     title: 'İşlemler',
     icon: 'home',
     children: [
@@ -37,17 +32,7 @@ const NAV_LIST_ITEM: INavListItem[] = [
         routerLink: ['/products'],
         title: 'Ürün Yönetimi',
         icon: 'inventory'
-      },
-      {
-        routerLink: ['/employees'],
-        title: 'Warehouses',
-        icon: 'home'
-      },
-      {
-        routerLink: ['/logistics'],
-        title: 'Shelf',
-        icon: 'home'
-      },
+      }
     ]
   },
 ];

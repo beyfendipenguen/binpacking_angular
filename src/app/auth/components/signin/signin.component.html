@@ -98,20 +98,16 @@
       </form>
 
       <div class="quick-actions">
-        <a href="#" class="action-link">
+        <button mat-button class="action-link" (click)="openForgotPasswordDialog()">
           <mat-icon>lock_open</mat-icon>
-          Şifre Yenileme
-        </a>
-        <a href="#" class="action-link">
+          Parolamı Unuttum
+        </button>
+        <button mat-button class="action-link">
           <mat-icon>help_outline</mat-icon>
           Teknik Destek
-        </a>
+        </button>
       </div>
     </div>
 
-    <div class="system-status">
-      <span class="status-indicator"></span>
-      <span>Sistem Aktif</span>
-    </div>
   </div>
 </div>

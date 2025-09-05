@@ -13,7 +13,7 @@ import { CompanyRelation } from '../../../../models/company-relation.interface';
 
 import { Store } from '@ngrx/store';
 import { AppState } from '../../../../store';
-import * as StepperSelectors from '../../../../store/stepper/stepper.selectors';
+import {selectOrderId } from '../../../../store/stepper/stepper.selectors';
 import { UiPackage } from '../components/ui-models/ui-package.model';
 
 @Injectable({
@@ -24,7 +24,7 @@ export class RepositoryService {
 
   constructor(private api: ApiService, private http: HttpClient) { }
 
-  private getOrderId = this.store.selectSignal(StepperSelectors.selectOrderId)
+  private getOrderId = this.store.selectSignal(selectOrderId)
 
 
   orderDetails(id: string): Observable<any> {

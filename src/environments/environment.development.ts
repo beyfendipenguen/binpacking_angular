@@ -1,1 +1,1 @@
-export const environment = { pruduction:false, name: 'development'};
+export const environment = { production:false, name: 'development'};

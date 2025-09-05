@@ -141,6 +141,10 @@ export const setOrder = createAction(
   props<{ order: any }>()
 );
 
+export const setFileExists = createAction(
+  '[Stepper] Set File Exists'
+)
+
 export const setOrderDetails = createAction(
   '[Stepper] Set Order Details',
   props<{ orderDetails: any[] }>()

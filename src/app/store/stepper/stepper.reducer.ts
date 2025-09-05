@@ -338,6 +338,11 @@ export const stepperReducer = createReducer(
     };
   }),
 
+  on(StepperActions.setFileExists, (state) => ({
+    ...state,
+    fileExists: !state.fileExists
+  })),
+
   on(StepperActions.splitProduct, (state, { product, splitCount }) => {
 
     if (!(product instanceof UiProduct)) {
