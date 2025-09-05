@@ -1,5 +1,5 @@
 import { Component, inject } from '@angular/core';
-import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatFormField } from '@angular/material/form-field';
 import { MatInput } from '@angular/material/input';
 import { MatIcon } from '@angular/material/icon';
@@ -28,8 +28,8 @@ export class SigninComponent {
     public authService: AuthService
   ) {
     this.signinForm = this.fb.group({
-      username: [environment.production ? '' : ''],
-      password: [environment.production ? '' : '']
+      username: [environment.production ? '' : '',[Validators.required]],
+      password: [environment.production ? '' : '',[Validators.required]]
   });
   }
 

@@ -91,7 +91,7 @@
           </button>
         </mat-form-field>
 
-        <button class="login-button custom-button" type="submit" mat-raised-button>
+        <button class="login-button custom-button" [disabled]="signinForm.invalid" type="submit" mat-raised-button>
           Sisteme Giriş
           <mat-icon class="button-icon">keyboard_arrow_right</mat-icon>
         </button>
