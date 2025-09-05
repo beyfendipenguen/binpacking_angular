@@ -1,4 +1,12 @@
-import { Component, inject, OnInit, ChangeDetectionStrategy, ChangeDetectorRef, computed, signal, effect, AfterViewInit, OnDestroy, WritableSignal } from '@angular/core';
+import {
+  Component,
+  inject,
+  OnInit,
+  ChangeDetectionStrategy,
+  signal,
+  AfterViewInit,
+  OnDestroy,
+} from '@angular/core';
 import {
   FormBuilder,
   FormGroup,
@@ -25,16 +33,45 @@ import { UiProduct } from '../ui-models/ui-product.model';
 import { UiPallet } from '../ui-models/ui-pallet.model';
 import { UiPackage } from '../ui-models/ui-package.model';
 import { ToastService } from '../../../../../services/toast.service';
-import { LocalStorageService } from '../../services/local-storage.service';
 import { Store } from '@ngrx/store';
-import { AppState } from '../../../../../store';
-import * as StepperSelectors from '../../../../../store/stepper/stepper.selectors';
+import {
+  AppState,
+  movePalletToPackage,
+  moveProductToRemainingProducts,
+  moveRemainingProductToPackage,
+  moveUiProductInPackageToPackage,
+  moveUiProductInSamePackage,
+  palletControlSubmit,
+  remainingProductMoveProduct,
+  removeAllPackage,
+  removePackage,
+  removePalletFromPackage,
+  removeProductFromPackage,
+  splitProduct,
+} from '../../../../../store';
 
 import {
-  selectStep2Packages, selectStep2RemainingProducts, selectStep2IsDirty,
-  selectStep2Changes
+  selectStep2Packages,
+  selectStep2RemainingProducts,
+  selectStep2IsDirty,
+  selectStep2Changes,
+  selectUiPackages,
+  allDropListIds,
+  hasPackage,
+  hasRemainingProduct,
+  packageDropListIds,
+  palletDropListIds,
+  remainingProductCount,
+  selectOrder,
+  uiPackageCount,
+  selectAveragePalletWeight,
+  selectHeaviestPalletWeight,
+  selectLightestPalletWeight,
+  selectRemainingArea,
+  selectRemainingWeight,
+  selectTotalMeter,
+  selectTotalWeight,
 } from '../../../../../store/stepper/stepper.selectors';
-import * as StepperActions from '../../../../../store/stepper/stepper.actions';
 import { Subject } from 'rxjs';
 
 @Component({
@@ -55,78 +92,77 @@ import { Subject } from 'rxjs';
   ],
   templateUrl: './pallet-control.component.html',
   styleUrl: './pallet-control.component.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class PalletControlComponent implements OnInit, AfterViewInit, OnDestroy {
+export class PalletControlComponent
+  implements OnInit, AfterViewInit, OnDestroy
+{
   // Service injections
   repository: RepositoryService = inject(RepositoryService);
   toastService: ToastService = inject(ToastService);
-  private readonly localStorageService = inject(LocalStorageService);
   private readonly store = inject(Store<AppState>);
-  private readonly cdr = inject(ChangeDetectorRef);
 
-
-  uiPackages = this.store.selectSignal(StepperSelectors.selectUiPackages)
-  remainingProducts = this.store.selectSignal(StepperSelectors.selectStep2RemainingProducts)
+  uiPackages = this.store.selectSignal(selectUiPackages);
+  remainingProducts = this.store.selectSignal(selectStep2RemainingProducts);
 
   // NgRx Step2 Migration Observables
   public step2Packages$ = this.store.select(selectStep2Packages);
-  public step2RemainingProducts$ = this.store.select(selectStep2RemainingProducts);
+  public step2RemainingProducts$ = this.store.select(
+    selectStep2RemainingProducts
+  );
   public step2IsDirty$ = this.store.select(selectStep2IsDirty);
   public step2Changes$ = this.store.select(selectStep2Changes);
 
   public isDirtySignal = this.store.selectSignal(selectStep2IsDirty);
-  public orderSignal = this.store.selectSignal(StepperSelectors.selectOrder);
+  public orderSignal = this.store.selectSignal(selectOrder);
 
-  private lastPackageState: string = '';
   private autoSaveTimeout: any;
-  private isDragInProgress: boolean = false;
   private destroy$ = new Subject<void>();
 
   public availablePallets = signal<UiPallet[]>([]);
   public selectedPallets = signal<UiPallet[]>([]);
 
-  public hasPackage = this.store.selectSignal(StepperSelectors.hasPackage);
-  public uiPackageCount = this.store.selectSignal(StepperSelectors.uiPackageCount);
-  public hasRemainingProduct = this.store.selectSignal(StepperSelectors.hasRemainingProduct);
-  public remainingProductCount = this.store.selectSignal(StepperSelectors.remainingProductCount);
-  public allDropListIds = this.store.selectSignal(StepperSelectors.allDropListIds);
-  public packageDropListIds = this.store.selectSignal(StepperSelectors.packageDropListIds);
-  public palletDropListIds = this.store.selectSignal(StepperSelectors.palletDropListIds);
+  public hasPackage = this.store.selectSignal(hasPackage);
+  public uiPackageCount = this.store.selectSignal(uiPackageCount);
+  public hasRemainingProduct = this.store.selectSignal(hasRemainingProduct);
+  public remainingProductCount = this.store.selectSignal(remainingProductCount);
+  public allDropListIds = this.store.selectSignal(allDropListIds);
+  public packageDropListIds = this.store.selectSignal(packageDropListIds);
+  public palletDropListIds = this.store.selectSignal(palletDropListIds);
 
   // Form and other properties
   secondFormGroup: FormGroup;
   currentDraggedProduct: UiProduct | null = null;
 
   // Weight and dimension calculations
-  public totalWeight = this.store.selectSignal(StepperSelectors.selectTotalWeight);
+  public totalWeight = this.store.selectSignal(selectTotalWeight);
 
+  public remainingWeight = this.store.selectSignal(selectRemainingWeight);
+  public totalMeter = this.store.selectSignal(selectTotalMeter);
+  public remainingArea = this.store.selectSignal(selectRemainingArea);
 
-  public remainingWeight = this.store.selectSignal(StepperSelectors.selectRemainingWeight);
-  public totalMeter = this.store.selectSignal(StepperSelectors.selectTotalMeter);
-  public remainingArea = this.store.selectSignal(StepperSelectors.selectRemainingArea);
-
-  public heaviestPalletWeight = this.store.selectSignal(StepperSelectors.selectHeaviestPalletWeight);
-  public lightestPalletWeight = this.store.selectSignal(StepperSelectors.selectLightestPalletWeight);
-  public averagePalletWeight = this.store.selectSignal(StepperSelectors.selectAveragePalletWeight);
-
+  public heaviestPalletWeight = this.store.selectSignal(
+    selectHeaviestPalletWeight
+  );
+  public lightestPalletWeight = this.store.selectSignal(
+    selectLightestPalletWeight
+  );
+  public averagePalletWeight = this.store.selectSignal(
+    selectAveragePalletWeight
+  );
 
   // Pallet weight analytics
   constructor(private _formBuilder: FormBuilder) {
     this.secondFormGroup = this._formBuilder.group({
       secondCtrl: ['', Validators.required],
     });
-
   }
-
 
   ngOnInit(): void {
-    this.loadPallets()
+    this.loadPallets();
   }
 
-  ngAfterViewInit(): void {
-
-  }
+  ngAfterViewInit(): void {}
 
   ngOnDestroy(): void {
     this.destroy$.next();
@@ -135,8 +171,6 @@ export class PalletControlComponent implements OnInit, AfterViewInit, OnDestroy 
       clearTimeout(this.autoSaveTimeout);
     }
   }
-
-
 
   loadPallets(): void {
     this.repository.pallets().subscribe({
@@ -148,20 +182,18 @@ export class PalletControlComponent implements OnInit, AfterViewInit, OnDestroy 
 
   packageTotalWeight(pkg: UiPackage): number {
     const palletWeight = Math.floor(pkg.pallet?.weight ?? 0);
-    const productsWeight = pkg.products.reduce(
-      (total, product) => {
-        if (!this.orderSignal()) { return 0; }
-        if (this.orderSignal().weight_type == 'std') {
-          return total + Math.floor(product.weight_type.std * product.count);
-        }
-        else if (this.orderSignal().weight_type == 'eco') {
-          return total + Math.floor(product.weight_type.eco * product.count);
-        }
-        else {
-          return total + Math.floor(product.weight_type.pre * product.count);
-        }
-      }, 0
-    );
+    const productsWeight = pkg.products.reduce((total, product) => {
+      if (!this.orderSignal()) {
+        return 0;
+      }
+      if (this.orderSignal().weight_type == 'std') {
+        return total + Math.floor(product.weight_type.std * product.count);
+      } else if (this.orderSignal().weight_type == 'eco') {
+        return total + Math.floor(product.weight_type.eco * product.count);
+      } else {
+        return total + Math.floor(product.weight_type.pre * product.count);
+      }
+    }, 0);
 
     return palletWeight + productsWeight;
   }
@@ -321,45 +353,51 @@ export class PalletControlComponent implements OnInit, AfterViewInit, OnDestroy 
     return Math.floor(remainingVolume / singleProductVolume);
   }
 
-
   // Drag & Drop Event Handlers
   dropProductToPallet(event: CdkDragDrop<UiProduct[]>): void {
-
     if (event.previousContainer === event.container) {
       if (event.container.id === 'productsList') {
-        this.store.dispatch(StepperActions.remainingProductMoveProduct({
-          previousIndex: event.previousIndex,
-          currentIndex: event.currentIndex
-        }));
+        this.store.dispatch(
+          remainingProductMoveProduct({
+            previousIndex: event.previousIndex,
+            currentIndex: event.currentIndex,
+          })
+        );
       } else {
-        this.store.dispatch(StepperActions.moveUiProductInSamePackage({
-          currentIndex: event.currentIndex,
-          previousIndex: event.previousIndex,
-          containerId: event.container.id,
-        }))
+        this.store.dispatch(
+          moveUiProductInSamePackage({
+            currentIndex: event.currentIndex,
+            previousIndex: event.previousIndex,
+            containerId: event.container.id,
+          })
+        );
       }
       return;
     }
 
     // Paletten available products'a geri alma
     if (event.container.id === 'productsList') {
-      this.store.dispatch(StepperActions.moveProductToRemainingProducts({
-        uiProducts: event.previousContainer.data,
-        previousIndex: event.previousIndex,
-        previousContainerId: event.previousContainer.id
-      }))
+      this.store.dispatch(
+        moveProductToRemainingProducts({
+          uiProducts: event.previousContainer.data,
+          previousIndex: event.previousIndex,
+          previousContainerId: event.previousContainer.id,
+        })
+      );
       return;
     }
 
     // Hedef palet bulma
     const targetPalletId = event.container.id;
     const currentPackages = this.uiPackages();
-    const targetPackage = currentPackages.find(p => p.pallet && p.pallet.id === targetPalletId);
+    const targetPackage = currentPackages.find(
+      (p) => p.pallet && p.pallet.id === targetPalletId
+    );
 
     if (!targetPackage) {
-      console.error('target package bulma hatasi')
+      console.error('target package bulma hatasi');
       return;
-    };
+    }
 
     // Source container'ın palet mi yoksa productsList mi olduğunu kontrol et
     const isSourceFromPallet = event.previousContainer.id !== 'productsList';
@@ -367,57 +405,81 @@ export class PalletControlComponent implements OnInit, AfterViewInit, OnDestroy 
 
     if (isSourceFromPallet) {
       // Palet-to-palet transfer
-      const sourcePackage = currentPackages.find(pkg =>
-        pkg.pallet && pkg.pallet.id === event.previousContainer.id
+      const sourcePackage = currentPackages.find(
+        (pkg) => pkg.pallet && pkg.pallet.id === event.previousContainer.id
       );
 
       if (sourcePackage) {
         // Sığma kontrolü
         if (targetPackage.pallet) {
-          const canFit = this.canFitProductToPallet(product, targetPackage.pallet, targetPackage.products);
+          const canFit = this.canFitProductToPallet(
+            product,
+            targetPackage.pallet,
+            targetPackage.products
+          );
           if (!canFit) {
-            const fillPercentage = this.getPalletFillPercentage(targetPackage.pallet, targetPackage.products);
-            this.toastService.error(`Ürün bu palete sığmıyor. Palet doluluk: %${fillPercentage}`, 'Boyut Hatası');
+            const fillPercentage = this.getPalletFillPercentage(
+              targetPackage.pallet,
+              targetPackage.products
+            );
+            this.toastService.error(
+              `Ürün bu palete sığmıyor. Palet doluluk: %${fillPercentage}`,
+              'Boyut Hatası'
+            );
             return;
           }
         }
-        this.store.dispatch(StepperActions.moveUiProductInPackageToPackage({
-          sourcePackage: sourcePackage,
-          targetPackage: targetPackage,
-          previousIndex: event.previousIndex
-        }))
+        this.store.dispatch(
+          moveUiProductInPackageToPackage({
+            sourcePackage: sourcePackage,
+            targetPackage: targetPackage,
+            previousIndex: event.previousIndex,
+          })
+        );
         return;
       }
     }
 
     // Available products'tan palete transfer
     if (targetPackage.pallet) {
-      const canFit = this.canFitProductToPallet(product, targetPackage.pallet, targetPackage.products);
+      const canFit = this.canFitProductToPallet(
+        product,
+        targetPackage.pallet,
+        targetPackage.products
+      );
       if (!canFit) {
-        const fillPercentage = this.getPalletFillPercentage(targetPackage.pallet, targetPackage.products);
-        this.toastService.error(`Ürün bu palete sığmıyor. Palet doluluk: %${fillPercentage}`, 'Boyut Hatası');
+        const fillPercentage = this.getPalletFillPercentage(
+          targetPackage.pallet,
+          targetPackage.products
+        );
+        this.toastService.error(
+          `Ürün bu palete sığmıyor. Palet doluluk: %${fillPercentage}`,
+          'Boyut Hatası'
+        );
         return;
       }
     }
-    this.store.dispatch(StepperActions.moveRemainingProductToPackage({
-      targetPackage: targetPackage,
-      previousIndex: event.previousIndex
-    }));
-    return
+    this.store.dispatch(
+      moveRemainingProductToPackage({
+        targetPackage: targetPackage,
+        previousIndex: event.previousIndex,
+      })
+    );
+    return;
   }
 
   dropPalletToPackage(event: CdkDragDrop<any>): void {
     if (event.previousContainer === event.container) return;
-    this.store.dispatch(StepperActions.movePalletToPackage({
-      containerId: event.container.id,
-      previousIndex: event.previousIndex,
-      previousContainerData: event.previousContainer.data
-    }))
+    this.store.dispatch(
+      movePalletToPackage({
+        containerId: event.container.id,
+        previousIndex: event.previousIndex,
+        previousContainerData: event.previousContainer.data,
+      })
+    );
   }
 
   dragStarted(event: CdkDragStart): void {
-    this.isDragInProgress = true;
-
     const product = event.source.data as UiProduct;
 
     this.currentDraggedProduct = product;
@@ -488,47 +550,46 @@ export class PalletControlComponent implements OnInit, AfterViewInit, OnDestroy 
   }
 
   dragEnded(): void {
-    this.isDragInProgress = false;
     this.currentDraggedProduct = null;
 
     document.querySelectorAll('.can-drop, .cannot-drop').forEach((el) => {
       el.classList.remove('can-drop', 'cannot-drop');
     });
-
   }
 
   // Product manipulation methods
   splitProduct(product: UiProduct, splitCount?: number | null): void {
-    this.store.dispatch(StepperActions.splitProduct({ product: product, splitCount: splitCount ?? null }))
+    this.store.dispatch(
+      splitProduct({ product: product, splitCount: splitCount ?? null })
+    );
   }
 
   removeProductFromPackage(pkg: UiPackage, productIndex: number): void {
-    this.store.dispatch(StepperActions.removeProductFromPackage({
-      pkg: pkg,
-      productIndex: productIndex
-    }))
+    this.store.dispatch(
+      removeProductFromPackage({
+        pkg: pkg,
+        productIndex: productIndex,
+      })
+    );
   }
 
-
   removeAllPackage(): void {
-
-    this.store.dispatch(StepperActions.removeAllPackage())
-
+    this.store.dispatch(removeAllPackage());
   }
 
   removePackage(packageToRemove: any): void {
-    this.store.dispatch(StepperActions.removePackage({ packageToRemove: packageToRemove }))
+    this.store.dispatch(removePackage({ packageToRemove: packageToRemove }));
   }
 
   removePalletFromPackage(packageItem: UiPackage): void {
-    this.store.dispatch(StepperActions.removePalletFromPackage({
-      pkg: packageItem
-    }))
+    this.store.dispatch(
+      removePalletFromPackage({
+        pkg: packageItem,
+      })
+    );
   }
 
-
   submitForm(): void {
-    if (this.isDirtySignal())
-      this.store.dispatch(StepperActions.palletControlSubmit())
+    if (this.isDirtySignal()) this.store.dispatch(palletControlSubmit());
   }
 }

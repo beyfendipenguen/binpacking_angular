@@ -7,9 +7,6 @@ import { UiPackage } from '../../admin/components/stepper/components/ui-models/u
 import { UiPallet } from '../../admin/components/stepper/components/ui-models/ui-pallet.model';
 import { UiProduct } from '../../admin/components/stepper/components/ui-models/ui-product.model';
 
-export let cloneCount = 1;
-
-
 export const stepperReducer = createReducer(
   initialStepperState,
   on(StepperActions.setOrderDetails, (state, { orderDetails }) => ({
@@ -181,7 +178,24 @@ export const stepperReducer = createReducer(
     const targetProducts = [...targetPackage.products];
 
     const removedProduct = sourceProducts.splice(previousIndex, 1)[0];
-    targetProducts.push(removedProduct);
+    const getBaseId = (id: string) => id.split('/')[0];
+
+    const existingProductIndex = targetProducts.findIndex(p =>
+      getBaseId(p.id) === getBaseId(removedProduct.id)
+    );
+
+    if (existingProductIndex !== -1) {
+      targetProducts[existingProductIndex] = {
+        ...targetProducts[existingProductIndex],
+        id: getBaseId(targetProducts[existingProductIndex].id),
+        count: targetProducts[existingProductIndex].count + removedProduct.count
+      };
+    } else {
+      targetProducts.push({
+        ...removedProduct,
+        id: getBaseId(removedProduct.id)
+      });
+    }
 
     const updatedPackage = { ...targetPackage, products: targetProducts };
     const updatedPackages = state.step2State.packages.map(pkg =>
@@ -216,9 +230,20 @@ export const stepperReducer = createReducer(
     if (!targetPackage) return state;
 
     const originalPallet = previousContainerData[previousIndex];
+
+    const basePalletId = originalPallet.id.split('/')[0];
+
+    const existingCount = currentPackages.filter(pkg =>
+      pkg.pallet && pkg.pallet.id.startsWith(basePalletId)
+    ).length;
+
+    const newPalletId = existingCount === 0
+      ? basePalletId
+      : `${basePalletId}/${existingCount + 1}`;
+
     const palletClone = new UiPallet({
       ...originalPallet,
-      id: originalPallet.id + '/' + cloneCount++,
+      id: newPalletId,
     });
 
     const updatedPackages = currentPackages.map(pkg =>
