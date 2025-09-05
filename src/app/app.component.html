@@ -1,2 +1,4 @@
 <router-outlet />
-<app-loading></app-loading>
+@if (router.url !== '/auth/login' && router.url !== '/') {
+  <app-loading></app-loading>
+}
