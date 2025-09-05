@@ -36,8 +36,7 @@
         </div>
 
         <div class="file-upload-container">
-          <button mat-raised-button class="action-button secondary" (click)="fileInput.click()"
-            [disabled]="excelUpload">
+          <button mat-raised-button class="action-button secondary" (click)="fileInput.click()">
             <mat-icon>file_upload</mat-icon>
             <span>{{ file?.name || "Excel Dosyası Seç" }}</span>
           </button>
