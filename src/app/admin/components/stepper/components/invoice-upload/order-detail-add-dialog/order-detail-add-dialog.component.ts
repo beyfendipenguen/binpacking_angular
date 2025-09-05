@@ -171,7 +171,6 @@ export class OrderDetailAddDialogComponent implements OnInit {
         "order_id": this.orderDetailForm.value['order'],},
         orderDetail : this.orderDetailForm.value
       }
-      console.log(requestData.orderDetail)
       this.dialogRef.close(requestData);
     }
   }

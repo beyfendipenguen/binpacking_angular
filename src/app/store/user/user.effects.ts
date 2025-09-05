@@ -92,7 +92,6 @@ export class UserEffects {
       ofType(UserActions.loadUserSuccess, UserActions.updateProfileSuccess, UserActions.updateProfilePictureSuccess),
       tap(({ user }) => {
         localStorage.setItem('user', JSON.stringify(user));
-        console.log('💾 User localStorage\'a kaydedildi');
       })
     ), { dispatch: false }
   );
@@ -102,7 +101,6 @@ export class UserEffects {
       ofType(UserActions.clearUser),
       tap(() => {
         localStorage.removeItem('user');
-        console.log('🗑️ User localStorage\'dan silindi');
       })
     ), { dispatch: false }
   );

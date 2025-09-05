@@ -32,7 +32,7 @@ export class RepositoryService {
     // get order detail by order id.
     return this.http
       .get<any>(`${this.api.getApiUrl()}/orders/order-details/?order_id=${id}&limit=100`)
-      .pipe(map((response) => { console.log(response); return mapToOrderDetailDtoList(response.results) }));
+      .pipe(map((response) => { return mapToOrderDetailDtoList(response.results) }));
   }
 
   orderDetailsOriginal(id: string): Observable<any> {

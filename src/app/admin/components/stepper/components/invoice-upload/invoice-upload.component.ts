@@ -371,7 +371,6 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
   }
 
   deleteOrderDetail(id: string): void {
-    console.log("delete order detail id invoice upload", id)
     this.store.dispatch(StepperActions.deleteOrderDetail({
       orderDetailId: id
     }));
@@ -382,12 +381,10 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
     if (!this.orderSignal()?.weight_type) {
       return 0;
     }
-    console.log("total weight", this.orderSignal(), this.orderDetailsSignal())
     const total = this.calculatorService.calculateTotalWeight(
       this.orderDetailsSignal(),
       this.orderSignal()?.weight_type as WeightType
     )
-    console.log("total weight", total)
     return total.totalWeight;
   })
 

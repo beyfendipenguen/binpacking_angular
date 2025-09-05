@@ -28,8 +28,8 @@ export class SigninComponent {
     public authService: AuthService
   ) {
     this.signinForm = this.fb.group({
-      username: [environment.production ? '' : '',[Validators.required]],
-      password: [environment.production ? '' : '',[Validators.required]]
+      username: [environment.production ? '' : 'muhammed',[Validators.required]],
+      password: [environment.production ? '' : '1911Ahmet.',[Validators.required]]
   });
   }
 

@@ -28,7 +28,6 @@ export class GenericCrudService<T> {
     if (!this.apiUrl && this.api.getApiUrl()) {
       const formattedEndpoint = this.endpoint.endsWith('/') ? this.endpoint : `${this.endpoint}/`;
       this.apiUrl = `${this.api.getApiUrl()}/${formattedEndpoint}`;
-      console.log(this.apiUrl)
     }
   }
   /**

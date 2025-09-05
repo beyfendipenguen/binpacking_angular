@@ -165,14 +165,11 @@ export class StepperComponent implements OnInit , AfterViewInit{
     const localData = this.localStorageService.getStepperData();
     const localOrderId = localData?.order?.id;
     if (!editModeOrderId) {
-      console.log("edit mode bos oldugu icin direk devam edildi")
       return;
     } else if (editModeOrderId && editModeOrderId === localOrderId) {
-      console.log("editmode order id ve local order id ayni")
       this.legacyToastService.info("duzenlemek istediginiz siparis yarim kalan siparisinizdi", "edit mode ve local ayni")
       return;
     } else if (editModeOrderId) {
-      console.log('orderid ve local order id farkli edit mode aktif edildi')
       this.store.dispatch(StepperActions.enableEditMode({ orderId: editModeOrderId }));
     }
 
