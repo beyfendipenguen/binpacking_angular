@@ -27,22 +27,16 @@ export class AppComponent implements OnInit {
     this.store.dispatch(UserActions.loadUserFromStorage())
     this.store.dispatch(StepperActions.restoreLocalStorageData())
 
-    setInterval(() => {
-      console.log('🔢 Loading counter:', this.loadingService.counter, 'Loading state:', this.loadingService.loading());
-    }, 500);
-
     this.router.events.pipe(
       filter(event => event instanceof NavigationStart)
     ).subscribe((event: NavigationStart) => {
-      console.log('🚀 Navigation başladı:', event.url);
       const isAuthRoute = event.url.startsWith('/auth');
 
       if (!isAuthRoute) {
-        this.loadingService.loadingOn(); // Counter +1
+        this.loadingService.loadingOn();
       }
     });
 
-    // Navigation bittiğinde, iptal olduğunda veya hata verdiğinde
     this.router.events.pipe(
       filter(event =>
         event instanceof NavigationEnd ||
@@ -50,8 +44,7 @@ export class AppComponent implements OnInit {
         event instanceof NavigationError
       )
     ).subscribe((event) => {
-      console.log('🏁 Navigation bitti:', event);
-      this.loadingService.loadingOff(); // Counter -1
+      this.loadingService.loadingOff();
     });
   }
   }

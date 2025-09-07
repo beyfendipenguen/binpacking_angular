@@ -26,7 +26,6 @@ export class AuthGuard implements CanActivate {
           return true;
         }),
         catchError((err) => {
-          console.error('Token refresh failed:', err);
           localStorage.removeItem('refresh_token');
           localStorage.removeItem('access_token');
           return this.redirectToLogin(state.url);
@@ -53,7 +52,6 @@ export class AuthGuard implements CanActivate {
       const payload = token.split('.')[1];
       return JSON.parse(atob(payload));
     } catch (error) {
-      console.error('Invalid token format:', error);
       return null;
     }
   }
