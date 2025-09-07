@@ -1,5 +1,4 @@
 import { Routes } from '@angular/router';
-import { AuthGuard } from '../auth/auth.guard';
 import { EmployeesComponent } from './components/employees/employees.component';
 import { LogisticsComponent } from './components/logistics/logistics.component';
 import { OrdersComponent } from './components/orders/orders.component';
@@ -10,33 +9,27 @@ import { StepperComponent } from './components/stepper/stepper.component';
 const ADMIN_ROUTES: Routes = [
   {
     path: '',
-    component: StepperComponent,
-    canActivate: [AuthGuard],
+    component: StepperComponent
   },
   {
     path: 'employees',
-    component: EmployeesComponent,
-    canActivate: [AuthGuard],
+    component: EmployeesComponent
   },
   {
     path: 'logistics',
-    component: LogisticsComponent,
-    canActivate: [AuthGuard],
+    component: LogisticsComponent
   },
   {
     path: 'orders',
-    component: OrdersComponent,
-    canActivate: [AuthGuard],
+    component: OrdersComponent
   },
   {
     path: 'products',
-    component: ProductsComponent,
-    canActivate: [AuthGuard],
+    component: ProductsComponent
   },
   {
     path: 'profile',
-    component: ProfileComponent,
-    canActivate: [AuthGuard],
+    component: ProfileComponent
   },
 ];
 

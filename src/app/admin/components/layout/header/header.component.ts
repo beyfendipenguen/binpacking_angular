@@ -8,6 +8,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatDividerModule } from '@angular/material/divider';
 import { Store } from '@ngrx/store';
 import { AppState, selectOrder, selectOrderId, selectUser } from '../../../../store';
+import { AuthService } from '../../../../auth/services/auth.service';
 
 @Component({
   selector: 'app-header',
@@ -25,6 +26,7 @@ export class HeaderComponent implements OnInit {
   companyLogo: string = 'assets/icons/bedisa.png';
 
   private readonly store = inject(Store<AppState>);
+  private readonly authService = inject(AuthService)
   user$ = this.store.select(selectUser);
   order = this.store.selectSignal(selectOrderId);
 
@@ -47,10 +49,7 @@ export class HeaderComponent implements OnInit {
   }
 
   logout() {
-    localStorage.clear();
-    this.router.navigate(['auth/login']).then(() => {
-      window.location.reload();
-    });
+    this.authService.doLogout()
   }
 
 }

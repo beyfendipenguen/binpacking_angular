@@ -3,14 +3,9 @@ import AUTH_ROUTES from './auth/auth.routes';
 import ADMIN_ROUTES from './admin/admin.routes';
 import { LayoutComponent } from './admin/components/layout/layout.component';
 import { ErrorComponent } from './components/error/error.component';
-
+import { AuthGuard } from './auth/auth.guard'; // ← BU SATIRI EKLEYİN
 
 export const routes: Routes = [
-    {
-        pathMatch: 'full',
-        path: '',
-        redirectTo: ''
-    },
     {
         path: 'auth',
         children: AUTH_ROUTES
@@ -18,6 +13,7 @@ export const routes: Routes = [
     {
         path: '',
         component: LayoutComponent,
+        canActivate: [AuthGuard],
         children: ADMIN_ROUTES
     },
     {
@@ -25,6 +21,7 @@ export const routes: Routes = [
         component: ErrorComponent,
     },
     {
-        path: '**', redirectTo: 'error'
+        path: '**',
+        redirectTo: '/auth/login'
     },
 ];

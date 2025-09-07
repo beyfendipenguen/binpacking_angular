@@ -1,13 +1,14 @@
 import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
-import { inject, Injectable, Signal } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { User } from '../models/user.model';
-import { catchError, map, Observable, take, throwError } from 'rxjs';
+import { catchError, Observable, take, throwError } from 'rxjs';
 import { Router } from '@angular/router';
 import { ApiService } from '../../services/api.service';
 import { ToastService } from '../../services/toast.service';
 import { Store } from '@ngrx/store';
 import { AppState, loadUser, loadUserSuccess } from '../../store';
 import { Actions, ofType } from '@ngrx/effects';
+import { resetStepper } from '../../store';
 
 @Injectable({
   providedIn: 'root'
@@ -78,6 +79,11 @@ export class AuthService {
   doLogout(): void {
     localStorage.removeItem('access_token');
     localStorage.removeItem('refresh_token');
+    localStorage.removeItem('redirectUrlAfterLogin')
+    localStorage.removeItem('invoice_reference_data')
+    localStorage.removeItem('enhanced_stepper_draft_data')
+    localStorage.removeItem('user')
+    this.store.dispatch(resetStepper());
     this.router.navigate(['/auth/login']);
   }
 
