@@ -1,4 +1,4 @@
-import { createFeatureSelector, createSelector } from '@ngrx/store';
+import { createFeatureSelector, createSelector, MemoizedSelector } from '@ngrx/store';
 import { StepperState } from './stepper.state';
 import { Order } from '../../models/order.interface';
 import { UiPackage } from '../../admin/components/stepper/components/ui-models/ui-package.model';
@@ -273,6 +273,17 @@ export const selectAnyStepLoading = createSelector(
 
 export const selectOrder = createSelector(selectStepperState, (stepper) => stepper.order)
 
+export const selectTruck: MemoizedSelector<any, [number, number, number]> = createSelector(
+  selectOrder,
+  (order) =>
+    order.truck
+      ? [
+          toInteger(order.truck.dimension.width),
+          toInteger(order.truck.dimension.depth),
+          toInteger(order.truck.dimension.height)
+        ]
+      : [0, 0, 0]
+);
 
 export const selectOrderId = createSelector(selectOrder, (order) => order?.id)
 

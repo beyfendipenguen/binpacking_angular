@@ -24,10 +24,8 @@ import { ThreeJSTruckVisualizationComponent } from '../../../../../components/th
 import { OrderResultService } from '../../../services/order-result.service';
 
 import { Store } from '@ngrx/store';
-import { AppState } from '../../../../../store';
-import * as StepperSelectors from '../../../../../store/stepper/stepper.selectors';
-import * as StepperActions from '../../../../../store/stepper/stepper.actions';
-
+import { AppState, forceSave, resetStepper, selectAutoSaveStatusText, selectIsEditMode, selectOrderId, selectStepAutoSaveStatus, selectStepHasPendingChanges, selectStepperSummary, setGlobalError, setStepCompleted, setStepLoading, setStepValidation, triggerAutoSave, updateStep3OptimizationResult } from '../../../../../store';
+import { selectTruck } from '../../../../../store';
 
 interface PackageData {
   id: number;
@@ -93,10 +91,11 @@ export class ResultStepComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
   private isDestroyed = false;
   public processingLock = false;
+  private readonly store = inject(Store<AppState>);
 
   piecesData: any[] = [];
   originalPiecesData: any[] = []; // NEW: Track original data
-  truckDimension: number[] = [13200, 2200, 2900];
+  truckDimension = this.store.selectSignal(selectTruck)
   orderResultId: string = '';
   loadingStats: LoadingStats = {
     totalPackages: 0,
@@ -141,15 +140,13 @@ export class ResultStepComponent implements OnInit, OnDestroy {
   private readonly cdr = inject(ChangeDetectorRef);
   orderResultService = inject(OrderResultService)
 
-  private readonly store = inject(Store<AppState>);
-
   // NgRx Observables
-  public isEditMode$ = this.store.select(StepperSelectors.selectIsEditMode);
-  public editOrderId$ = this.store.select(StepperSelectors.selectOrderId);
-  public stepperSummary$ = this.store.select(StepperSelectors.selectStepperSummary);
-  public autoSaveStatus$ = this.store.select(StepperSelectors.selectStepAutoSaveStatus(2));
-  public autoSaveStatusText$ = this.store.select(StepperSelectors.selectAutoSaveStatusText(2));
-  public hasPendingChanges$ = this.store.select(StepperSelectors.selectStepHasPendingChanges(2));
+  public isEditMode$ = this.store.select(selectIsEditMode);
+  public editOrderId$ = this.store.select(selectOrderId);
+  public stepperSummary$ = this.store.select(selectStepperSummary);
+  public autoSaveStatus$ = this.store.select(selectStepAutoSaveStatus(2));
+  public autoSaveStatusText$ = this.store.select(selectAutoSaveStatusText(2));
+  public hasPendingChanges$ = this.store.select(selectStepHasPendingChanges(2));
 
   private lastResultState: string = '';
   private resultAutoSaveTimeout: any;
@@ -227,7 +224,7 @@ export class ResultStepComponent implements OnInit, OnDestroy {
         changeType: changeType
       };
 
-      this.store.dispatch(StepperActions.triggerAutoSave({
+      this.store.dispatch(triggerAutoSave({
         stepNumber: 2,
         data: SaveData,
         changeType: changeType
@@ -278,7 +275,7 @@ export class ResultStepComponent implements OnInit, OnDestroy {
       };
 
       this.hasUnsavedChanges = false;
-      this.store.dispatch(StepperActions.setStepCompleted({ stepIndex: 2 }));
+      this.store.dispatch(setStepCompleted({ stepIndex: 2 }));
     } catch (error) {
       this.toastService.error('Sonuçlar kaydedilemedi');
     }
@@ -321,7 +318,7 @@ export class ResultStepComponent implements OnInit, OnDestroy {
     }
     this.processingLock = true;
     this.safeResetState();
-    this.store.dispatch(StepperActions.setStepLoading({
+    this.store.dispatch(setStepLoading({
       stepIndex: 2,
       loading: true,
       operation: 'Calculating bin packing optimization'
@@ -355,7 +352,7 @@ export class ResultStepComponent implements OnInit, OnDestroy {
         finalize(() => {
           this.processingLock = false;
           this.stopProgressSimulation();
-          this.store.dispatch(StepperActions.setStepLoading({
+          this.store.dispatch(setStepLoading({
             stepIndex: 2,
             loading: false
           }));
@@ -379,7 +376,7 @@ export class ResultStepComponent implements OnInit, OnDestroy {
         error: (error) => {
           if (!this.isDestroyed) {
             // Global error dispatch et
-            this.store.dispatch(StepperActions.setGlobalError({
+            this.store.dispatch(setGlobalError({
               error: {
                 message: 'Optimizasyon hesaplaması sırasında hata oluştu: ' + (error.message || error),
                 code: error.status?.toString(),
@@ -407,7 +404,7 @@ export class ResultStepComponent implements OnInit, OnDestroy {
 
       const changeEvent = this.analyzeDataChanges(this.piecesData, validatedData);
       this.piecesData = validatedData;
-      this.store.dispatch(StepperActions.updateStep3OptimizationResult({
+      this.store.dispatch(updateStep3OptimizationResult({
         optimizationResult: validatedData
       }));
 
@@ -656,7 +653,7 @@ export class ResultStepComponent implements OnInit, OnDestroy {
         timestamp: new Date().toISOString()
       };
 
-      this.store.dispatch(StepperActions.forceSave({
+      this.store.dispatch(forceSave({
         stepNumber: 2,
         data: SaveData
       }));
@@ -778,9 +775,9 @@ export class ResultStepComponent implements OnInit, OnDestroy {
 
     try {
       const totalVolume =
-        this.truckDimension[0] *
-        this.truckDimension[1] *
-        this.truckDimension[2];
+        this.truckDimension()[0] *
+        this.truckDimension()[1] *
+        this.truckDimension()[2];
 
       const usedVolume = this.processedPackages.reduce(
         (sum, pkg) => sum + pkg.length * pkg.width * pkg.height,
@@ -838,9 +835,9 @@ export class ResultStepComponent implements OnInit, OnDestroy {
       const cogY = weightedY / totalWeight;
       const cogZ = weightedZ / totalWeight;
 
-      const idealX = this.truckDimension[0] / 2;
-      const idealY = this.truckDimension[1] / 2;
-      const idealZ = this.truckDimension[2] * 0.4;
+      const idealX = this.truckDimension()[0] / 2;
+      const idealY = this.truckDimension()[1] / 2;
+      const idealZ = this.truckDimension()[2] * 0.4;
 
       const distance = Math.sqrt(
         Math.pow(cogX - idealX, 2) +
@@ -849,9 +846,9 @@ export class ResultStepComponent implements OnInit, OnDestroy {
       );
 
       const maxDistance = Math.sqrt(
-        Math.pow(this.truckDimension[0] / 2, 2) +
-        Math.pow(this.truckDimension[1] / 2, 2) +
-        Math.pow(this.truckDimension[2] * 0.6, 2)
+        Math.pow(this.truckDimension()[0] / 2, 2) +
+        Math.pow(this.truckDimension()[1] / 2, 2) +
+        Math.pow(this.truckDimension()[2] * 0.6, 2)
       );
 
       const score = Math.round(Math.max(0, 100 - (distance / maxDistance) * 100));
@@ -869,8 +866,8 @@ export class ResultStepComponent implements OnInit, OnDestroy {
     this.showVisualization = true;
     this.hasThreeJSError = false;
 
-    this.store.dispatch(StepperActions.setStepCompleted({ stepIndex: 2 }));
-    this.store.dispatch(StepperActions.setStepValidation({ stepIndex: 2, isValid: true }));
+    this.store.dispatch(setStepCompleted({ stepIndex: 2 }));
+    this.store.dispatch(setStepValidation({ stepIndex: 2, isValid: true }));
 
     this.safeUpdateUI();
     this.toastService.success(' paketleme ve rapor başarıyla oluşturuldu.');
@@ -1595,7 +1592,7 @@ export class ResultStepComponent implements OnInit, OnDestroy {
             //  control functions
             function rotateView(deltaX, deltaY) {
               const spherical = new THREE.Spherical();
-              const target = new THREE.Vector3(${this.truckDimension[0]/2}, ${this.truckDimension[1]/2}, ${this.truckDimension[2]/2});
+              const target = new THREE.Vector3(${this.truckDimension()[0]/2}, ${this.truckDimension()[1]/2}, ${this.truckDimension()[2]/2});
 
               spherical.setFromVector3(camera.position.clone().sub(target));
               spherical.theta -= deltaX;
@@ -1606,7 +1603,7 @@ export class ResultStepComponent implements OnInit, OnDestroy {
             }
 
             function setView(viewType) {
-              const truckDim = [${this.truckDimension.join(', ')}];
+              const truckDim = [${this.truckDimension().join(', ')}];
               const maxDim = Math.max(...truckDim);
               const distance = maxDim * 1.5;
               const target = new THREE.Vector3(truckDim[0]/2, truckDim[1]/2, truckDim[2]/2);
@@ -1825,7 +1822,7 @@ export class ResultStepComponent implements OnInit, OnDestroy {
     try {
       this.saveResultsToSession();
       this.localStorageService.clearStorage();
-      this.store.dispatch(StepperActions.resetStepper());
+      this.store.dispatch(resetStepper());
       this.resetComponentState();
 
       this.toastService.success(

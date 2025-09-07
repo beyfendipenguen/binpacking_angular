@@ -226,7 +226,7 @@
 
     <!-- ENHANCED: ThreeJS Truck Visualization Component with NEW dataChanged event -->
     <app-threejs-truck-visualization *ngIf="hasResults && showVisualization && !hasThreeJSError" #threeJSComponent
-      [piecesData]="piecesData" [truckDimension]="truckDimension" [showHelp]="true"
+      [piecesData]="piecesData" [truckDimension]="truckDimension()" [showHelp]="true"
       (packageSelected)="onPackageSelected($event)" (viewChanged)="onViewChanged($event)"
       (dataChanged)="onDataChanged($event)" (error)="onThreeJSError($event)" (ready)="onThreeJSReady()">
     </app-threejs-truck-visualization>
