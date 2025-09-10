@@ -2,6 +2,13 @@ import { createAction, props } from '@ngrx/store';
 import { UiProduct } from '../../admin/components/stepper/components/ui-models/ui-product.model';
 import { UiPackage } from '../../admin/components/stepper/components/ui-models/ui-package.model';
 
+
+export const addUiProductToRemainingProducts = createAction(
+  '[Stepper] Add Ui Product To Remaining Products',
+  props<{ product: UiProduct }>()
+);
+
+
 export const calculatePackageDetail = createAction(
   '[Stepper] Calculate Package Detail'
 );
@@ -237,9 +244,8 @@ export const setStepLoading = createAction(
 );
 
 // StateManager Migration Actions
-export const initializeStep1State = createAction(
-  '[Migration] Initialize Step1 State',
-  props<{ order: any; orderDetails: any[]; hasFile: boolean; fileName?: string }>()
+export const resetStep1State = createAction(
+  '[Migration] Initialize Step1 State'
 );
 
 

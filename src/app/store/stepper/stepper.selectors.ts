@@ -25,6 +25,7 @@ export const selectFileExists = createSelector(
   (state) => state.fileExists
 )
 
+
 export const selectUiPackages = createSelector(selectStepperState, (state) =>
   state.step2State.packages.map((uiPackage: any) => new UiPackage({ ...uiPackage }))
 );
@@ -325,6 +326,11 @@ export const selectStep1Changes = createSelector(
 export const selectStep1IsDirty = createSelector(
   selectStep1State,
   (step1State) => step1State.isDirty
+);
+
+export const selectIsOnlyOrderDirty = createSelector(
+  selectStep1State,
+  (step1State) => step1State.isOnlyOrderDirty
 );
 
 export const selectStep1HasFile = createSelector(

@@ -30,9 +30,14 @@ export class UiPackage implements IUiPackage {
     this.name = init.name!;
     this.isSavedInDb = init.isSavedInDb || false;
     this.products = init.products || [];
+    this.is_remaining = init.is_remaining || true;
+
     // Initialize products signal
     this._products = signal(init.products || []);
   }
+  is_remaining: boolean;
+  pallet_id?: string | undefined;
+  order_id?: string | undefined;
 
   // Signal-based reactive state
   private _products: WritableSignal<IUiProduct[]> = signal([]);

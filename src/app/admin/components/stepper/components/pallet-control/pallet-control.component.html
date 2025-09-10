@@ -183,10 +183,17 @@
                     <span class="product-name">{{ product.name }}</span>
                     <span class="product-count">{{ product.count }} Adet</span>
                   </div>
+                  <div class="button-container">
+
+                  <button  mat-icon-button class="action-button" (click)="addUiProduct(product)"
+                    matTooltip="ekle">
+                    <mat-icon>add</mat-icon>
+                  </button>
                   <button mat-icon-button class="action-button" (click)="removeProductFromPackage(package, j)"
                     matTooltip="Ürünü çıkar">
                     <mat-icon>close</mat-icon>
                   </button>
+                  </div>
                 </div>
 
                 <!-- Boş palet mesajı -->

@@ -35,6 +35,7 @@ import { UiPackage } from '../ui-models/ui-package.model';
 import { ToastService } from '../../../../../services/toast.service';
 import { Store } from '@ngrx/store';
 import {
+  addUiProductToRemainingProducts,
   AppState,
   movePalletToPackage,
   moveProductToRemainingProducts,
@@ -586,7 +587,13 @@ export class PalletControlComponent
       removePalletFromPackage({
         pkg: packageItem,
       })
-    );
+    )
+  }
+
+  addUiProduct(product: UiProduct){
+    console.log(product.name)
+    this.store.dispatch(addUiProductToRemainingProducts({product:product}))
+
   }
 
   submitForm(): void {

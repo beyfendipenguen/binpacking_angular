@@ -7,6 +7,7 @@ import { IUiProduct } from "./ui-product.interface";
 export interface IUiPackage extends Package {
   pallet: IUiPallet | null;
   products: IUiProduct[];
+  is_remaining : boolean;
 
   readonly totalMeter: Signal<number>;
   readonly totalVolume: Signal<number>;

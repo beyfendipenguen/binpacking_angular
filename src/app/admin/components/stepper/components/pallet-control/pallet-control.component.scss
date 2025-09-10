@@ -548,15 +548,23 @@ form {
   @include split-button-base($split-button-size);
 }
 
+.button-container{
+  display: flex;
+  gap: 6px;
+}
+
 .action-button {
-  width: 28px;
-  height: 28px;
-  line-height: 28px;
+  width: 20px;
+  height: 20px;
+  line-height: 20px;
   color: $text-light;
+  position: relative; // z-index için
+  padding: 0;
 
   &:hover {
     color: $primary-color;
     background-color: rgba(0, 106, 106, 0.1);
+    z-index: 1; // diğer butonun üzerine çıkmasını önler
   }
 
   mat-icon {
@@ -564,7 +572,10 @@ form {
     width: 16px;
     height: 16px;
     line-height: 16px;
+    display: block;
+    margin: auto;
     color: $secondary-color;
+    pointer-events: none; // icon hover ile tetiklenmesin
   }
 
   &:hover mat-icon {

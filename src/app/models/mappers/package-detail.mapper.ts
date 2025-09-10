@@ -122,7 +122,8 @@ export function mapPackageToPackageDetail(uiPackageList: UiPackage[]): PackageDe
           id: uiPackage.id || Guid(), // Eğer ID yoksa yeni bir ID oluştur
           name: uiPackage.name,
           pallet:uiPackage.pallet,
-          order:uiPackage.order
+          order:uiPackage.order,
+          is_remaining:uiPackage.is_remaining
         };
 
         // Pallet için ID referansı kullan (eğer varsa)

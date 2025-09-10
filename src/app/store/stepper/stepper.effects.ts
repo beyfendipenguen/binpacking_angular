@@ -240,6 +240,7 @@ export class StepperEffects {
         StepperActions.removeAllPackage,
         StepperActions.removePalletFromPackage,
         StepperActions.removePackage,
+        StepperActions.addUiProductToRemainingProducts,
 
       ),
       map(() => StepperActions.stepperStepUpdated())

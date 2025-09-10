@@ -8,4 +8,5 @@ export interface OrderDetail extends ZeroModel{
   count: number;
   unit_price: number;
   total_price: number;
+  remaining_count: number;
 }

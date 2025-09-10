@@ -6,6 +6,8 @@ import { mapPackageDetailToPackage } from '../../models/mappers/package-detail.m
 import { UiPackage } from '../../admin/components/stepper/components/ui-models/ui-package.model';
 import { UiPallet } from '../../admin/components/stepper/components/ui-models/ui-pallet.model';
 import { UiProduct } from '../../admin/components/stepper/components/ui-models/ui-product.model';
+import { isEqual } from 'lodash-es';
+import { mode } from 'd3';
 
 export const stepperReducer = createReducer(
   initialStepperState,
@@ -28,6 +30,25 @@ export const stepperReducer = createReducer(
       }
     }
   )),
+  on(StepperActions.addUiProductToRemainingProducts, (state, { product }) => {
+    const remainingProducts = state.step2State.remainingProducts;
+    const getBaseId = (id: string) => id.split('/')[0];
+    const productToAddBaseId = getBaseId(product.id);
+
+    // Check if a product with the same base ID already exists.
+    const alreadyExists = remainingProducts.some(p => getBaseId(p.id) === productToAddBaseId);
+
+    if (alreadyExists) {
+      // If a product with the same base ID exists, do nothing as per the original logic's intent.
+      return state;
+    }
+    const newProduct = new UiProduct({
+      ...product,
+      count: 1,
+    });
+
+    return { ...state, step2State: { ...state.step2State, remainingProducts: [...remainingProducts, newProduct], isDirty: true } };
+  }),
 
   on(StepperActions.calculatePackageDetailSuccess, (state, { packages, remainingOrderDetails }) => (
     {
@@ -150,14 +171,21 @@ export const stepperReducer = createReducer(
 
   on(StepperActions.setOrder, (state, { order }) => ({
     ...state,
-    order: order
+    order: order,
+    step1State: {
+      ...state.step1State,
+      isOnlyOrderDirty:true
+    }
   })),
 
   on(StepperActions.updateOrCreateOrderSuccess, (state, { order }) => ({
     ...state,
-    order: order
+    order: order,
+    step1State: {
+      ...state.step1State,
+      isOnlyOrderDirty:false
+    }
   })),
-
 
   on(StepperActions.setUiPackages, (state, { packages }) => {
 
@@ -631,17 +659,18 @@ export const stepperReducer = createReducer(
     }
   })),
 
-  on(StepperActions.initializeStep1State, (state, { order, orderDetails, hasFile, fileName }) => ({
+  on(StepperActions.resetStep1State, (state ) => ({
     ...state,
     step1State: {
-      orderDetails: [...orderDetails],
-      originalOrderDetails: [...orderDetails],
+      orderDetails: [],
+      originalOrderDetails: [],
       added: [],
       modified: [],
       deleted: [],
-      hasFile,
-      fileName,
-      isDirty: false
+      hasFile: false,
+      fileName: undefined,
+      isDirty: false,
+      isOnlyOrderDirty: false
     }
   })),
 
@@ -656,7 +685,8 @@ export const stepperReducer = createReducer(
       deleted: [],
       hasFile,
       fileName,
-      isDirty: true // File upload'ta dirty true
+      isDirty: true,
+      isOnlyOrderDirty: false
     }
   })),
 
@@ -671,27 +701,36 @@ export const stepperReducer = createReducer(
   })),
 
   on(StepperActions.updateOrderDetail, (state, { orderDetail }) => {
+    const originalDetail = state.step1State.originalOrderDetails.find(item => item.id === orderDetail.id);
+
+    // Use lodash's isEqual for a robust deep comparison.
+    // If objects are identical, no need to update state or mark as dirty.
+
     const orderDetails = state.step1State.orderDetails.map(detail =>
       detail.id === orderDetail.id ? orderDetail : detail
     );
 
-    const isOriginal = state.step1State.originalOrderDetails.some(item => item.id === orderDetail.id);
+    const isOriginal = !!originalDetail;
     const isAlreadyModified = state.step1State.modified.some(item => item.id === orderDetail.id);
 
     let modified = [...state.step1State.modified];
-    if (isOriginal && !isAlreadyModified) {
+    if (isOriginal && !isAlreadyModified && !isEqual(originalDetail, orderDetail)) {
       modified.push(orderDetail);
     } else if (isAlreadyModified) {
       modified = modified.map(item => item.id === orderDetail.id ? orderDetail : item);
     }
 
+    const isDirty = modified.length > 0 || state.step1State.added.length > 0 || state.step1State.deleted.length > 0 ? true : false 
+    if (!isDirty) {
+      return state;
+    }
     return {
       ...state,
       step1State: {
         ...state.step1State,
         orderDetails,
         modified,
-        isDirty: true
+        isDirty, 
       }
     };
   }),
