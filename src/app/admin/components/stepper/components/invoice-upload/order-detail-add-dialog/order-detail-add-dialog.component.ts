@@ -103,42 +103,6 @@ export class OrderDetailAddDialogComponent implements OnInit {
           this.filteredProducts = products;
         }
       });
-
-
-  }
-
-  // Search using dimension filter form
-  searchByDimensions(): void {
-    this.isLoading = true;
-    this.hasError = false;
-
-    const width = this.dimensionSearchForm.get('width')?.value;
-    const height = this.dimensionSearchForm.get('height')?.value;
-    const depth = this.dimensionSearchForm.get('depth')?.value;
-
-    // At least one dimension must be entered
-    if (!width && !height && !depth) {
-      this.hasError = true;
-      this.errorMessage = 'En az bir boyut değeri girilmelidir.';
-      this.isLoading = false;
-      return;
-    }
-
-    this.productService.searchByDimensions(width, height, depth, 10)
-      .pipe(
-        catchError(error => {
-          this.hasError = true;
-          this.errorMessage = 'Boyutlara göre arama sırasında bir hata oluştu.';
-
-          return of([]);
-        }),
-        finalize(() => {
-          this.isLoading = false;
-        })
-      )
-      .subscribe(products => {
-        this.filteredProducts = products;
-      });
   }
 
   displayProductFn(product: any): string {

@@ -1,12 +1,9 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpContext, HttpParams } from '@angular/common/http';
 import { catchError, map, Observable } from 'rxjs';
 import { GenericCrudService } from '../../../services/generic-crud.service';
 import { Product } from '../../../models/product.interface';
-import { ProductType } from '../../../models/product-type.interface';
-import { Dimension } from '../../../models/dimension.interface';
-import { WeightType } from '../../../models/weight-type.interface';
-import { ApiService } from '../../../services/api.service';
+import { SKIP_LOADING } from '../../../components/loading/skip-loading.token';
 
 @Injectable({
   providedIn: 'root'
@@ -34,8 +31,8 @@ export class ProductService extends GenericCrudService<Product> {
       let params = new HttpParams()
         .set('search', query)
         .set('limit', limit.toString());
-
-      return this.http.get<any>(`${this.apiUrl}`, { params })
+      let context = new HttpContext().set(SKIP_LOADING,true)
+      return this.http.get<any>(`${this.apiUrl}`, { params,context })
         .pipe(
           map(response => {
             // API'den bir sayfalama yanıtı gelirse (paginated response) "results" alanını kullan

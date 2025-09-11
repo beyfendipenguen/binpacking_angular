@@ -7,7 +7,6 @@ import { UiPackage } from '../../admin/components/stepper/components/ui-models/u
 import { UiPallet } from '../../admin/components/stepper/components/ui-models/ui-pallet.model';
 import { UiProduct } from '../../admin/components/stepper/components/ui-models/ui-product.model';
 import { isEqual } from 'lodash-es';
-import { mode } from 'd3';
 
 export const stepperReducer = createReducer(
   initialStepperState,
@@ -569,6 +568,77 @@ export const stepperReducer = createReducer(
     return state;
   }),
 
+  on(StepperActions.updateProductCountAndCreateOrUpdateOrderDetail,(state, {product, newCount}) => {
+    const productId = product.id.split('/')[0];
+
+    const existingOrderDetailIndex = state.step1State.orderDetails.findIndex(
+      orderDetail => orderDetail.product.id === productId
+    );
+
+    if(existingOrderDetailIndex !== -1){
+      const existingOrderDetail = state.step1State.orderDetails[existingOrderDetailIndex]
+      const updatedOrderDetail = {
+        ...existingOrderDetail,
+        count: newCount + existingOrderDetail.count
+      }
+
+      const updatedOrderDetails = [...state.step1State.orderDetails];
+      updatedOrderDetails[existingOrderDetailIndex] = updatedOrderDetail;
+
+      const modifiedIndex = state.step1State.modified.findIndex(
+        item => item.product.id === productId
+      );
+
+      const updatedModified = modifiedIndex !== -1
+      ? state.step1State.modified.map(item =>
+          item.product.id === productId ? updatedOrderDetail : item
+        )
+      : [...state.step1State.modified, updatedOrderDetail];
+
+      return {
+        ...state,
+        step1State: {
+          ...state.step1State,
+          orderDetails: updatedOrderDetails,
+          modified: updatedModified
+        },
+        step2State:{
+          ...state.step2State,
+          remainingProducts:[...state.step2State.remainingProducts, product]
+        }
+    }
+    }
+    else{
+      //Burada product yok elimizde ne yapacagiz bilemedim. simdilik boyle dursun
+      //Bu haliyle calismaz.
+      const newOrderDetail = {
+        id: Guid(),
+        product: product,
+        count: newCount,
+        unit_price: 1
+      };
+
+      const newUiProduct: UiProduct = new UiProduct({
+        ...product,
+        count: newCount,
+      })
+
+      return {
+        ...state,
+        step1State: {
+          ...state.step1State,
+          orderDetails: [...state.step1State.orderDetails, newOrderDetail],
+          added: [...state.step1State.added, newOrderDetail]
+        },
+        step2State:{
+          ...state.step2State,
+          remainingProducts:[...state.step2State.remainingProducts,newUiProduct]
+        }
+      }
+    }
+
+  }),
+
   on(StepperActions.navigateToStep, (state, { stepIndex }) => ({
     ...state,
     currentStep: stepIndex,
@@ -720,7 +790,7 @@ export const stepperReducer = createReducer(
       modified = modified.map(item => item.id === orderDetail.id ? orderDetail : item);
     }
 
-    const isDirty = modified.length > 0 || state.step1State.added.length > 0 || state.step1State.deleted.length > 0 ? true : false 
+    const isDirty = modified.length > 0 || state.step1State.added.length > 0 || state.step1State.deleted.length > 0 ? true : false
     if (!isDirty) {
       return state;
     }
@@ -730,7 +800,7 @@ export const stepperReducer = createReducer(
         ...state.step1State,
         orderDetails,
         modified,
-        isDirty, 
+        isDirty,
       }
     };
   }),

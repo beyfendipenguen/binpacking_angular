@@ -225,6 +225,160 @@ form {
 }
 
 /* =====================
+   SEARCH CONTAINER - ESKİ CSS KORUNDU
+===================== */
+.search-container {
+  padding: 0;
+  margin: 0;
+  background-color: transparent;
+  border-bottom: 1px solid $border-color;
+}
+
+.search-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background-color: $white;
+  border: 1px solid $border-color;
+  border-radius: 0;
+  transition: all 0.3s ease;
+  overflow: hidden;
+  margin: 0;
+
+  &:hover {
+    border-color: $primary-color;
+  }
+
+  &:focus-within {
+    border-color: $primary-color;
+    box-shadow: 0 0 0 1px rgba(0, 106, 106, 0.2);
+  }
+}
+
+.search-icon {
+  color: $text-light;
+  font-size: 18px !important;
+  width: 18px !important;
+  height: 18px !important;
+  margin-left: 12px;
+  margin-right: 8px;
+  flex-shrink: 0;
+  transition: color 0.3s ease;
+
+  .search-input-wrapper:focus-within & {
+    color: $primary-color;
+  }
+}
+
+.search-spinner {
+  margin-left: 12px !important;
+  margin-right: 8px !important;
+  flex-shrink: 0;
+
+  ::ng-deep .mat-mdc-progress-spinner circle {
+    stroke: $primary-color !important;
+  }
+}
+
+.search-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  padding: 12px 8px;
+  font-size: 14px;
+  color: $text-dark;
+  background-color: transparent;
+  margin: 0;
+
+  &::placeholder {
+    color: $text-light;
+    font-style: italic;
+  }
+}
+
+.clear-search {
+  width: 32px !important;
+  height: 32px !important;
+  margin-right: 4px;
+  color: $text-light;
+  flex-shrink: 0;
+
+  &:hover {
+    background-color: rgba(0, 106, 106, 0.1);
+    color: $primary-color;
+  }
+
+  mat-icon {
+    font-size: 16px !important;
+    width: 16px !important;
+    height: 16px !important;
+  }
+}
+
+/* =====================
+   AUTOCOMPLETE PANEL DÜZELTİLMİŞ
+===================== */
+::ng-deep {
+  .search-autocomplete.mat-mdc-autocomplete-panel {
+    border-radius: 0 !important;
+    border: 1px solid $border-color !important;
+    border-top: none !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+    background-color: $white !important;
+
+    .mat-mdc-option {
+      min-height: 40px !important;
+      padding: 12px 16px !important;
+      font-size: 14px !important;
+      color: $text-dark !important;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.05) !important;
+      transition: all 0.3s ease !important;
+
+      &:last-child {
+        border-bottom: none !important;
+      }
+
+      &:hover:not(.mat-mdc-option-disabled) {
+        background-color: rgba(0, 106, 106, 0.1) !important;
+        color: $primary-color !important;
+      }
+
+      &.mat-mdc-option-active {
+        background-color: rgba(0, 106, 106, 0.15) !important;
+        color: $primary-color !important;
+      }
+
+      &.mat-mdc-option-disabled {
+        color: $text-light !important;
+        font-style: italic !important;
+      }
+
+      &.loading-indicator {
+        display: flex !important;
+        align-items: center !important;
+        gap: 8px !important;
+        color: $text-light !important;
+        font-style: italic !important;
+        justify-content: center !important;
+
+        mat-spinner {
+          ::ng-deep circle {
+            stroke: $primary-color !important;
+          }
+        }
+      }
+    }
+  }
+}
+
+/* Panel genişliğini search input ile eşitle */
+::ng-deep .cdk-overlay-pane {
+  .search-autocomplete.mat-mdc-autocomplete-panel {
+    min-width: 100% !important;
+    max-width: 100% !important;
+  }
+}
+/* =====================
    ANA KONTEYNER
 ===================== */
 .logistics-container {
@@ -244,8 +398,12 @@ form {
   overflow: hidden;
 }
 
-.inventory-section, .pallets-section {
-  flex: 0 0 240px;
+.inventory-section {
+  flex: 0 0 280px;
+}
+
+.pallets-section {
+  flex: 0 0 200px;
 }
 
 .packages-section {
@@ -430,6 +588,57 @@ form {
     background-color: rgba(0, 106, 106, 0.1);
     border-color: $primary-color;
   }
+}
+
+.product-count-container {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 2px;
+}
+
+.product-count-input {
+  width: 40px !important;
+  height: 20px !important;
+  border: 1px solid $border-color !important;
+  border-radius: 3px !important;
+  background-color: $white !important;
+  font-size: 11px !important;
+  text-align: center !important;
+  color: $text-dark !important;
+  padding: 0 2px !important;
+  margin: 0 !important;
+  outline: none !important;
+  box-sizing: border-box !important;
+  transition: all 0.3s ease !important;
+
+  &:focus {
+    border-color: $primary-color !important;
+    color: $primary-color !important;
+    box-shadow: 0 0 0 1px rgba(0, 106, 106, 0.2) !important;
+  }
+
+  &:hover:not(:focus) {
+    border-color: $primary-color !important;
+  }
+
+  &::-webkit-outer-spin-button,
+  &::-webkit-inner-spin-button {
+    -webkit-appearance: none !important;
+    margin: 0 !important;
+  }
+
+  &[type=number] {
+    appearance: textfield !important;
+    -moz-appearance: textfield !important;
+  }
+}
+
+.count-label {
+  font-size: 12px;
+  color: $text-light;
+  line-height: 1.2;
+  flex-shrink: 0;
 }
 
 .product-item {

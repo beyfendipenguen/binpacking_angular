@@ -9,6 +9,7 @@ import {
 } from '@angular/core';
 import {
   FormBuilder,
+  FormControl,
   FormGroup,
   FormsModule,
   ReactiveFormsModule,
@@ -49,6 +50,7 @@ import {
   removePalletFromPackage,
   removeProductFromPackage,
   splitProduct,
+  updateProductCountAndCreateOrUpdateOrderDetail,
 } from '../../../../../store';
 
 import {
@@ -73,7 +75,20 @@ import {
   selectTotalMeter,
   selectTotalWeight,
 } from '../../../../../store/stepper/stepper.selectors';
-import { Subject } from 'rxjs';
+import {
+  catchError,
+  debounceTime,
+  distinctUntilChanged,
+  finalize,
+  of,
+  Subject,
+  switchMap,
+  takeUntil
+} from 'rxjs';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { ProductService } from '../../../services/product.service';
+import { MatAutocomplete, MatAutocompleteModule } from "@angular/material/autocomplete";
+import { MatOption } from '@angular/material/autocomplete';
 
 @Component({
   selector: 'app-pallet-control',
@@ -90,7 +105,10 @@ import { Subject } from 'rxjs';
     CdkDropList,
     CdkDrag,
     MatIconModule,
-  ],
+    MatProgressSpinnerModule,
+    MatOption,
+    MatAutocompleteModule
+],
   templateUrl: './pallet-control.component.html',
   styleUrl: './pallet-control.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -98,10 +116,15 @@ import { Subject } from 'rxjs';
 export class PalletControlComponent
   implements OnInit, AfterViewInit, OnDestroy
 {
+  searchControl = new FormControl('');
+  isSearching = false;
+  filteredProducts: any[] = [];
+
   // Service injections
   repository: RepositoryService = inject(RepositoryService);
   toastService: ToastService = inject(ToastService);
   private readonly store = inject(Store<AppState>);
+  private readonly productService = inject(ProductService);
 
   uiPackages = this.store.selectSignal(selectUiPackages);
   remainingProducts = this.store.selectSignal(selectStep2RemainingProducts);
@@ -161,6 +184,7 @@ export class PalletControlComponent
 
   ngOnInit(): void {
     this.loadPallets();
+    this.setupSearchSubscription();
   }
 
   ngAfterViewInit(): void {}
@@ -352,6 +376,57 @@ export class PalletControlComponent
       this.safeNumber(product.dimension.height);
 
     return Math.floor(remainingVolume / singleProductVolume);
+  }
+
+  updateProductCount(product: UiProduct, event: any): void {
+    // Bu metodu sen doldur - product count güncellemesi için
+    const newCount = parseInt(event.target.value);
+    this.store.dispatch(
+      updateProductCountAndCreateOrUpdateOrderDetail({ product, newCount })
+    );
+    console.log('Product count updated:', product, newCount);
+  }
+
+  selectProduct(product:any){
+    this.store.dispatch(updateProductCountAndCreateOrUpdateOrderDetail({product:product, newCount:1}))
+  }
+
+  displayProductFn(product: any): string {
+    return product ? product.name : '';
+  }
+
+  private setupSearchSubscription(): void {
+    this.searchControl.valueChanges
+      .pipe(
+        debounceTime(300),
+        distinctUntilChanged(),
+        takeUntil(this.destroy$),
+        switchMap((value) => {
+          if (typeof value === 'string' && value.length > 2) {
+            this.isSearching = true;
+            return this.productService.searchProducts(value, 10).pipe(
+              catchError((error) => {
+                return of([]);
+              }),
+              finalize(() => {
+                this.isSearching = false;
+              })
+            );
+          }
+          return of([]);
+        })
+      )
+      .subscribe({
+        next: (products: any[]) => {
+          this.filteredProducts = products;
+        },
+      });
+  }
+
+  clearSearch(): void {
+    this.searchControl.setValue('');
+    this.filteredProducts = [];
+    this.isSearching = false;
   }
 
   // Drag & Drop Event Handlers
@@ -587,13 +662,12 @@ export class PalletControlComponent
       removePalletFromPackage({
         pkg: packageItem,
       })
-    )
+    );
   }
 
-  addUiProduct(product: UiProduct){
-    console.log(product.name)
-    this.store.dispatch(addUiProductToRemainingProducts({product:product}))
-
+  addUiProduct(product: UiProduct) {
+    console.log(product.name);
+    this.store.dispatch(addUiProductToRemainingProducts({ product: product }));
   }
 
   submitForm(): void {

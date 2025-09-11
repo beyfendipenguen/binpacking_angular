@@ -149,13 +149,13 @@ export class RepositoryService {
 
     const payload = {
       added: changes.added.map((detail) => ({
-        product_id: detail.product.id,
+        product_id: detail.product.id || detail.product_id ,
         count: detail.count,
         unit_price: detail.unit_price,
       })),
       modified: changes.modified.map((detail) => ({
         id: detail.id,
-        product_id: detail.product.id,
+        product_id: detail.product.id || detail.product_id,
         count: detail.count,
         unit_price: detail.unit_price,
       })),

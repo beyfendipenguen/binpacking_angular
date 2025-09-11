@@ -64,10 +64,16 @@ export const moveUiProductInSamePackageSuccess = createAction(
 export const palletControlSubmit = createAction(
   '[Stepper] Pallet Control Submit'
 );
+
 export const palletControlSubmitSuccess = createAction(
   '[Stepper] Pallet Control Submit Success',
   props<{packageDetails:any}>()
 );
+
+export const updateProductCountAndCreateOrUpdateOrderDetail = createAction(
+  '[Stepper] Update Product Count And Create Or Update OrderDetail',
+  props<{product:any,newCount:number}>()
+)
 
 export const calculatePackageDetailSuccess = createAction(
   '[Stepper] Calculate Package Detail Success',

@@ -58,6 +58,45 @@
         <mat-icon>category</mat-icon>
         <h2>Envanter</h2>
       </div>
+      <div class="search-container">
+        <div class="search-input-wrapper">
+          <mat-icon class="search-icon">search</mat-icon>
+
+          <input
+            matInput
+            class="search-input"
+            type="text"
+            placeholder="Ürün ara..."
+            [formControl]="searchControl"
+            [matAutocomplete]="auto">
+
+          @if(searchControl.value){
+            <button
+              mat-icon-button
+              class="clear-search"
+              (click)="clearSearch()"
+              matTooltip="Aramayı temizle">
+              <mat-icon>close</mat-icon>
+            </button>
+          }
+
+          <mat-autocomplete #auto="matAutocomplete" class="search-autocomplete" [displayWith]="displayProductFn.bind(this)">
+            <mat-option *ngIf="isSearching" class="loading-indicator">
+              <mat-spinner diameter="20"></mat-spinner> Aranıyor...
+            </mat-option>
+
+            <ng-container *ngIf="!isSearching">
+              <mat-option *ngIf="filteredProducts.length === 0" disabled>
+                Sonuç bulunamadı
+              </mat-option>
+              <mat-option *ngFor="let product of filteredProducts" [value]="product"
+                (click)="selectProduct(product)">
+                {{ product.name }}
+              </mat-option>
+            </ng-container>
+          </mat-autocomplete>
+        </div>
+      </div>
 
       <div cdkDropList #productsList="cdkDropList" id="productsList" [cdkDropListData]="remainingProducts()"
         [cdkDropListConnectedTo]="palletDropListIds()" class="inventory-list"
@@ -69,7 +108,16 @@
           <div class="product-icon"></div>
           <div class="product-info">
             <span class="product-name">{{ product.name }}</span>
-            <span class="product-count">{{ product.count }} Adet</span>
+            <div class="product-count-container">
+              <input
+                class="product-count-input"
+                type="number"
+                min="1"
+                [value]="product.count"
+                (change)="updateProductCount(product, $event)"
+                (keydown.enter)="updateProductCount(product, $event)">
+              <span class="count-label">Adet</span>
+            </div>
           </div>
 
           <div class="split-product-container">
