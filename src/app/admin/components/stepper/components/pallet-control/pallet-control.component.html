@@ -80,16 +80,16 @@
             </button>
           }
 
-          <mat-autocomplete #auto="matAutocomplete" class="search-autocomplete" [displayWith]="displayProductFn.bind(this)">
+          <mat-autocomplete   #auto="matAutocomplete" class="search-autocomplete" [displayWith]="displayProductFn.bind(this)">
             <mat-option *ngIf="isSearching" class="loading-indicator">
               <mat-spinner diameter="20"></mat-spinner> Aranıyor...
             </mat-option>
 
-            <ng-container *ngIf="!isSearching">
-              <mat-option *ngIf="filteredProducts.length === 0" disabled>
+            <ng-container style="width: 1000px" *ngIf="!isSearching">
+              <mat-option *ngIf="filteredProducts().length === 0" disabled>
                 Sonuç bulunamadı
               </mat-option>
-              <mat-option *ngFor="let product of filteredProducts" [value]="product"
+              <mat-option *ngFor="let product of filteredProducts()" [value]="product"
                 (click)="selectProduct(product)">
                 {{ product.name }}
               </mat-option>

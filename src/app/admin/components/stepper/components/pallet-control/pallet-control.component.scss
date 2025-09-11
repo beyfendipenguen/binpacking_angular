@@ -2,6 +2,7 @@
    OPTIMIZE EDİLMİŞ PALET YERLEŞTIRME SCSS
 ===================== */
 
+@use '@angular/material' as mat;
 // Ana değişkenler
 $primary-color: #006A6A;
 $secondary-color: #D6BB86;
@@ -234,6 +235,7 @@ form {
   border-bottom: 1px solid $border-color;
 }
 
+
 .search-input-wrapper {
   position: relative;
   display: flex;
@@ -372,12 +374,6 @@ form {
 }
 
 /* Panel genişliğini search input ile eşitle */
-::ng-deep .cdk-overlay-pane {
-  .search-autocomplete.mat-mdc-autocomplete-panel {
-    min-width: 100% !important;
-    max-width: 100% !important;
-  }
-}
 /* =====================
    ANA KONTEYNER
 ===================== */

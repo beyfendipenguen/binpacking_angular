@@ -6,6 +6,7 @@ import {
   signal,
   AfterViewInit,
   OnDestroy,
+  WritableSignal,
 } from '@angular/core';
 import {
   FormBuilder,
@@ -118,7 +119,7 @@ export class PalletControlComponent
 {
   searchControl = new FormControl('');
   isSearching = false;
-  filteredProducts: any[] = [];
+  filteredProducts: WritableSignal<any[]> = signal<any[]>([]);
 
   // Service injections
   repository: RepositoryService = inject(RepositoryService);
@@ -418,14 +419,14 @@ export class PalletControlComponent
       )
       .subscribe({
         next: (products: any[]) => {
-          this.filteredProducts = products;
+          this.filteredProducts.set(products);
         },
       });
   }
 
   clearSearch(): void {
     this.searchControl.setValue('');
-    this.filteredProducts = [];
+    this.filteredProducts.set([])
     this.isSearching = false;
   }
 
