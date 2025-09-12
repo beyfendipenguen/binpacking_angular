@@ -429,16 +429,14 @@ export const stepperReducer = createReducer(
       const firstPart = new UiProduct({
         ...product,
         count: validatedCount,
-        id: `${product.id}/1`,
       });
 
       const secondPart = new UiProduct({
         ...product,
         count: product.count - validatedCount,
-        id: `${product.id}/2`,
       });
 
-      remainingProducts = currentProducts.filter(p => p.id !== product.id);
+      remainingProducts = currentProducts.filter(p => p.ui_id !== product.ui_id);
       remainingProducts.push(firstPart, secondPart);
     } else {
 
@@ -453,7 +451,7 @@ export const stepperReducer = createReducer(
         return state;
       }
 
-      remainingProducts = currentProducts.filter(p => p.id !== product.id);
+      remainingProducts = currentProducts.filter(p => p.ui_id !== product.ui_id);
       remainingProducts.push(...splitProducts);
     }
 
@@ -567,9 +565,10 @@ export const stepperReducer = createReducer(
 
     return state;
   }),
-  
   on(StepperActions.updateProductCountAndCreateOrUpdateOrderDetail, (state, { product, newCount }) => {
+    const productUiId = product.ui_id;
     const productId = product.id.split('/')[0];
+
 
     // OrderDetail var mı kontrol et
     const existingOrderDetailIndex = state.step1State.orderDetails.findIndex(
@@ -587,7 +586,7 @@ export const stepperReducer = createReducer(
       // RemainingProducts güncelle
       if (existingRemainingProductIndex !== -1) {
         updatedRemainingProducts = updatedRemainingProducts.map((p, i) =>
-          i === existingRemainingProductIndex ? { ...p, count: newCount } : p
+          i === existingRemainingProductIndex ? new UiProduct({ ...p, count: newCount }) : p
         );
       } else {
         const newUiProduct: UiProduct = new UiProduct({

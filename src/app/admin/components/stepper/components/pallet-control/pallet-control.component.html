@@ -100,7 +100,7 @@
       <div cdkDropList #productsList="cdkDropList" id="productsList" [cdkDropListData]="remainingProducts()"
         [cdkDropListConnectedTo]="palletDropListIds()" class="inventory-list"
         (cdkDropListDropped)="dropProductToPallet($event)">
-        @for(product of remainingProducts(); track product.id){
+        @for(product of remainingProducts(); track product.ui_id){
         <div class="product-item" cdkDrag (cdkDragStarted)="dragStarted($event)" (cdkDragEnded)="dragEnded()"
           [cdkDragData]="product">
 
@@ -221,7 +221,10 @@
                 [cdkDropListConnectedTo]="palletDropListIds()" class="pallet-content"
                 (cdkDropListDropped)="dropProductToPallet($event)">
 
-                <div class="pallet-item" *ngFor="let product of package.products; let j = index" cdkDrag
+                @for(product of package.products;let j = $index; track product.ui_id){
+
+                
+                <div class="pallet-item"  cdkDrag
                   [cdkDragData]="product" (cdkDragStarted)="dragStarted($event)" (cdkDragEnded)="dragEnded()">
 
                   <div class="product-icon small"></div>
@@ -241,7 +244,7 @@
                   </button>
                   </div>
                 </div>
-
+}
                 <!-- Boş palet mesajı -->
                 @if(package.products.length === 0){
                 <div class="empty-state">
