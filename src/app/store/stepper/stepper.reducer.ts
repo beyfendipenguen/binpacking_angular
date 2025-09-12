@@ -569,13 +569,10 @@ export const stepperReducer = createReducer(
     const productUiId = product.ui_id;
     const productId = product.id.split('/')[0];
 
-
-    // OrderDetail var mı kontrol et
     const existingOrderDetailIndex = state.step1State.orderDetails.findIndex(
       orderDetail => orderDetail.product.id === productId
     );
 
-    // RemainingProduct var mı kontrol et
     const existingRemainingProductIndex = state.step2State.remainingProducts.findIndex(
       item => item.id.split('/')[0] === productId
     );
@@ -583,46 +580,67 @@ export const stepperReducer = createReducer(
     let updatedRemainingProducts = [...state.step2State.remainingProducts];
 
     if (existingOrderDetailIndex !== -1) {
-      // RemainingProducts güncelle
+
       if (existingRemainingProductIndex !== -1) {
         updatedRemainingProducts = updatedRemainingProducts.map((p, i) =>
           i === existingRemainingProductIndex ? new UiProduct({ ...p, count: newCount }) : p
         );
       } else {
+        const productCount = state.step2State.remainingProducts.filter(
+          item => item.id.split('/')[0] === productId
+        ).length;
         const newUiProduct: UiProduct = new UiProduct({
           ...product,
-          id: `${product.id}/1`,
+          id: `${product.id}/${productCount + 1}`,
           count: newCount,
         });
         updatedRemainingProducts = [...updatedRemainingProducts, newUiProduct];
       }
 
-      // OrderDetails güncelle
       const existingOrderDetail = state.step1State.orderDetails[existingOrderDetailIndex];
       const updatedOrderDetail = {
         ...existingOrderDetail,
-        count: existingOrderDetail.count + newCount // 🔹 Burayı senin mantığına göre ayarlaman gerek
+        count: existingOrderDetail.count + newCount
       };
 
       const updatedOrderDetails = [...state.step1State.orderDetails];
       updatedOrderDetails[existingOrderDetailIndex] = updatedOrderDetail;
 
-      // Modified güncelle
-      const modifiedIndex = state.step1State.modified.findIndex(
-        item => item.product.id === productId
+      const addedIndex = state.step1State.added.findIndex(orderDetail =>
+        orderDetail.product.id === productId
       );
 
-      const updatedModified = modifiedIndex !== -1
-        ? state.step1State.modified.map(item =>
+      let updatedAdded = [...state.step1State.added];
+      let updatedModified = [...state.step1State.modified];
+
+      if (addedIndex !== -1) {
+
+        updatedAdded = updatedAdded.map(item =>
           item.product.id === productId ? updatedOrderDetail : item
-        )
-        : [...state.step1State.modified, updatedOrderDetail];
+        );
+      } else {
+
+        const modifiedIndex = state.step1State.modified.findIndex(
+          item => item.product.id === productId
+        );
+
+        if (modifiedIndex !== -1) {
+
+          updatedModified = updatedModified.map(item =>
+            item.product.id === productId ? updatedOrderDetail : item
+          );
+        } else {
+
+          updatedModified = [...updatedModified, updatedOrderDetail];
+        }
+      }
 
       return {
         ...state,
         step1State: {
           ...state.step1State,
           orderDetails: updatedOrderDetails,
+          added: updatedAdded,
           modified: updatedModified
         },
         step2State: {
@@ -631,7 +649,7 @@ export const stepperReducer = createReducer(
         }
       };
     } else {
-      // OrderDetail yoksa yeni ekle
+
       const newOrderDetail = {
         id: Guid(),
         product,
@@ -650,7 +668,8 @@ export const stepperReducer = createReducer(
         step1State: {
           ...state.step1State,
           orderDetails: [...state.step1State.orderDetails, newOrderDetail],
-          added: [...state.step1State.added, newOrderDetail]
+          added: [...state.step1State.added, newOrderDetail],
+          modified: state.step1State.modified
         },
         step2State: {
           ...state.step2State,
@@ -659,7 +678,7 @@ export const stepperReducer = createReducer(
       };
     }
   }),
-  
+
   on(StepperActions.navigateToStep, (state, { stepIndex }) => ({
     ...state,
     currentStep: stepIndex,

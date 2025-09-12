@@ -389,7 +389,7 @@ export class PalletControlComponent
   }
 
   selectProduct(product:any){
-    this.store.dispatch(updateProductCountAndCreateOrUpdateOrderDetail({product:product, newCount:1}))
+    this.store.dispatch(updateProductCountAndCreateOrUpdateOrderDetail({product:product, newCount:0}))
   }
 
   displayProductFn(product: any): string {
