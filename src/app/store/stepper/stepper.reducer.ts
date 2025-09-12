@@ -567,43 +567,48 @@ export const stepperReducer = createReducer(
 
     return state;
   }),
-
+  
   on(StepperActions.updateProductCountAndCreateOrUpdateOrderDetail, (state, { product, newCount }) => {
     const productId = product.id.split('/')[0];
-    const updatedRemainingProducts = state.step2State.remainingProducts
 
+    // OrderDetail var mı kontrol et
     const existingOrderDetailIndex = state.step1State.orderDetails.findIndex(
       orderDetail => orderDetail.product.id === productId
     );
 
-    const exsitingRemainingProductIndex = updatedRemainingProducts.findIndex(
+    // RemainingProduct var mı kontrol et
+    const existingRemainingProductIndex = state.step2State.remainingProducts.findIndex(
       item => item.id.split('/')[0] === productId
-    )
+    );
 
-
+    let updatedRemainingProducts = [...state.step2State.remainingProducts];
 
     if (existingOrderDetailIndex !== -1) {
-      if (exsitingRemainingProductIndex !== -1) {
-        let exsitingRemainingProduct = updatedRemainingProducts[exsitingRemainingProductIndex];
-        exsitingRemainingProduct.count += newCount;
-
+      // RemainingProducts güncelle
+      if (existingRemainingProductIndex !== -1) {
+        updatedRemainingProducts = updatedRemainingProducts.map((p, i) =>
+          i === existingRemainingProductIndex ? { ...p, count: newCount } : p
+        );
       } else {
         const newUiProduct: UiProduct = new UiProduct({
           ...product,
           id: `${product.id}/1`,
           count: newCount,
-        })
-        updatedRemainingProducts.push(newUiProduct);
+        });
+        updatedRemainingProducts = [...updatedRemainingProducts, newUiProduct];
       }
-      const existingOrderDetail = state.step1State.orderDetails[existingOrderDetailIndex]
+
+      // OrderDetails güncelle
+      const existingOrderDetail = state.step1State.orderDetails[existingOrderDetailIndex];
       const updatedOrderDetail = {
         ...existingOrderDetail,
-        count: newCount + existingOrderDetail.count
-      }
+        count: existingOrderDetail.count + newCount // 🔹 Burayı senin mantığına göre ayarlaman gerek
+      };
 
       const updatedOrderDetails = [...state.step1State.orderDetails];
       updatedOrderDetails[existingOrderDetailIndex] = updatedOrderDetail;
 
+      // Modified güncelle
       const modifiedIndex = state.step1State.modified.findIndex(
         item => item.product.id === productId
       );
@@ -625,14 +630,12 @@ export const stepperReducer = createReducer(
           ...state.step2State,
           remainingProducts: updatedRemainingProducts
         }
-      }
-    }
-    else {
-      //Burada product yok elimizde ne yapacagiz bilemedim. simdilik boyle dursun
-      //Bu haliyle calismaz.
+      };
+    } else {
+      // OrderDetail yoksa yeni ekle
       const newOrderDetail = {
         id: Guid(),
-        product: product,
+        product,
         count: newCount,
         unit_price: 1
       };
@@ -641,7 +644,7 @@ export const stepperReducer = createReducer(
         ...product,
         id: `${product.id}/1`,
         count: newCount,
-      })
+      });
 
       return {
         ...state,
@@ -654,11 +657,10 @@ export const stepperReducer = createReducer(
           ...state.step2State,
           remainingProducts: [...state.step2State.remainingProducts, newUiProduct]
         }
-      }
+      };
     }
-
   }),
-
+  
   on(StepperActions.navigateToStep, (state, { stepIndex }) => ({
     ...state,
     currentStep: stepIndex,
