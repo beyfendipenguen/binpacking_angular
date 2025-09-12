@@ -61,7 +61,6 @@
       <div class="search-container">
         <div class="search-input-wrapper">
           <mat-icon class="search-icon">search</mat-icon>
-
           <input
             matInput
             class="search-input"
@@ -114,8 +113,7 @@
                 type="number"
                 min="1"
                 [value]="product.count"
-                (change)="updateProductCount(product, $event)"
-                (keydown.enter)="updateProductCount(product, $event)">
+                (change)="updateProductCount(product, $event)">
               <span class="count-label">Adet</span>
             </div>
           </div>

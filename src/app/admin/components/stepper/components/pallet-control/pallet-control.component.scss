@@ -373,6 +373,10 @@ form {
   }
 }
 
+.search-input-wrapper:focus-within .search-icon {
+  display: none;
+}
+
 /* Panel genişliğini search input ile eşitle */
 /* =====================
    ANA KONTEYNER
