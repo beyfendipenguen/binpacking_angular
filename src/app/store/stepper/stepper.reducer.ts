@@ -7,6 +7,7 @@ import { UiPackage } from '../../admin/components/stepper/components/ui-models/u
 import { UiPallet } from '../../admin/components/stepper/components/ui-models/ui-pallet.model';
 import { UiProduct } from '../../admin/components/stepper/components/ui-models/ui-product.model';
 import { isEqual } from 'lodash-es';
+import { stat } from 'fs';
 
 export const stepperReducer = createReducer(
   initialStepperState,
@@ -20,6 +21,69 @@ export const stepperReducer = createReducer(
     }
   })),
 
+  on(StepperActions.deleteRemainingProduct, (state, { product }) => {
+
+    const remainingProducts = state.step2State.remainingProducts;
+    const orderDetails = state.step1State.orderDetails;
+    const originalOrderDetails = state.step1State.originalOrderDetails;
+    const added = state.step1State.added;
+    const modified = state.step1State.modified;
+    let updatedModified = [...state.step1State.modified]
+
+    const updatedRemainingProducts = remainingProducts.filter(p => p.ui_id !== product.ui_id);
+
+    const isModified = (
+      added.every(od => od.product.id !== product.id) &&
+      orderDetails.some(od => od.product.id === product.id && od.count > product.count)
+    )
+
+    if (isModified) {
+      let updatedOrderDetail = orderDetails.find(od => od.product.id === product.id);
+      updatedOrderDetail = {...updatedOrderDetail, count: updatedOrderDetail.count - product.count}
+      updatedModified = [...updatedMode] 
+
+    } else {
+
+    }
+
+    if (added.filter(od => od.product.id === product.id)) {
+      console.log("added da varmis")
+    } else if (modified.filter(od => od.product.id === product.id)) {
+      console.log("modified da varmis")
+    }
+
+    const updatedOrderDetails = orderDetails.map(od => {
+      if (od.product.id === product.id) {
+        return { ...od, count: od.count - product.count };
+      }
+      return od;
+    }).filter(od => od.count > 0);
+
+    const updatedOriginalOrderDetails = originalOrderDetails.map(od => {
+      if (od.product.id === product.id) {
+        return { ...od, count: od.count - product.count };
+      }
+      return od;
+    }).filter(od => od.count > 0);
+
+    const updatedAdded = added.map(od => {
+      if (od.product.id === product.id) {
+        return { ...od, count: od.count - product.count };
+      }
+      return od;
+    }).filter(od => od.count > 0);
+
+    return {
+      ...state,
+      step1State: {
+        ...state.step1State,
+        orderDetails: [...orderDetails],
+        originalOrderDetails: [...orderDetails],
+        isDirty: false
+      }
+    }
+  }),
+
   on(StepperActions.setRemainingProducts, (state, { remainingProducts }) => (
     {
       ...state,
@@ -29,13 +93,12 @@ export const stepperReducer = createReducer(
       }
     }
   )),
+
   on(StepperActions.addUiProductToRemainingProducts, (state, { product }) => {
     const remainingProducts = state.step2State.remainingProducts;
-    const getBaseId = (id: string) => id.split('/')[0];
-    const productToAddBaseId = getBaseId(product.id);
 
     // Check if a product with the same base ID already exists.
-    const alreadyExists = remainingProducts.some(p => getBaseId(p.id) === productToAddBaseId);
+    const alreadyExists = remainingProducts.some(p => p.ui_id === product.ui_id);
 
     if (alreadyExists) {
       // If a product with the same base ID exists, do nothing as per the original logic's intent.
@@ -135,7 +198,7 @@ export const stepperReducer = createReducer(
 
     if (sourcePackage) {
       const updatedPackages = currentPackages.map(pkg =>
-        pkg.id === sourcePackage.id ? { ...pkg, products: sourceProducts } : pkg
+        pkg.id === sourcePackage.id ? new UiPackage({ ...pkg, products: sourceProducts }) : pkg
       ) as UiPackage[];
 
       return {
@@ -205,23 +268,20 @@ export const stepperReducer = createReducer(
     const targetProducts = [...targetPackage.products];
 
     const removedProduct = sourceProducts.splice(previousIndex, 1)[0];
-    const getBaseId = (id: string) => id.split('/')[0];
 
     const existingProductIndex = targetProducts.findIndex(p =>
-      getBaseId(p.id) === getBaseId(removedProduct.id)
+      p.id === removedProduct.id
     );
 
     if (existingProductIndex !== -1) {
-      targetProducts[existingProductIndex] = {
+      targetProducts[existingProductIndex] = new UiProduct({
         ...targetProducts[existingProductIndex],
-        id: getBaseId(targetProducts[existingProductIndex].id),
         count: targetProducts[existingProductIndex].count + removedProduct.count
-      };
-    } else {
-      targetProducts.push({
-        ...removedProduct,
-        id: getBaseId(removedProduct.id)
       });
+    } else {
+      targetProducts.push(new UiProduct({
+        ...removedProduct,
+      }));
     }
 
     const updatedPackage = { ...targetPackage, products: targetProducts };
@@ -566,15 +626,13 @@ export const stepperReducer = createReducer(
     return state;
   }),
   on(StepperActions.updateProductCountAndCreateOrUpdateOrderDetail, (state, { product, newCount }) => {
-    const productUiId = product.ui_id;
-    const productId = product.id.split('/')[0];
 
     const existingOrderDetailIndex = state.step1State.orderDetails.findIndex(
-      orderDetail => orderDetail.product.id === productId
+      orderDetail => orderDetail.product.id === product.id
     );
 
     const existingRemainingProductIndex = state.step2State.remainingProducts.findIndex(
-      item => item.id.split('/')[0] === productId
+      item => item.ui_id === product.ui_id
     );
 
     let updatedRemainingProducts = [...state.step2State.remainingProducts];
@@ -586,12 +644,8 @@ export const stepperReducer = createReducer(
           i === existingRemainingProductIndex ? new UiProduct({ ...p, count: newCount }) : p
         );
       } else {
-        const productCount = state.step2State.remainingProducts.filter(
-          item => item.id.split('/')[0] === productId
-        ).length;
         const newUiProduct: UiProduct = new UiProduct({
           ...product,
-          id: `${product.id}/${productCount + 1}`,
           count: newCount,
         });
         updatedRemainingProducts = [...updatedRemainingProducts, newUiProduct];
@@ -607,7 +661,7 @@ export const stepperReducer = createReducer(
       updatedOrderDetails[existingOrderDetailIndex] = updatedOrderDetail;
 
       const addedIndex = state.step1State.added.findIndex(orderDetail =>
-        orderDetail.product.id === productId
+        orderDetail.product.id === product.id
       );
 
       let updatedAdded = [...state.step1State.added];
@@ -616,18 +670,18 @@ export const stepperReducer = createReducer(
       if (addedIndex !== -1) {
 
         updatedAdded = updatedAdded.map(item =>
-          item.product.id === productId ? updatedOrderDetail : item
+          item.product.id === product.id ? updatedOrderDetail : item
         );
       } else {
 
         const modifiedIndex = state.step1State.modified.findIndex(
-          item => item.product.id === productId
+          item => item.product.id === product.id
         );
 
         if (modifiedIndex !== -1) {
 
           updatedModified = updatedModified.map(item =>
-            item.product.id === productId ? updatedOrderDetail : item
+            item.product.id === product.id ? updatedOrderDetail : item
           );
         } else {
 
@@ -659,7 +713,6 @@ export const stepperReducer = createReducer(
 
       const newUiProduct: UiProduct = new UiProduct({
         ...product,
-        id: `${product.id}/1`,
         count: newCount,
       });
 
@@ -885,17 +938,15 @@ const consolidateProducts = (products: UiProduct[]): UiProduct[] => {
   const consolidatedMap = new Map<string, UiProduct>();
 
   for (const product of products) {
-    const mainId = product.id.split('/')[0];
-    const existing = consolidatedMap.get(mainId);
+    const existing = consolidatedMap.get(product.id);
 
     if (existing) {
       existing.count += product.count;
     } else {
       consolidatedMap.set(
-        mainId,
+        product.id,
         new UiProduct({
           ...product,
-          id: mainId,
         })
       );
     }

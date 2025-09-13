@@ -129,6 +129,13 @@
               <mat-icon>content_cut</mat-icon>
             </button>
           </div>
+          <div class="split-product-container">
+            <button mat-icon-button class="action-button"
+              (click)="deleteRemainingProduct(product)"
+              matTooltip="Ürünü sil">
+              <mat-icon>close</mat-icon>
+            </button>
+          </div>
         </div>
         }
         @if(!hasRemainingProduct()){

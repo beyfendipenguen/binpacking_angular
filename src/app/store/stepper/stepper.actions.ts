@@ -3,6 +3,12 @@ import { UiProduct } from '../../admin/components/stepper/components/ui-models/u
 import { UiPackage } from '../../admin/components/stepper/components/ui-models/ui-package.model';
 
 
+export const deleteRemainingProduct = createAction(
+  '[Stepper] Delete Remaining Product',
+  props<{ product: UiProduct }>()
+);
+
+
 export const addUiProductToRemainingProducts = createAction(
   '[Stepper] Add Ui Product To Remaining Products',
   props<{ product: UiProduct }>()

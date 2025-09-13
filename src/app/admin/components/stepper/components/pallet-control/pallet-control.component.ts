@@ -52,6 +52,7 @@ import {
   removeProductFromPackage,
   splitProduct,
   updateProductCountAndCreateOrUpdateOrderDetail,
+  deleteRemainingProduct
 } from '../../../../../store';
 
 import {
@@ -669,6 +670,10 @@ export class PalletControlComponent
   addUiProduct(product: UiProduct) {
     console.log(product.name);
     this.store.dispatch(addUiProductToRemainingProducts({ product: product }));
+  }
+
+  deleteRemainingProduct(product: UiProduct): void {
+    this.store.dispatch(deleteRemainingProduct({ product: product }));
   }
 
   submitForm(): void {
