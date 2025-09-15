@@ -7,7 +7,6 @@ import { UiPackage } from '../../admin/components/stepper/components/ui-models/u
 import { UiPallet } from '../../admin/components/stepper/components/ui-models/ui-pallet.model';
 import { UiProduct } from '../../admin/components/stepper/components/ui-models/ui-product.model';
 import { isEqual } from 'lodash-es';
-import { stat } from 'fs';
 
 export const stepperReducer = createReducer(
   initialStepperState,
@@ -22,36 +21,23 @@ export const stepperReducer = createReducer(
   })),
 
   on(StepperActions.deleteRemainingProduct, (state, { product }) => {
-
     const remainingProducts = state.step2State.remainingProducts;
     const orderDetails = state.step1State.orderDetails;
     const originalOrderDetails = state.step1State.originalOrderDetails;
     const added = state.step1State.added;
     const modified = state.step1State.modified;
-    let updatedModified = [...state.step1State.modified]
+    const deleted = state.step1State.deleted;
 
+    // Remaining products'tan kaldır
     const updatedRemainingProducts = remainingProducts.filter(p => p.ui_id !== product.ui_id);
 
-    const isModified = (
-      added.every(od => od.product.id !== product.id) &&
-      orderDetails.some(od => od.product.id === product.id && od.count > product.count)
-    )
+    // Bu ürün added listesinde mi
+    const isInAdded = added.some(od => od.product.id === product.id);
 
-    if (isModified) {
-      let updatedOrderDetail = orderDetails.find(od => od.product.id === product.id);
-      updatedOrderDetail = {...updatedOrderDetail, count: updatedOrderDetail.count - product.count}
-      updatedModified = [...updatedMode] 
+    // Bu ürün modified listesinde mi
+    const isInModified = modified.some(od => od.product.id === product.id);
 
-    } else {
-
-    }
-
-    if (added.filter(od => od.product.id === product.id)) {
-      console.log("added da varmis")
-    } else if (modified.filter(od => od.product.id === product.id)) {
-      console.log("modified da varmis")
-    }
-
+    // Order details'ı güncelle (miktarı azalt veya tamamen kaldır)
     const updatedOrderDetails = orderDetails.map(od => {
       if (od.product.id === product.id) {
         return { ...od, count: od.count - product.count };
@@ -59,13 +45,7 @@ export const stepperReducer = createReducer(
       return od;
     }).filter(od => od.count > 0);
 
-    const updatedOriginalOrderDetails = originalOrderDetails.map(od => {
-      if (od.product.id === product.id) {
-        return { ...od, count: od.count - product.count };
-      }
-      return od;
-    }).filter(od => od.count > 0);
-
+    // Added listesini güncelle (eğer bu ürün added listesindeyse)
     const updatedAdded = added.map(od => {
       if (od.product.id === product.id) {
         return { ...od, count: od.count - product.count };
@@ -73,15 +53,121 @@ export const stepperReducer = createReducer(
       return od;
     }).filter(od => od.count > 0);
 
+    // Modified ve deleted listelerini güncelle
+    let updatedModified = [...modified];
+    let updatedDeleted = [...deleted];
+
+    // Eğer ürün added listesindeyse
+    if (isInModified) {
+      // Eğer ürün modified listesindeyse
+      const modifiedIndex = updatedModified.findIndex(od => od.product.id === product.id);
+      if (modifiedIndex >= 0) {
+        const currentModifiedCount = updatedModified[modifiedIndex].count;
+        const newCount = currentModifiedCount - product.count;
+
+        if (newCount <= 0) {
+          // Modified'daki miktar 0'ın altına düştü
+          // Modified'dan kaldır ve deleted'a ekle (çünkü orijinal DB kaydı tamamen silinmiş)
+          updatedModified = updatedModified.filter((_, index) => index !== modifiedIndex);
+
+          const originalOrderDetail = originalOrderDetails.find(od => od.product.id === product.id);
+          if (originalOrderDetail) {
+            const existingDeletedIndex = updatedDeleted.findIndex(od => od.product.id === product.id);
+
+            if (existingDeletedIndex >= 0) {
+              // Zaten deleted listesinde varsa, miktarını güncelle
+              updatedDeleted[existingDeletedIndex] = {
+                ...originalOrderDetail,
+                count: originalOrderDetail.count // Tüm orijinal miktar silinmiş
+              };
+            } else {
+              // Deleted listesine ekle
+              updatedDeleted.push({
+                ...originalOrderDetail,
+                count: originalOrderDetail.count // Tüm orijinal miktar silinmiş
+              });
+            }
+          }
+        } else {
+          // Modified'daki miktarı azalt
+          updatedModified[modifiedIndex] = {
+            ...updatedModified[modifiedIndex],
+            count: newCount
+          };
+        }
+      }
+
+    } else {
+      // Ürün ne added'da ne de modified'da değil - orijinal listeden geliyor
+      const originalOrderDetail = originalOrderDetails.find(od => od.product.id === product.id);
+      if (originalOrderDetail) {
+        const currentOrderDetail = orderDetails.find(od => od.product.id === product.id);
+        const currentCount = currentOrderDetail ? currentOrderDetail.count : 0;
+        const newCount = currentCount - product.count;
+
+        if (newCount <= 0) {
+          // Orijinal ürün tamamen silindi - deleted'a ekle
+          const existingDeletedIndex = updatedDeleted.findIndex(od => od.product.id === product.id);
+
+          if (existingDeletedIndex >= 0) {
+            // Zaten deleted listesinde varsa, miktarını güncelle
+            updatedDeleted[existingDeletedIndex] = {
+              ...originalOrderDetail,
+              count: originalOrderDetail.count // Tüm orijinal miktar silinmiş
+            };
+          } else {
+            // Deleted listesine ekle
+            updatedDeleted.push({
+              ...originalOrderDetail,
+              count: originalOrderDetail.count // Tüm orijinal miktar silinmiş
+            });
+          }
+        } else {
+          // Orijinal ürün kısmen silindi - modified'a ekle
+          const existingModifiedIndex = updatedModified.findIndex(od => od.product.id === product.id);
+
+          if (existingModifiedIndex >= 0) {
+            // Zaten modified listesinde varsa güncelle
+            updatedModified[existingModifiedIndex] = {
+              ...updatedModified[existingModifiedIndex],
+              count: newCount
+            };
+          } else {
+            // Modified listesine ekle
+            updatedModified.push({
+              ...originalOrderDetail,
+              count: newCount
+            });
+          }
+        }
+      }
+    }
+
+    const isDirty = (
+      updatedOrderDetails.length !== originalOrderDetails.length ||
+      updatedOrderDetails.some(od => {
+        const original = originalOrderDetails.find(ood => ood.product.id === od.product.id);
+        return !original || original.count !== od.count;
+      }) ||
+      updatedAdded.length > 0 ||
+      updatedDeleted.length > 0
+    );
+
     return {
       ...state,
       step1State: {
         ...state.step1State,
-        orderDetails: [...orderDetails],
-        originalOrderDetails: [...orderDetails],
-        isDirty: false
+        orderDetails: updatedOrderDetails,
+        originalOrderDetails: [...state.step1State.originalOrderDetails],
+        added: updatedAdded,
+        modified: updatedModified,
+        deleted: updatedDeleted
+      },
+      step2State: {
+        ...state.step2State,
+        remainingProducts: updatedRemainingProducts
       }
-    }
+    };
   }),
 
   on(StepperActions.setRemainingProducts, (state, { remainingProducts }) => (
@@ -652,9 +738,11 @@ export const stepperReducer = createReducer(
       }
 
       const existingOrderDetail = state.step1State.orderDetails[existingOrderDetailIndex];
+      const originalCount = existingOrderDetail.count - existingOrderDetail.remaining_count;
       const updatedOrderDetail = {
         ...existingOrderDetail,
-        count: existingOrderDetail.count + newCount
+        count: originalCount + newCount,
+        remaining_count: newCount
       };
 
       const updatedOrderDetails = [...state.step1State.orderDetails];
@@ -708,6 +796,7 @@ export const stepperReducer = createReducer(
         id: Guid(),
         product,
         count: newCount,
+        remaining_count: newCount,
         unit_price: 1
       };
 
