@@ -12,4 +12,5 @@ export interface Package extends BaseModel {
   order?: Order;
   order_id?: string;
   name?: string | null;
+  height:number;
 }

@@ -96,10 +96,30 @@ export function mapPackageDetailToPackage(packageDetailList: PackageDetail[]): U
   return packageList;
 }
 
+export function createTotalHeight(uiProducts:UiProduct[],pallet:UiPallet | null): number{
+  let totalHeight = 0
+  if(pallet != null){
+    uiProducts.forEach((uiProduct) => {
+      const normalPosition = Math.floor(pallet.dimension.width / uiProduct.dimension.width) *
+                            Math.floor(pallet.dimension.depth / uiProduct.dimension.depth);
+
+      const rotatedPosition = Math.floor(pallet.dimension.width / uiProduct.dimension.depth) *
+                             Math.floor(pallet.dimension.depth / uiProduct.dimension.width);
+
+      const maxItemsPerLayer = Math.max(normalPosition, rotatedPosition);
+
+      totalHeight += Math.floor(uiProduct.count / maxItemsPerLayer) * uiProduct.dimension.height
+    })
+    return totalHeight
+  }
+
+  return 2400
+}
 export function mapPackageToPackageDetail(uiPackageList: UiPackage[]): PackageDetail[] {
   const packageDetailList: PackageDetail[] = [];
 
   uiPackageList.forEach((uiPackage) => {
+    const totalHeight = createTotalHeight(uiPackage.products,uiPackage.pallet);
     // For each product in the UiPackage, create a PackageDetail
     uiPackage.products.forEach((uiProduct) => {
       const packageDetail: PackageDetail = {
@@ -107,7 +127,6 @@ export function mapPackageToPackageDetail(uiPackageList: UiPackage[]): PackageDe
         count: uiProduct.count,
         priority: uiProduct.priority
       };
-
       // Check if package is already saved in DB
       // Normally you would check this from a backend response flag or some other indicator
       // For this example, let's assume there's a property like 'isSavedInDb' in uiPackage
@@ -123,7 +142,8 @@ export function mapPackageToPackageDetail(uiPackageList: UiPackage[]): PackageDe
           name: uiPackage.name,
           pallet:uiPackage.pallet,
           order:uiPackage.order,
-          is_remaining:uiPackage.is_remaining
+          is_remaining:uiPackage.is_remaining,
+          height:totalHeight
         };
 
         // Pallet için ID referansı kullan (eğer varsa)
