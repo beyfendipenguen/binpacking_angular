@@ -293,6 +293,11 @@ export const selectStep1OrderDetails = createSelector(
   (step1State) => step1State.orderDetails
 );
 
+export const selectOriginalOrderDetails = createSelector(
+  selectStep1State,
+  (step1State) => step1State.originalOrderDetails
+);
+
 export const selectAverageOrderDetailHeight = createSelector(
   selectStep1OrderDetails,
   (orderDetails) => {

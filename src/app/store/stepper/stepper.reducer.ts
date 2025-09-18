@@ -21,148 +21,12 @@ export const stepperReducer = createReducer(
   })),
 
   on(StepperActions.deleteRemainingProduct, (state, { product }) => {
+
     const remainingProducts = state.step2State.remainingProducts;
-    const orderDetails = state.step1State.orderDetails;
-    const originalOrderDetails = state.step1State.originalOrderDetails;
-    const added = state.step1State.added;
-    const modified = state.step1State.modified;
-    const deleted = state.step1State.deleted;
-
-    // Remaining products'tan kaldır
     const updatedRemainingProducts = remainingProducts.filter(p => p.ui_id !== product.ui_id);
-
-    // Bu ürün added listesinde mi
-    const isInAdded = added.some(od => od.product.id === product.id);
-
-    // Bu ürün modified listesinde mi
-    const isInModified = modified.some(od => od.product.id === product.id);
-
-    // Order details'ı güncelle (miktarı azalt veya tamamen kaldır)
-    const updatedOrderDetails = orderDetails.map(od => {
-      if (od.product.id === product.id) {
-        return { ...od, count: od.count - product.count };
-      }
-      return od;
-    }).filter(od => od.count > 0);
-
-    // Added listesini güncelle (eğer bu ürün added listesindeyse)
-    const updatedAdded = added.map(od => {
-      if (od.product.id === product.id) {
-        return { ...od, count: od.count - product.count };
-      }
-      return od;
-    }).filter(od => od.count > 0);
-
-    // Modified ve deleted listelerini güncelle
-    let updatedModified = [...modified];
-    let updatedDeleted = [...deleted];
-
-    // Eğer ürün added listesindeyse
-    if (isInModified) {
-      // Eğer ürün modified listesindeyse
-      const modifiedIndex = updatedModified.findIndex(od => od.product.id === product.id);
-      if (modifiedIndex >= 0) {
-        const currentModifiedCount = updatedModified[modifiedIndex].count;
-        const newCount = currentModifiedCount - product.count;
-
-        if (newCount <= 0) {
-          // Modified'daki miktar 0'ın altına düştü
-          // Modified'dan kaldır ve deleted'a ekle (çünkü orijinal DB kaydı tamamen silinmiş)
-          updatedModified = updatedModified.filter((_, index) => index !== modifiedIndex);
-
-          const originalOrderDetail = originalOrderDetails.find(od => od.product.id === product.id);
-          if (originalOrderDetail) {
-            const existingDeletedIndex = updatedDeleted.findIndex(od => od.product.id === product.id);
-
-            if (existingDeletedIndex >= 0) {
-              // Zaten deleted listesinde varsa, miktarını güncelle
-              updatedDeleted[existingDeletedIndex] = {
-                ...originalOrderDetail,
-                count: originalOrderDetail.count // Tüm orijinal miktar silinmiş
-              };
-            } else {
-              // Deleted listesine ekle
-              updatedDeleted.push({
-                ...originalOrderDetail,
-                count: originalOrderDetail.count // Tüm orijinal miktar silinmiş
-              });
-            }
-          }
-        } else {
-          // Modified'daki miktarı azalt
-          updatedModified[modifiedIndex] = {
-            ...updatedModified[modifiedIndex],
-            count: newCount
-          };
-        }
-      }
-
-    } else {
-      // Ürün ne added'da ne de modified'da değil - orijinal listeden geliyor
-      const originalOrderDetail = originalOrderDetails.find(od => od.product.id === product.id);
-      if (originalOrderDetail) {
-        const currentOrderDetail = orderDetails.find(od => od.product.id === product.id);
-        const currentCount = currentOrderDetail ? currentOrderDetail.count : 0;
-        const newCount = currentCount - product.count;
-
-        if (newCount <= 0) {
-          // Orijinal ürün tamamen silindi - deleted'a ekle
-          const existingDeletedIndex = updatedDeleted.findIndex(od => od.product.id === product.id);
-
-          if (existingDeletedIndex >= 0) {
-            // Zaten deleted listesinde varsa, miktarını güncelle
-            updatedDeleted[existingDeletedIndex] = {
-              ...originalOrderDetail,
-              count: originalOrderDetail.count // Tüm orijinal miktar silinmiş
-            };
-          } else {
-            // Deleted listesine ekle
-            updatedDeleted.push({
-              ...originalOrderDetail,
-              count: originalOrderDetail.count // Tüm orijinal miktar silinmiş
-            });
-          }
-        } else {
-          // Orijinal ürün kısmen silindi - modified'a ekle
-          const existingModifiedIndex = updatedModified.findIndex(od => od.product.id === product.id);
-
-          if (existingModifiedIndex >= 0) {
-            // Zaten modified listesinde varsa güncelle
-            updatedModified[existingModifiedIndex] = {
-              ...updatedModified[existingModifiedIndex],
-              count: newCount
-            };
-          } else {
-            // Modified listesine ekle
-            updatedModified.push({
-              ...originalOrderDetail,
-              count: newCount
-            });
-          }
-        }
-      }
-    }
-
-    const isDirty = (
-      updatedOrderDetails.length !== originalOrderDetails.length ||
-      updatedOrderDetails.some(od => {
-        const original = originalOrderDetails.find(ood => ood.product.id === od.product.id);
-        return !original || original.count !== od.count;
-      }) ||
-      updatedAdded.length > 0 ||
-      updatedDeleted.length > 0
-    );
 
     return {
       ...state,
-      step1State: {
-        ...state.step1State,
-        orderDetails: updatedOrderDetails,
-        originalOrderDetails: [...state.step1State.originalOrderDetails],
-        added: updatedAdded,
-        modified: updatedModified,
-        deleted: updatedDeleted
-      },
       step2State: {
         ...state.step2State,
         remainingProducts: updatedRemainingProducts
@@ -711,11 +575,8 @@ export const stepperReducer = createReducer(
 
     return state;
   }),
-  on(StepperActions.updateProductCountAndCreateOrUpdateOrderDetail, (state, { product, newCount }) => {
 
-    const existingOrderDetailIndex = state.step1State.orderDetails.findIndex(
-      orderDetail => orderDetail.product.id === product.id
-    );
+  on(StepperActions.updateProductCountAndCreateOrUpdateOrderDetail, (state, { product, newCount }) => {
 
     const existingRemainingProductIndex = state.step2State.remainingProducts.findIndex(
       item => item.ui_id === product.ui_id
@@ -723,102 +584,25 @@ export const stepperReducer = createReducer(
 
     let updatedRemainingProducts = [...state.step2State.remainingProducts];
 
-    if (existingOrderDetailIndex !== -1) {
-
-      if (existingRemainingProductIndex !== -1) {
-        updatedRemainingProducts = updatedRemainingProducts.map((p, i) =>
-          i === existingRemainingProductIndex ? new UiProduct({ ...p, count: newCount }) : p
-        );
-      } else {
-        const newUiProduct: UiProduct = new UiProduct({
-          ...product,
-          count: newCount,
-        });
-        updatedRemainingProducts = [...updatedRemainingProducts, newUiProduct];
-      }
-
-      const existingOrderDetail = state.step1State.orderDetails[existingOrderDetailIndex];
-      const originalCount = existingOrderDetail.count - existingOrderDetail.remaining_count;
-      const updatedOrderDetail = {
-        ...existingOrderDetail,
-        count: originalCount + newCount,
-        remaining_count: newCount
-      };
-
-      const updatedOrderDetails = [...state.step1State.orderDetails];
-      updatedOrderDetails[existingOrderDetailIndex] = updatedOrderDetail;
-
-      const addedIndex = state.step1State.added.findIndex(orderDetail =>
-        orderDetail.product.id === product.id
+    if (existingRemainingProductIndex !== -1) {
+      updatedRemainingProducts = updatedRemainingProducts.map((p, i) =>
+        i === existingRemainingProductIndex ? new UiProduct({ ...p, count: newCount }) : p
       );
-
-      let updatedAdded = [...state.step1State.added];
-      let updatedModified = [...state.step1State.modified];
-
-      if (addedIndex !== -1) {
-
-        updatedAdded = updatedAdded.map(item =>
-          item.product.id === product.id ? updatedOrderDetail : item
-        );
-      } else {
-
-        const modifiedIndex = state.step1State.modified.findIndex(
-          item => item.product.id === product.id
-        );
-
-        if (modifiedIndex !== -1) {
-
-          updatedModified = updatedModified.map(item =>
-            item.product.id === product.id ? updatedOrderDetail : item
-          );
-        } else {
-
-          updatedModified = [...updatedModified, updatedOrderDetail];
-        }
-      }
-
-      return {
-        ...state,
-        step1State: {
-          ...state.step1State,
-          orderDetails: updatedOrderDetails,
-          added: updatedAdded,
-          modified: updatedModified
-        },
-        step2State: {
-          ...state.step2State,
-          remainingProducts: updatedRemainingProducts
-        }
-      };
     } else {
-
-      const newOrderDetail = {
-        id: Guid(),
-        product,
-        count: newCount,
-        remaining_count: newCount,
-        unit_price: 1
-      };
-
       const newUiProduct: UiProduct = new UiProduct({
         ...product,
         count: newCount,
       });
-
-      return {
-        ...state,
-        step1State: {
-          ...state.step1State,
-          orderDetails: [...state.step1State.orderDetails, newOrderDetail],
-          added: [...state.step1State.added, newOrderDetail],
-          modified: state.step1State.modified
-        },
-        step2State: {
-          ...state.step2State,
-          remainingProducts: [...state.step2State.remainingProducts, newUiProduct]
-        }
-      };
+      updatedRemainingProducts = [...updatedRemainingProducts, newUiProduct];
     }
+
+    return {
+      ...state,
+      step2State: {
+        ...state.step2State,
+        remainingProducts: updatedRemainingProducts
+      }
+    };
   }),
 
   on(StepperActions.navigateToStep, (state, { stepIndex }) => ({

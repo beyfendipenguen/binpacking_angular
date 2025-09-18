@@ -386,7 +386,6 @@ export class PalletControlComponent
     this.store.dispatch(
       updateProductCountAndCreateOrUpdateOrderDetail({ product, newCount })
     );
-    console.log('Product count updated:', product, newCount);
   }
 
   selectProduct(product:any){

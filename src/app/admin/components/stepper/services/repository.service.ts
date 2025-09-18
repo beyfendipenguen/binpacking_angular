@@ -5,6 +5,7 @@ import { map, Observable } from 'rxjs';
 import { FileResponse } from '../interfaces/file-response.interface';
 import { mapOrderDetailsToUiProductsSafe, mapToOrderDetailDtoList } from '../../../../models/mappers/order-detail.mapper';
 import { mapPackageDetailToPackage, mapPackageToPackageDetail } from '../../../../models/mappers/package-detail.mapper';
+import { mapUiPackagesToOrderDetails } from '../../../../models/mappers/ui-package-to-order-detail.mapper';
 import { UiPallet } from '../components/ui-models/ui-pallet.model';
 import { OrderDetail } from '../../../../models/order-detail.interface';
 import { Order } from '../../../../models/order.interface';
@@ -13,7 +14,7 @@ import { CompanyRelation } from '../../../../models/company-relation.interface';
 
 import { Store } from '@ngrx/store';
 import { AppState } from '../../../../store';
-import {selectOrderId } from '../../../../store/stepper/stepper.selectors';
+import {selectOrderId, selectOriginalOrderDetails } from '../../../../store/stepper/stepper.selectors';
 import { UiPackage } from '../components/ui-models/ui-package.model';
 
 @Injectable({
@@ -121,6 +122,9 @@ export class RepositoryService {
     uiPackages: UiPackage[],
     order_id: string = this.getOrderId()
   ) {
+
+    const mapperOrderDetails = mapUiPackagesToOrderDetails(uiPackages)
+    const originalOrderDetails = this.store.selectSignal(selectOriginalOrderDetails)
     const payload = {
       packageDetails: mapPackageToPackageDetail(uiPackages),
     };
