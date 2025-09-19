@@ -57,7 +57,7 @@ import {
 
 import {
   selectStep2Packages,
-  selectStep2RemainingProducts,
+  selectRemainingProducts,
   selectStep2IsDirty,
   selectStep2Changes,
   selectUiPackages,
@@ -110,14 +110,13 @@ import { MatOption } from '@angular/material/autocomplete';
     MatProgressSpinnerModule,
     MatOption,
     MatAutocompleteModule
-],
+  ],
   templateUrl: './pallet-control.component.html',
   styleUrl: './pallet-control.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PalletControlComponent
-  implements OnInit, AfterViewInit, OnDestroy
-{
+  implements OnInit, AfterViewInit, OnDestroy {
   searchControl = new FormControl('');
   isSearching = false;
   filteredProducts: WritableSignal<any[]> = signal<any[]>([]);
@@ -129,12 +128,12 @@ export class PalletControlComponent
   private readonly productService = inject(ProductService);
 
   uiPackages = this.store.selectSignal(selectUiPackages);
-  remainingProducts = this.store.selectSignal(selectStep2RemainingProducts);
+  remainingProducts = this.store.selectSignal(selectRemainingProducts);
 
   // NgRx Step2 Migration Observables
   public step2Packages$ = this.store.select(selectStep2Packages);
   public step2RemainingProducts$ = this.store.select(
-    selectStep2RemainingProducts
+    selectRemainingProducts
   );
   public step2IsDirty$ = this.store.select(selectStep2IsDirty);
   public step2Changes$ = this.store.select(selectStep2Changes);
@@ -189,7 +188,7 @@ export class PalletControlComponent
     this.setupSearchSubscription();
   }
 
-  ngAfterViewInit(): void {}
+  ngAfterViewInit(): void { }
 
   ngOnDestroy(): void {
     this.destroy$.next();
@@ -388,8 +387,8 @@ export class PalletControlComponent
     );
   }
 
-  selectProduct(product:any){
-    this.store.dispatch(updateProductCountAndCreateOrUpdateOrderDetail({product:product, newCount:0}))
+  selectProduct(product: any) {
+    this.store.dispatch(updateProductCountAndCreateOrUpdateOrderDetail({ product: product, newCount: 0 }))
   }
 
   displayProductFn(product: any): string {

@@ -15,7 +15,7 @@ import { OrderDetailDiffCalculator } from '../../../../models/utils/order-detail
 
 import { Store } from '@ngrx/store';
 import { AppState, updateOrderDetailsChanges } from '../../../../store';
-import {selectOrderId, selectOriginalOrderDetails } from '../../../../store/stepper/stepper.selectors';
+import { selectOrderId, selectOriginalOrderDetails, selectRemainingProducts } from '../../../../store/stepper/stepper.selectors';
 import { UiPackage } from '../components/ui-models/ui-package.model';
 
 @Injectable({
@@ -114,7 +114,7 @@ export class RepositoryService {
     return this.http
       .get<any>(`${this.api.getApiUrl()}/logistics/calculate-box/${order_id}/`)
       .pipe(map((response) => ({
-        packageDetails:mapPackageDetailToPackage( response.data),
+        packageDetails: mapPackageDetailToPackage(response.data),
         remainingOrderDetails: mapOrderDetailsToUiProductsSafe(response.remaining_order_details)
       })));
   }
@@ -126,14 +126,16 @@ export class RepositoryService {
 
     const mapperOrderDetails = mapUiPackagesToOrderDetails(uiPackages)
     const originalOrderDetails = this.store.selectSignal(selectOriginalOrderDetails)
+    const remainingUiProducts = this.store.selectSignal(selectRemainingProducts)
 
     const changes = OrderDetailDiffCalculator.calculateDiff(
       mapperOrderDetails,
-      originalOrderDetails()
+      originalOrderDetails(),
+      remainingUiProducts(),
     );
 
     if (OrderDetailDiffCalculator.hasChanges(changes)) {
-      this.store.dispatch(updateOrderDetailsChanges({changes}))
+      this.store.dispatch(updateOrderDetailsChanges({ changes }))
     }
 
     const payload = {
@@ -164,7 +166,7 @@ export class RepositoryService {
 
     const payload = {
       added: changes.added.map((detail) => ({
-        product_id: detail.product.id || detail.product_id ,
+        product_id: detail.product.id || detail.product_id,
         count: detail.count,
         unit_price: detail.unit_price,
       })),

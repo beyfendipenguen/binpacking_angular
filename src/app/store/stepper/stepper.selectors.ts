@@ -279,10 +279,10 @@ export const selectTruck: MemoizedSelector<any, [number, number, number]> = crea
   (order) =>
     order.truck
       ? [
-          toInteger(order.truck.dimension.width),
-          toInteger(order.truck.dimension.depth),
-          toInteger(order.truck.dimension.height)
-        ]
+        toInteger(order.truck.dimension.width),
+        toInteger(order.truck.dimension.depth),
+        toInteger(order.truck.dimension.height)
+      ]
       : [0, 0, 0]
 );
 
@@ -354,7 +354,7 @@ export const selectStep2Packages = createSelector(
   (step2State) => step2State.packages
 );
 
-export const selectStep2RemainingProducts = createSelector(
+export const selectRemainingProducts = createSelector(
   selectStep2State,
   (step2State) => step2State.remainingProducts
 );
@@ -384,7 +384,7 @@ export const selectStep2PackageCount = createSelector(
 );
 
 export const selectStep2ProductCount = createSelector(
-  selectStep2RemainingProducts,
+  selectRemainingProducts,
   (products) => products.length
 );
 
