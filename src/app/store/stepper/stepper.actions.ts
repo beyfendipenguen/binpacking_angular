@@ -3,6 +3,11 @@ import { UiProduct } from '../../admin/components/stepper/components/ui-models/u
 import { UiPackage } from '../../admin/components/stepper/components/ui-models/ui-package.model';
 
 
+export const calculateOrderDetailChanges = createAction(
+  '[Stepper] Calculate Order Detail Changes'
+);
+
+
 export const deleteRemainingProduct = createAction(
   '[Stepper] Delete Remaining Product',
   props<{ product: UiProduct }>()
@@ -21,32 +26,32 @@ export const calculatePackageDetail = createAction(
 
 export const movePalletToPackage = createAction(
   '[Stepper] Move Pallet To Package',
-  props<{containerId:string, previousIndex:number, previousContainerData:any}>()
+  props<{ containerId: string, previousIndex: number, previousContainerData: any }>()
 );
 
 export const splitProduct = createAction(
   '[Stepper] Split Product',
-  props<{product:UiProduct,splitCount:number|null}>()
+  props<{ product: UiProduct, splitCount: number | null }>()
 );
 
 export const moveRemainingProductToPackage = createAction(
   '[Stepper] Move Remaining Product From Package',
-  props<{targetPackage:UiPackage,previousIndex:number}>()
+  props<{ targetPackage: UiPackage, previousIndex: number }>()
 );
 
 export const moveUiProductInSamePackage = createAction(
   '[Stepper] Move Ui Product In Same Package',
-  props<{containerId:string,currentIndex:number,previousIndex:number}>()
+  props<{ containerId: string, currentIndex: number, previousIndex: number }>()
 );
 
 export const removeProductFromPackage = createAction(
   '[Stepper] Remove Product From Package',
-  props<{pkg:UiPackage,productIndex:number}>()
+  props<{ pkg: UiPackage, productIndex: number }>()
 );
 
 export const removePalletFromPackage = createAction(
   '[Stepper] Remove Pallet From Package',
-  props<{pkg:UiPackage}>()
+  props<{ pkg: UiPackage }>()
 );
 
 export const removeAllPackage = createAction(
@@ -55,12 +60,12 @@ export const removeAllPackage = createAction(
 
 export const removePackage = createAction(
   '[Stepper] Remove Package',
-  props<{packageToRemove:any}>()
+  props<{ packageToRemove: any }>()
 );
 
 export const moveUiProductInPackageToPackage = createAction(
   '[Stepper] Move Ui Product In Package To Package',
-  props<{sourcePackage:UiPackage,targetPackage:UiPackage,previousIndex:number}>()
+  props<{ sourcePackage: UiPackage, targetPackage: UiPackage, previousIndex: number }>()
 );
 
 export const moveUiProductInSamePackageSuccess = createAction(
@@ -73,17 +78,17 @@ export const palletControlSubmit = createAction(
 
 export const palletControlSubmitSuccess = createAction(
   '[Stepper] Pallet Control Submit Success',
-  props<{packageDetails:any}>()
+  props<{ packageDetails: any }>()
 );
 
 export const updateProductCountAndCreateOrUpdateOrderDetail = createAction(
   '[Stepper] Update Product Count And Create Or Update OrderDetail',
-  props<{product:any,newCount:number}>()
+  props<{ product: any, newCount: number }>()
 )
 
 export const calculatePackageDetailSuccess = createAction(
   '[Stepper] Calculate Package Detail Success',
-  props<{packages: any[], remainingOrderDetails: any[]}>()
+  props<{ packages: any[], remainingOrderDetails: any[] }>()
 );
 
 export const remainingProductMoveProduct = createAction(
@@ -123,12 +128,12 @@ export const createOrderDetailsSuccess = createAction(
 
 export const updateOrderDetailsChanges = createAction(
   '[Invoice Upload] Update Order Detail Changes',
-  props<{changes:any}>()
+  props<{ changes: any }>()
 )
 
 export const updateOrderDetailsChangesSuccess = createAction(
   '[Invoice Upload] Create Order Details Success',
-  props<{ orderDetails: any[]}>()
+  props<{ orderDetails: any[] }>()
 );
 
 export const uploadFileToOrder = createAction(
@@ -192,7 +197,7 @@ export const setRemainingProducts = createAction(
 
 export const moveProductToRemainingProducts = createAction(
   '[Pallet Control] Move Product To Remaining Products',
-  props<{uiProducts:any, previousIndex:number, previousContainerId:string}>()
+  props<{ uiProducts: any, previousIndex: number, previousContainerId: string }>()
 )
 
 // Navigation Actions

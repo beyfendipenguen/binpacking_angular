@@ -7,6 +7,7 @@ import { UiPackage } from '../../admin/components/stepper/components/ui-models/u
 import { UiPallet } from '../../admin/components/stepper/components/ui-models/ui-pallet.model';
 import { UiProduct } from '../../admin/components/stepper/components/ui-models/ui-product.model';
 import { isEqual } from 'lodash-es';
+import { OrderDetailDiffCalculator } from '../../models/utils/order-detail-diff.util';
 
 export const stepperReducer = createReducer(
   initialStepperState,
@@ -19,6 +20,22 @@ export const stepperReducer = createReducer(
       isDirty: false
     }
   })),
+
+  on(StepperActions.calculateOrderDetailChanges, (state) => {
+    const changes = OrderDetailDiffCalculator.calculateDiff(
+      state.step1State.orderDetails,
+      state.step1State.originalOrderDetails,
+      state.step2State.remainingProducts
+    )
+    const isDirty = changes.modified.length > 0 || changes.added.length > 0 || changes.deleted.length > 0 ? true : false
+    return {
+      ...state,
+      step1State: {
+        ...state.step1State,
+        isDirty: isDirty
+      }
+    }
+  }),
 
   on(StepperActions.deleteRemainingProduct, (state, { product }) => {
 
@@ -771,10 +788,10 @@ export const stepperReducer = createReducer(
     };
   }),
 
-  on(StepperActions.updateOrderDetailsChanges,(state,{changes}) => {
+  on(StepperActions.updateOrderDetailsChanges, (state, { changes }) => {
     return {
       ...state,
-      step1State:{
+      step1State: {
         ...state.step1State,
         added: changes.added,
         modified: changes.modified,

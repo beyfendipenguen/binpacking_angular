@@ -216,7 +216,7 @@ export class StepperEffects {
 
   calculatePackageDetail$ = createEffect(() =>
     this.actions$.pipe(
-      ofType(StepperActions.invoiceUploadSubmitFlowSuccess,StepperActions.uploadFileToOrder),
+      ofType(StepperActions.invoiceUploadSubmitFlowSuccess, StepperActions.uploadFileToOrder),
       switchMap(() => this.repositoryService.calculatePackageDetail().pipe(
         map((response) => StepperActions.calculatePackageDetailSuccess({
           packages: response.packageDetails,
@@ -326,4 +326,21 @@ export class StepperEffects {
       )
     )
   );
+  // pallet 2 de yapilan tum ekleme silme ve guncelleme islemleri icin
+  // tetiklenen actionlari dinleyip onlarin success durumlarda veya direk ilgili
+  // actionlarin bittigi durumda step1 changes hesaplayip guncelleme islemini yapmaliyim
+  // kullanici step2 de pallet control submit islemini devreye soktugu zaman 
+  // step 1 changes durumuna bakip gerekiyorsa backende gitmeliyim
+  // eger gerekmiyorsa api istegi atamadan islemi bitirmeliyim
+
+  orderDetailChanges$ = createEffect(() =>
+  (this.actions$.pipe(
+    ofType(
+      StepperActions.deleteRemainingProduct,
+      StepperActions.addUiProductToRemainingProducts,
+      StepperActions.updateProductCountAndCreateOrUpdateOrderDetail,
+    ),
+    map(() => StepperActions.calculateOrderDetailChanges()),
+    catchError((error) => of(StepperActions.setGlobalError({ error: error.message })))
+  )));
 }
