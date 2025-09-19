@@ -2,17 +2,17 @@
    OPTIMIZE EDİLMİŞ PALET YERLEŞTIRME SCSS
 ===================== */
 
-@use '@angular/material' as mat;
+@use "@angular/material" as mat;
 // Ana değişkenler
-$primary-color: #006A6A;
-$secondary-color: #D6BB86;
-$accent-color: #004A4A;
-$light-accent: #C0A670;
+$primary-color: #006a6a;
+$secondary-color: #d6bb86;
+$accent-color: #004a4a;
+$light-accent: #c0a670;
 $background-color: #f8f9fa;
 $text-dark: #333333;
 $text-light: #666666;
 $border-color: #e0e0e0;
-$white: #FFFFFF;
+$white: #ffffff;
 
 // Split input değişkenleri
 $split-main-width: 32px;
@@ -66,7 +66,7 @@ $split-pallet-button-size: 20px;
     margin: 0 !important;
   }
 
-  &[type=number] {
+  &[type="number"] {
     appearance: textfield !important;
     -moz-appearance: textfield !important;
   }
@@ -177,17 +177,23 @@ form {
 
   &:nth-child(2) {
     border-left-color: $secondary-color;
-    .dashboard-icon { background-color: $secondary-color; }
+    .dashboard-icon {
+      background-color: $secondary-color;
+    }
   }
 
   &:nth-child(3) {
     border-left-color: $accent-color;
-    .dashboard-icon { background-color: $accent-color; }
+    .dashboard-icon {
+      background-color: $accent-color;
+    }
   }
 
   &:nth-child(4) {
     border-left-color: $light-accent;
-    .dashboard-icon { background-color: $light-accent; }
+    .dashboard-icon {
+      background-color: $light-accent;
+    }
   }
 }
 
@@ -234,7 +240,6 @@ form {
   background-color: transparent;
   border-bottom: 1px solid $border-color;
 }
-
 
 .search-input-wrapper {
   position: relative;
@@ -388,7 +393,9 @@ form {
   min-height: 400px;
 }
 
-.inventory-section, .pallets-section, .packages-section {
+.inventory-section,
+.pallets-section,
+.packages-section {
   background-color: $white;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -450,6 +457,7 @@ form {
   display: flex;
   align-items: center;
   flex-shrink: 0;
+  gap: 12px; // Buton için boşluk
 
   mat-icon {
     font-size: 20px;
@@ -459,6 +467,47 @@ form {
 
   h2 {
     white-space: nowrap;
+  }
+}
+
+.calculate-button {
+  background-color: $secondary-color !important;
+  color: $white !important;
+  font-size: 12px !important;
+  height: 32px !important;
+  line-height: 32px !important;
+  padding: 0 12px !important;
+  min-width: auto !important;
+  border-radius: 16px !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+  transition: all 0.3s ease !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+
+  &:hover {
+    background-color: $light-accent !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15) !important;
+  }
+
+  &:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+  }
+
+  mat-icon {
+    font-size: 16px !important;
+    width: 16px !important;
+    height: 16px !important;
+    margin: 0 !important;
+    color: $white !important;
+  }
+
+  span {
+    font-weight: 500 !important;
+    color: $white !important;
+    font-size: 12px !important;
   }
 }
 
@@ -497,21 +546,35 @@ form {
   }
 
   &.heaviest {
-    border-left-color: #F44336;
-    mat-icon { color: #F44336; }
-    &:hover { background-color: rgba(244, 67, 54, 0.05); }
+    border-left-color: #f44336;
+    mat-icon {
+      color: #f44336;
+    }
+    &:hover {
+      background-color: rgba(244, 67, 54, 0.05);
+    }
   }
 
   &.lightest {
-    border-left-color: #4CAF50;
-    mat-icon { color: #4CAF50; }
-    &:hover { background-color: rgba(76, 175, 80, 0.05); }
+    border-left-color: #4caf50;
+    mat-icon {
+      color: #4caf50;
+    }
+    &:hover {
+      background-color: rgba(76, 175, 80, 0.05);
+    }
   }
 
   &.average {
-    border-left-color: #FF9800;
-    mat-icon { color: #FF9800; }
-    &:hover { background-color: rgba(255, 152, 0, 0.05); }
+    border-left-color: #ff9800;
+    gap: 10px;
+    left: 10px;
+    mat-icon {
+      color: #ff9800;
+    }
+    &:hover {
+      background-color: rgba(255, 152, 0, 0.05);
+    }
   }
 }
 
@@ -557,10 +620,10 @@ form {
 
   &:hover {
     background-color: #eeeeee;
-    color: #F44336;
+    color: #f44336;
 
     mat-icon {
-      color: #F44336;
+      color: #f44336;
     }
   }
 }
@@ -568,13 +631,15 @@ form {
 /* =====================
    ENVANTER VE ÜRÜNLER
 ===================== */
-.inventory-list, .pallets-list {
+.inventory-list,
+.pallets-list {
   padding: 8px;
   overflow-y: auto;
   flex: 1;
 }
 
-.product-item, .pallet-item {
+.product-item,
+.pallet-item {
   display: flex;
   align-items: center;
   border-radius: 4px;
@@ -628,7 +693,7 @@ form {
     margin: 0 !important;
   }
 
-  &[type=number] {
+  &[type="number"] {
     appearance: textfield !important;
     -moz-appearance: textfield !important;
   }
@@ -712,8 +777,9 @@ form {
   margin-right: 10px;
   position: relative;
 
-  &::before, &::after {
-    content: '';
+  &::before,
+  &::after {
+    content: "";
     position: absolute;
     background-color: rgba(255, 255, 255, 0.5);
   }
@@ -757,7 +823,7 @@ form {
   @include split-button-base($split-button-size);
 }
 
-.button-container{
+.button-container {
   display: flex;
   gap: 6px;
 }
@@ -913,7 +979,7 @@ form {
   position: relative;
 
   &::before {
-    content: '';
+    content: "";
     position: absolute;
     top: -4px;
     left: 0;
@@ -931,7 +997,7 @@ form {
   position: relative;
 
   &::before {
-    content: '';
+    content: "";
     position: absolute;
     top: -4px;
     left: 0;
@@ -1034,12 +1100,12 @@ form {
 
 .can-drop {
   background-color: rgba(76, 175, 80, 0.1) !important;
-  border: 2px dashed #4CAF50 !important;
+  border: 2px dashed #4caf50 !important;
 }
 
 .cannot-drop {
   background-color: rgba(244, 67, 54, 0.1) !important;
-  border: 2px dashed #F44336 !important;
+  border: 2px dashed #f44336 !important;
   cursor: not-allowed !important;
 }
 
@@ -1061,7 +1127,8 @@ form {
   justify-content: space-between; /* Bu satırı ekleyin */
 }
 
-.save-button, .next-button {
+.save-button,
+.next-button {
   background-color: $primary-color !important;
   color: $white !important;
   margin-bottom: 70px;
@@ -1070,7 +1137,8 @@ form {
     box-shadow: 0 4px 8px rgba(0, 106, 106, 0.3);
   }
 
-  mat-icon, span {
+  mat-icon,
+  span {
     color: $white !important;
   }
 }
@@ -1083,7 +1151,8 @@ form {
     background-color: #e0e0e0 !important;
   }
 
-  mat-icon, span {
+  mat-icon,
+  span {
     color: $text-light !important;
   }
 }
@@ -1118,7 +1187,8 @@ button[mat-icon-button] {
     height: auto;
   }
 
-  .inventory-section, .pallets-section {
+  .inventory-section,
+  .pallets-section {
     flex: 0 0 auto;
     height: 250px;
   }
@@ -1182,7 +1252,8 @@ button[mat-icon-button] {
     width: 100%;
   }
 
-  .prev-button, .next-button {
+  .prev-button,
+  .next-button {
     flex: 1;
   }
 
@@ -1201,6 +1272,24 @@ button[mat-icon-button] {
 
   .header-title-section {
     width: 100%;
+    gap: 8px;
+  }
+
+  .calculate-button {
+    height: 28px !important;
+    line-height: 28px !important;
+    padding: 0 10px !important;
+    font-size: 11px !important;
+
+    mat-icon {
+      font-size: 14px !important;
+      width: 14px !important;
+      height: 14px !important;
+    }
+
+    span {
+      font-size: 11px !important;
+    }
   }
 
   .pallet-stats-inline {
@@ -1222,7 +1311,8 @@ button[mat-icon-button] {
     }
   }
 
-  .stat-label, .stat-value {
+  .stat-label,
+  .stat-value {
     text-align: center;
   }
 
@@ -1284,6 +1374,15 @@ button[mat-icon-button] {
     flex-direction: column;
     gap: 4px;
     width: 100%;
+  }
+
+  .calculate-button {
+    span {
+      display: none; // Küçük ekranlarda sadece icon göster
+    }
+
+    padding: 0 8px !important;
+    min-width: 28px !important;
   }
 
   .stat-item {
