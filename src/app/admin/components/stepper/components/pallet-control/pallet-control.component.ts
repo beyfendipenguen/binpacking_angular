@@ -52,13 +52,16 @@ import {
   removeProductFromPackage,
   splitProduct,
   updateProductCountAndCreateOrUpdateOrderDetail,
-  deleteRemainingProduct
+  deleteRemainingProduct,
+  updateOrderDetailsChanges,
+  calculatePackageDetail
 } from '../../../../../store';
 
 import {
   selectStep2Packages,
   selectRemainingProducts,
   selectStep2IsDirty,
+  selectStep1IsDirty,
   selectStep2Changes,
   selectUiPackages,
   allDropListIds,
@@ -137,6 +140,8 @@ export class PalletControlComponent
   );
   public step2IsDirty$ = this.store.select(selectStep2IsDirty);
   public step2Changes$ = this.store.select(selectStep2Changes);
+
+  public orderDetailsIsDirtySignal = this.store.selectSignal(selectStep1IsDirty);
 
   public isDirtySignal = this.store.selectSignal(selectStep2IsDirty);
   public orderSignal = this.store.selectSignal(selectOrder);
@@ -665,6 +670,14 @@ export class PalletControlComponent
     );
   }
 
+  calculatePackageDetail() {
+    if (this.orderDetailsIsDirtySignal())
+      this.store.dispatch(updateOrderDetailsChanges({ context: "calculatePackageDetails" }))
+    else {
+      this.store.dispatch(calculatePackageDetail())
+    }
+  }
+
   addUiProduct(product: UiProduct) {
     console.log(product.name);
     this.store.dispatch(addUiProductToRemainingProducts({ product: product }));
@@ -676,5 +689,8 @@ export class PalletControlComponent
 
   submitForm(): void {
     if (this.isDirtySignal()) this.store.dispatch(palletControlSubmit());
+    if (this.orderDetailsIsDirtySignal()) {
+      this.store.dispatch(updateOrderDetailsChanges({}))
+    }
   }
 }

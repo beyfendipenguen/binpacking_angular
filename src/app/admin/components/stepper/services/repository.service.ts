@@ -134,9 +134,6 @@ export class RepositoryService {
       remainingUiProducts(),
     );
 
-    if (OrderDetailDiffCalculator.hasChanges(changes)) {
-      this.store.dispatch(updateOrderDetailsChanges({ changes }))
-    }
 
     const payload = {
       packageDetails: mapPackageToPackageDetail(uiPackages),

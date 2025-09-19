@@ -139,7 +139,8 @@ export class StepperEffects {
         this.repositoryService.bulkUpdateOrderDetails(changes).pipe(
           map((result) =>
             StepperActions.updateOrderDetailsChangesSuccess({
-              orderDetails: result.order_details
+              orderDetails: result.order_details,
+              context: action.context,
             })
           ),
           catchError((error) =>
@@ -149,6 +150,16 @@ export class StepperEffects {
       )
     )
   );
+
+  updateOrderDetailsSuccess$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(StepperActions.updateOrderDetailsChangesSuccess),
+      switchMap((action) => {
+        if (action.context === "calculatePackageDetails")
+          return of(StepperActions.calculatePackageDetail());
+        return EMPTY;
+      })
+    ));
 
   createOrderDetails$ = createEffect(() =>
     this.actions$.pipe(
@@ -216,7 +227,7 @@ export class StepperEffects {
 
   calculatePackageDetail$ = createEffect(() =>
     this.actions$.pipe(
-      ofType(StepperActions.invoiceUploadSubmitFlowSuccess, StepperActions.uploadFileToOrder),
+      ofType(StepperActions.calculatePackageDetail),
       switchMap(() => this.repositoryService.calculatePackageDetail().pipe(
         map((response) => StepperActions.calculatePackageDetailSuccess({
           packages: response.packageDetails,
@@ -227,9 +238,11 @@ export class StepperEffects {
     ));
 
 
+
+
   invoiceUploadCompleted$ = createEffect(() =>
     this.actions$.pipe(
-      ofType(StepperActions.calculatePackageDetailSuccess),
+      ofType(StepperActions.calculatePackageDetailSuccess, StepperActions.createOrderDetailsSuccess),
       map(() => StepperActions.setStepCompleted({ stepIndex: 1 }))
     )
   );

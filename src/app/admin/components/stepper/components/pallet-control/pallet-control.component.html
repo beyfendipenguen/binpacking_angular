@@ -61,25 +61,17 @@
       <div class="search-container">
         <div class="search-input-wrapper">
           <mat-icon class="search-icon">search</mat-icon>
-          <input
-            matInput
-            class="search-input"
-            type="text"
-            placeholder="Ürün ara..."
-            [formControl]="searchControl"
+          <input matInput class="search-input" type="text" placeholder="Ürün ara..." [formControl]="searchControl"
             [matAutocomplete]="auto">
 
           @if(searchControl.value){
-            <button
-              mat-icon-button
-              class="clear-search"
-              (click)="clearSearch()"
-              matTooltip="Aramayı temizle">
-              <mat-icon>close</mat-icon>
-            </button>
+          <button mat-icon-button class="clear-search" (click)="clearSearch()" matTooltip="Aramayı temizle">
+            <mat-icon>close</mat-icon>
+          </button>
           }
 
-          <mat-autocomplete   #auto="matAutocomplete" class="search-autocomplete" [displayWith]="displayProductFn.bind(this)">
+          <mat-autocomplete #auto="matAutocomplete" class="search-autocomplete"
+            [displayWith]="displayProductFn.bind(this)">
             <mat-option *ngIf="isSearching" class="loading-indicator">
               <mat-spinner diameter="20"></mat-spinner> Aranıyor...
             </mat-option>
@@ -88,8 +80,7 @@
               <mat-option *ngIf="filteredProducts().length === 0" disabled>
                 Sonuç bulunamadı
               </mat-option>
-              <mat-option *ngFor="let product of filteredProducts()" [value]="product"
-                (click)="selectProduct(product)">
+              <mat-option *ngFor="let product of filteredProducts()" [value]="product" (click)="selectProduct(product)">
                 {{ product.name }}
               </mat-option>
             </ng-container>
@@ -101,42 +92,37 @@
         [cdkDropListConnectedTo]="palletDropListIds()" class="inventory-list"
         (cdkDropListDropped)="dropProductToPallet($event)">
         @for(product of remainingProducts(); track product.ui_id){
-          <div class="product-item" cdkDrag (cdkDragStarted)="dragStarted($event)" (cdkDragEnded)="dragEnded()"
-            [cdkDragData]="product">
+        <div class="product-item" cdkDrag (cdkDragStarted)="dragStarted($event)" (cdkDragEnded)="dragEnded()"
+          [cdkDragData]="product">
 
-            <div class="product-icon"></div>
-            <div class="product-info">
-              <span class="product-name">{{ product.name }}</span>
-              <div class="product-count-container">
-                <input
-                  class="product-count-input"
-                  type="number"
-                  min="1"
-                  [value]="product.count"
-                  (change)="updateProductCount(product, $event)">
-                <span class="count-label">Adet</span>
-              </div>
-            </div>
-
-            <div class="split-product-container">
-              <input class="mini-split-input" type="number" min="1" [max]="product.count - 1" placeholder="1" #splitInput
-                (keydown.enter)="splitProduct(product, splitInput.value ? +splitInput.value : null); splitInput.value = ''"
-                matTooltip="Kaç adet ayırmak istiyorsunuz?">
-
-              <button mat-icon-button class="action-button split-button"
-                (click)="splitProduct(product, splitInput.value ? +splitInput.value : null); splitInput.value = ''"
-                matTooltip="Ürünü böl">
-                <mat-icon>content_cut</mat-icon>
-              </button>
-            </div>
-            <div class="split-product-container">
-              <button mat-icon-button class="action-button"
-                (click)="deleteRemainingProduct(product)"
-                matTooltip="Ürünü sil">
-                <mat-icon>close</mat-icon>
-              </button>
+          <div class="product-icon"></div>
+          <div class="product-info">
+            <span class="product-name">{{ product.name }}</span>
+            <div class="product-count-container">
+              <input class="product-count-input" type="number" min="1" [value]="product.count"
+                (change)="updateProductCount(product, $event)">
+              <span class="count-label">Adet</span>
             </div>
           </div>
+
+          <div class="split-product-container">
+            <input class="mini-split-input" type="number" min="1" [max]="product.count - 1" placeholder="1" #splitInput
+              (keydown.enter)="splitProduct(product, splitInput.value ? +splitInput.value : null); splitInput.value = ''"
+              matTooltip="Kaç adet ayırmak istiyorsunuz?">
+
+            <button mat-icon-button class="action-button split-button"
+              (click)="splitProduct(product, splitInput.value ? +splitInput.value : null); splitInput.value = ''"
+              matTooltip="Ürünü böl">
+              <mat-icon>content_cut</mat-icon>
+            </button>
+          </div>
+          <div class="split-product-container">
+            <button mat-icon-button class="action-button" (click)="deleteRemainingProduct(product)"
+              matTooltip="Ürünü sil">
+              <mat-icon>close</mat-icon>
+            </button>
+          </div>
+        </div>
         }
         @if(!hasRemainingProduct()){
         <div class="empty-state">
@@ -154,7 +140,8 @@
           <div class="header-title-section">
             <mat-icon>view_quilt</mat-icon>
             <h2>Paletleme Alanı</h2>
-            <button mat-raised-button class="calculate-button" matTooltip="Optimal palet yerleşimini hesapla">
+            <button mat-raised-button (click)="calculatePackageDetail()" class="calculate-button"
+              matTooltip="Optimal palet yerleşimini hesapla">
               <mat-icon>calculate</mat-icon>
               <span>Hesapla</span>
             </button>
@@ -235,8 +222,8 @@
                 @for(product of package.products;let j = $index; track product.ui_id){
 
 
-                <div class="pallet-item"  cdkDrag
-                  [cdkDragData]="product" (cdkDragStarted)="dragStarted($event)" (cdkDragEnded)="dragEnded()">
+                <div class="pallet-item" cdkDrag [cdkDragData]="product" (cdkDragStarted)="dragStarted($event)"
+                  (cdkDragEnded)="dragEnded()">
 
                   <div class="product-icon small"></div>
                   <div class="product-info">
@@ -245,17 +232,16 @@
                   </div>
                   <div class="button-container">
 
-                  <button  mat-icon-button class="action-button" (click)="addUiProduct(product)"
-                    matTooltip="ekle">
-                    <mat-icon>add</mat-icon>
-                  </button>
-                  <button mat-icon-button class="action-button" (click)="removeProductFromPackage(package, j)"
-                    matTooltip="Ürünü çıkar">
-                    <mat-icon>close</mat-icon>
-                  </button>
+                    <button mat-icon-button class="action-button" (click)="addUiProduct(product)" matTooltip="ekle">
+                      <mat-icon>add</mat-icon>
+                    </button>
+                    <button mat-icon-button class="action-button" (click)="removeProductFromPackage(package, j)"
+                      matTooltip="Ürünü çıkar">
+                      <mat-icon>close</mat-icon>
+                    </button>
                   </div>
                 </div>
-}
+                }
                 <!-- Boş palet mesajı -->
                 @if(package.products.length === 0){
                 <div class="empty-state">

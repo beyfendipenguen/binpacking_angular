@@ -3,6 +3,7 @@ import { UiProduct } from '../../admin/components/stepper/components/ui-models/u
 import { UiPackage } from '../../admin/components/stepper/components/ui-models/ui-package.model';
 
 
+
 export const calculateOrderDetailChanges = createAction(
   '[Stepper] Calculate Order Detail Changes'
 );
@@ -128,12 +129,12 @@ export const createOrderDetailsSuccess = createAction(
 
 export const updateOrderDetailsChanges = createAction(
   '[Invoice Upload] Update Order Detail Changes',
-  props<{ changes: any }>()
+  props<{ context?: string }>()
 )
 
 export const updateOrderDetailsChangesSuccess = createAction(
   '[Invoice Upload] Create Order Details Success',
-  props<{ orderDetails: any[] }>()
+  props<{ orderDetails: any[], context?: string }>()
 );
 
 export const uploadFileToOrder = createAction(
