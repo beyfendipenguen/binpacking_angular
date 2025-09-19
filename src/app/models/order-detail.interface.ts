@@ -8,6 +8,6 @@ export interface OrderDetail extends ZeroModel{
   product_id: string | null;
   count: number;
   unit_price: number;
-  total_price: number;
+  total_price?: number | null;
   remaining_count: number;
 }

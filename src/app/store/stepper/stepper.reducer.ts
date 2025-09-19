@@ -771,6 +771,18 @@ export const stepperReducer = createReducer(
     };
   }),
 
+  on(StepperActions.updateOrderDetailsChanges,(state,{changes}) => {
+    return {
+      ...state,
+      step1State:{
+        ...state.step1State,
+        added: changes.added,
+        modified: changes.modified,
+        deleted: changes.deleted
+      }
+    }
+  }),
+
   on(StepperActions.deleteOrderDetail, (state, { orderDetailId }) => {
     const itemToDelete = state.step1State.orderDetails.find(item => item.id === orderDetailId);
     const orderDetails = state.step1State.orderDetails.filter(item => item.id !== orderDetailId);

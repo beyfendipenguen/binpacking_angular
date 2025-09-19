@@ -20,18 +20,13 @@ export function mapUiPackagesToOrderDetails(
       const orderDetail: OrderDetail = {
         // ZeroModel properties
         id: Guid(),
-        created_at: new Date(),
-        updated_at: new Date(),
-        deleted_time: null,
-        is_deleted: false,
 
         // OrderDetail properties
         order: uiPackage.order,
         product: product,
         product_id: product.id || null,
         count: uiProduct.count,
-        unit_price: 0,
-        total_price: 0,
+        unit_price: 1,
         remaining_count: uiProduct.count,
       };
 

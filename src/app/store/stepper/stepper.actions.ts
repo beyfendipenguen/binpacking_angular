@@ -121,6 +121,16 @@ export const createOrderDetailsSuccess = createAction(
   props<{ orderDetails: any[], context: string }>()
 );
 
+export const updateOrderDetailsChanges = createAction(
+  '[Invoice Upload] Update Order Detail Changes',
+  props<{changes:any}>()
+)
+
+export const updateOrderDetailsChangesSuccess = createAction(
+  '[Invoice Upload] Create Order Details Success',
+  props<{ orderDetails: any[]}>()
+);
+
 export const uploadFileToOrder = createAction(
   '[Invoice Upload] Upload file to Order',
 )

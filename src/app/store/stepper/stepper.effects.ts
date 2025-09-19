@@ -131,6 +131,25 @@ export class StepperEffects {
     )
   );
 
+  updateOrderDetailChanges$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(StepperActions.updateOrderDetailsChanges),
+      withLatestFrom(this.store.select(selectStep1Changes)),
+      switchMap(([action, changes]) =>
+        this.repositoryService.bulkUpdateOrderDetails(changes).pipe(
+          map((result) =>
+            StepperActions.updateOrderDetailsChangesSuccess({
+              orderDetails: result.order_details
+            })
+          ),
+          catchError((error) =>
+            of(StepperActions.setStepperError({ error: error.message }))
+          )
+        )
+      )
+    )
+  );
+
   createOrderDetails$ = createEffect(() =>
     this.actions$.pipe(
       ofType(StepperActions.createOrderDetails),
