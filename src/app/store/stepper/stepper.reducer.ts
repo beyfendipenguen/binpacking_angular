@@ -641,6 +641,10 @@ export const stepperReducer = createReducer(
 
     return {
       ...state,
+      step1State:{
+        ...state.step1State,
+        isDirty:true
+      },
       step2State: {
         ...state.step2State,
         remainingProducts: updatedRemainingProducts
