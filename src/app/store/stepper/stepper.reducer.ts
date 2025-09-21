@@ -8,6 +8,7 @@ import { UiPallet } from '../../admin/components/stepper/components/ui-models/ui
 import { UiProduct } from '../../admin/components/stepper/components/ui-models/ui-product.model';
 import { isEqual } from 'lodash-es';
 import { OrderDetailDiffCalculator } from '../../models/utils/order-detail-diff.util';
+import { mapUiPackagesToOrderDetails, mapUiProductsToOrderDetails } from '../../models/mappers/ui-package-to-order-detail.mapper';
 
 export const stepperReducer = createReducer(
   initialStepperState,
@@ -22,16 +23,27 @@ export const stepperReducer = createReducer(
   })),
 
   on(StepperActions.calculateOrderDetailChanges, (state) => {
+    let mergeOrderDetails;
+    const mapperOrderDetails = mapUiPackagesToOrderDetails(state.step2State.packages)
     const changes = OrderDetailDiffCalculator.calculateDiff(
-      state.step1State.orderDetails,
+      mapperOrderDetails,
       state.step1State.originalOrderDetails,
       state.step2State.remainingProducts
     )
+    if(state.step2State.remainingProducts.length > 0){
+      const remainingOrderDetails = mapUiProductsToOrderDetails(state.step2State.remainingProducts,state.order)
+      mergeOrderDetails = [...mapperOrderDetails,...remainingOrderDetails]
+    }
+    else{
+      mergeOrderDetails = [...mapperOrderDetails]
+    }
+
     const isDirty = changes.modified.length > 0 || changes.added.length > 0 || changes.deleted.length > 0 ? true : false
     return {
       ...state,
       step1State: {
         ...state.step1State,
+        orderDetails: mergeOrderDetails,
         isDirty: isDirty,
         ...changes
       }
@@ -187,6 +199,19 @@ export const stepperReducer = createReducer(
   })),
 
   on(StepperActions.createOrderDetailsSuccess, (state, { orderDetails }) => ({
+    ...state,
+    step1State: {
+      ...state.step1State,
+      orderDetails: [...orderDetails],
+      originalOrderDetails: [...orderDetails],
+      added: [],
+      deleted: [],
+      modified: [],
+      isDirty: false,
+    }
+  })),
+
+  on(StepperActions.updateOrderDetailsChangesSuccess, (state, { orderDetails,context }) => ({
     ...state,
     step1State: {
       ...state.step1State,

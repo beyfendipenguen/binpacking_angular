@@ -124,17 +124,6 @@ export class RepositoryService {
     order_id: string = this.getOrderId()
   ) {
 
-    const mapperOrderDetails = mapUiPackagesToOrderDetails(uiPackages)
-    const originalOrderDetails = this.store.selectSignal(selectOriginalOrderDetails)
-    const remainingUiProducts = this.store.selectSignal(selectRemainingProducts)
-
-    const changes = OrderDetailDiffCalculator.calculateDiff(
-      mapperOrderDetails,
-      originalOrderDetails(),
-      remainingUiProducts(),
-    );
-
-
     const payload = {
       packageDetails: mapPackageToPackageDetail(uiPackages),
     };

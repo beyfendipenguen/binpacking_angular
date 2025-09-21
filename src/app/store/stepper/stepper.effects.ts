@@ -273,6 +273,7 @@ export class StepperEffects {
         StepperActions.removePalletFromPackage,
         StepperActions.removePackage,
         StepperActions.addUiProductToRemainingProducts,
+        StepperActions.updateProductCountAndCreateOrUpdateOrderDetail
 
       ),
       map(() => StepperActions.stepperStepUpdated())
@@ -342,7 +343,7 @@ export class StepperEffects {
   // pallet 2 de yapilan tum ekleme silme ve guncelleme islemleri icin
   // tetiklenen actionlari dinleyip onlarin success durumlarda veya direk ilgili
   // actionlarin bittigi durumda step1 changes hesaplayip guncelleme islemini yapmaliyim
-  // kullanici step2 de pallet control submit islemini devreye soktugu zaman 
+  // kullanici step2 de pallet control submit islemini devreye soktugu zaman
   // step 1 changes durumuna bakip gerekiyorsa backende gitmeliyim
   // eger gerekmiyorsa api istegi atamadan islemi bitirmeliyim
 
