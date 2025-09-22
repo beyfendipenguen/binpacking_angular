@@ -59,8 +59,7 @@ export class LocalStorageService {
             addedPackages: parsed.step2State.addedPackages.map((pkg:any)=> new UiPackage({...pkg,pallet: new UiPallet({...pkg.pallet}),  products: pkg.products.map((product:any)=> new UiProduct({...product}))})),
           },
         }
-        console.log(response)
-        
+
 
         return response;
       }

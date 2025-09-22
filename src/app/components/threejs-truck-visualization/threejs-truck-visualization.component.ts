@@ -1187,7 +1187,6 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, OnChanges, On
       this.createTruckVisualization();
       this.createPackageVisualization();
     } catch (error) {
-      console.error('Error processing data:', error);
     } finally {
       this.isLoading = false;
     }

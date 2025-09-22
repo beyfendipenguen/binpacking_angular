@@ -494,13 +494,11 @@ export const stepperReducer = createReducer(
     } else {
 
       if (typeof product.split !== 'function') {
-        console.warn('Product does not have split method');
         return state;
       }
 
       const splitProducts = product.split();
       if (!splitProducts || splitProducts.length === 0) {
-        console.warn('Split method returned invalid result');
         return state;
       }
 

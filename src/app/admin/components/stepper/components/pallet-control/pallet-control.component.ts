@@ -476,7 +476,6 @@ export class PalletControlComponent
     );
 
     if (!targetPackage) {
-      console.error('target package bulma hatasi');
       return;
     }
 
@@ -679,7 +678,6 @@ export class PalletControlComponent
   }
 
   addUiProduct(product: UiProduct) {
-    console.log(product.name);
     this.store.dispatch(addUiProductToRemainingProducts({ product: product }));
   }
 

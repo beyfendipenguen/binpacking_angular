@@ -123,7 +123,6 @@ export class OrdersComponent implements OnInit {
 
       },
       error: (error) => {
-        console.error(error.message)
       }
     });
   }
