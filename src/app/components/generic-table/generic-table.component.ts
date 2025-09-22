@@ -431,8 +431,6 @@ export class GenericTableComponent<T> implements OnInit, AfterViewInit {
     }
      else {
       // No valid data source
-
-      this.toastService.error('Veri kaynağı bulunamadı', 'Hata');
       this.isLoading = false;
       this.dataSource.data = [];
       this.totalItems = 0;

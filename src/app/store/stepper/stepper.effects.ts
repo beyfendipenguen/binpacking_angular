@@ -5,20 +5,20 @@ import { Store } from '@ngrx/store';
 import {
   map,
   tap,
-  debounceTime,
   switchMap,
   catchError,
   withLatestFrom,
   mergeMap,
   filter,
+  concatMap,
 } from 'rxjs/operators';
 import { EMPTY, forkJoin, of, timer } from 'rxjs';
 import * as StepperActions from './stepper.actions';
 import {
   AppState,
   selectOrder,
-  selectOrderId,
   selectStep1Changes,
+  selectStep1IsDirty,
   selectStepperState,
   selectUiPackages,
 } from '../index';
@@ -37,7 +37,6 @@ export class StepperEffects {
   private localStorageService = inject(LocalStorageService);
   private toastService = inject(ToastService);
   private repositoryService = inject(RepositoryService);
-  private uiStateManager = inject(UIStateManager);
   private fileUploadManager = inject(FileUploadManager);
   private orderService = inject(OrderService);
   private orderDetailService = inject(OrderDetailService);
@@ -331,13 +330,22 @@ export class StepperEffects {
   palletControlSubmit$ = createEffect(() =>
     this.actions$.pipe(
       ofType(StepperActions.palletControlSubmit),
-      withLatestFrom(this.store.select(selectUiPackages)),
-      switchMap(([action, uiPackages]) =>
-        this.repositoryService.bulkCreatePackageDetail(uiPackages).pipe(
+      withLatestFrom(
+        this.store.select(selectUiPackages),
+        this.store.select(selectStep1IsDirty)
+      ),
+      concatMap(([action, uiPackages, isOrderDetailsDirty]) => {
+        return this.repositoryService.bulkCreatePackageDetail(uiPackages).pipe(
           map((response) => StepperActions.palletControlSubmitSuccess({ packageDetails: response.package_details })),
+          // Ana işlem bittikten SONRA koşullu action'ı çalıştır
+          tap(() => {
+            if (isOrderDetailsDirty) {
+              StepperActions.updateOrderDetailsChanges({});
+            }
+          }),
           catchError((error) => of(StepperActions.setGlobalError({ error: error.message })))
-        )
-      )
+        );
+      })
     )
   );
   // pallet 2 de yapilan tum ekleme silme ve guncelleme islemleri icin

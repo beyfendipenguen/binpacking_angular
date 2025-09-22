@@ -292,51 +292,6 @@
           color: white !important;
         }
       }
-
-      .export-button {
-        background-color: #D6BB86 !important;
-        color: white !important;
-        font-weight: 600;
-        padding: 12px 24px;
-        border-radius: 4px;
-        box-shadow: 0 2px 4px rgba(214, 187, 134, 0.3);
-        transition: all 0.3s ease;
-
-        &:not([disabled]):hover {
-          background-color: #C0A670 !important;
-          box-shadow: 0 4px 8px rgba(214, 187, 134, 0.3);
-        }
-
-        &[disabled] {
-          background-color: #9ca3af !important;
-          cursor: not-allowed;
-        }
-
-        .new-tab-icon {
-          display: inline-flex;
-          align-items: center;
-          margin-right: 8px;
-          position: relative;
-
-          .new-tab-square {
-            width: 12px;
-            height: 12px;
-            border: 2px solid currentColor;
-            border-radius: 2px;
-          }
-
-          .new-tab-arrow {
-            position: absolute;
-            top: -2px;
-            right: -2px;
-            width: 6px;
-            height: 6px;
-            border-top: 2px solid currentColor;
-            border-right: 2px solid currentColor;
-            transform: rotate(45deg);
-          }
-        }
-      }
     }
 
     .view-controls {
@@ -995,8 +950,7 @@
         flex-direction: column;
         width: 100%;
 
-        .calculate-button,
-        .export-button {
+        .calculate-button {
           width: 100%;
           justify-content: center;
         }

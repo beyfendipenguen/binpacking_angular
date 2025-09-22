@@ -52,6 +52,9 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, OnChanges, On
   @Input() truckDimension: number[] = [13200, 2200, 2900];
   @Input() showHelp: boolean = true;
 
+  @Input() showWeightDisplay: boolean = true;
+  @Input() weightCalculationDepth: number = 3000;
+
   @Output() packageSelected = new EventEmitter<PackageData>();
   @Output() viewChanged = new EventEmitter<string>();
   @Output() dataChanged = new EventEmitter<any[]>();
@@ -230,6 +233,44 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, OnChanges, On
     directionalLight.castShadow = true;
     this.scene.add(directionalLight);
   }
+
+  //Weight calculation
+  get frontSectionWeight(): number {
+    if (!this.processedPackages || this.processedPackages.length === 0) {
+      return 0;
+    }
+
+    return this.processedPackages.reduce((total, pkg) => {
+      const packageStart = pkg.x;
+      const packageEnd = pkg.x + pkg.length;
+
+      // Paket tamamen hesaplama alanının dışındaysa
+      if (packageStart >= this.weightCalculationDepth) {
+        return total;
+      }
+
+      // Paket tamamen hesaplama alanının içindeyse
+      if (packageEnd <= this.weightCalculationDepth) {
+        return total + (pkg.weight || 0);
+      }
+
+      // Paket kısmen hesaplama alanının içindeyse - orantılı hesaplama
+      const overlapLength = this.weightCalculationDepth - packageStart;
+      const overlapRatio = overlapLength / pkg.length;
+      const partialWeight = (pkg.weight || 0) * overlapRatio;
+
+      return total + partialWeight;
+    }, 0);
+  }
+
+  get frontSectionWeightDisplay(): string {
+    const weight = this.frontSectionWeight;
+    if (weight >= 1000) {
+      return `${(weight / 1000).toFixed(1)} ton`;
+    }
+    return `${weight.toFixed(0)} kg`;
+  }
+  ///
 
   // ========================================
   // MOUSE EVENTS
@@ -1189,6 +1230,10 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, OnChanges, On
     this.packagesGroup.clear();
     this.processedPackages.forEach((packageData) => {
       this.createPackageMesh(packageData);
+    });
+
+     this.ngZone.run(() => {
+      this.cdr.markForCheck();
     });
   }
 

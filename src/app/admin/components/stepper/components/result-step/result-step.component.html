@@ -6,9 +6,9 @@
       <mat-icon>local_shipping</mat-icon>
     </div>
     <div class="header-title">
-      <h1>🚛Tır Yükleme Sonuçları</h1>
+      <h1>Tır Yükleme Sonuçları</h1>
       <p class="header-subtitle">
-        Gelişmiş 3D Görselleştirme ve Gerçek Zamanlı Veri Takibi - v3.0
+        Gelişmiş 3D Görselleştirme ve Gerçek Zamanlı Veri Takibi
       </p>
     </div>
   </div>
@@ -146,14 +146,6 @@
         {{ isLoading ? 'İşlem Devam Ediyor...' : 'Optimizasyonu Çalıştır' }}
       </button>
 
-      <button mat-raised-button class="export-button" [disabled]="!hasResults" (click)="openInNewTab()">
-        <div class="new-tab-icon">
-          <div class="new-tab-square"></div>
-          <div class="new-tab-arrow"></div>
-        </div>
-        3D Popup Aç
-      </button>
-
       <!-- NEW: Enhanced Save Button -->
       <button mat-raised-button class="save-button" [disabled]="!hasResults" [class.has-changes]="hasUnsavedChanges"
         (click)="saveResults()">
@@ -226,6 +218,8 @@
 
     <!-- ENHANCED: ThreeJS Truck Visualization Component with NEW dataChanged event -->
     <app-threejs-truck-visualization *ngIf="hasResults && showVisualization && !hasThreeJSError" #threeJSComponent
+      [weightCalculationDepth]="3000"
+      [showWeightDisplay]="true"
       [piecesData]="piecesData" [truckDimension]="truckDimension()" [showHelp]="true"
       (packageSelected)="onPackageSelected($event)" (viewChanged)="onViewChanged($event)"
       (dataChanged)="onDataChanged($event)" (error)="onThreeJSError($event)" (ready)="onThreeJSReady()">

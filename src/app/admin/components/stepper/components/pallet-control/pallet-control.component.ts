@@ -688,9 +688,8 @@ export class PalletControlComponent
   }
 
   submitForm(): void {
-    if (this.isDirtySignal()) this.store.dispatch(palletControlSubmit());
-    if (this.orderDetailsIsDirtySignal()) {
-      this.store.dispatch(updateOrderDetailsChanges({}))
+     if (this.isDirtySignal()) {
+      this.store.dispatch(palletControlSubmit());
     }
   }
 }
