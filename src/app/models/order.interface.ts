@@ -9,4 +9,5 @@ export interface Order extends ZeroModel {
   company_relation: CompanyRelation;
   truck:Truck;
   max_pallet_height:number;
+  truck_weight_limit:number;
 }

@@ -310,7 +310,11 @@ export const selectAverageOrderDetailHeight = createSelector(
       return sum + height;
     }, 0);
 
-    return totalHeight / orderDetails.length;
+    const averageOrderDetailHeight = toInteger(totalHeight / orderDetails.length);
+    if(averageOrderDetailHeight < 120){
+      return 120;
+    }
+    return toInteger(totalHeight / orderDetails.length);
   }
 )
 
@@ -417,7 +421,7 @@ export const selectRemainingWeight = createSelector(
   selectTotalWeight,
   (order, totalWeight) => {
     if (order) {
-      const trailerWeightLimit = order.truck?.weight_limit ?? 0;
+      const trailerWeightLimit = order.truck_weight_limit ?? 0;
       return Math.floor(trailerWeightLimit - totalWeight);
     }
     return 0;

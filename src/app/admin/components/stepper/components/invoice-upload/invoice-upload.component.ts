@@ -328,6 +328,13 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
     }
   }
 
+  onTruckWeightLimitChange(value: number): void{
+    let currentOrder = this.orderSignal();
+    if (currentOrder) {
+      const updatedOrder = { ...currentOrder, truck_weight_limit: value };
+      this.store.dispatch(StepperActions.setOrder({ order: updatedOrder }));
+    }
+  }
 
   createOrder(): void {
     const now = new Date();
