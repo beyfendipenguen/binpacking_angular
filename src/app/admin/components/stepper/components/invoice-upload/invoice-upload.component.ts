@@ -468,6 +468,17 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
     return this.orderFormManager.compareWeightTypes(a, b);
   }
 
+  getTotalCount(): number {
+    if (!this.orderDetailsSignal() || !this.orderDetailsSignal().length) {
+      return 0;
+    }
+
+    return this.orderDetailsSignal().reduce((total: number, detail: any) => {
+      const count = detail.count || 0;
+      return (total + count)
+    }, 0);
+  }
+
   getTotalMeter(): number {
     if (!this.orderDetailsSignal() || !this.orderDetailsSignal().length) {
       return 0;
