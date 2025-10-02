@@ -57,7 +57,7 @@ import { Store } from '@ngrx/store';
 import {
   selectOrder, selectStep1OrderDetails, selectStep1IsDirty,
   selectStep1HasFile, selectStep1FileName,
-  selectAverageOrderDetailHeight,selectIsStepLoading,selectIsEditMode,
+  selectAverageOrderDetailHeight, selectIsStepLoading, selectIsEditMode,
   selectIsOnlyOrderDirty,
 } from '../../../../../store/stepper/stepper.selectors';
 import { CompanyRelation } from '../../../../../models/company-relation.interface';
@@ -177,6 +177,10 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
     return INVOICE_UPLOAD_CONSTANTS.TABLE.DISPLAYED_COLUMNS as string[];
   }
 
+  get columnTypes(): { [key: string]: string } {
+    return INVOICE_UPLOAD_CONSTANTS.TABLE.COLUMN_TYPES as { [key: string]: string };
+  }
+
   get filterableColumns(): string[] {
     return INVOICE_UPLOAD_CONSTANTS.TABLE.FILTERABLE_COLUMNS as string[];
   }
@@ -190,7 +194,7 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
   }
 
 
-  constructor(){
+  constructor() {
 
     // ValueChanges subscription'ı
 
@@ -328,7 +332,7 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
     }
   }
 
-  onTruckWeightLimitChange(value: number): void{
+  onTruckWeightLimitChange(value: number): void {
     let currentOrder = this.orderSignal();
     if (currentOrder) {
       const updatedOrder = { ...currentOrder, truck_weight_limit: value };
@@ -404,8 +408,8 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
 
   submit(): void {
     if (!this.isDirtySignal()) {
-      if(this.isOnlyOrderDirtySignal()){
-        this.store.dispatch(StepperActions.updateOrCreateOrder({context:'order'}))
+      if (this.isOnlyOrderDirtySignal()) {
+        this.store.dispatch(StepperActions.updateOrCreateOrder({ context: 'order' }))
       }
       this.store.dispatch(StepperActions.navigateToStep({ stepIndex: 2 }));
       return;
@@ -462,5 +466,17 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
 
   compareWeightTypes = (a: string, b: string): boolean => {
     return this.orderFormManager.compareWeightTypes(a, b);
+  }
+
+  getTotalMeter(): number {
+    if (!this.orderDetailsSignal() || !this.orderDetailsSignal().length) {
+      return 0;
+    }
+
+    return this.orderDetailsSignal().reduce((total: number, detail: any) => {
+      const depth = detail.product?.dimension?.depth || 0;
+      const count = detail.count || 0;
+      return (total + (depth * count) / 1000)
+    }, 0);
   }
 }
