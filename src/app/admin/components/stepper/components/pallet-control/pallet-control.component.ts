@@ -387,6 +387,10 @@ export class PalletControlComponent
   updateProductCount(product: UiProduct, event: any): void {
     // Bu metodu sen doldur - product count güncellemesi için
     const newCount = parseInt(event.target.value);
+    if (Number.isNaN(newCount) || newCount < 1) {
+      // geçersiz inputu görmezden gel
+      return;
+    }
     this.store.dispatch(
       updateProductCountAndCreateOrUpdateOrderDetail({ product, newCount })
     );
@@ -686,7 +690,7 @@ export class PalletControlComponent
   }
 
   submitForm(): void {
-     if (this.isDirtySignal()) {
+    if (this.isDirtySignal()) {
       this.store.dispatch(palletControlSubmit());
     }
   }

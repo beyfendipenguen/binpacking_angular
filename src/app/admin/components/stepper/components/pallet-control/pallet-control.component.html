@@ -99,7 +99,8 @@
           <div class="product-info">
             <span class="product-name">{{ product.name }}</span>
             <div class="product-count-container">
-              <input class="product-count-input" type="number" min="1" [value]="product.count"
+              <input matInput class="product-count-input" type="number" min="1" [value]="product.count"
+                (keydown.enter)="$event.preventDefault()" inputmode="numeric"
                 (change)="updateProductCount(product, $event)">
               <span class="count-label">Adet</span>
             </div>
