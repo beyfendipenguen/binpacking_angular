@@ -66,7 +66,7 @@ export const palletDropListIds = createSelector(selectStep2State, (state) => {
     .filter(pkg => pkg.pallet !== null)
     .forEach(pkg => {
       if (pkg.pallet) {
-        ids.push(pkg.pallet.id);
+        ids.push(pkg.pallet.ui_id);
       }
     });
   return ids;
@@ -311,7 +311,7 @@ export const selectAverageOrderDetailHeight = createSelector(
     }, 0);
 
     const averageOrderDetailHeight = toInteger(totalHeight / orderDetails.length);
-    if(averageOrderDetailHeight < 120){
+    if (averageOrderDetailHeight < 120) {
       return 120;
     }
     return toInteger(totalHeight / orderDetails.length);

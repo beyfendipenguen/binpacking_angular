@@ -12,7 +12,6 @@ export function mapPackageDetailToPackage(packageDetailList: PackageDetail[]): U
     if (packageId) uniquePackageIds.add(packageId);
   });
 
-  const palletIdCounters = new Map<string, number>();
 
   const packageList: UiPackage[] = Array.from(uniquePackageIds).map(
     (packageId) => {
@@ -32,38 +31,10 @@ export function mapPackageDetailToPackage(packageDetailList: PackageDetail[]): U
         order = { id: packageData.order_id };
       }
 
-      if (packageData.pallet) {
+      pallet = packageData?.pallet_id
+        ? { id: packageData.pallet_id }
+        : packageData?.pallet ?? null;
 
-        const originalPalletId = packageData.pallet.id;
-        if (originalPalletId) {
-
-          const currentCount = palletIdCounters.get(originalPalletId) || 0;
-          palletIdCounters.set(originalPalletId, currentCount + 1);
-          const uniquePalletId = currentCount === 0
-            ? originalPalletId
-            : `${originalPalletId}/${currentCount}`;
-
-          pallet = {
-            ...packageData.pallet,
-            id: uniquePalletId
-          };
-        } else {
-          pallet = packageData.pallet;
-        }
-      } else if (packageData.pallet_id) {
-
-        const originalPalletId = packageData.pallet_id;
-        const currentCount = palletIdCounters.get(originalPalletId) || 0;
-        palletIdCounters.set(originalPalletId, currentCount + 1);
-
-        const uniquePalletId = currentCount === 0
-          ? originalPalletId
-          : `${originalPalletId}/${currentCount}`;
-
-        pallet = {
-          id: uniquePalletId
-        };
-      }
 
       const products = packageDetails.map(detail => {
         let productData;
@@ -96,15 +67,15 @@ export function mapPackageDetailToPackage(packageDetailList: PackageDetail[]): U
   return packageList;
 }
 
-export function createTotalHeight(uiProducts:UiProduct[],pallet:UiPallet | null): number{
+export function createTotalHeight(uiProducts: UiProduct[], pallet: UiPallet | null): number {
   let totalHeight = 0
-  if(pallet != null){
+  if (pallet != null) {
     uiProducts.forEach((uiProduct) => {
       const normalPosition = Math.floor(pallet.dimension.width / uiProduct.dimension.width) *
-                            Math.floor(pallet.dimension.depth / uiProduct.dimension.depth);
+        Math.floor(pallet.dimension.depth / uiProduct.dimension.depth);
 
       const rotatedPosition = Math.floor(pallet.dimension.width / uiProduct.dimension.depth) *
-                             Math.floor(pallet.dimension.depth / uiProduct.dimension.width);
+        Math.floor(pallet.dimension.depth / uiProduct.dimension.width);
 
       const maxItemsPerLayer = Math.max(normalPosition, rotatedPosition);
 
@@ -119,7 +90,7 @@ export function mapPackageToPackageDetail(uiPackageList: UiPackage[]): PackageDe
   const packageDetailList: PackageDetail[] = [];
 
   uiPackageList.forEach((uiPackage) => {
-    const totalHeight = createTotalHeight(uiPackage.products,uiPackage.pallet);
+    const totalHeight = createTotalHeight(uiPackage.products, uiPackage.pallet);
     // For each product in the UiPackage, create a PackageDetail
     uiPackage.products.forEach((uiProduct) => {
       const packageDetail: PackageDetail = {
@@ -140,15 +111,15 @@ export function mapPackageToPackageDetail(uiPackageList: UiPackage[]): PackageDe
         packageDetail.package = {
           id: uiPackage.id || Guid(), // Eğer ID yoksa yeni bir ID oluştur
           name: uiPackage.name,
-          pallet:uiPackage.pallet,
-          order:uiPackage.order,
-          is_remaining:uiPackage.is_remaining,
-          height:totalHeight
+          pallet: uiPackage.pallet,
+          order: uiPackage.order,
+          is_remaining: uiPackage.is_remaining,
+          height: totalHeight
         };
 
         // Pallet için ID referansı kullan (eğer varsa)
         if (uiPackage.pallet && uiPackage.pallet.id) {
-          packageDetail.package.pallet_id = extractPalletId(uiPackage.pallet.id);
+          packageDetail.package.pallet_id = uiPackage.pallet.id;
         }
 
         // Order için ID referansı kullan
@@ -165,9 +136,4 @@ export function mapPackageToPackageDetail(uiPackageList: UiPackage[]): PackageDe
   });
 
   return packageDetailList;
-}
-
-// Helper function to extract pallet ID
-function extractPalletId(palletId: string): string {
-  return typeof palletId === 'string' ? palletId.split('/')[0] : palletId;
 }

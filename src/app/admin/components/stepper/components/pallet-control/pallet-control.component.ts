@@ -476,7 +476,7 @@ export class PalletControlComponent
     const targetPalletId = event.container.id;
     const currentPackages = this.uiPackages();
     const targetPackage = currentPackages.find(
-      (p) => p.pallet && p.pallet.id === targetPalletId
+      (p) => p.pallet && p.pallet.ui_id === targetPalletId
     );
 
     if (!targetPackage) {
@@ -490,7 +490,7 @@ export class PalletControlComponent
     if (isSourceFromPallet) {
       // Palet-to-palet transfer
       const sourcePackage = currentPackages.find(
-        (pkg) => pkg.pallet && pkg.pallet.id === event.previousContainer.id
+        (pkg) => pkg.pallet && pkg.pallet.ui_id === event.previousContainer.id
       );
 
       if (sourcePackage) {

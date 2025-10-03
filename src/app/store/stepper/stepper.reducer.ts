@@ -30,11 +30,11 @@ export const stepperReducer = createReducer(
       state.step1State.originalOrderDetails,
       state.step2State.remainingProducts
     )
-    if(state.step2State.remainingProducts.length > 0){
-      const remainingOrderDetails = mapUiProductsToOrderDetails(state.step2State.remainingProducts,state.order)
-      mergeOrderDetails = [...mapperOrderDetails,...remainingOrderDetails]
+    if (state.step2State.remainingProducts.length > 0) {
+      const remainingOrderDetails = mapUiProductsToOrderDetails(state.step2State.remainingProducts, state.order)
+      mergeOrderDetails = [...mapperOrderDetails, ...remainingOrderDetails]
     }
-    else{
+    else {
       mergeOrderDetails = [...mapperOrderDetails]
     }
 
@@ -173,7 +173,7 @@ export const stepperReducer = createReducer(
 
     const currentPackages = state.step2State.packages;
     const sourcePackage = currentPackages.find(pkg =>
-      pkg.pallet && pkg.pallet.id === previousContainerId
+      pkg.pallet && pkg.pallet.ui_id === previousContainerId
     );
 
     if (sourcePackage) {
@@ -211,7 +211,7 @@ export const stepperReducer = createReducer(
     }
   })),
 
-  on(StepperActions.updateOrderDetailsChangesSuccess, (state, { orderDetails,context }) => ({
+  on(StepperActions.updateOrderDetailsChangesSuccess, (state, { orderDetails, context }) => ({
     ...state,
     step1State: {
       ...state.step1State,
@@ -311,19 +311,8 @@ export const stepperReducer = createReducer(
 
     const originalPallet = previousContainerData[previousIndex];
 
-    const basePalletId = originalPallet.id.split('/')[0];
-
-    const existingCount = currentPackages.filter(pkg =>
-      pkg.pallet && pkg.pallet.id.startsWith(basePalletId)
-    ).length;
-
-    const newPalletId = existingCount === 0
-      ? basePalletId
-      : `${basePalletId}/${existingCount + 1}`;
-
     const palletClone = new UiPallet({
-      ...originalPallet,
-      id: newPalletId,
+      ...originalPallet
     });
 
     const updatedPackages = currentPackages.map(pkg =>
@@ -639,9 +628,9 @@ export const stepperReducer = createReducer(
 
     return {
       ...state,
-      step1State:{
+      step1State: {
         ...state.step1State,
-        isDirty:true
+        isDirty: true
       },
       step2State: {
         ...state.step2State,

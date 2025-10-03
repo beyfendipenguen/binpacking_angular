@@ -216,7 +216,7 @@
               </div>
 
               <!-- Palet içindeki ürünler -->
-              <div cdkDropList [id]="package.pallet.id" [cdkDropListData]="package.products"
+              <div cdkDropList [id]="package.pallet.ui_id" [cdkDropListData]="package.products"
                 [cdkDropListConnectedTo]="palletDropListIds()" class="pallet-content"
                 (cdkDropListDropped)="dropProductToPallet($event)">
 
@@ -304,7 +304,7 @@
       <div cdkDropList #palletsList="cdkDropList" id="availablePalletsList" [cdkDropListData]="availablePallets()"
         [cdkDropListConnectedTo]="packageDropListIds()" class="pallets-list"
         (cdkDropListDropped)="dropPalletToPackage($event)">
-        @for(pallet of availablePallets(); track pallet.id){
+        @for(pallet of availablePallets(); track pallet.ui_id){
         <div class="pallet-item" cdkDrag>
           <div class="pallet-base-icon"></div>
           <span class="pallet-name">{{ pallet.name }}</span>
