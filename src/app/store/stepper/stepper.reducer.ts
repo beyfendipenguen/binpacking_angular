@@ -744,7 +744,7 @@ export const stepperReducer = createReducer(
   on(StepperActions.moveUiProductInSamePackage, (state, { containerId, currentIndex, previousIndex }) => {
     const currentPackages = state.step2State.packages;
     const targetPackageIndex = currentPackages.findIndex(pkg =>
-      pkg.pallet && pkg.pallet.id === containerId
+      pkg.pallet && pkg.pallet.ui_id === containerId
     );
 
     if (targetPackageIndex !== -1) {

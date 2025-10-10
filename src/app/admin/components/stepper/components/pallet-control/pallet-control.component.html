@@ -96,6 +96,8 @@
             placeholder="Ürün ara..."
             [formControl]="searchControl"
             [matAutocomplete]="auto"
+            id="searchControl"
+            name="searchControl"
           />
 
           @if(searchControl.value){
@@ -164,6 +166,8 @@
                 (keydown.enter)="$event.preventDefault()"
                 inputmode="numeric"
                 (change)="updateProductCount(product, $event)"
+                id="productCount-{{product.ui_id}}"
+                name="productCount-{{product.ui_id}}"
               />
               <span class="count-label">Adet</span>
             </div>
@@ -185,6 +189,8 @@
                 splitInput.value = ''
               "
               matTooltip="Kaç Adet Ayırmak İstiyorsunuz?"
+              id="splitInput-{{product.ui_id}}"
+              name="splitInput-{{product.ui_id}}"
             />
 
             <button
