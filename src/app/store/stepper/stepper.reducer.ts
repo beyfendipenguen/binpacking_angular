@@ -773,10 +773,10 @@ export const stepperReducer = createReducer(
   on(StepperActions.updateOrderDetail, (state, { orderDetail }) => {
     const originalDetail = state.step1State.originalOrderDetails.find(item => item.id === orderDetail.id);
 
-    // Use lodash's isEqual for a robust deep comparison.
-    // If objects are identical, no need to update state or mark as dirty.
-
     const orderDetails = state.step1State.orderDetails.map(detail =>
+      detail.id === orderDetail.id ? orderDetail : detail
+    );
+    const added = state.step1State.added.map(detail =>
       detail.id === orderDetail.id ? orderDetail : detail
     );
 
@@ -794,17 +794,18 @@ export const stepperReducer = createReducer(
     if (!isDirty) {
       return state;
     }
+
     return {
       ...state,
       step1State: {
         ...state.step1State,
+        added,
         orderDetails,
         modified,
         isDirty,
       }
     };
   }),
-
 
   on(StepperActions.deleteOrderDetail, (state, { orderDetailId }) => {
     const itemToDelete = state.step1State.orderDetails.find(item => item.id === orderDetailId);
