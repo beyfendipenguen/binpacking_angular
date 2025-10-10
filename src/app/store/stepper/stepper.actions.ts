@@ -196,6 +196,10 @@ export const setRemainingProducts = createAction(
   props<{ remainingProducts: any[] }>()
 );
 
+export const mergeRemainingProducts = createAction(
+  '[Stepper] Merge Remaining Products'
+)
+
 export const moveProductToRemainingProducts = createAction(
   '[Pallet Control] Move Product To Remaining Products',
   props<{ uiProducts: any, previousIndex: number, previousContainerId: string }>()

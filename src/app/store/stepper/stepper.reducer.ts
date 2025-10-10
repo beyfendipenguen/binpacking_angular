@@ -437,6 +437,40 @@ export const stepperReducer = createReducer(
     fileExists: !state.fileExists
   })),
 
+  on(StepperActions.mergeRemainingProducts, (state) => {
+    const currentProducts = state.step2State.remainingProducts;
+
+    // Aynı id'ye sahip ürünleri grupla ve count'larını birleştir
+    const mergedMap = new Map<string, UiProduct>();
+
+    currentProducts.forEach(product => {
+      const existing = mergedMap.get(product.id);
+
+      if (existing) {
+        // Aynı id'li ürün varsa, count'ları topla
+        mergedMap.set(product.id, new UiProduct({
+          ...existing,
+          count: existing.count + product.count
+        }));
+      } else {
+        // İlk defa görüyoruz, direkt ekle
+        mergedMap.set(product.id, new UiProduct({ ...product }));
+      }
+    });
+
+    // Map'ten array'e çevir
+    const mergedProducts = Array.from(mergedMap.values());
+
+    return {
+      ...state,
+      step2State: {
+        ...state.step2State,
+        remainingProducts: mergedProducts,
+        // isDirty: true //TODO: burada isdirty yapilir mi bilemedim.
+      }
+    };
+  }),
+
   on(StepperActions.splitProduct, (state, { product, splitCount }) => {
 
     if (!(product instanceof UiProduct)) {
@@ -465,9 +499,9 @@ export const stepperReducer = createReducer(
     }
 
     let remainingProducts: UiProduct[];
+    const originalIndex = currentProducts.findIndex(p => p.ui_id === product.ui_id);
 
     if (isCustomSplit) {
-
       const firstPart = new UiProduct({
         ...product,
         count: validatedCount,
@@ -478,10 +512,9 @@ export const stepperReducer = createReducer(
         count: product.count - validatedCount,
       });
 
-      remainingProducts = currentProducts.filter(p => p.ui_id !== product.ui_id);
-      remainingProducts.push(firstPart, secondPart);
+      remainingProducts = [...currentProducts];
+      remainingProducts.splice(originalIndex, 1, firstPart, secondPart);
     } else {
-
       if (typeof product.split !== 'function') {
         return state;
       }
@@ -491,8 +524,8 @@ export const stepperReducer = createReducer(
         return state;
       }
 
-      remainingProducts = currentProducts.filter(p => p.ui_id !== product.ui_id);
-      remainingProducts.push(...splitProducts);
+      remainingProducts = [...currentProducts];
+      remainingProducts.splice(originalIndex, 1, ...splitProducts);
     }
 
     return {

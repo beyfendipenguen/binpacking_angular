@@ -55,6 +55,8 @@ import {
   deleteRemainingProduct,
   updateOrderDetailsChanges,
   calculatePackageDetail,
+  setRemainingProducts,
+  mergeRemainingProducts,
 } from '../../../../../store';
 
 import {
@@ -254,14 +256,23 @@ export class PalletControlComponent
   //Sorting css optimize process
   toggleSort() {
     this.sortAscending.set(!this.sortAscending());
-    // Burada sıralama mantığınızı yazabilirsiniz
-    if (this.sortAscending()) {
-      // Küçükten büyüğe sırala
-      console.log('Büyükten Küçüğe Sıralama');
-    } else {
-      // Büyükten küçüğe sırala
-      console.log('Küçükten Büyüğe Sıralama');
-    }
+    const multiplier = this.sortAscending() ? 1 : -1;
+
+    const remainingProducts = [...this.remainingProducts()].sort((a, b) => {
+      return multiplier * (
+        (b.dimension.depth - a.dimension.depth) ||      // Önce depth (büyükten küçüğe)
+        (b.dimension.width - a.dimension.width) ||      // Sonra width (büyükten küçüğe)
+        (b.dimension.height - a.dimension.height) ||    // Sonra height (büyükten küçüğe)
+        (b.count - a.count)                             // Son olarak count (büyükten küçüğe)
+      );
+    });
+
+    this.store.dispatch(setRemainingProducts({ remainingProducts }));
+  }
+
+  //merge remaining products process
+  merge(){
+    this.store.dispatch(mergeRemainingProducts())
   }
 
   private checkDimensionsFit(product: UiProduct, pallet: UiPallet): boolean {
