@@ -445,6 +445,74 @@ form {
   }
 }
 
+// Mevcut .section-header { ... } bloğunun ALTINA ekle
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+// Mevcut .section-header { ... } bloğunun ALTINA ekle
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  flex-direction: row;
+  gap: 4px;
+}
+.header-action-button {
+  width: 32px !important;
+  height: 32px !important;
+  line-height: 32px !important;
+  color: $primary-color !important;
+  background-color: rgba(0, 106, 106, 0.05) !important;
+  border-radius: 4px !important;
+  transition: all 0.3s ease !important;
+  overflow: hidden !important; // Bu satır önemli
+
+  &:hover {
+    background-color: rgba(0, 106, 106, 0.15) !important;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 106, 106, 0.2) !important;
+  }
+
+  &:active {
+    transform: translateY(0);
+    box-shadow: none !important;
+  }
+
+  mat-icon {
+    font-size: 18px !important;
+    width: 18px !important;
+    height: 18px !important;
+    color: $primary-color !important;
+    margin: 0 !important;
+    transition: transform 0.3s ease !important;
+
+    &.rotated {
+      transform: rotate(180deg);
+    }
+  }
+
+  // Material ripple efektini düzelt
+  ::ng-deep .mat-mdc-button-persistent-ripple,
+  ::ng-deep .mat-ripple-element {
+    border-radius: 4px !important;
+  }
+}
+
 .header-content-inline {
   display: flex;
   align-items: center;
@@ -467,6 +535,116 @@ form {
 
   h2 {
     white-space: nowrap;
+  }
+}
+.vertical-sort-checkbox {
+  margin-left: 12px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+
+  ::ng-deep {
+    // Checkbox container
+    .mdc-form-field {
+      display: inline-flex !important;
+      align-items: center !important;
+      vertical-align: middle !important;
+    }
+
+    // Checkbox wrapper
+    .mdc-checkbox {
+      padding: 0 !important;
+      margin: 0 !important;
+      width: 18px !important;
+      height: 18px !important;
+      flex-shrink: 0 !important;
+    }
+
+    // Checkbox arka plan
+    .mdc-checkbox__background {
+      width: 18px !important;
+      height: 18px !important;
+      top: 0 !important;
+      left: 0 !important;
+      border-color: $primary-color !important;
+    }
+
+    // Seçili durumda
+    .mdc-checkbox--selected .mdc-checkbox__background {
+      background-color: $primary-color !important;
+      border-color: $primary-color !important;
+    }
+
+    // Tik işareti container
+    .mdc-checkbox__checkmark {
+      width: 18px !important;
+      height: 18px !important;
+      top: 0 !important;
+      left: 0 !important;
+      position: absolute !important;
+    }
+
+    // Tik işareti SVG
+    .mdc-checkbox__checkmark-path {
+      stroke-width: 2.5px !important;
+    }
+
+    // Native checkbox input
+    .mdc-checkbox__native-control {
+      width: 18px !important;
+      height: 18px !important;
+      top: 0 !important;
+      left: 0 !important;
+    }
+
+    // Label
+    .mdc-label {
+      color: $text-dark !important;
+      font-size: 13px !important;
+      font-weight: 500 !important;
+      padding-left: 8px !important;
+      line-height: 18px !important;
+      margin: 0 !important;
+    }
+
+    // Hover efekti
+    .mat-mdc-checkbox:hover {
+      .mdc-checkbox__background {
+        border-color: $accent-color !important;
+      }
+    }
+
+    // Ripple efekti temizle
+    .mat-mdc-checkbox-ripple,
+    .mdc-checkbox__ripple {
+      display: none !important;
+    }
+  }
+}
+
+// Responsive için
+@media (max-width: 768px) {
+  .vertical-sort-checkbox {
+    margin-left: 8px !important;
+
+    ::ng-deep {
+      .mdc-checkbox,
+      .mdc-checkbox__background,
+      .mdc-checkbox__checkmark,
+      .mdc-checkbox__native-control {
+        width: 16px !important;
+        height: 16px !important;
+      }
+
+      .mdc-checkbox__checkmark-path {
+        stroke-width: 2.3px !important;
+      }
+
+      .mdc-label {
+        font-size: 11px !important;
+        line-height: 16px !important;
+        padding-left: 6px !important;
+      }
+    }
   }
 }
 
@@ -754,18 +932,85 @@ form {
   }
 
   .split-product-container {
-    gap: 3px;
-    height: 20px;
+    display: flex;
+    align-items: center;
+    gap: 6px; // Gap'i biraz daha artırın
+    margin-left: auto;
+    height: 28px;
+    isolation: isolate; // z-index sorunlarını önler
   }
 
   .mini-split-input {
-    @include split-input-base($split-pallet-width, $split-pallet-height, 9px);
-    border-radius: 2px !important;
-  }
+    @include split-input-base($split-main-width, $split-main-height);
+    position: relative;
+    z-index: 1;
 
-  .split-button,
-  .action-button:not(.split-button) {
-    @include split-button-base($split-pallet-button-size, 12px);
+    // Hover alanını sınırla
+    &:hover {
+      z-index: 2;
+    }
+
+    &:focus {
+      z-index: 3;
+    }
+  }
+  .split-button {
+    @include split-button-base($split-button-size);
+    position: relative;
+    z-index: 1;
+    flex-shrink: 0;
+
+    // Hover alanını tam butona sınırla
+    &::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: 3px;
+      pointer-events: none;
+    }
+
+    &:hover {
+      z-index: 2;
+
+      // Hover efektini sadece buton alanında tut
+      &::before {
+        background-color: rgba(0, 106, 106, 0.1);
+      }
+    }
+  }
+  .action-button {
+    width: 20px;
+    height: 20px;
+    line-height: 20px;
+    color: $text-light;
+    position: relative;
+    padding: 0;
+    flex-shrink: 0; // Önemli
+    z-index: 1;
+
+    // Tıklama alanını tam butona sınırla
+    pointer-events: auto;
+
+    &:hover {
+      color: $primary-color;
+      background-color: rgba(0, 106, 106, 0.1);
+      z-index: 2;
+    }
+
+    mat-icon {
+      font-size: 16px;
+      width: 16px;
+      height: 16px;
+      line-height: 16px;
+      display: block;
+      margin: auto;
+      color: $secondary-color;
+      pointer-events: none;
+    }
+
+    &:hover mat-icon {
+      color: $primary-color;
+    }
   }
 }
 

@@ -54,7 +54,7 @@ import {
   updateProductCountAndCreateOrUpdateOrderDetail,
   deleteRemainingProduct,
   updateOrderDetailsChanges,
-  calculatePackageDetail
+  calculatePackageDetail,
 } from '../../../../../store';
 
 import {
@@ -88,12 +88,17 @@ import {
   of,
   Subject,
   switchMap,
-  takeUntil
+  takeUntil,
 } from 'rxjs';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ProductService } from '../../../services/product.service';
-import { MatAutocomplete, MatAutocompleteModule } from "@angular/material/autocomplete";
+import {
+  MatAutocomplete,
+  MatAutocompleteModule,
+} from '@angular/material/autocomplete';
 import { MatOption } from '@angular/material/autocomplete';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 
 @Component({
   selector: 'app-pallet-control',
@@ -112,14 +117,17 @@ import { MatOption } from '@angular/material/autocomplete';
     MatIconModule,
     MatProgressSpinnerModule,
     MatOption,
-    MatAutocompleteModule
+    MatAutocompleteModule,
+    MatTooltipModule,
+    MatCheckboxModule,
   ],
   templateUrl: './pallet-control.component.html',
   styleUrl: './pallet-control.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PalletControlComponent
-  implements OnInit, AfterViewInit, OnDestroy {
+  implements OnInit, AfterViewInit, OnDestroy
+{
   searchControl = new FormControl('');
   isSearching = false;
   filteredProducts: WritableSignal<any[]> = signal<any[]>([]);
@@ -135,13 +143,12 @@ export class PalletControlComponent
 
   // NgRx Step2 Migration Observables
   public step2Packages$ = this.store.select(selectStep2Packages);
-  public step2RemainingProducts$ = this.store.select(
-    selectRemainingProducts
-  );
+  public step2RemainingProducts$ = this.store.select(selectRemainingProducts);
   public step2IsDirty$ = this.store.select(selectStep2IsDirty);
   public step2Changes$ = this.store.select(selectStep2Changes);
 
-  public orderDetailsIsDirtySignal = this.store.selectSignal(selectStep1IsDirty);
+  public orderDetailsIsDirtySignal =
+    this.store.selectSignal(selectStep1IsDirty);
 
   public isDirtySignal = this.store.selectSignal(selectStep2IsDirty);
   public orderSignal = this.store.selectSignal(selectOrder);
@@ -163,6 +170,9 @@ export class PalletControlComponent
   // Form and other properties
   secondFormGroup: FormGroup;
   currentDraggedProduct: UiProduct | null = null;
+
+  //Sorting Process
+  sortAscending = signal<boolean>(false);
 
   // Weight and dimension calculations
   public totalWeight = this.store.selectSignal(selectTotalWeight);
@@ -193,7 +203,7 @@ export class PalletControlComponent
     this.setupSearchSubscription();
   }
 
-  ngAfterViewInit(): void { }
+  ngAfterViewInit(): void {}
 
   ngOnDestroy(): void {
     this.destroy$.next();
@@ -239,6 +249,19 @@ export class PalletControlComponent
       return false;
     }
     return this.checkVolumeAvailable(product, pallet, existingProducts);
+  }
+
+  //Sorting css optimize process
+  toggleSort() {
+    this.sortAscending.set(!this.sortAscending());
+    // Burada sıralama mantığınızı yazabilirsiniz
+    if (this.sortAscending()) {
+      // Küçükten büyüğe sırala
+      console.log('Büyükten Küçüğe Sıralama');
+    } else {
+      // Büyükten küçüğe sırala
+      console.log('Küçükten Büyüğe Sıralama');
+    }
   }
 
   private checkDimensionsFit(product: UiProduct, pallet: UiPallet): boolean {
@@ -397,7 +420,12 @@ export class PalletControlComponent
   }
 
   selectProduct(product: any) {
-    this.store.dispatch(updateProductCountAndCreateOrUpdateOrderDetail({ product: product, newCount: 0 }))
+    this.store.dispatch(
+      updateProductCountAndCreateOrUpdateOrderDetail({
+        product: product,
+        newCount: 0,
+      })
+    );
   }
 
   displayProductFn(product: any): string {
@@ -434,7 +462,7 @@ export class PalletControlComponent
 
   clearSearch(): void {
     this.searchControl.setValue('');
-    this.filteredProducts.set([])
+    this.filteredProducts.set([]);
     this.isSearching = false;
   }
 
@@ -675,9 +703,11 @@ export class PalletControlComponent
 
   calculatePackageDetail() {
     if (this.orderDetailsIsDirtySignal())
-      this.store.dispatch(updateOrderDetailsChanges({ context: "calculatePackageDetails" }))
+      this.store.dispatch(
+        updateOrderDetailsChanges({ context: 'calculatePackageDetails' })
+      );
     else {
-      this.store.dispatch(calculatePackageDetail())
+      this.store.dispatch(calculatePackageDetail());
     }
   }
 
