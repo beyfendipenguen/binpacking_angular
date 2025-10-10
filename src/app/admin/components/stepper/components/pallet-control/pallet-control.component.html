@@ -61,27 +61,29 @@
           <mat-icon>category</mat-icon>
           <h2>Envanter</h2>
         </div>
-        <div class="header-actions">
-          <button
-            mat-icon-button
-            class="header-action-button"
-            (click)="toggleSort()"
-            [matTooltip]="
-              sortAscending()
-                ? 'Küçükten Büyüğe Sırala'
-                : 'Büyükten Küçüğe Sırala'
-            "
-          >
-            <mat-icon [class.rotated]="sortAscending()">sort</mat-icon>
-          </button>
-          <button
-            mat-icon-button
-            class="header-action-button"
-            matTooltip="Birleştir"
-          >
-            <mat-icon>merge</mat-icon>
-          </button>
-        </div>
+        @if(remainingProducts().length > 0){
+          <div class="header-actions">
+            <button
+              mat-icon-button
+              class="header-action-button"
+              (click)="toggleSort()"
+              [matTooltip]="
+                sortAscending()
+                  ? 'Küçükten Büyüğe Sırala'
+                  : 'Büyükten Küçüğe Sırala'
+              "
+            >
+              <mat-icon [class.rotated]="sortAscending()">sort</mat-icon>
+            </button>
+            <button
+              mat-icon-button
+              class="header-action-button"
+              matTooltip="Birleştir"
+            >
+              <mat-icon>merge</mat-icon>
+            </button>
+          </div>
+        }
       </div>
       <div class="search-container">
         <div class="search-input-wrapper">
