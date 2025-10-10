@@ -577,9 +577,9 @@ export class PalletControlComponent
 
     this.uiPackages().forEach((pkg, index) => {
       if (pkg.pallet) {
-        const palletElement = document.getElementById(pkg.pallet.id);
+        const palletElement = document.getElementById(pkg.pallet.ui_id);
         if (palletElement) {
-          palletElements.set(pkg.pallet.id, palletElement);
+          palletElements.set(pkg.pallet.ui_id, palletElement);
         }
       }
     });
@@ -591,7 +591,7 @@ export class PalletControlComponent
           pkg.pallet,
           pkg.products
         );
-        const palletElement = palletElements.get(pkg.pallet.id);
+        const palletElement = palletElements.get(pkg.pallet.ui_id);
 
         if (palletElement) {
           if (canFit) {
