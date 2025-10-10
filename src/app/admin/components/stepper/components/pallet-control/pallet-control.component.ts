@@ -57,6 +57,8 @@ import {
   calculatePackageDetail,
   setRemainingProducts,
   mergeRemainingProducts,
+  movePartialProductBetweenPackages,
+  movePartialRemainingProductToPackage,
 } from '../../../../../store';
 
 import {
@@ -527,7 +529,6 @@ export class PalletControlComponent
     const product = event.previousContainer.data[event.previousIndex];
 
     if (isSourceFromPallet) {
-      // Palet-to-palet transfer
       const sourcePackage = currentPackages.find(
         (pkg) => pkg.pallet && pkg.pallet.ui_id === event.previousContainer.id
       );
@@ -535,12 +536,14 @@ export class PalletControlComponent
       if (sourcePackage) {
         // Sığma kontrolü
         if (targetPackage.pallet) {
-          const canFit = this.canFitProductToPallet(
+          const fitResult = this.calculateMaxFitCount(
             product,
             targetPackage.pallet,
             targetPackage.products
           );
-          if (!canFit) {
+
+          if (fitResult.maxCount === 0) {
+            // Hiç sığmıyor
             const fillPercentage = this.getPalletFillPercentage(
               targetPackage.pallet,
               targetPackage.products
@@ -550,8 +553,24 @@ export class PalletControlComponent
               'Boyut Hatası'
             );
             return;
+          } else if (fitResult.maxCount < product.count) {
+            // Kısmi sığıyor - YENİ DURUM
+            this.toastService.warning(
+              `${product.count} adetten ${fitResult.maxCount} tanesi palete eklendi`,
+              'Kısmi Transfer'
+            );
+            this.store.dispatch(
+              movePartialProductBetweenPackages({
+                sourcePackage: sourcePackage,
+                targetPackage: targetPackage,
+                previousIndex: event.previousIndex,
+                maxCount: fitResult.maxCount,
+              })
+            );
+            return;
           }
         }
+        // Normal transfer
         this.store.dispatch(
           moveUiProductInPackageToPackage({
             sourcePackage: sourcePackage,
@@ -565,12 +584,13 @@ export class PalletControlComponent
 
     // Available products'tan palete transfer
     if (targetPackage.pallet) {
-      const canFit = this.canFitProductToPallet(
+      const fitResult = this.calculateMaxFitCount(
         product,
         targetPackage.pallet,
         targetPackage.products
       );
-      if (!canFit) {
+      if (fitResult.maxCount === 0) {
+        // Hiç sığmıyor
         const fillPercentage = this.getPalletFillPercentage(
           targetPackage.pallet,
           targetPackage.products
@@ -580,8 +600,23 @@ export class PalletControlComponent
           'Boyut Hatası'
         );
         return;
+      } else if (fitResult.maxCount < product.count) {
+        // Kısmi sığıyor
+        this.toastService.warning(
+          `${product.count} adetten ${fitResult.maxCount} tanesi palete eklendi`,
+          'Kısmi Transfer'
+        );
+        this.store.dispatch(
+          movePartialRemainingProductToPackage({
+            targetPackage: targetPackage,
+            previousIndex: event.previousIndex,
+            maxCount: fitResult.maxCount,
+          })
+        );
+        return;
       }
     }
+    // Normal transfer
     this.store.dispatch(
       moveRemainingProductToPackage({
         targetPackage: targetPackage,
@@ -604,9 +639,7 @@ export class PalletControlComponent
 
   dragStarted(event: CdkDragStart): void {
     const product = event.source.data as UiProduct;
-
     this.currentDraggedProduct = product;
-
     const palletElements = new Map<string, HTMLElement>();
 
     if (!product?.dimension) {
@@ -625,7 +658,7 @@ export class PalletControlComponent
 
     this.uiPackages().forEach((pkg, index) => {
       if (pkg.pallet) {
-        const canFit = this.canFitProductToPallet(
+        const fitResult = this.calculateMaxFitCount(
           product,
           pkg.pallet,
           pkg.products
@@ -633,39 +666,28 @@ export class PalletControlComponent
         const palletElement = palletElements.get(pkg.pallet.ui_id);
 
         if (palletElement) {
-          if (canFit) {
-            palletElement.classList.add('can-drop');
-            palletElement.classList.remove('cannot-drop');
-
-            const maxCount = this.getMaxProductCount(
-              product,
-              pkg.pallet,
-              pkg.products
-            );
-            palletElement.title = `✅ Bu palete maksimum ${maxCount} adet sığabilir`;
-          } else {
+          if (fitResult.maxCount === 0) {
+            // Hiç sığmıyor - KIRMIZI
             palletElement.classList.add('cannot-drop');
-            palletElement.classList.remove('can-drop');
+            palletElement.classList.remove('can-drop', 'partial-drop');
 
-            const fillPercentage = this.getPalletFillPercentage(
-              pkg.pallet,
-              pkg.products
-            );
-            const singleVolume =
-              this.safeNumber(product.dimension.width) *
-              this.safeNumber(product.dimension.depth) *
-              this.safeNumber(product.dimension.height);
-            const remainingVolume = this.getRemainingPalletVolume(
-              pkg.pallet,
-              pkg.products
-            );
-            const maxCount = Math.floor(remainingVolume / singleVolume);
+            const fillPercentage = this.getPalletFillPercentage(pkg.pallet, pkg.products);
+            palletElement.title = `❌ Sığmaz - Palet doluluk: %${fillPercentage}`;
 
-            if (maxCount > 0) {
-              palletElement.title = `⚠️ Sadece ${maxCount} adet sığar (Doluluk: %${fillPercentage})`;
-            } else {
-              palletElement.title = `❌ Sığmaz - Palet doluluk: %${fillPercentage}`;
-            }
+          } else if (fitResult.maxCount < product.count) {
+            // Kısmi sığıyor
+            palletElement.classList.add('partial-drop');
+            palletElement.classList.remove('can-drop', 'cannot-drop');
+
+            const fillPercentage = this.getPalletFillPercentage(pkg.pallet, pkg.products);
+            palletElement.title = `⚠️ Sadece ${fitResult.maxCount} adet sığar (${product.count} adetten) - Doluluk: %${fillPercentage}`;
+
+          } else {
+            // Tamamen sığıyor - YEŞİL
+            palletElement.classList.add('can-drop');
+            palletElement.classList.remove('cannot-drop', 'partial-drop');
+
+            palletElement.title = `✅ Bu palete maksimum ${fitResult.maxCount} adet sığabilir`;
           }
         }
       }
@@ -675,9 +697,58 @@ export class PalletControlComponent
   dragEnded(): void {
     this.currentDraggedProduct = null;
 
-    document.querySelectorAll('.can-drop, .cannot-drop').forEach((el) => {
-      el.classList.remove('can-drop', 'cannot-drop');
+    document.querySelectorAll('.can-drop, .cannot-drop, .partial-drop').forEach((el) => {
+      el.classList.remove('can-drop', 'cannot-drop', 'partial-drop');
     });
+  }
+
+  calculateMaxFitCount(product: UiProduct,pallet: UiPallet,existingProducts: UiProduct[]):{ canFit: boolean; maxCount: number } {
+    // Tek bir ürünün boyutsal olarak sığıp sığmadığını kontrol et
+    const singleProductCanFit = this.canFitProductToPallet(
+      {
+        ...product, count: 1,
+        split: function (perItem?: number | null): UiProduct[] {
+          throw new Error('Function not implemented.');
+        }
+      },
+      pallet,
+      existingProducts
+    );
+
+    if (!singleProductCanFit) {
+      return { canFit: false, maxCount: 0 };
+    }
+
+    // Palet kapasitesi
+    const palletCapacity =
+      pallet.dimension.depth * pallet.dimension.width * pallet.dimension.height;
+
+    // Mevcut ürünlerin toplam hacmi
+    const usedVolume = existingProducts.reduce((total, p) => {
+      const productVolume =
+        p.dimension.depth * p.dimension.width * p.dimension.height;
+      return total + productVolume * p.count;
+    }, 0);
+
+    // Kalan hacim
+    const remainingVolume = palletCapacity - usedVolume;
+
+    // Bir adet ürünün hacmi
+    const productVolume =
+      product.dimension.depth *
+      product.dimension.width *
+      product.dimension.height;
+
+    // Maksimum kaç adet sığabilir
+    const maxCount = Math.floor(remainingVolume / productVolume);
+
+    // Product count'tan fazla olamaz
+    const finalMaxCount = Math.min(maxCount, product.count);
+
+    return {
+      canFit: true,
+      maxCount: finalMaxCount,
+    };
   }
 
   // Product manipulation methods

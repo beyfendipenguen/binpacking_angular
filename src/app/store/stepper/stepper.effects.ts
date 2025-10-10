@@ -272,7 +272,9 @@ export class StepperEffects {
         StepperActions.removePalletFromPackage,
         StepperActions.removePackage,
         StepperActions.addUiProductToRemainingProducts,
-        StepperActions.updateProductCountAndCreateOrUpdateOrderDetail
+        StepperActions.updateProductCountAndCreateOrUpdateOrderDetail,
+        StepperActions.movePartialRemainingProductToPackage,
+        StepperActions.movePartialProductBetweenPackages
 
       ),
       map(() => StepperActions.stepperStepUpdated())

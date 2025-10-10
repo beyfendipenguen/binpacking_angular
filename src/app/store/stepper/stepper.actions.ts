@@ -198,12 +198,31 @@ export const setRemainingProducts = createAction(
 
 export const mergeRemainingProducts = createAction(
   '[Stepper] Merge Remaining Products'
-)
+);
 
 export const moveProductToRemainingProducts = createAction(
   '[Pallet Control] Move Product To Remaining Products',
   props<{ uiProducts: any, previousIndex: number, previousContainerId: string }>()
-)
+);
+
+export const movePartialRemainingProductToPackage = createAction(
+  '[Stepper] Move Partial Remaining Product To Package',
+  props<{
+    targetPackage: UiPackage;
+    previousIndex: number;
+    maxCount: number;
+  }>()
+);
+
+export const movePartialProductBetweenPackages = createAction(
+  '[Stepper] Move Partial Product Between Packages',
+  props<{
+    sourcePackage: UiPackage;
+    targetPackage: UiPackage;
+    previousIndex: number;
+    maxCount: number;
+  }>()
+);
 
 // Navigation Actions
 export const navigateToStep = createAction(

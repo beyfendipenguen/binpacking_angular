@@ -538,6 +538,151 @@ export const stepperReducer = createReducer(
     };
   }),
 
+  on(StepperActions.movePartialRemainingProductToPackage, (state, { targetPackage, previousIndex, maxCount }) => {
+    const sourceProducts = [...state.step2State.remainingProducts];
+    const targetProducts = [...targetPackage.products];
+
+    const product = sourceProducts[previousIndex];
+
+    // remainingProducts'tan maxCount kadar azalt
+    const remainingCount = product.count - maxCount;
+
+    if (remainingCount > 0) {
+      // Ürün hala var, sadece count'unu güncelle
+      sourceProducts[previousIndex] = new UiProduct({
+        ...product,
+        count: remainingCount
+      });
+    } else {
+      // Tüm ürün transfer edildi, listeden çıkar
+      sourceProducts.splice(previousIndex, 1);
+    }
+
+    // targetPackage'e maxCount kadar ekle
+    const existingProductIndex = targetProducts.findIndex(p => p.id === product.id);
+
+    if (existingProductIndex !== -1) {
+      // Aynı ürün varsa count'ları topla
+      targetProducts[existingProductIndex] = new UiProduct({
+        ...targetProducts[existingProductIndex],
+        count: targetProducts[existingProductIndex].count + maxCount
+      });
+    } else {
+      // Yeni ürün ekle
+      targetProducts.push(new UiProduct({
+        ...product,
+        count: maxCount
+      }));
+    }
+
+    const updatedPackage = { ...targetPackage, products: targetProducts };
+    const updatedPackages = state.step2State.packages.map(pkg =>
+      pkg.id === updatedPackage.id ? updatedPackage : pkg
+    ) as UiPackage[];
+
+    const isOriginal = state.step2State.originalPackages.some(item => item.id === updatedPackage.id);
+    const isAlreadyModified = state.step2State.modifiedPackages.some(item => item.id === updatedPackage.id);
+
+    let modified = [...state.step2State.modifiedPackages];
+    if (isOriginal && !isAlreadyModified) {
+      modified.push(updatedPackage);
+    } else if (isAlreadyModified) {
+      modified = modified.map(item => item.id === updatedPackage.id ? updatedPackage : item);
+    }
+
+    return {
+      ...state,
+      step2State: {
+        ...state.step2State,
+        packages: ensureEmptyPackageAdded([...updatedPackages], state.order),
+        remainingProducts: [...sourceProducts],
+        modifiedPackages: [...modified],
+        isDirty: true
+      }
+    };
+  }),
+
+  on(StepperActions.movePartialProductBetweenPackages, (state, { sourcePackage, targetPackage, previousIndex, maxCount }) => {
+    const sourceProducts = [...sourcePackage.products];
+    const targetProducts = [...targetPackage.products];
+
+    const product = sourceProducts[previousIndex];
+
+    // sourcePackage'den maxCount kadar azalt
+    const remainingCount = product.count - maxCount;
+
+    if (remainingCount > 0) {
+      // Ürün hala var, sadece count'unu güncelle
+      sourceProducts[previousIndex] = new UiProduct({
+        ...product,
+        count: remainingCount
+      });
+    } else {
+      // Tüm ürün transfer edildi, listeden çıkar
+      sourceProducts.splice(previousIndex, 1);
+    }
+
+    // targetPackage'e maxCount kadar ekle
+    const existingProductIndex = targetProducts.findIndex(p => p.id === product.id);
+
+    if (existingProductIndex !== -1) {
+      // Aynı ürün varsa count'ları topla
+      targetProducts[existingProductIndex] = new UiProduct({
+        ...targetProducts[existingProductIndex],
+        count: targetProducts[existingProductIndex].count + maxCount
+      });
+    } else {
+      // Yeni ürün ekle
+      targetProducts.push(new UiProduct({
+        ...product,
+        count: maxCount
+      }));
+    }
+
+    // Her iki package'i de güncelle
+    const updatedSourcePackage = { ...sourcePackage, products: sourceProducts };
+    const updatedTargetPackage = { ...targetPackage, products: targetProducts };
+
+    const updatedPackages = state.step2State.packages.map(pkg => {
+      if (pkg.id === updatedSourcePackage.id) return updatedSourcePackage;
+      if (pkg.id === updatedTargetPackage.id) return updatedTargetPackage;
+      return pkg;
+    }) as UiPackage[];
+
+    // modifiedPackages'i güncelle - her iki paket için
+    let modified = [...state.step2State.modifiedPackages];
+
+    // Source package için
+    const isSourceOriginal = state.step2State.originalPackages.some(item => item.id === updatedSourcePackage.id);
+    const isSourceAlreadyModified = modified.some(item => item.id === updatedSourcePackage.id);
+
+    if (isSourceOriginal && !isSourceAlreadyModified) {
+      modified.push(updatedSourcePackage);
+    } else if (isSourceAlreadyModified) {
+      modified = modified.map(item => item.id === updatedSourcePackage.id ? updatedSourcePackage : item);
+    }
+
+    // Target package için
+    const isTargetOriginal = state.step2State.originalPackages.some(item => item.id === updatedTargetPackage.id);
+    const isTargetAlreadyModified = modified.some(item => item.id === updatedTargetPackage.id);
+
+    if (isTargetOriginal && !isTargetAlreadyModified) {
+      modified.push(updatedTargetPackage);
+    } else if (isTargetAlreadyModified) {
+      modified = modified.map(item => item.id === updatedTargetPackage.id ? updatedTargetPackage : item);
+    }
+
+    return {
+      ...state,
+      step2State: {
+        ...state.step2State,
+        packages: ensureEmptyPackageAdded([...updatedPackages], state.order),
+        modifiedPackages: [...modified],
+        isDirty: true
+      }
+    };
+  }),
+
   on(StepperActions.moveUiProductInPackageToPackage, (state, { sourcePackage, targetPackage, previousIndex }) => {
 
     if (sourcePackage.id === targetPackage.id) {
