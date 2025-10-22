@@ -690,10 +690,13 @@ export const stepperReducer = createReducer(
     }
 
     const sourceProducts = [...sourcePackage.products];
-    const targetProducts = [...targetPackage.products];
+    let targetProducts = [...targetPackage.products];
     const [removedProduct] = sourceProducts.splice(previousIndex, 1);
 
-    targetProducts.push(removedProduct);
+    targetProducts = targetProducts.map(p => p.id === removedProduct.id ? new UiProduct({ ...p, count: p.count + removedProduct.count }) : p)
+
+    if (targetProducts.findIndex(p => p.id === removedProduct.id) === -1)
+      targetProducts.push(removedProduct);
 
     const updatedSourcePackage = { ...sourcePackage, products: sourceProducts };
     const updatedTargetPackage = { ...targetPackage, products: targetProducts };
