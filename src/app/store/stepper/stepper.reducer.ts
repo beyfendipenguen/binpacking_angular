@@ -92,18 +92,45 @@ export const stepperReducer = createReducer(
     return { ...state, step2State: { ...state.step2State, remainingProducts: [...remainingProducts, newProduct], isDirty: true } };
   }),
 
-  on(StepperActions.calculatePackageDetailSuccess, (state, { packages, remainingOrderDetails }) => (
-    {
+  on(StepperActions.calculatePackageDetailSuccess, (state, { packages, remainingOrderDetails }) => {
+    const remainingProducts: any[] = [];
+
+    const filteredPackages = packages.filter((pkg) => {
+      const palletVolume =
+        parseFloat(pkg.pallet.dimension.width) *
+        parseFloat(pkg.pallet.dimension.depth) *
+        parseFloat(pkg.pallet.dimension.height);
+
+      const productsVolume = pkg.products.reduce((sum: number, product: any) => {
+        const productVolume =
+          parseFloat(product.dimension.width) *
+          parseFloat(product.dimension.height) *
+          parseFloat(product.dimension.depth) *
+          product.count;
+        return sum + productVolume;
+      }, 0);
+
+      const fillRate = (productsVolume / palletVolume) * 100;
+
+      if (fillRate < 30) {
+        remainingProducts.push(...pkg.products);
+        return false;
+      }
+
+      return true;
+    });
+
+    return {
       ...state,
       step2State: {
         ...state.step2State,
-        packages: ensureEmptyPackageAdded(packages, state.order),
+        packages: ensureEmptyPackageAdded(filteredPackages, state.order),
         originalPackages: [...packages],
-        remainingProducts: [...remainingOrderDetails],
+        remainingProducts: remainingProducts,
         isDirty: true
       }
-    }
-  )),
+    };
+  }),
 
   on(StepperActions.removePalletFromPackage, (state, { pkg }) => {
 

@@ -786,6 +786,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, OnChanges, On
 
     if (!pieces || pieces.length === 0) {
       this.processedPackages = [];
+      this.deletedPackages = [];
       this.originalPackageCount = 0;
       this.usedColors.clear();
       return;
@@ -802,7 +803,10 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, OnChanges, On
       });
     });
 
-    this.processedPackages = pieces.map((piece: any, index: number) => {
+    const processed: PackageData[] = [];
+    const deleted: PackageData[] = [];
+
+    pieces.forEach((piece: any, index: number) => {
       const id = piece[6] || index;
       const saved = stateMap.get(id);
 
@@ -834,7 +838,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, OnChanges, On
         originalColor = color;
       }
 
-      return {
+      const pkg : PackageData = {
         id,
         x: piece[0] || 0,
         y: piece[1] || 0,
@@ -851,10 +855,22 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, OnChanges, On
         dimensions: `${length}×${width}×${piece[5] || 0}mm`,
         isBeingDragged: false
       };
+
+      // 📦 Eğer koordinatlar -1,-1,-1 ise deletedPackages'a ekle
+      if (piece[0] === -1 && piece[1] === -1 && piece[2] === -1) {
+        deleted.push(pkg);
+      } else {
+        processed.push(pkg);
+      }
     });
 
+    this.processedPackages = processed;
+    if(deleted.length != 0){
+      this.deletedPackages = deleted;
+    }
     this.originalPackageCount = this.processedPackages.length;
   }
+
 
   private createPackageMesh(packageData: PackageData): void {
     this.recreatePackageMeshCompletely(packageData);

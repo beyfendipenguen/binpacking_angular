@@ -736,7 +736,7 @@ export class ResultStepComponent implements OnInit, OnDestroy {
         return false;
       }
       const [x, y, z, length, width, height] = piece;
-      if ([x, y, z, length, width, height].some(val => typeof val !== 'number' || isNaN(val) || val < 0)) {
+      if ([x, y, z, length, width, height].some(val => typeof val !== 'number' || isNaN(val))) {
 
         return false;
       }
