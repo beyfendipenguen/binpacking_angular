@@ -237,7 +237,7 @@
   <!-- Navigation Controls -->
   <div class="navigation-controls">
     <button mat-raised-button class="next-button" (click)="submit()" [disabled]="!orderSignal() || !isFormValid()">
-      <span>{{ isDirtySignal() ? "Kaydet" : "İleri" }}</span>
+      <span>{{ isDirtySignal() || isOnlyOrderDirtySignal() ? "Kaydet" : "İleri" }}</span>
       <mat-icon>arrow_forward</mat-icon>
     </button>
   </div>
