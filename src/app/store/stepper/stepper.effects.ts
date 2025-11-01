@@ -1,26 +1,26 @@
-
 import { Injectable, inject } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
 import {
   map,
   tap,
-  debounceTime,
   switchMap,
   catchError,
   withLatestFrom,
   mergeMap,
   filter,
+  concatMap,
 } from 'rxjs/operators';
 import { EMPTY, forkJoin, of, timer } from 'rxjs';
 import * as StepperActions from './stepper.actions';
 import {
   AppState,
   selectOrder,
-  selectOrderId,
   selectStep1Changes,
+  selectStep1IsDirty,
   selectStepperState,
   selectUiPackages,
+  selectVerticalSort,
 } from '../index';
 import { ToastService } from '../../services/toast.service';
 import { OrderService } from '../../admin/components/services/order.service';
@@ -37,13 +37,9 @@ export class StepperEffects {
   private localStorageService = inject(LocalStorageService);
   private toastService = inject(ToastService);
   private repositoryService = inject(RepositoryService);
-  private uiStateManager = inject(UIStateManager);
   private fileUploadManager = inject(FileUploadManager);
   private orderService = inject(OrderService);
   private orderDetailService = inject(OrderDetailService);
-
-
-
 
   // Private helper method
   // Global Error Effects
@@ -71,43 +67,48 @@ export class StepperEffects {
         return forkJoin({
           order: this.orderService.getById(action.orderId),
           orderDetails: this.orderDetailService.getByOrderId(action.orderId),
-          packagesAndRemainingProducts: this.repositoryService.getPackageDetails(action.orderId),
+          packagesAndRemainingProducts:
+            this.repositoryService.getPackageDetails(action.orderId),
         }).pipe(
           mergeMap(({ order, orderDetails, packagesAndRemainingProducts }) => {
             return of(
               StepperActions.setOrder({ order: order }),
               StepperActions.setOrderDetails({ orderDetails: orderDetails }),
-              StepperActions.setUiPackages({ packages: packagesAndRemainingProducts.packages }),
-              StepperActions.setRemainingProducts({
-                remainingProducts: packagesAndRemainingProducts.remainingProducts
+              StepperActions.setUiPackages({
+                packages: packagesAndRemainingProducts.packages,
               }),
+              StepperActions.setRemainingProducts({
+                remainingProducts:
+                  packagesAndRemainingProducts.remainingProducts,
+              })
             );
           })
         );
-      }),
+      })
     )
   );
 
-  autoSave$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(StepperActions.stepperStepUpdated),
-      withLatestFrom(this.store.select(selectStepperState)),
-      tap(([action, stepperState]) => {
-        this.localStorageService.saveStepperData(stepperState);
-      })
-    ), { dispatch: false }
-  );
-
-  restoreLocalStorageData$ = createEffect(
+  autoSave$ = createEffect(
     () =>
       this.actions$.pipe(
-        ofType(StepperActions.restoreLocalStorageData),
-        filter(() => this.localStorageService.hasExistingData()),
-        map(() => {
-          const data = this.localStorageService.getStepperData();
-          return StepperActions.setStepperData({ data: data });
-        }),
-      )
+        ofType(StepperActions.stepperStepUpdated),
+        withLatestFrom(this.store.select(selectStepperState)),
+        tap(([action, stepperState]) => {
+          this.localStorageService.saveStepperData(stepperState);
+        })
+      ),
+    { dispatch: false }
+  );
+
+  restoreLocalStorageData$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(StepperActions.restoreLocalStorageData),
+      filter(() => this.localStorageService.hasExistingData()),
+      map(() => {
+        const data = this.localStorageService.getStepperData();
+        return StepperActions.setStepperData({ data: data });
+      })
+    )
   );
 
   /// burada update or create actionindan gelen context degerini update or create order success actionina gecmeye calisiyorum hata var coz
@@ -127,6 +128,37 @@ export class StepperEffects {
             of(StepperActions.setStepperError({ error: error.message }))
           )
         );
+      })
+    )
+  );
+
+  updateOrderDetailChanges$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(StepperActions.updateOrderDetailsChanges),
+      withLatestFrom(this.store.select(selectStep1Changes)),
+      switchMap(([action, changes]) =>
+        this.repositoryService.bulkUpdateOrderDetails(changes).pipe(
+          map((result) =>
+            StepperActions.updateOrderDetailsChangesSuccess({
+              orderDetails: result.order_details,
+              context: action.context,
+            })
+          ),
+          catchError((error) =>
+            of(StepperActions.setStepperError({ error: error.message }))
+          )
+        )
+      )
+    )
+  );
+
+  updateOrderDetailsSuccess$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(StepperActions.updateOrderDetailsChangesSuccess),
+      switchMap((action) => {
+        if (action.context === 'calculatePackageDetails')
+          return of(StepperActions.calculatePackageDetail());
+        return EMPTY;
       })
     )
   );
@@ -197,20 +229,27 @@ export class StepperEffects {
 
   calculatePackageDetail$ = createEffect(() =>
     this.actions$.pipe(
-      ofType(StepperActions.invoiceUploadSubmitFlowSuccess,StepperActions.uploadFileToOrder),
-      switchMap(() => this.repositoryService.calculatePackageDetail().pipe(
-        map((response) => StepperActions.calculatePackageDetailSuccess({
-          packages: response.packageDetails,
-          remainingOrderDetails: response.remainingOrderDetails
-        })
+      ofType(StepperActions.calculatePackageDetail),
+      withLatestFrom(this.store.select(selectVerticalSort)),
+      switchMap(([action, verticalSort]) =>
+        this.repositoryService.calculatePackageDetail(verticalSort).pipe(
+          map((response) =>
+            StepperActions.calculatePackageDetailSuccess({
+              packages: response.packageDetails,
+              remainingOrderDetails: response.remainingOrderDetails,
+            })
+          )
         )
-      ))
-    ));
-
+      )
+    )
+  );
 
   invoiceUploadCompleted$ = createEffect(() =>
     this.actions$.pipe(
-      ofType(StepperActions.calculatePackageDetailSuccess),
+      ofType(
+        StepperActions.calculatePackageDetailSuccess,
+        StepperActions.createOrderDetailsSuccess
+      ),
       map(() => StepperActions.setStepCompleted({ stepIndex: 1 }))
     )
   );
@@ -219,10 +258,14 @@ export class StepperEffects {
     this.actions$.pipe(
       ofType(StepperActions.uploadFileToOrder),
       withLatestFrom(this.store.select(selectOrder)),
-      switchMap(([action, order]) => this.fileUploadManager.uploadFileToOrder(order.id).pipe(
-        map(() => StepperActions.invoiceUploadSubmitFlowSuccess()),
-        catchError((error) => of(StepperActions.setGlobalError({ error: error.message })))
-      ))
+      switchMap(([action, order]) =>
+        this.fileUploadManager.uploadFileToOrder(order.id).pipe(
+          map(() => StepperActions.invoiceUploadSubmitFlowSuccess()),
+          catchError((error) =>
+            of(StepperActions.setGlobalError({ error: error.message }))
+          )
+        )
+      )
     )
   );
 
@@ -240,12 +283,14 @@ export class StepperEffects {
         StepperActions.removeAllPackage,
         StepperActions.removePalletFromPackage,
         StepperActions.removePackage,
-
+        StepperActions.addUiProductToRemainingProducts,
+        StepperActions.updateProductCountAndCreateOrUpdateOrderDetail,
+        StepperActions.movePartialRemainingProductToPackage,
+        StepperActions.movePartialProductBetweenPackages
       ),
       map(() => StepperActions.stepperStepUpdated())
     )
-  )
-
+  );
 
   triggerStepperStepUploaded$ = createEffect(() =>
     this.actions$.pipe(
@@ -264,45 +309,81 @@ export class StepperEffects {
       ),
       map(() => StepperActions.stepperStepUpdated())
     )
-  )
+  );
 
   uploadInvoiceProcessFile$ = createEffect(() =>
     this.actions$.pipe(
       ofType(StepperActions.uploadInvoiceProcessFile),
-      switchMap(() => this.fileUploadManager.uploadFile().pipe(
-        mergeMap(response => {
-          return of(
-            StepperActions.initializeStep1StateFromUpload({
-              order: response.order,
-              orderDetails: response.orderDetail,
-              hasFile: true,
-              fileName: 'File Upload Result'
-            }
-            ),
-            StepperActions.setStepLoading({
-              stepIndex: 0,
-              loading: false,
-              operation: "file upload completed"
-            }
-            ),
-            StepperActions.uploadInvoiceProcessFileSuccess()
+      switchMap(() =>
+        this.fileUploadManager.uploadFile().pipe(
+          mergeMap((response) => {
+            return of(
+              StepperActions.initializeStep1StateFromUpload({
+                order: response.order,
+                orderDetails: response.orderDetail,
+                hasFile: true,
+                fileName: 'File Upload Result',
+              }),
+              StepperActions.setStepLoading({
+                stepIndex: 0,
+                loading: false,
+                operation: 'file upload completed',
+              }),
+              StepperActions.uploadInvoiceProcessFileSuccess()
+            );
+          }),
+          catchError((error) =>
+            of(StepperActions.setGlobalError({ error: error.message }))
           )
-        }
-        ),
-        catchError((error) => of(StepperActions.setGlobalError({ error: error.message })))
-      ))
+        )
+      )
     )
   );
 
   palletControlSubmit$ = createEffect(() =>
     this.actions$.pipe(
       ofType(StepperActions.palletControlSubmit),
-      withLatestFrom(this.store.select(selectUiPackages)),
-      switchMap(([action, uiPackages]) =>
-        this.repositoryService.bulkCreatePackageDetail(uiPackages).pipe(
-          map((response) => StepperActions.palletControlSubmitSuccess({ packageDetails: response.package_details })),
-          catchError((error) => of(StepperActions.setGlobalError({ error: error.message })))
-        )
+      withLatestFrom(
+        this.store.select(selectUiPackages),
+        this.store.select(selectStep1IsDirty)
+      ),
+      concatMap(([action, uiPackages, isOrderDetailsDirty]) => {
+        return this.repositoryService.bulkCreatePackageDetail(uiPackages).pipe(
+          map((response) =>
+            StepperActions.palletControlSubmitSuccess({
+              packageDetails: response.package_details,
+            })
+          ),
+          // Ana işlem bittikten SONRA koşullu action'ı çalıştır
+          tap(() => {
+            if (isOrderDetailsDirty) {
+              StepperActions.updateOrderDetailsChanges({});
+            }
+          }),
+          catchError((error) =>
+            of(StepperActions.setGlobalError({ error: error.message }))
+          )
+        );
+      })
+    )
+  );
+  // pallet 2 de yapilan tum ekleme silme ve guncelleme islemleri icin
+  // tetiklenen actionlari dinleyip onlarin success durumlarda veya direk ilgili
+  // actionlarin bittigi durumda step1 changes hesaplayip guncelleme islemini yapmaliyim
+  // kullanici step2 de pallet control submit islemini devreye soktugu zaman
+  // step 1 changes durumuna bakip gerekiyorsa backende gitmeliyim
+  // eger gerekmiyorsa api istegi atamadan islemi bitirmeliyim
+
+  orderDetailChanges$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(
+        StepperActions.deleteRemainingProduct,
+        StepperActions.addUiProductToRemainingProducts,
+        StepperActions.updateProductCountAndCreateOrUpdateOrderDetail
+      ),
+      map(() => StepperActions.calculateOrderDetailChanges()),
+      catchError((error) =>
+        of(StepperActions.setGlobalError({ error: error.message }))
       )
     )
   );

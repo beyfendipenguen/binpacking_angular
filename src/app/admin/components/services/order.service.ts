@@ -26,7 +26,8 @@ export class OrderService extends GenericCrudService<Order> {
     date: order!.date,
     weight_type: order!.weight_type,
     name: order!.name,
-    max_pallet_height: order!.max_pallet_height
+    max_pallet_height: order!.max_pallet_height,
+    truck_weight_limit:order!.truck_weight_limit
   };
     return this.http.post<{order:Order,created:boolean}>(`${this.apiUrl}update-or-create/`,formattedOrder)
   }

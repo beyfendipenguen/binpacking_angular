@@ -5,15 +5,17 @@ import { map, Observable } from 'rxjs';
 import { FileResponse } from '../interfaces/file-response.interface';
 import { mapOrderDetailsToUiProductsSafe, mapToOrderDetailDtoList } from '../../../../models/mappers/order-detail.mapper';
 import { mapPackageDetailToPackage, mapPackageToPackageDetail } from '../../../../models/mappers/package-detail.mapper';
+import { mapUiPackagesToOrderDetails } from '../../../../models/mappers/ui-package-to-order-detail.mapper';
 import { UiPallet } from '../components/ui-models/ui-pallet.model';
 import { OrderDetail } from '../../../../models/order-detail.interface';
 import { Order } from '../../../../models/order.interface';
 import { Truck } from '../../../../models/truck.interface';
 import { CompanyRelation } from '../../../../models/company-relation.interface';
+import { OrderDetailDiffCalculator } from '../../../../models/utils/order-detail-diff.util';
 
 import { Store } from '@ngrx/store';
-import { AppState } from '../../../../store';
-import {selectOrderId } from '../../../../store/stepper/stepper.selectors';
+import { AppState, updateOrderDetailsChanges } from '../../../../store';
+import { selectOrderId, selectOriginalOrderDetails, selectRemainingProducts } from '../../../../store/stepper/stepper.selectors';
 import { UiPackage } from '../components/ui-models/ui-package.model';
 
 @Injectable({
@@ -84,10 +86,11 @@ export class RepositoryService {
   }
 
 
-  uploadFile(file: File, orderId: string): Observable<FileResponse> {
+  uploadFile(file: File, orderId: string, type:string): Observable<FileResponse> {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('order_id', orderId); // Burada order_id olarak gönderiyoruz
+    formData.append('type', type);
 
     return this.http.post<FileResponse>(
       `${this.api.getApiUrl()}/orders/files/`,
@@ -108,11 +111,13 @@ export class RepositoryService {
     }>(`${this.api.getApiUrl()}/orders/process-file/`, formData);
   }
 
-  calculatePackageDetail(order_id: string = this.getOrderId()): Observable<{ packageDetails: any[], remainingOrderDetails: any[] }> {
+  calculatePackageDetail(verticalSort: boolean, order_id: string = this.getOrderId()): Observable<{ packageDetails: any[], remainingOrderDetails: any[] }> {
+    const params = new HttpParams().set('vertical_sort', verticalSort.toString());
+
     return this.http
-      .get<any>(`${this.api.getApiUrl()}/logistics/calculate-box/${order_id}/`)
+      .get<any>(`${this.api.getApiUrl()}/logistics/calculate-box/${order_id}/`, { params })
       .pipe(map((response) => ({
-        packageDetails:mapPackageDetailToPackage( response.data),
+        packageDetails: mapPackageDetailToPackage(response.data),
         remainingOrderDetails: mapOrderDetailsToUiProductsSafe(response.remaining_order_details)
       })));
   }
@@ -121,6 +126,7 @@ export class RepositoryService {
     uiPackages: UiPackage[],
     order_id: string = this.getOrderId()
   ) {
+
     const payload = {
       packageDetails: mapPackageToPackageDetail(uiPackages),
     };
@@ -149,15 +155,15 @@ export class RepositoryService {
 
     const payload = {
       added: changes.added.map((detail) => ({
-        product_id: detail.product.id,
+        product_id: (detail.product && detail.product.id) || detail.product_id,
         count: detail.count,
-        unit_price: detail.unit_price,
+        unit_price: detail.unit_price || 1,
       })),
       modified: changes.modified.map((detail) => ({
         id: detail.id,
-        product_id: detail.product.id,
+        product_id: (detail.product && detail.product.id) || detail.product_id,
         count: detail.count,
-        unit_price: detail.unit_price,
+        unit_price: detail.unit_price || 1,
       })),
       deleted: deletedIds,
     };

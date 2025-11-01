@@ -75,6 +75,7 @@ export interface ExternalDataResult<T> {
 export class GenericTableComponent<T> implements OnInit, AfterViewInit {
   @Input() service?: GenericCrudService<T>; // Optional now
   @Input() displayedColumns: string[] = [];
+  @Input() columnTypes: { [key: string]: string } = {};
   @Input() title: string = 'Items';
   @Input() filterableColumns: string[] = [];
   @Input() relationOptions: { [key: string]: any[] } = {};
@@ -425,14 +426,12 @@ export class GenericTableComponent<T> implements OnInit, AfterViewInit {
           this.totalItems = 0;
         },
       });
-    } else if( this.externalData && this.externalData.length > 0){
-        this.toastService.success('Veri Yüklendi',"Başarılı")
-        this.isLoading = false;
+    } else if (this.externalData && this.externalData.length > 0) {
+      this.toastService.success('Veri Yüklendi', "Başarılı")
+      this.isLoading = false;
     }
-     else {
+    else {
       // No valid data source
-
-      this.toastService.error('Veri kaynağı bulunamadı', 'Hata');
       this.isLoading = false;
       this.dataSource.data = [];
       this.totalItems = 0;
@@ -464,10 +463,10 @@ export class GenericTableComponent<T> implements OnInit, AfterViewInit {
       //Basit sütun tanımları oluştur
       this.columnDefinitions = this.displayedColumns
         .filter((col) => col !== 'actions' && col !== 'rowNumber')
-        .map((col) => ({
+        .map((col: string) => ({
           key: col,
           label: this.getColumnDisplayName(col),
-          type: 'text',
+          type: this.columnTypes[col] || "text",
           required: true,
         }));
     }

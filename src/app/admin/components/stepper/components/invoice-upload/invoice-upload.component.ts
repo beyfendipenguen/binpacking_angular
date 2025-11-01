@@ -57,7 +57,8 @@ import { Store } from '@ngrx/store';
 import {
   selectOrder, selectStep1OrderDetails, selectStep1IsDirty,
   selectStep1HasFile, selectStep1FileName,
-  selectAverageOrderDetailHeight,selectIsStepLoading,selectIsEditMode,
+  selectAverageOrderDetailHeight, selectIsStepLoading, selectIsEditMode,
+  selectIsOnlyOrderDirty,
 } from '../../../../../store/stepper/stepper.selectors';
 import { CompanyRelation } from '../../../../../models/company-relation.interface';
 import { Truck } from '../../../../../models/truck.interface';
@@ -110,6 +111,8 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
   public orderSignal = this.store.selectSignal(selectOrder);
   public orderDetailsSignal = this.store.selectSignal(selectStep1OrderDetails);
   public isDirtySignal = this.store.selectSignal(selectStep1IsDirty);
+  public isOnlyOrderDirtySignal = this.store.selectSignal(selectIsOnlyOrderDirty);
+
   public hasUploadFileSignal = this.store.selectSignal(selectStep1HasFile);
   public fileNameSignal = this.store.selectSignal(selectStep1FileName);
   public isLoadingSignal = this.store.selectSignal(selectIsStepLoading(1));
@@ -120,9 +123,7 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
 
   public step1OrderDetails$ = this.store.select(selectStep1OrderDetails);
-  public step1IsDirty$ = this.store.select(selectStep1IsDirty);
   public step1HasFile$ = this.store.select(selectStep1HasFile);
-  public step1FileName$ = this.store.select(selectStep1FileName);
 
   // NgRx Observables
   public isEditMode$ = this.store.select(selectIsEditMode);
@@ -176,6 +177,10 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
     return INVOICE_UPLOAD_CONSTANTS.TABLE.DISPLAYED_COLUMNS as string[];
   }
 
+  get columnTypes(): { [key: string]: string } {
+    return INVOICE_UPLOAD_CONSTANTS.TABLE.COLUMN_TYPES as { [key: string]: string };
+  }
+
   get filterableColumns(): string[] {
     return INVOICE_UPLOAD_CONSTANTS.TABLE.FILTERABLE_COLUMNS as string[];
   }
@@ -189,7 +194,7 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
   }
 
 
-  constructor(){
+  constructor() {
 
     // ValueChanges subscription'ı
 
@@ -203,7 +208,7 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
     const unitProductCount = palletHeight / unitProductHeight;
     this.unitsControl.setValue(unitProductCount);
     this.unitsControl.valueChanges.pipe(
-      debounceTime(1000),
+      debounceTime(300),
       distinctUntilChanged(),
       takeUntil(this.destroy$)
     ).subscribe(units => {
@@ -327,6 +332,13 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
     }
   }
 
+  onTruckWeightLimitChange(value: number): void {
+    let currentOrder = this.orderSignal();
+    if (currentOrder) {
+      const updatedOrder = { ...currentOrder, truck_weight_limit: value };
+      this.store.dispatch(StepperActions.setOrder({ order: updatedOrder }));
+    }
+  }
 
   createOrder(): void {
     const now = new Date();
@@ -367,7 +379,6 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
     this.store.dispatch(StepperActions.updateOrderDetail({
       orderDetail: updatedDetail
     }));
-
   }
 
   deleteOrderDetail(id: string): void {
@@ -397,6 +408,9 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
 
   submit(): void {
     if (!this.isDirtySignal()) {
+      if (this.isOnlyOrderDirtySignal()) {
+        this.store.dispatch(StepperActions.updateOrCreateOrder({ context: 'order' }))
+      }
       this.store.dispatch(StepperActions.navigateToStep({ stepIndex: 2 }));
       return;
     } if (!this.isFormValid()) {
@@ -419,12 +433,7 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
 
   resetComponentState(): void {
     try {
-      this.store.dispatch(StepperActions.initializeStep1State({
-        order: null,
-        orderDetails: [],
-        hasFile: false,
-        fileName: undefined
-      }));
+      this.store.dispatch(StepperActions.resetStep1State());
       this.fileUploadManager.resetAllFiles();
 
       this.uiStateManager.resetAllStates();
@@ -457,5 +466,28 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
 
   compareWeightTypes = (a: string, b: string): boolean => {
     return this.orderFormManager.compareWeightTypes(a, b);
+  }
+
+  getTotalCount(): number {
+    if (!this.orderDetailsSignal() || !this.orderDetailsSignal().length) {
+      return 0;
+    }
+
+    return this.orderDetailsSignal().reduce((total: number, detail: any) => {
+      const count = detail.count || 0;
+      return (total + count)
+    }, 0);
+  }
+
+  getTotalMeter(): number {
+    if (!this.orderDetailsSignal() || !this.orderDetailsSignal().length) {
+      return 0;
+    }
+
+    return this.orderDetailsSignal().reduce((total: number, detail: any) => {
+      const depth = detail.product?.dimension?.depth || 0;
+      const count = detail.count || 0;
+      return (total + (depth * count) / 1000)
+    }, 0);
   }
 }

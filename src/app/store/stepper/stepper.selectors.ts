@@ -25,6 +25,7 @@ export const selectFileExists = createSelector(
   (state) => state.fileExists
 )
 
+
 export const selectUiPackages = createSelector(selectStepperState, (state) =>
   state.step2State.packages.map((uiPackage: any) => new UiPackage({ ...uiPackage }))
 );
@@ -65,7 +66,7 @@ export const palletDropListIds = createSelector(selectStep2State, (state) => {
     .filter(pkg => pkg.pallet !== null)
     .forEach(pkg => {
       if (pkg.pallet) {
-        ids.push(pkg.pallet.id);
+        ids.push(pkg.pallet.ui_id);
       }
     });
   return ids;
@@ -278,10 +279,10 @@ export const selectTruck: MemoizedSelector<any, [number, number, number]> = crea
   (order) =>
     order.truck
       ? [
-          toInteger(order.truck.dimension.width),
-          toInteger(order.truck.dimension.depth),
-          toInteger(order.truck.dimension.height)
-        ]
+        toInteger(order.truck.dimension.width),
+        toInteger(order.truck.dimension.depth),
+        toInteger(order.truck.dimension.height)
+      ]
       : [0, 0, 0]
 );
 
@@ -290,6 +291,11 @@ export const selectOrderId = createSelector(selectOrder, (order) => order?.id)
 export const selectStep1OrderDetails = createSelector(
   selectStep1State,
   (step1State) => step1State.orderDetails
+);
+
+export const selectOriginalOrderDetails = createSelector(
+  selectStep1State,
+  (step1State) => step1State.originalOrderDetails
 );
 
 export const selectAverageOrderDetailHeight = createSelector(
@@ -304,7 +310,11 @@ export const selectAverageOrderDetailHeight = createSelector(
       return sum + height;
     }, 0);
 
-    return totalHeight / orderDetails.length;
+    const averageOrderDetailHeight = toInteger(totalHeight / orderDetails.length);
+    if (averageOrderDetailHeight < 120) {
+      return 120;
+    }
+    return toInteger(totalHeight / orderDetails.length);
   }
 )
 
@@ -327,6 +337,11 @@ export const selectStep1IsDirty = createSelector(
   (step1State) => step1State.isDirty
 );
 
+export const selectIsOnlyOrderDirty = createSelector(
+  selectStep1State,
+  (step1State) => step1State.isOnlyOrderDirty
+);
+
 export const selectStep1HasFile = createSelector(
   selectStep1State,
   (step1State) => step1State.hasFile
@@ -343,7 +358,7 @@ export const selectStep2Packages = createSelector(
   (step2State) => step2State.packages
 );
 
-export const selectStep2RemainingProducts = createSelector(
+export const selectRemainingProducts = createSelector(
   selectStep2State,
   (step2State) => step2State.remainingProducts
 );
@@ -367,13 +382,18 @@ export const selectStep2IsDirty = createSelector(
   (step2State) => step2State.isDirty
 );
 
+export const selectVerticalSort = createSelector(
+  selectStep2State,
+  (step2State) => step2State.verticalSort
+);
+
 export const selectStep2PackageCount = createSelector(
   selectStep2Packages,
   (packages) => packages.length
 );
 
 export const selectStep2ProductCount = createSelector(
-  selectStep2RemainingProducts,
+  selectRemainingProducts,
   (products) => products.length
 );
 
@@ -406,7 +426,7 @@ export const selectRemainingWeight = createSelector(
   selectTotalWeight,
   (order, totalWeight) => {
     if (order) {
-      const trailerWeightLimit = order.truck?.weight_limit ?? 0;
+      const trailerWeightLimit = order.truck_weight_limit ?? 0;
       return Math.floor(trailerWeightLimit - totalWeight);
     }
     return 0;

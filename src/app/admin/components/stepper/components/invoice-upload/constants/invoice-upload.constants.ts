@@ -18,6 +18,15 @@ export const INVOICE_UPLOAD_CONSTANTS = {
       'count',
     ] as string[],
 
+    COLUMN_TYPES: {
+      'product.name': "text",
+      'product.product_type.type': "text",
+      'product.product_type.code': "text",
+      'product.dimension.width': "number",
+      'product.dimension.depth': "number",
+      'count': "number",
+    } as { [key: string]: string },
+
     FILTERABLE_COLUMNS: [
       'product.name',
       'product.product_type.type',

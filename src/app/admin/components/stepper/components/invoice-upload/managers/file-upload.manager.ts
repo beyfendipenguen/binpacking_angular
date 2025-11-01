@@ -104,7 +104,7 @@ export class FileUploadManager {
     switchMap(fileExists => {
       if (fileExists && this.fileState.tempFile) {
         this.store.dispatch(setFileExists());
-        return this.repositoryService.uploadFile(this.fileState.tempFile, orderId);
+        return this.repositoryService.uploadFile(this.fileState.tempFile, orderId,"first_excel");
       }
       return EMPTY;
     })

@@ -23,6 +23,15 @@
     </div>
   </div>
 
+  <!-- Weight Display Panel -->
+  <div class="weight-display-panel" *ngIf="showWeightDisplay && !isLoading && piecesData && piecesData.length > 0">
+    <div class="weight-content">
+      <h4>İlk {{ (weightCalculationDepth / 1000).toFixed(1) }}m Ağırlık</h4>
+      <div class="weight-value">{{ frontSectionWeightDisplay }}</div>
+      <div class="weight-description">Tırın ön kısmındaki yük</div>
+    </div>
+  </div>
+
   <!-- Enhanced Three.js Controls Overlay -->
   <div class="threejs-controls-overlay" *ngIf="showControls && !isLoading && piecesData && piecesData.length > 0">
     <div class="controls-panel">
@@ -160,10 +169,10 @@
   </div>
 
   <!-- Enhanced Collision Warning -->
-  <div class="collision-warning" *ngIf="showCollisionWarning">
+  <!-- <div class="collision-warning" *ngIf="showCollisionWarning">
     <div class="warning-content">
       <span class="warning-icon">⚠️</span>
       <span class="warning-text">Çarpışma! Paket bu pozisyona yerleştirilemez.</span>
     </div>
-  </div>
+  </div> -->
 </div>

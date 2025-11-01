@@ -1,6 +1,9 @@
 import { Injectable } from '@angular/core';
 import { StepperState } from '../../../../store';
 import { initialStepperState } from '../../../../store/stepper/stepper.state';
+import { UiPackage } from '../components/ui-models/ui-package.model';
+import { UiProduct } from '../components/ui-models/ui-product.model';
+import { UiPallet } from '../components/ui-models/ui-pallet.model';
 
 
 @Injectable({
@@ -43,7 +46,22 @@ export class LocalStorageService {
 
       if (stored) {
         const parsed = JSON.parse(stored);
-        return parsed;
+        let response = {
+          ...parsed,
+          step2State: {
+            ...parsed.step2State,
+            packages: parsed.step2State.packages.map((pkg:any)=> new UiPackage({...pkg})),
+            remainingProducts: parsed.step2State.remainingProducts.map((product:any)=> new UiProduct({...product})),
+            originalRemainingProducts: parsed.step2State.originalRemainingProducts.map((product:any)=> new UiProduct({...product})),
+            originalPackages: parsed.step2State.originalPackages.map((pkg:any)=> new UiPackage({...pkg,pallet: new UiPallet({...pkg.pallet}),  products: pkg.products.map((product:any)=> new UiProduct({...product}))})),
+            deletedPackages: parsed.step2State.deletedPackages.map((pkg:any)=> new UiPackage({...pkg,pallet: new UiPallet({...pkg.pallet}),  products: pkg.products.map((product:any)=> new UiProduct({...product}))})),
+            modifiedPackages: parsed.step2State.modifiedPackages.map((pkg:any)=> new UiPackage({...pkg,pallet: new UiPallet({...pkg.pallet}),  products: pkg.products.map((product:any)=> new UiProduct({...product}))})),
+            addedPackages: parsed.step2State.addedPackages.map((pkg:any)=> new UiPackage({...pkg,pallet: new UiPallet({...pkg.pallet}),  products: pkg.products.map((product:any)=> new UiProduct({...product}))})),
+          },
+        }
+
+
+        return response;
       }
     } catch (error) {
 

@@ -390,8 +390,9 @@ $white: #ffffff;
   z-index: 4;
   min-width: 280px;
   max-width: 350px;
-  max-height: 400px;
   transition: all 0.3s ease;
+  display: flex;              // ← EKLE
+  flex-direction: column;
 
   &:hover {
     transform: translateY(-2px);
@@ -405,6 +406,10 @@ $white: #ffffff;
   }
 
   .deleted-content {
+    display: flex;              // ← EKLE
+    flex-direction: column;     // ← EKLE
+    height: 100%;              // ← EKLE
+    overflow: hidden;          // ← EKLE
     h4 {
       margin: 0 0 1rem;
       color: $error-red;
@@ -415,6 +420,7 @@ $white: #ffffff;
       display: flex;
       align-items: center;
       justify-content: space-between;
+      flex-shrink: 0;
 
       .delete-count {
         background: linear-gradient(135deg, $error-red 0%, color.adjust($error-red, $lightness: -10%) 100%);
@@ -428,7 +434,7 @@ $white: #ffffff;
     }
 
     .deleted-list {
-      max-height: 240px;
+      flex: 1;
       overflow-y: auto;
       scrollbar-width: thin;
       scrollbar-color: $error-red rgba($error-red, 0.2);
@@ -530,6 +536,7 @@ $white: #ffffff;
       margin-top: 1rem;
       padding-top: 1rem;
       border-top: 2px solid rgba($error-red, 0.2);
+      flex-shrink: 0;
 
       .bulk-btn {
         flex: 1;
@@ -1083,5 +1090,89 @@ $white: #ffffff;
 
   &:hover {
     background: linear-gradient(135deg, $dark-primary 0%, color.adjust($dark-primary, $lightness: -10%) 100%);
+  }
+}
+
+// ========================================
+// WEIGHT DISPLAY PANEL - COMPACT VERSION
+// ========================================
+.weight-display-panel {
+  position: absolute;
+  top: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, rgba($primary-color, 0.95) 0%, rgba($dark-primary, 0.95) 100%);
+  border-radius: 6px;
+  padding: 0.6rem 1.2rem;
+  z-index: 6;
+  min-width: 140px;
+  text-align: center;
+  transition: all 0.2s ease;
+
+  &:hover {
+    transform: translateX(-50%) scale(1.02);
+    background: linear-gradient(135deg, $primary-color 0%, $dark-primary 100%);
+  }
+
+  .weight-content {
+    h4 {
+      margin: 0 0 0.4rem;
+      color: rgba($white, 0.9);
+      font-size: 0.7rem;
+      font-weight: 500;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+    }
+
+    .weight-value {
+      font-size: 1.2rem;
+      font-weight: 800;
+      color: $white;
+      font-family: 'Courier New', monospace;
+      margin-bottom: 0.2rem;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+      line-height: 1;
+    }
+
+    .weight-description {
+      font-size: 0.6rem;
+      color: rgba($white, 0.8);
+      font-weight: 400;
+      letter-spacing: 0.2px;
+    }
+  }
+}
+
+// Mobile adjustments for weight panel
+@media (max-width: 768px) {
+  .weight-display-panel {
+    position: static;
+    transform: none;
+    margin-bottom: 0.8rem;
+    min-width: auto;
+    padding: 0.5rem 1rem;
+
+    &:hover {
+      transform: scale(1.01);
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .weight-display-panel {
+    padding: 0.4rem 0.8rem;
+
+    .weight-content {
+      h4 {
+        font-size: 0.65rem;
+        margin-bottom: 0.3rem;
+      }
+      .weight-value {
+        font-size: 1rem;
+      }
+      .weight-description {
+        font-size: 0.55rem;
+      }
+    }
   }
 }

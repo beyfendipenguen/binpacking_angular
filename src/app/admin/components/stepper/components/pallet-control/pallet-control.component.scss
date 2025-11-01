@@ -2,16 +2,17 @@
    OPTIMIZE EDİLMİŞ PALET YERLEŞTIRME SCSS
 ===================== */
 
+@use "@angular/material" as mat;
 // Ana değişkenler
-$primary-color: #006A6A;
-$secondary-color: #D6BB86;
-$accent-color: #004A4A;
-$light-accent: #C0A670;
+$primary-color: #006a6a;
+$secondary-color: #d6bb86;
+$accent-color: #004a4a;
+$light-accent: #c0a670;
 $background-color: #f8f9fa;
 $text-dark: #333333;
 $text-light: #666666;
 $border-color: #e0e0e0;
-$white: #FFFFFF;
+$white: #ffffff;
 
 // Split input değişkenleri
 $split-main-width: 32px;
@@ -65,7 +66,7 @@ $split-pallet-button-size: 20px;
     margin: 0 !important;
   }
 
-  &[type=number] {
+  &[type="number"] {
     appearance: textfield !important;
     -moz-appearance: textfield !important;
   }
@@ -176,17 +177,23 @@ form {
 
   &:nth-child(2) {
     border-left-color: $secondary-color;
-    .dashboard-icon { background-color: $secondary-color; }
+    .dashboard-icon {
+      background-color: $secondary-color;
+    }
   }
 
   &:nth-child(3) {
     border-left-color: $accent-color;
-    .dashboard-icon { background-color: $accent-color; }
+    .dashboard-icon {
+      background-color: $accent-color;
+    }
   }
 
   &:nth-child(4) {
     border-left-color: $light-accent;
-    .dashboard-icon { background-color: $light-accent; }
+    .dashboard-icon {
+      background-color: $light-accent;
+    }
   }
 }
 
@@ -225,6 +232,158 @@ form {
 }
 
 /* =====================
+   SEARCH CONTAINER - ESKİ CSS KORUNDU
+===================== */
+.search-container {
+  padding: 0;
+  margin: 0;
+  background-color: transparent;
+  border-bottom: 1px solid $border-color;
+}
+
+.search-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background-color: $white;
+  border: 1px solid $border-color;
+  border-radius: 0;
+  transition: all 0.3s ease;
+  overflow: hidden;
+  margin: 0;
+
+  &:hover {
+    border-color: $primary-color;
+  }
+
+  &:focus-within {
+    border-color: $primary-color;
+    box-shadow: 0 0 0 1px rgba(0, 106, 106, 0.2);
+  }
+}
+
+.search-icon {
+  color: $text-light;
+  font-size: 18px !important;
+  width: 18px !important;
+  height: 18px !important;
+  margin-left: 12px;
+  margin-right: 8px;
+  flex-shrink: 0;
+  transition: color 0.3s ease;
+
+  .search-input-wrapper:focus-within & {
+    color: $primary-color;
+  }
+}
+
+.search-spinner {
+  margin-left: 12px !important;
+  margin-right: 8px !important;
+  flex-shrink: 0;
+
+  ::ng-deep .mat-mdc-progress-spinner circle {
+    stroke: $primary-color !important;
+  }
+}
+
+.search-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  padding: 12px 8px;
+  font-size: 14px;
+  color: $text-dark;
+  background-color: transparent;
+  margin: 0;
+
+  &::placeholder {
+    color: $text-light;
+    font-style: italic;
+  }
+}
+
+.clear-search {
+  width: 32px !important;
+  height: 32px !important;
+  margin-right: 4px;
+  color: $text-light;
+  flex-shrink: 0;
+
+  &:hover {
+    background-color: rgba(0, 106, 106, 0.1);
+    color: $primary-color;
+  }
+
+  mat-icon {
+    font-size: 16px !important;
+    width: 16px !important;
+    height: 16px !important;
+  }
+}
+
+/* =====================
+   AUTOCOMPLETE PANEL DÜZELTİLMİŞ
+===================== */
+::ng-deep {
+  .search-autocomplete.mat-mdc-autocomplete-panel {
+    border-radius: 0 !important;
+    border: 1px solid $border-color !important;
+    border-top: none !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+    background-color: $white !important;
+
+    .mat-mdc-option {
+      min-height: 40px !important;
+      padding: 12px 16px !important;
+      font-size: 14px !important;
+      color: $text-dark !important;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.05) !important;
+      transition: all 0.3s ease !important;
+
+      &:last-child {
+        border-bottom: none !important;
+      }
+
+      &:hover:not(.mat-mdc-option-disabled) {
+        background-color: rgba(0, 106, 106, 0.1) !important;
+        color: $primary-color !important;
+      }
+
+      &.mat-mdc-option-active {
+        background-color: rgba(0, 106, 106, 0.15) !important;
+        color: $primary-color !important;
+      }
+
+      &.mat-mdc-option-disabled {
+        color: $text-light !important;
+        font-style: italic !important;
+      }
+
+      &.loading-indicator {
+        display: flex !important;
+        align-items: center !important;
+        gap: 8px !important;
+        color: $text-light !important;
+        font-style: italic !important;
+        justify-content: center !important;
+
+        mat-spinner {
+          ::ng-deep circle {
+            stroke: $primary-color !important;
+          }
+        }
+      }
+    }
+  }
+}
+
+.search-input-wrapper:focus-within .search-icon {
+  display: none;
+}
+
+/* Panel genişliğini search input ile eşitle */
+/* =====================
    ANA KONTEYNER
 ===================== */
 .logistics-container {
@@ -234,7 +393,9 @@ form {
   min-height: 400px;
 }
 
-.inventory-section, .pallets-section, .packages-section {
+.inventory-section,
+.pallets-section,
+.packages-section {
   background-color: $white;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -244,8 +405,12 @@ form {
   overflow: hidden;
 }
 
-.inventory-section, .pallets-section {
-  flex: 0 0 240px;
+.inventory-section {
+  flex: 0 0 280px;
+}
+
+.pallets-section {
+  flex: 0 0 200px;
 }
 
 .packages-section {
@@ -280,6 +445,74 @@ form {
   }
 }
 
+// Mevcut .section-header { ... } bloğunun ALTINA ekle
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+// Mevcut .section-header { ... } bloğunun ALTINA ekle
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  flex-direction: row;
+  gap: 4px;
+}
+.header-action-button {
+  width: 32px !important;
+  height: 32px !important;
+  line-height: 32px !important;
+  color: $primary-color !important;
+  background-color: rgba(0, 106, 106, 0.05) !important;
+  border-radius: 4px !important;
+  transition: all 0.3s ease !important;
+  overflow: hidden !important; // Bu satır önemli
+
+  &:hover {
+    background-color: rgba(0, 106, 106, 0.15) !important;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 106, 106, 0.2) !important;
+  }
+
+  &:active {
+    transform: translateY(0);
+    box-shadow: none !important;
+  }
+
+  mat-icon {
+    font-size: 18px !important;
+    width: 18px !important;
+    height: 18px !important;
+    color: $primary-color !important;
+    margin: 0 !important;
+    transition: transform 0.3s ease !important;
+
+    &.rotated {
+      transform: rotate(180deg);
+    }
+  }
+
+  // Material ripple efektini düzelt
+  ::ng-deep .mat-mdc-button-persistent-ripple,
+  ::ng-deep .mat-ripple-element {
+    border-radius: 4px !important;
+  }
+}
+
 .header-content-inline {
   display: flex;
   align-items: center;
@@ -292,6 +525,7 @@ form {
   display: flex;
   align-items: center;
   flex-shrink: 0;
+  gap: 12px; // Buton için boşluk
 
   mat-icon {
     font-size: 20px;
@@ -301,6 +535,157 @@ form {
 
   h2 {
     white-space: nowrap;
+  }
+}
+.vertical-sort-checkbox {
+  margin-left: 12px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+
+  ::ng-deep {
+    // Checkbox container
+    .mdc-form-field {
+      display: inline-flex !important;
+      align-items: center !important;
+      vertical-align: middle !important;
+    }
+
+    // Checkbox wrapper
+    .mdc-checkbox {
+      padding: 0 !important;
+      margin: 0 !important;
+      width: 18px !important;
+      height: 18px !important;
+      flex-shrink: 0 !important;
+    }
+
+    // Checkbox arka plan
+    .mdc-checkbox__background {
+      width: 18px !important;
+      height: 18px !important;
+      top: 0 !important;
+      left: 0 !important;
+      border-color: $primary-color !important;
+    }
+
+    // Seçili durumda
+    .mdc-checkbox--selected .mdc-checkbox__background {
+      background-color: $primary-color !important;
+      border-color: $primary-color !important;
+    }
+
+    // Tik işareti container
+    .mdc-checkbox__checkmark {
+      width: 18px !important;
+      height: 18px !important;
+      top: 0 !important;
+      left: 0 !important;
+      position: absolute !important;
+    }
+
+    // Tik işareti SVG
+    .mdc-checkbox__checkmark-path {
+      stroke-width: 2.5px !important;
+    }
+
+    // Native checkbox input
+    .mdc-checkbox__native-control {
+      width: 18px !important;
+      height: 18px !important;
+      top: 0 !important;
+      left: 0 !important;
+    }
+
+    // Label
+    .mdc-label {
+      color: $text-dark !important;
+      font-size: 13px !important;
+      font-weight: 500 !important;
+      padding-left: 8px !important;
+      line-height: 18px !important;
+      margin: 0 !important;
+    }
+
+    // Hover efekti
+    .mat-mdc-checkbox:hover {
+      .mdc-checkbox__background {
+        border-color: $accent-color !important;
+      }
+    }
+
+    // Ripple efekti temizle
+    .mat-mdc-checkbox-ripple,
+    .mdc-checkbox__ripple {
+      display: none !important;
+    }
+  }
+}
+
+// Responsive için
+@media (max-width: 768px) {
+  .vertical-sort-checkbox {
+    margin-left: 8px !important;
+
+    ::ng-deep {
+      .mdc-checkbox,
+      .mdc-checkbox__background,
+      .mdc-checkbox__checkmark,
+      .mdc-checkbox__native-control {
+        width: 16px !important;
+        height: 16px !important;
+      }
+
+      .mdc-checkbox__checkmark-path {
+        stroke-width: 2.3px !important;
+      }
+
+      .mdc-label {
+        font-size: 11px !important;
+        line-height: 16px !important;
+        padding-left: 6px !important;
+      }
+    }
+  }
+}
+
+.calculate-button {
+  background-color: $secondary-color !important;
+  color: $white !important;
+  font-size: 12px !important;
+  height: 32px !important;
+  line-height: 32px !important;
+  padding: 0 12px !important;
+  min-width: auto !important;
+  border-radius: 16px !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+  transition: all 0.3s ease !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+
+  &:hover {
+    background-color: $light-accent !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15) !important;
+  }
+
+  &:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+  }
+
+  mat-icon {
+    font-size: 16px !important;
+    width: 16px !important;
+    height: 16px !important;
+    margin: 0 !important;
+    color: $white !important;
+  }
+
+  span {
+    font-weight: 500 !important;
+    color: $white !important;
+    font-size: 12px !important;
   }
 }
 
@@ -339,21 +724,35 @@ form {
   }
 
   &.heaviest {
-    border-left-color: #F44336;
-    mat-icon { color: #F44336; }
-    &:hover { background-color: rgba(244, 67, 54, 0.05); }
+    border-left-color: #f44336;
+    mat-icon {
+      color: #f44336;
+    }
+    &:hover {
+      background-color: rgba(244, 67, 54, 0.05);
+    }
   }
 
   &.lightest {
-    border-left-color: #4CAF50;
-    mat-icon { color: #4CAF50; }
-    &:hover { background-color: rgba(76, 175, 80, 0.05); }
+    border-left-color: #4caf50;
+    mat-icon {
+      color: #4caf50;
+    }
+    &:hover {
+      background-color: rgba(76, 175, 80, 0.05);
+    }
   }
 
   &.average {
-    border-left-color: #FF9800;
-    mat-icon { color: #FF9800; }
-    &:hover { background-color: rgba(255, 152, 0, 0.05); }
+    border-left-color: #ff9800;
+    gap: 10px;
+    left: 10px;
+    mat-icon {
+      color: #ff9800;
+    }
+    &:hover {
+      background-color: rgba(255, 152, 0, 0.05);
+    }
   }
 }
 
@@ -399,10 +798,10 @@ form {
 
   &:hover {
     background-color: #eeeeee;
-    color: #F44336;
+    color: #f44336;
 
     mat-icon {
-      color: #F44336;
+      color: #f44336;
     }
   }
 }
@@ -410,13 +809,15 @@ form {
 /* =====================
    ENVANTER VE ÜRÜNLER
 ===================== */
-.inventory-list, .pallets-list {
+.inventory-list,
+.pallets-list {
   padding: 8px;
   overflow-y: auto;
   flex: 1;
 }
 
-.product-item, .pallet-item {
+.product-item,
+.pallet-item {
   display: flex;
   align-items: center;
   border-radius: 4px;
@@ -430,6 +831,57 @@ form {
     background-color: rgba(0, 106, 106, 0.1);
     border-color: $primary-color;
   }
+}
+
+.product-count-container {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 2px;
+}
+
+.product-count-input {
+  width: 40px !important;
+  height: 20px !important;
+  border: 1px solid $border-color !important;
+  border-radius: 3px !important;
+  background-color: $white !important;
+  font-size: 11px !important;
+  text-align: center !important;
+  color: $text-dark !important;
+  padding: 0 2px !important;
+  margin: 0 !important;
+  outline: none !important;
+  box-sizing: border-box !important;
+  transition: all 0.3s ease !important;
+
+  &:focus {
+    border-color: $primary-color !important;
+    color: $primary-color !important;
+    box-shadow: 0 0 0 1px rgba(0, 106, 106, 0.2) !important;
+  }
+
+  &:hover:not(:focus) {
+    border-color: $primary-color !important;
+  }
+
+  &::-webkit-outer-spin-button,
+  &::-webkit-inner-spin-button {
+    -webkit-appearance: none !important;
+    margin: 0 !important;
+  }
+
+  &[type="number"] {
+    appearance: textfield !important;
+    -moz-appearance: textfield !important;
+  }
+}
+
+.count-label {
+  font-size: 12px;
+  color: $text-light;
+  line-height: 1.2;
+  flex-shrink: 0;
 }
 
 .product-item {
@@ -480,18 +932,85 @@ form {
   }
 
   .split-product-container {
-    gap: 3px;
-    height: 20px;
+    display: flex;
+    align-items: center;
+    gap: 6px; // Gap'i biraz daha artırın
+    margin-left: auto;
+    height: 28px;
+    isolation: isolate; // z-index sorunlarını önler
   }
 
   .mini-split-input {
-    @include split-input-base($split-pallet-width, $split-pallet-height, 9px);
-    border-radius: 2px !important;
-  }
+    @include split-input-base($split-main-width, $split-main-height);
+    position: relative;
+    z-index: 1;
 
-  .split-button,
-  .action-button:not(.split-button) {
-    @include split-button-base($split-pallet-button-size, 12px);
+    // Hover alanını sınırla
+    &:hover {
+      z-index: 2;
+    }
+
+    &:focus {
+      z-index: 3;
+    }
+  }
+  .split-button {
+    @include split-button-base($split-button-size);
+    position: relative;
+    z-index: 1;
+    flex-shrink: 0;
+
+    // Hover alanını tam butona sınırla
+    &::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: 3px;
+      pointer-events: none;
+    }
+
+    &:hover {
+      z-index: 2;
+
+      // Hover efektini sadece buton alanında tut
+      &::before {
+        background-color: rgba(0, 106, 106, 0.1);
+      }
+    }
+  }
+  .action-button {
+    width: 20px;
+    height: 20px;
+    line-height: 20px;
+    color: $text-light;
+    position: relative;
+    padding: 0;
+    flex-shrink: 0; // Önemli
+    z-index: 1;
+
+    // Tıklama alanını tam butona sınırla
+    pointer-events: auto;
+
+    &:hover {
+      color: $primary-color;
+      background-color: rgba(0, 106, 106, 0.1);
+      z-index: 2;
+    }
+
+    mat-icon {
+      font-size: 16px;
+      width: 16px;
+      height: 16px;
+      line-height: 16px;
+      display: block;
+      margin: auto;
+      color: $secondary-color;
+      pointer-events: none;
+    }
+
+    &:hover mat-icon {
+      color: $primary-color;
+    }
   }
 }
 
@@ -503,8 +1022,9 @@ form {
   margin-right: 10px;
   position: relative;
 
-  &::before, &::after {
-    content: '';
+  &::before,
+  &::after {
+    content: "";
     position: absolute;
     background-color: rgba(255, 255, 255, 0.5);
   }
@@ -548,15 +1068,23 @@ form {
   @include split-button-base($split-button-size);
 }
 
+.button-container {
+  display: flex;
+  gap: 6px;
+}
+
 .action-button {
-  width: 28px;
-  height: 28px;
-  line-height: 28px;
+  width: 20px;
+  height: 20px;
+  line-height: 20px;
   color: $text-light;
+  position: relative; // z-index için
+  padding: 0;
 
   &:hover {
     color: $primary-color;
     background-color: rgba(0, 106, 106, 0.1);
+    z-index: 1; // diğer butonun üzerine çıkmasını önler
   }
 
   mat-icon {
@@ -564,7 +1092,10 @@ form {
     width: 16px;
     height: 16px;
     line-height: 16px;
+    display: block;
+    margin: auto;
     color: $secondary-color;
+    pointer-events: none; // icon hover ile tetiklenmesin
   }
 
   &:hover mat-icon {
@@ -605,6 +1136,7 @@ form {
 .package-title {
   display: flex;
   align-items: center;
+  gap: 12px; // Bu satırı ekleyin
 
   mat-icon {
     font-size: 18px;
@@ -617,6 +1149,7 @@ form {
   span {
     color: $white;
     font-weight: 500;
+
   }
 }
 
@@ -693,7 +1226,7 @@ form {
   position: relative;
 
   &::before {
-    content: '';
+    content: "";
     position: absolute;
     top: -4px;
     left: 0;
@@ -711,7 +1244,7 @@ form {
   position: relative;
 
   &::before {
-    content: '';
+    content: "";
     position: absolute;
     top: -4px;
     left: 0;
@@ -814,13 +1347,18 @@ form {
 
 .can-drop {
   background-color: rgba(76, 175, 80, 0.1) !important;
-  border: 2px dashed #4CAF50 !important;
+  border: 2px dashed #4caf50 !important;
 }
 
 .cannot-drop {
   background-color: rgba(244, 67, 54, 0.1) !important;
-  border: 2px dashed #F44336 !important;
+  border: 2px dashed #f44336 !important;
   cursor: not-allowed !important;
+}
+
+.partial-drop {
+  border: 2px dashed orange !important;
+  background-color: rgba(255, 165, 0, 0.1) !important;
 }
 
 /* =====================
@@ -841,7 +1379,8 @@ form {
   justify-content: space-between; /* Bu satırı ekleyin */
 }
 
-.save-button, .next-button {
+.save-button,
+.next-button {
   background-color: $primary-color !important;
   color: $white !important;
   margin-bottom: 70px;
@@ -850,7 +1389,8 @@ form {
     box-shadow: 0 4px 8px rgba(0, 106, 106, 0.3);
   }
 
-  mat-icon, span {
+  mat-icon,
+  span {
     color: $white !important;
   }
 }
@@ -863,7 +1403,8 @@ form {
     background-color: #e0e0e0 !important;
   }
 
-  mat-icon, span {
+  mat-icon,
+  span {
     color: $text-light !important;
   }
 }
@@ -898,7 +1439,8 @@ button[mat-icon-button] {
     height: auto;
   }
 
-  .inventory-section, .pallets-section {
+  .inventory-section,
+  .pallets-section {
     flex: 0 0 auto;
     height: 250px;
   }
@@ -962,7 +1504,8 @@ button[mat-icon-button] {
     width: 100%;
   }
 
-  .prev-button, .next-button {
+  .prev-button,
+  .next-button {
     flex: 1;
   }
 
@@ -981,6 +1524,24 @@ button[mat-icon-button] {
 
   .header-title-section {
     width: 100%;
+    gap: 8px;
+  }
+
+  .calculate-button {
+    height: 28px !important;
+    line-height: 28px !important;
+    padding: 0 10px !important;
+    font-size: 11px !important;
+
+    mat-icon {
+      font-size: 14px !important;
+      width: 14px !important;
+      height: 14px !important;
+    }
+
+    span {
+      font-size: 11px !important;
+    }
   }
 
   .pallet-stats-inline {
@@ -1002,7 +1563,8 @@ button[mat-icon-button] {
     }
   }
 
-  .stat-label, .stat-value {
+  .stat-label,
+  .stat-value {
     text-align: center;
   }
 
@@ -1066,6 +1628,15 @@ button[mat-icon-button] {
     width: 100%;
   }
 
+  .calculate-button {
+    span {
+      display: none; // Küçük ekranlarda sadece icon göster
+    }
+
+    padding: 0 8px !important;
+    min-width: 28px !important;
+  }
+
   .stat-item {
     width: 100%;
     justify-content: flex-start;
@@ -1075,5 +1646,137 @@ button[mat-icon-button] {
 
   .stat-info {
     text-align: left;
+  }
+}
+
+/* =====================
+   ORIENTATION TOGGLE BUTTON
+===================== */
+.orientation-toggle {
+  width: 32px;
+  height: 32px;
+  border: none;
+  background-color: rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 12px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  padding: 0;
+
+  &:hover {
+    background-color: rgba(255, 255, 255, 0.25);
+    transform: scale(1.05);
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
+
+  .toggle-icon.layers {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    width: 16px;
+    height: 16px;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+
+    .layer {
+      width: 14px;
+      height: 2px;
+      background-color: $white;
+      border-radius: 1px;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+
+      &:nth-child(1) {
+        opacity: 0.6;
+      }
+      &:nth-child(2) {
+        opacity: 0.75;
+      }
+      &:nth-child(3) {
+        opacity: 0.9;
+      }
+      &:nth-child(4) {
+        opacity: 1;
+      }
+    }
+  }
+
+  // Vertical state (layers üst üste)
+  &.vertical {
+    background-color: rgba(214, 187, 134, 0.3);
+
+    &:hover {
+      background-color: rgba(214, 187, 134, 0.5);
+    }
+
+    .toggle-icon.layers {
+      transform: rotate(90deg);
+
+      .layer {
+        background-color: $white;
+      }
+    }
+  }
+
+  // Ripple effect
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 4px;
+    background-color: rgba(255, 255, 255, 0.3);
+    opacity: 0;
+    transform: scale(0.8);
+    transition: all 0.3s ease;
+  }
+
+  &:active::after {
+    opacity: 1;
+    transform: scale(1);
+    transition: all 0s;
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .orientation-toggle {
+    width: 28px;
+    height: 28px;
+
+    .toggle-icon.layers {
+      width: 14px;
+      height: 14px;
+
+      .layer {
+        width: 12px;
+        height: 2px;
+      }
+    }
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .orientation-toggle {
+    width: 28px;
+    height: 28px;
+
+    .toggle-icon {
+      width: 14px;
+      height: 14px;
+
+      .line {
+        width: 10px;
+        height: 2px;
+      }
+    }
   }
 }

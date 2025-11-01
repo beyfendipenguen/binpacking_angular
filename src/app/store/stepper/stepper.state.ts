@@ -2,6 +2,8 @@
 // mat stepper current indexi gercek hayat ile uyumlu olmasi adina 1 den baslattik
 // mat stepper a verirken - 1 yapiyoruz. cunku ilk step 0 olarak tanimli api da
 
+import { UiProduct } from "../../admin/components/stepper/components/ui-models/ui-product.model";
+
 export interface StepperState {
   // Mevcut properties...
   order: any | null;
@@ -63,17 +65,19 @@ export interface StepperState {
     hasFile: boolean;
     fileName?: string;
     isDirty: boolean;
+    isOnlyOrderDirty:boolean;
   };
 
    step2State: {
     packages: any[];
-    remainingProducts: any[];
+    remainingProducts: UiProduct[];
     originalPackages: any[];
     originalRemainingProducts: any[];
     addedPackages: any[];
     modifiedPackages: any[];
     deletedPackages: any[];
     isDirty: boolean;
+    verticalSort:boolean
   };
 
   step3State: {
@@ -139,7 +143,8 @@ export const initialStepperState: StepperState = {
     modified: [],
     deleted: [],
     hasFile: false,
-    isDirty: false
+    isDirty: false,
+    isOnlyOrderDirty: false
   },
 
   step2State: {
@@ -150,7 +155,8 @@ export const initialStepperState: StepperState = {
     addedPackages: [],
     modifiedPackages: [],
     deletedPackages: [],
-    isDirty: false
+    isDirty: false,
+    verticalSort:false
   },
 
   step3State: {

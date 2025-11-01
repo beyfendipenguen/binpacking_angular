@@ -5,41 +5,41 @@
 
     <!-- Aktif filtreleri temizleme butonu -->
     @if (hasActiveFilters()) {
-      <button mat-button color="primary" (click)="clearAllFilters()">
-        <mat-icon>filter_list_off</mat-icon>
-        Filtreleri Temizle
-      </button>
+    <button mat-button color="primary" (click)="clearAllFilters()">
+      <mat-icon>filter_list_off</mat-icon>
+      Filtreleri Temizle
+    </button>
     }
   </div>
 
   <!-- Loading indicator -->
   @if (isLoading) {
-    <div class="loading-shade">
-      <mat-spinner></mat-spinner>
-    </div>
+  <div class="loading-shade">
+    <mat-spinner></mat-spinner>
+  </div>
   }
 
   <!-- Aktif filtreler -->
   @if (hasActiveFilters()) {
-    <div class="active-filters">
-      <div class="chip-list">
-        <span class="filter-label">Aktif Filtreler:</span>
+  <div class="active-filters">
+    <div class="chip-list">
+      <span class="filter-label">Aktif Filtreler:</span>
 
-        <!-- Her aktif filtre için çip -->
-        @for (column of filterableColumns; track column) {
-          @if (isFilterActive(column)) {
-            <div class="filter-chip">
-              <span class="chip-label">
-                {{ getColumnDisplayName(column) }}: {{ filterValues[column] }}
-              </span>
-              <button mat-icon-button class="chip-remove" (click)="filterValues[column] = ''; loadData()">
-                <mat-icon>close</mat-icon>
-              </button>
-            </div>
-          }
-        }
+      <!-- Her aktif filtre için çip -->
+      @for (column of filterableColumns; track column) {
+      @if (isFilterActive(column)) {
+      <div class="filter-chip">
+        <span class="chip-label">
+          {{ getColumnDisplayName(column) }}: {{ filterValues[column] }}
+        </span>
+        <button mat-icon-button class="chip-remove" (click)="filterValues[column] = ''; loadData()">
+          <mat-icon>close</mat-icon>
+        </button>
       </div>
+      }
+      }
     </div>
+  </div>
   }
 
   <!-- Table -->
@@ -48,12 +48,9 @@
     <ng-container matColumnDef="rowNumber">
       <th mat-header-cell *matHeaderCellDef class="text-center">
         @if (showAddButton) {
-          <button
-            mat-icon-button
-            (click)="onAddButtonClick($event)"
-            matTooltip="Yeni Ekle">
-            <mat-icon>add_circle</mat-icon>
-          </button>
+        <button mat-icon-button (click)="onAddButtonClick($event)" matTooltip="Yeni Ekle">
+          <mat-icon>add_circle</mat-icon>
+        </button>
         }
       </th>
       <td mat-cell *matCellDef="let row; let i = index" class="row-number-cell">
@@ -63,28 +60,25 @@
 
     <!-- Dynamic Columns -->
     @for (column of displayedColumns; track column) {
-      <ng-container [matColumnDef]="column">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header>
-          <div class="header-content">
-            {{ getColumnDisplayName(column) }}
+    <ng-container [matColumnDef]="column">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>
+        <div class="header-content">
+          {{ getColumnDisplayName(column) }}
 
-            <!-- Filtre ikonu -->
-            @if (filterableColumns.includes(column)) {
-              <button
-                mat-icon-button
-                class="filter-icon"
-                [class.active-filter]="isFilterActive(column)"
-                (click)="openFilterDialog(column, $event)"
-                [matTooltip]="isFilterActive(column) ? 'Filtreyi Düzenle' : 'Filtrele'">
-                <mat-icon>filter_alt</mat-icon>
-              </button>
-            }
-          </div>
-        </th>
-        <td mat-cell *matCellDef="let row" [class.numeric-cell]="isNumeric(getNestedPropertyValue(row, column))">
-          <span>{{ getNestedPropertyValue(row, column) }}</span>
-        </td>
-      </ng-container>
+          <!-- Filtre ikonu -->
+          @if (filterableColumns.includes(column)) {
+          <button mat-icon-button class="filter-icon" [class.active-filter]="isFilterActive(column)"
+            (click)="openFilterDialog(column, $event)"
+            [matTooltip]="isFilterActive(column) ? 'Filtreyi Düzenle' : 'Filtrele'">
+            <mat-icon>filter_alt</mat-icon>
+          </button>
+          }
+        </div>
+      </th>
+      <td mat-cell *matCellDef="let row" [class.numeric-cell]="isNumeric(getNestedPropertyValue(row, column))">
+        <span>{{ getNestedPropertyValue(row, column) }}</span>
+      </td>
+    </ng-container>
     }
 
     <!-- Actions Column -->
@@ -92,18 +86,11 @@
       <th mat-header-cell *matHeaderCellDef>İşlemler</th>
       <td mat-cell *matCellDef="let row">
         <div class="action-buttons">
-          <button
-            class="btn"
-            mat-icon-button
-            color="warn"
-            (click)="confirmDelete(row.id); $event.stopPropagation();"
+          <button class="btn" mat-icon-button color="warn" (click)="confirmDelete(row.id); $event.stopPropagation();"
             matTooltip="Sil">
             <mat-icon>delete</mat-icon>
           </button>
-          <button
-            class="btn"
-            mat-icon-button
-            (click)="openAddOrUpdateDialog(row); $event.stopPropagation();"
+          <button class="btn" mat-icon-button (click)="openAddOrUpdateDialog(row); $event.stopPropagation();"
             matTooltip="Güncelle">
             <mat-icon>update</mat-icon>
           </button>
@@ -112,33 +99,27 @@
     </ng-container>
 
     <tr mat-header-row *matHeaderRowDef="getDisplayColumnWithActions()"></tr>
-    <tr
-      mat-row
-      *matRowDef="let row; columns: getDisplayColumnWithActions();"
-      (click)="onRowClick(row)">
+    <tr mat-row *matRowDef="let row; columns: getDisplayColumnWithActions();" (click)="onRowClick(row)">
     </tr>
   </table>
 
   <!-- Empty state -->
   @if (dataSource.data.length === 0 && !isLoading) {
-    <div class="empty-state">
-      <mat-icon>info</mat-icon>
-      <p>Hiç kayıt bulunamadı.</p>
+  <div class="empty-state">
+    <mat-icon>info</mat-icon>
+    <p>Hiç kayıt bulunamadı.</p>
 
-      @if (hasActiveFilters()) {
-        <p>Aktif filtreleri temizlemeyi deneyin.</p>
-        <button mat-raised-button color="primary" (click)="clearAllFilters()">
-          Filtreleri Temizle
-        </button>
-      }
-    </div>
+    @if (hasActiveFilters()) {
+    <p>Aktif filtreleri temizlemeyi deneyin.</p>
+    <button mat-raised-button color="primary" (click)="clearAllFilters()">
+      Filtreleri Temizle
+    </button>
+    }
+  </div>
   }
 
   <!-- Paginator -->
-  <mat-paginator
-    [length]="totalItems"
-    [pageSize]="pageSize"
-    [pageSizeOptions]="[5, 10, 25, 100]"
+  <mat-paginator [length]="totalItems" [pageSize]="pageSize" [pageSizeOptions]="[5, 10, 25, 100]"
     (page)="onPageChange($event)">
   </mat-paginator>
 </div>

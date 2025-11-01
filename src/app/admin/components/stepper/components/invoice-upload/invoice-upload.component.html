@@ -65,9 +65,7 @@
               <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
               <mat-datepicker #picker></mat-datepicker>
               @if(!orderSignal()?.date){
-              <mat-error>
-                Sipariş tarihi zorunludur
-              </mat-error>}
+              <mat-error> Sipariş tarihi zorunludur </mat-error>}
             </mat-form-field>
           </div>
         </div>
@@ -86,13 +84,10 @@
                 placeholder="Müşteri seçin" [compareWith]="compareCompanies" required>
                 @for (company of targetCompanies; track company.id) {
                 <mat-option [value]="company">
-                  {{ company.target_company_name }}
-                </mat-option>}
+                  {{ company.target_company_name }} </mat-option>}
               </mat-select>
               @if(!orderSignal()?.company_relation){
-              <mat-error>
-                Müşteri seçimi zorunludur
-              </mat-error>}
+              <mat-error> Müşteri seçimi zorunludur </mat-error>}
             </mat-form-field>
           </div>
         </div>
@@ -111,13 +106,10 @@
                 placeholder="Tır seçin" [compareWith]="compareObjects" required>
                 @for(truck of trucks; track truck.id){
                 <mat-option [value]="truck">
-                  {{ truck.name }}
-                </mat-option>}
+                  {{ truck.name }} </mat-option>}
               </mat-select>
               @if(!orderSignal()?.truck){
-              <mat-error>
-                Tır seçimi zorunludur
-              </mat-error>}
+              <mat-error> Tır seçimi zorunludur </mat-error>}
             </mat-form-field>
           </div>
         </div>
@@ -139,9 +131,7 @@
                 <mat-option value="pre">Pre</mat-option>
               </mat-select>
               @if(!orderSignal()?.weight_type) {
-              <mat-error>
-                Ağırlık tipi seçimi zorunludur
-              </mat-error>}
+              <mat-error> Ağırlık tipi seçimi zorunludur </mat-error>}
             </mat-form-field>
           </div>
         </div>
@@ -157,38 +147,45 @@
           <div class="dashboard-value-container">
             <div class="units-input-container">
               <!-- Azaltma butonu -->
-              <button mat-icon-button
-                      (click)="onUnitsDecrease()"
-                      [disabled]="isMinimumUnits()"
-                      type="button"
-                      class="unit-button">
+              <button mat-icon-button (click)="onUnitsDecrease()" [disabled]="isMinimumUnits()" type="button"
+                class="unit-button">
                 <mat-icon>remove</mat-icon>
               </button>
 
               <!-- Input alanı - FormControl'e bağlı -->
               <mat-form-field class="units-field" appearance="outline">
-                <input matInput
-                      type="number"
-                      [formControl]="unitsControl"
-                      readonly
-                      min="1"
-                      step="1"
-                      placeholder="Kat adedi">
+                <input matInput type="number" [formControl]="unitsControl" readonly min="1" step="1"
+                  placeholder="Kat adedi" />
               </mat-form-field>
 
               <!-- Artırma butonu -->
-              <button mat-icon-button
-                      (click)="onUnitsIncrease()"
-                      type="button"
-                      class="unit-button">
+              <button mat-icon-button (click)="onUnitsIncrease()" type="button" class="unit-button">
                 <mat-icon>add</mat-icon>
               </button>
             </div>
           </div>
         </div>
       </div>
-    </div>
 
+      <!-- Tır Ağırlık Limiti -->
+      <div class="dashboard-item">
+        <div class="dashboard-icon">
+          <mat-icon>scale</mat-icon>
+        </div>
+        <div class="dashboard-info">
+          <span class="dashboard-label">Tır Ağırlık Limiti</span>
+          <div class="dashboard-value-container">
+            <mat-form-field class="edit-field" appearance="outline">
+              <input matInput type="number" [value]="orderSignal()?.truck_weight_limit"
+                (input)="onTruckWeightLimitChange($any($event.target).value)" placeholder="Ağırlık limiti (kg)" min="0"
+                step="1" />
+              @if(!orderSignal()?.truck_weight_limit){
+              <mat-error> Ağırlık limiti zorunludur </mat-error>}
+            </mat-form-field>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <!-- Order Details Table -->
     <div class="logistics-card">
@@ -199,13 +196,13 @@
         </div>
       </div>
 
-        <app-generic-table [externalData]="orderDetailsSignal()" [externalTotalCount]="orderDetailsSignal().length"
-          [displayedColumns]="displayedColumns" [nestedDisplayColumns]="nestedDisplayColumns"
-          [parentId]="orderSignal().id" [useParentId]="true" [parentIdFieldName]="'order_id'" [title]="''"
-          [showRowNumbers]="true" (addClick)="openOrderDetailAddDialog()"
-          (externalDataUpdate)="updateOrderDetail($event)" (externalDataDelete)="deleteOrderDetail($event)"
-          [excludeFields]="excludeFields">
-        </app-generic-table>
+      <app-generic-table [externalData]="orderDetailsSignal()" [columnTypes]="columnTypes"
+        [externalTotalCount]="orderDetailsSignal().length" [displayedColumns]="displayedColumns"
+        [nestedDisplayColumns]="nestedDisplayColumns" [parentId]="orderSignal().id" [useParentId]="true"
+        [parentIdFieldName]="'order_id'" [title]="''" [showRowNumbers]="true" (addClick)="openOrderDetailAddDialog()"
+        (externalDataUpdate)="updateOrderDetail($event)" (externalDataDelete)="deleteOrderDetail($event)"
+        [excludeFields]="excludeFields">
+      </app-generic-table>
 
       <div class="summary-footer">
         <div class="summary-content">
@@ -218,6 +215,14 @@
               <mat-icon>scale</mat-icon>
               <span>{{ totalWeight().toFixed(2) }} kg</span>
             </div>
+            <div class="metric">
+              <mat-icon>straighten</mat-icon>
+              <span>{{getTotalMeter()}} m</span>
+            </div>
+            <div class="metric">
+              <mat-icon>shopping_cart</mat-icon>
+              <span>{{getTotalCount()}} adet ürün</span>
+            </div>
           </div>
           <div class="status-badge">
             <span class="status-dot active"></span>
@@ -229,15 +234,11 @@
   </div>
   }
 
-
   <!-- Navigation Controls -->
   <div class="navigation-controls">
-    <button mat-raised-button class="next-button" (click)="submit()"
-      [disabled]="!orderSignal() || !isFormValid()">
-      <span>{{isDirtySignal() ? "Kaydet" : "İleri"}}</span>
+    <button mat-raised-button class="next-button" (click)="submit()" [disabled]="!orderSignal() || !isFormValid()">
+      <span>{{ isDirtySignal() || isOnlyOrderDirtySignal() ? "Kaydet" : "İleri" }}</span>
       <mat-icon>arrow_forward</mat-icon>
     </button>
-
   </div>
-
 </div>

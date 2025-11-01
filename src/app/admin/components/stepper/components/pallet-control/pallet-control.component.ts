@@ -6,9 +6,11 @@ import {
   signal,
   AfterViewInit,
   OnDestroy,
+  WritableSignal,
 } from '@angular/core';
 import {
   FormBuilder,
+  FormControl,
   FormGroup,
   FormsModule,
   ReactiveFormsModule,
@@ -35,6 +37,7 @@ import { UiPackage } from '../ui-models/ui-package.model';
 import { ToastService } from '../../../../../services/toast.service';
 import { Store } from '@ngrx/store';
 import {
+  addUiProductToRemainingProducts,
   AppState,
   movePalletToPackage,
   moveProductToRemainingProducts,
@@ -48,12 +51,22 @@ import {
   removePalletFromPackage,
   removeProductFromPackage,
   splitProduct,
+  updateProductCountAndCreateOrUpdateOrderDetail,
+  deleteRemainingProduct,
+  updateOrderDetailsChanges,
+  calculatePackageDetail,
+  setRemainingProducts,
+  mergeRemainingProducts,
+  movePartialProductBetweenPackages,
+  movePartialRemainingProductToPackage,
+  setVerticalSort,
 } from '../../../../../store';
 
 import {
   selectStep2Packages,
-  selectStep2RemainingProducts,
+  selectRemainingProducts,
   selectStep2IsDirty,
+  selectStep1IsDirty,
   selectStep2Changes,
   selectUiPackages,
   allDropListIds,
@@ -71,8 +84,26 @@ import {
   selectRemainingWeight,
   selectTotalMeter,
   selectTotalWeight,
+  selectVerticalSort,
 } from '../../../../../store/stepper/stepper.selectors';
-import { Subject } from 'rxjs';
+import {
+  catchError,
+  debounceTime,
+  distinctUntilChanged,
+  finalize,
+  of,
+  Subject,
+  switchMap,
+  takeUntil,
+} from 'rxjs';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { ProductService } from '../../../services/product.service';
+import {
+  MatAutocompleteModule,
+} from '@angular/material/autocomplete';
+import { MatOption } from '@angular/material/autocomplete';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 
 @Component({
   selector: 'app-pallet-control',
@@ -89,6 +120,11 @@ import { Subject } from 'rxjs';
     CdkDropList,
     CdkDrag,
     MatIconModule,
+    MatProgressSpinnerModule,
+    MatOption,
+    MatAutocompleteModule,
+    MatTooltipModule,
+    MatCheckboxModule,
   ],
   templateUrl: './pallet-control.component.html',
   styleUrl: './pallet-control.component.scss',
@@ -97,24 +133,25 @@ import { Subject } from 'rxjs';
 export class PalletControlComponent
   implements OnInit, AfterViewInit, OnDestroy
 {
+  searchControl = new FormControl('');
+  isSearching = false;
+  filteredProducts: WritableSignal<any[]> = signal<any[]>([]);
+
   // Service injections
   repository: RepositoryService = inject(RepositoryService);
   toastService: ToastService = inject(ToastService);
   private readonly store = inject(Store<AppState>);
+  private readonly productService = inject(ProductService);
 
   uiPackages = this.store.selectSignal(selectUiPackages);
-  remainingProducts = this.store.selectSignal(selectStep2RemainingProducts);
+  remainingProducts = this.store.selectSignal(selectRemainingProducts);
 
-  // NgRx Step2 Migration Observables
-  public step2Packages$ = this.store.select(selectStep2Packages);
-  public step2RemainingProducts$ = this.store.select(
-    selectStep2RemainingProducts
-  );
-  public step2IsDirty$ = this.store.select(selectStep2IsDirty);
-  public step2Changes$ = this.store.select(selectStep2Changes);
+  public orderDetailsIsDirtySignal =
+  this.store.selectSignal(selectStep1IsDirty);
 
   public isDirtySignal = this.store.selectSignal(selectStep2IsDirty);
   public orderSignal = this.store.selectSignal(selectOrder);
+  public verticalSortSignal = this.store.selectSignal(selectVerticalSort);
 
   private autoSaveTimeout: any;
   private destroy$ = new Subject<void>();
@@ -133,6 +170,9 @@ export class PalletControlComponent
   // Form and other properties
   secondFormGroup: FormGroup;
   currentDraggedProduct: UiProduct | null = null;
+
+  //Sorting Process
+  sortAscending = signal<boolean>(false);
 
   // Weight and dimension calculations
   public totalWeight = this.store.selectSignal(selectTotalWeight);
@@ -160,6 +200,7 @@ export class PalletControlComponent
 
   ngOnInit(): void {
     this.loadPallets();
+    this.setupSearchSubscription();
   }
 
   ngAfterViewInit(): void {}
@@ -208,6 +249,28 @@ export class PalletControlComponent
       return false;
     }
     return this.checkVolumeAvailable(product, pallet, existingProducts);
+  }
+
+  //Sorting css optimize process
+  toggleSort() {
+    this.sortAscending.set(!this.sortAscending());
+    const multiplier = this.sortAscending() ? 1 : -1;
+
+    const remainingProducts = [...this.remainingProducts()].sort((a, b) => {
+      return multiplier * (
+        (b.dimension.depth - a.dimension.depth) ||      // Önce depth (büyükten küçüğe)
+        (b.dimension.width - a.dimension.width) ||      // Sonra width (büyükten küçüğe)
+        (b.dimension.height - a.dimension.height) ||    // Sonra height (büyükten küçüğe)
+        (b.count - a.count)                             // Son olarak count (büyükten küçüğe)
+      );
+    });
+
+    this.store.dispatch(setRemainingProducts({ remainingProducts }));
+  }
+
+  //merge remaining products process
+  merge(){
+    this.store.dispatch(mergeRemainingProducts())
   }
 
   private checkDimensionsFit(product: UiProduct, pallet: UiPallet): boolean {
@@ -353,6 +416,65 @@ export class PalletControlComponent
     return Math.floor(remainingVolume / singleProductVolume);
   }
 
+  updateProductCount(product: UiProduct, event: any): void {
+    // Bu metodu sen doldur - product count güncellemesi için
+    const newCount = parseInt(event.target.value);
+    if (Number.isNaN(newCount) || newCount < 1) {
+      // geçersiz inputu görmezden gel
+      return;
+    }
+    this.store.dispatch(
+      updateProductCountAndCreateOrUpdateOrderDetail({ product, newCount })
+    );
+  }
+
+  selectProduct(product: any) {
+    this.store.dispatch(
+      updateProductCountAndCreateOrUpdateOrderDetail({
+        product: product,
+        newCount: 0,
+      })
+    );
+  }
+
+  displayProductFn(product: any): string {
+    return product ? product.name : '';
+  }
+
+  private setupSearchSubscription(): void {
+    this.searchControl.valueChanges
+      .pipe(
+        debounceTime(300),
+        distinctUntilChanged(),
+        takeUntil(this.destroy$),
+        switchMap((value) => {
+          if (typeof value === 'string' && value.length > 2) {
+            this.isSearching = true;
+            return this.productService.searchProducts(value, 10).pipe(
+              catchError((error) => {
+                return of([]);
+              }),
+              finalize(() => {
+                this.isSearching = false;
+              })
+            );
+          }
+          return of([]);
+        })
+      )
+      .subscribe({
+        next: (products: any[]) => {
+          this.filteredProducts.set(products);
+        },
+      });
+  }
+
+  clearSearch(): void {
+    this.searchControl.setValue('');
+    this.filteredProducts.set([]);
+    this.isSearching = false;
+  }
+
   // Drag & Drop Event Handlers
   dropProductToPallet(event: CdkDragDrop<UiProduct[]>): void {
     if (event.previousContainer === event.container) {
@@ -391,11 +513,10 @@ export class PalletControlComponent
     const targetPalletId = event.container.id;
     const currentPackages = this.uiPackages();
     const targetPackage = currentPackages.find(
-      (p) => p.pallet && p.pallet.id === targetPalletId
+      (p) => p.pallet && p.pallet.ui_id === targetPalletId
     );
 
     if (!targetPackage) {
-      console.error('target package bulma hatasi');
       return;
     }
 
@@ -404,20 +525,21 @@ export class PalletControlComponent
     const product = event.previousContainer.data[event.previousIndex];
 
     if (isSourceFromPallet) {
-      // Palet-to-palet transfer
       const sourcePackage = currentPackages.find(
-        (pkg) => pkg.pallet && pkg.pallet.id === event.previousContainer.id
+        (pkg) => pkg.pallet && pkg.pallet.ui_id === event.previousContainer.id
       );
 
       if (sourcePackage) {
         // Sığma kontrolü
         if (targetPackage.pallet) {
-          const canFit = this.canFitProductToPallet(
+          const fitResult = this.calculateMaxFitCount(
             product,
             targetPackage.pallet,
             targetPackage.products
           );
-          if (!canFit) {
+
+          if (fitResult.maxCount === 0) {
+            // Hiç sığmıyor
             const fillPercentage = this.getPalletFillPercentage(
               targetPackage.pallet,
               targetPackage.products
@@ -427,8 +549,24 @@ export class PalletControlComponent
               'Boyut Hatası'
             );
             return;
+          } else if (fitResult.maxCount < product.count) {
+            // Kısmi sığıyor - YENİ DURUM
+            this.toastService.warning(
+              `${product.count} adetten ${fitResult.maxCount} tanesi palete eklendi`,
+              'Kısmi Transfer'
+            );
+            this.store.dispatch(
+              movePartialProductBetweenPackages({
+                sourcePackage: sourcePackage,
+                targetPackage: targetPackage,
+                previousIndex: event.previousIndex,
+                maxCount: fitResult.maxCount,
+              })
+            );
+            return;
           }
         }
+        // Normal transfer
         this.store.dispatch(
           moveUiProductInPackageToPackage({
             sourcePackage: sourcePackage,
@@ -442,12 +580,13 @@ export class PalletControlComponent
 
     // Available products'tan palete transfer
     if (targetPackage.pallet) {
-      const canFit = this.canFitProductToPallet(
+      const fitResult = this.calculateMaxFitCount(
         product,
         targetPackage.pallet,
         targetPackage.products
       );
-      if (!canFit) {
+      if (fitResult.maxCount === 0) {
+        // Hiç sığmıyor
         const fillPercentage = this.getPalletFillPercentage(
           targetPackage.pallet,
           targetPackage.products
@@ -457,8 +596,23 @@ export class PalletControlComponent
           'Boyut Hatası'
         );
         return;
+      } else if (fitResult.maxCount < product.count) {
+        // Kısmi sığıyor
+        this.toastService.warning(
+          `${product.count} adetten ${fitResult.maxCount} tanesi palete eklendi`,
+          'Kısmi Transfer'
+        );
+        this.store.dispatch(
+          movePartialRemainingProductToPackage({
+            targetPackage: targetPackage,
+            previousIndex: event.previousIndex,
+            maxCount: fitResult.maxCount,
+          })
+        );
+        return;
       }
     }
+    // Normal transfer
     this.store.dispatch(
       moveRemainingProductToPackage({
         targetPackage: targetPackage,
@@ -481,9 +635,7 @@ export class PalletControlComponent
 
   dragStarted(event: CdkDragStart): void {
     const product = event.source.data as UiProduct;
-
     this.currentDraggedProduct = product;
-
     const palletElements = new Map<string, HTMLElement>();
 
     if (!product?.dimension) {
@@ -493,56 +645,45 @@ export class PalletControlComponent
 
     this.uiPackages().forEach((pkg, index) => {
       if (pkg.pallet) {
-        const palletElement = document.getElementById(pkg.pallet.id);
+        const palletElement = document.getElementById(pkg.pallet.ui_id);
         if (palletElement) {
-          palletElements.set(pkg.pallet.id, palletElement);
+          palletElements.set(pkg.pallet.ui_id, palletElement);
         }
       }
     });
 
     this.uiPackages().forEach((pkg, index) => {
       if (pkg.pallet) {
-        const canFit = this.canFitProductToPallet(
+        const fitResult = this.calculateMaxFitCount(
           product,
           pkg.pallet,
           pkg.products
         );
-        const palletElement = palletElements.get(pkg.pallet.id);
+        const palletElement = palletElements.get(pkg.pallet.ui_id);
 
         if (palletElement) {
-          if (canFit) {
-            palletElement.classList.add('can-drop');
-            palletElement.classList.remove('cannot-drop');
-
-            const maxCount = this.getMaxProductCount(
-              product,
-              pkg.pallet,
-              pkg.products
-            );
-            palletElement.title = `✅ Bu palete maksimum ${maxCount} adet sığabilir`;
-          } else {
+          if (fitResult.maxCount === 0) {
+            // Hiç sığmıyor - KIRMIZI
             palletElement.classList.add('cannot-drop');
-            palletElement.classList.remove('can-drop');
+            palletElement.classList.remove('can-drop', 'partial-drop');
 
-            const fillPercentage = this.getPalletFillPercentage(
-              pkg.pallet,
-              pkg.products
-            );
-            const singleVolume =
-              this.safeNumber(product.dimension.width) *
-              this.safeNumber(product.dimension.depth) *
-              this.safeNumber(product.dimension.height);
-            const remainingVolume = this.getRemainingPalletVolume(
-              pkg.pallet,
-              pkg.products
-            );
-            const maxCount = Math.floor(remainingVolume / singleVolume);
+            const fillPercentage = this.getPalletFillPercentage(pkg.pallet, pkg.products);
+            palletElement.title = `❌ Sığmaz - Palet doluluk: %${fillPercentage}`;
 
-            if (maxCount > 0) {
-              palletElement.title = `⚠️ Sadece ${maxCount} adet sığar (Doluluk: %${fillPercentage})`;
-            } else {
-              palletElement.title = `❌ Sığmaz - Palet doluluk: %${fillPercentage}`;
-            }
+          } else if (fitResult.maxCount < product.count) {
+            // Kısmi sığıyor
+            palletElement.classList.add('partial-drop');
+            palletElement.classList.remove('can-drop', 'cannot-drop');
+
+            const fillPercentage = this.getPalletFillPercentage(pkg.pallet, pkg.products);
+            palletElement.title = `⚠️ Sadece ${fitResult.maxCount} adet sığar (${product.count} adetten) - Doluluk: %${fillPercentage}`;
+
+          } else {
+            // Tamamen sığıyor - YEŞİL
+            palletElement.classList.add('can-drop');
+            palletElement.classList.remove('cannot-drop', 'partial-drop');
+
+            palletElement.title = `✅ Bu palete maksimum ${fitResult.maxCount} adet sığabilir`;
           }
         }
       }
@@ -552,9 +693,58 @@ export class PalletControlComponent
   dragEnded(): void {
     this.currentDraggedProduct = null;
 
-    document.querySelectorAll('.can-drop, .cannot-drop').forEach((el) => {
-      el.classList.remove('can-drop', 'cannot-drop');
+    document.querySelectorAll('.can-drop, .cannot-drop, .partial-drop').forEach((el) => {
+      el.classList.remove('can-drop', 'cannot-drop', 'partial-drop');
     });
+  }
+
+  calculateMaxFitCount(product: UiProduct,pallet: UiPallet,existingProducts: UiProduct[]):{ canFit: boolean; maxCount: number } {
+    // Tek bir ürünün boyutsal olarak sığıp sığmadığını kontrol et
+    const singleProductCanFit = this.canFitProductToPallet(
+      {
+        ...product, count: 1,
+        split: function (perItem?: number | null): UiProduct[] {
+          throw new Error('Function not implemented.');
+        }
+      },
+      pallet,
+      existingProducts
+    );
+
+    if (!singleProductCanFit) {
+      return { canFit: false, maxCount: 0 };
+    }
+
+    // Palet kapasitesi
+    const palletCapacity =
+      pallet.dimension.depth * pallet.dimension.width * pallet.dimension.height;
+
+    // Mevcut ürünlerin toplam hacmi
+    const usedVolume = existingProducts.reduce((total, p) => {
+      const productVolume =
+        p.dimension.depth * p.dimension.width * p.dimension.height;
+      return total + productVolume * p.count;
+    }, 0);
+
+    // Kalan hacim
+    const remainingVolume = palletCapacity - usedVolume;
+
+    // Bir adet ürünün hacmi
+    const productVolume =
+      product.dimension.depth *
+      product.dimension.width *
+      product.dimension.height;
+
+    // Maksimum kaç adet sığabilir
+    const maxCount = Math.floor(remainingVolume / productVolume);
+
+    // Product count'tan fazla olamaz
+    const finalMaxCount = Math.min(maxCount, product.count);
+
+    return {
+      canFit: true,
+      maxCount: finalMaxCount,
+    };
   }
 
   // Product manipulation methods
@@ -589,7 +779,35 @@ export class PalletControlComponent
     );
   }
 
+  onVerticalSortChange(value: boolean): void {
+    this.store.dispatch(setVerticalSort({ verticalSort: value }));
+  }
+
+  calculatePackageDetail() {
+    if (this.orderDetailsIsDirtySignal())
+      this.store.dispatch(
+        updateOrderDetailsChanges({ context: 'calculatePackageDetails' })
+      );
+    else {
+      this.store.dispatch(calculatePackageDetail());
+    }
+  }
+
+  toggleAlignment(_package: any): void {
+    _package.alignment = _package.alignment === 'v' ? 'h' : 'v';
+  }
+
+  addUiProduct(product: UiProduct) {
+    this.store.dispatch(addUiProductToRemainingProducts({ product: product }));
+  }
+
+  deleteRemainingProduct(product: UiProduct): void {
+    this.store.dispatch(deleteRemainingProduct({ product: product }));
+  }
+
   submitForm(): void {
-    if (this.isDirtySignal()) this.store.dispatch(palletControlSubmit());
+    if (this.isDirtySignal()) {
+      this.store.dispatch(palletControlSubmit());
+    }
   }
 }

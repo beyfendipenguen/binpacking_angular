@@ -3,9 +3,10 @@ import { Dimension } from '../../../../../models/dimension.interface';
 import { ProductType } from '../../../../../models/product-type.interface';
 import { WeightType } from '../../../../../models/weight-type.interface';
 import { IUiProduct } from '../../interfaces/ui-interfaces/ui-product.interface';
+import { v4 as Guid } from 'uuid';
 
 export class UiProduct implements IUiProduct {
-
+  ui_id: string;
   name?: string;
   count: number;
   product_type: ProductType;
@@ -16,6 +17,7 @@ export class UiProduct implements IUiProduct {
   priority: number;
 
   constructor(init: Partial<IUiProduct>) {
+    this.ui_id = Guid()
     this.name = init.name!;
     this.count = init.count!;
     this.id = init.id!;
@@ -44,15 +46,11 @@ export class UiProduct implements IUiProduct {
     const firstProduct = new UiProduct({
       ...this,
       count: firstCount,
-      id: this.id + '/1',
-      priority: this.priority
     });
 
     const secondProduct = new UiProduct({
       ...this,
       count: secondCount,
-      id: this.id + '/2',
-      priority:this.priority
     });
     return [firstProduct, secondProduct];
   }
