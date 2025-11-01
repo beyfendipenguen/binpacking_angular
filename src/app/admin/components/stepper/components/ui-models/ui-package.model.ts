@@ -22,6 +22,7 @@ export class UiPackage implements IUiPackage {
   isSavedInDb: boolean;
   products: IUiProduct[];
   height: number;
+  alignment:string;
 
   constructor(init: Partial<IUiPackage>) {
     this.pallet = init.pallet || null;
@@ -33,6 +34,7 @@ export class UiPackage implements IUiPackage {
     this.products = init.products || [];
     this.is_remaining = init.is_remaining || true;
     this.height = init.height || 2400;
+    this.alignment = init.alignment || "h";
 
     // Initialize products signal
     this._products = signal(init.products || []);

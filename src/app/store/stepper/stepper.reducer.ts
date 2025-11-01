@@ -92,6 +92,14 @@ export const stepperReducer = createReducer(
     return { ...state, step2State: { ...state.step2State, remainingProducts: [...remainingProducts, newProduct], isDirty: true } };
   }),
 
+  on(StepperActions.setVerticalSort, (state, { verticalSort }) => ({
+    ...state,
+    step2State:{
+      ...state.step2State,
+      verticalSort: verticalSort
+    }
+  })),
+
   on(StepperActions.calculatePackageDetailSuccess, (state, { packages, remainingOrderDetails }) => {
     const remainingProducts: any[] = [];
 
@@ -99,7 +107,7 @@ export const stepperReducer = createReducer(
       const palletVolume =
         parseFloat(pkg.pallet.dimension.width) *
         parseFloat(pkg.pallet.dimension.depth) *
-        parseFloat(pkg.pallet.dimension.height);
+        parseFloat(state.order.max_pallet_height);
 
       const productsVolume = pkg.products.reduce((sum: number, product: any) => {
         const productVolume =

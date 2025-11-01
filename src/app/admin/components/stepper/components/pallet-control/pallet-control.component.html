@@ -246,11 +246,13 @@
             </button>
 
             @if(uiPackages().length > 0) {
-            <mat-checkbox
-              class="vertical-sort-checkbox"
-            >
-              Dikey Yerleştir
-            </mat-checkbox>
+              <mat-checkbox
+                class="vertical-sort-checkbox"
+                [checked]="verticalSortSignal()"
+                (change)="onVerticalSortChange($event.checked)"
+              >
+                Dikey Yerleştir
+              </mat-checkbox>
             }
           </div>
 
@@ -300,6 +302,19 @@
             <div class="package-title">
               <mat-icon>inbox</mat-icon>
               <span>Palet {{ package.name }}</span>
+              <button
+                class="orientation-toggle"
+                [class.vertical]="package.alignment === 'v'"
+                (click)="toggleAlignment(package)"
+                [matTooltip]="package.alignment === 'v' ? 'Dikey Yerleşim' : 'Yatay Yerleşim'"
+              >
+                <div class="toggle-icon layers">
+                  <span class="layer"></span>
+                  <span class="layer"></span>
+                  <span class="layer"></span>
+                  <span class="layer"></span>
+                </div>
+              </button>
             </div>
             <div class="package-actions">
               <button

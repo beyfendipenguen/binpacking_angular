@@ -59,6 +59,7 @@ import {
   mergeRemainingProducts,
   movePartialProductBetweenPackages,
   movePartialRemainingProductToPackage,
+  setVerticalSort,
 } from '../../../../../store';
 
 import {
@@ -83,6 +84,7 @@ import {
   selectRemainingWeight,
   selectTotalMeter,
   selectTotalWeight,
+  selectVerticalSort,
 } from '../../../../../store/stepper/stepper.selectors';
 import {
   catchError,
@@ -97,7 +99,6 @@ import {
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ProductService } from '../../../services/product.service';
 import {
-  MatAutocomplete,
   MatAutocompleteModule,
 } from '@angular/material/autocomplete';
 import { MatOption } from '@angular/material/autocomplete';
@@ -145,17 +146,12 @@ export class PalletControlComponent
   uiPackages = this.store.selectSignal(selectUiPackages);
   remainingProducts = this.store.selectSignal(selectRemainingProducts);
 
-  // NgRx Step2 Migration Observables
-  public step2Packages$ = this.store.select(selectStep2Packages);
-  public step2RemainingProducts$ = this.store.select(selectRemainingProducts);
-  public step2IsDirty$ = this.store.select(selectStep2IsDirty);
-  public step2Changes$ = this.store.select(selectStep2Changes);
-
   public orderDetailsIsDirtySignal =
-    this.store.selectSignal(selectStep1IsDirty);
+  this.store.selectSignal(selectStep1IsDirty);
 
   public isDirtySignal = this.store.selectSignal(selectStep2IsDirty);
   public orderSignal = this.store.selectSignal(selectOrder);
+  public verticalSortSignal = this.store.selectSignal(selectVerticalSort);
 
   private autoSaveTimeout: any;
   private destroy$ = new Subject<void>();
@@ -783,6 +779,10 @@ export class PalletControlComponent
     );
   }
 
+  onVerticalSortChange(value: boolean): void {
+    this.store.dispatch(setVerticalSort({ verticalSort: value }));
+  }
+
   calculatePackageDetail() {
     if (this.orderDetailsIsDirtySignal())
       this.store.dispatch(
@@ -791,6 +791,10 @@ export class PalletControlComponent
     else {
       this.store.dispatch(calculatePackageDetail());
     }
+  }
+
+  toggleAlignment(_package: any): void {
+    _package.alignment = _package.alignment === 'v' ? 'h' : 'v';
   }
 
   addUiProduct(product: UiProduct) {

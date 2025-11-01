@@ -137,6 +137,11 @@ export const updateOrderDetailsChangesSuccess = createAction(
   props<{ orderDetails: any[], context?: string }>()
 );
 
+export const setVerticalSort = createAction(
+  '[Stepper] Set Vertical Sort',
+  props<{ verticalSort: boolean }>()
+);
+
 export const uploadFileToOrder = createAction(
   '[Invoice Upload] Upload file to Order',
 )

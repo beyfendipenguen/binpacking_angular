@@ -111,9 +111,11 @@ export class RepositoryService {
     }>(`${this.api.getApiUrl()}/orders/process-file/`, formData);
   }
 
-  calculatePackageDetail(order_id: string = this.getOrderId()): Observable<{ packageDetails: any[], remainingOrderDetails: any[] }> {
+  calculatePackageDetail(verticalSort: boolean, order_id: string = this.getOrderId()): Observable<{ packageDetails: any[], remainingOrderDetails: any[] }> {
+    const params = new HttpParams().set('vertical_sort', verticalSort.toString());
+
     return this.http
-      .get<any>(`${this.api.getApiUrl()}/logistics/calculate-box/${order_id}/`)
+      .get<any>(`${this.api.getApiUrl()}/logistics/calculate-box/${order_id}/`, { params })
       .pipe(map((response) => ({
         packageDetails: mapPackageDetailToPackage(response.data),
         remainingOrderDetails: mapOrderDetailsToUiProductsSafe(response.remaining_order_details)

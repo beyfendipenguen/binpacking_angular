@@ -382,6 +382,11 @@ export const selectStep2IsDirty = createSelector(
   (step2State) => step2State.isDirty
 );
 
+export const selectVerticalSort = createSelector(
+  selectStep2State,
+  (step2State) => step2State.verticalSort
+);
+
 export const selectStep2PackageCount = createSelector(
   selectStep2Packages,
   (packages) => packages.length

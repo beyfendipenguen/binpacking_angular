@@ -1136,6 +1136,7 @@ form {
 .package-title {
   display: flex;
   align-items: center;
+  gap: 12px; // Bu satırı ekleyin
 
   mat-icon {
     font-size: 18px;
@@ -1148,6 +1149,7 @@ form {
   span {
     color: $white;
     font-weight: 500;
+
   }
 }
 
@@ -1644,5 +1646,137 @@ button[mat-icon-button] {
 
   .stat-info {
     text-align: left;
+  }
+}
+
+/* =====================
+   ORIENTATION TOGGLE BUTTON
+===================== */
+.orientation-toggle {
+  width: 32px;
+  height: 32px;
+  border: none;
+  background-color: rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 12px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  padding: 0;
+
+  &:hover {
+    background-color: rgba(255, 255, 255, 0.25);
+    transform: scale(1.05);
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
+
+  .toggle-icon.layers {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    width: 16px;
+    height: 16px;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+
+    .layer {
+      width: 14px;
+      height: 2px;
+      background-color: $white;
+      border-radius: 1px;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+
+      &:nth-child(1) {
+        opacity: 0.6;
+      }
+      &:nth-child(2) {
+        opacity: 0.75;
+      }
+      &:nth-child(3) {
+        opacity: 0.9;
+      }
+      &:nth-child(4) {
+        opacity: 1;
+      }
+    }
+  }
+
+  // Vertical state (layers üst üste)
+  &.vertical {
+    background-color: rgba(214, 187, 134, 0.3);
+
+    &:hover {
+      background-color: rgba(214, 187, 134, 0.5);
+    }
+
+    .toggle-icon.layers {
+      transform: rotate(90deg);
+
+      .layer {
+        background-color: $white;
+      }
+    }
+  }
+
+  // Ripple effect
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 4px;
+    background-color: rgba(255, 255, 255, 0.3);
+    opacity: 0;
+    transform: scale(0.8);
+    transition: all 0.3s ease;
+  }
+
+  &:active::after {
+    opacity: 1;
+    transform: scale(1);
+    transition: all 0s;
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .orientation-toggle {
+    width: 28px;
+    height: 28px;
+
+    .toggle-icon.layers {
+      width: 14px;
+      height: 14px;
+
+      .layer {
+        width: 12px;
+        height: 2px;
+      }
+    }
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .orientation-toggle {
+    width: 28px;
+    height: 28px;
+
+    .toggle-icon {
+      width: 14px;
+      height: 14px;
+
+      .line {
+        width: 10px;
+        height: 2px;
+      }
+    }
   }
 }

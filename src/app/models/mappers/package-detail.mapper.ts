@@ -60,6 +60,7 @@ export function mapPackageDetailToPackage(packageDetailList: PackageDetail[]): U
         pallet: pallet ? new UiPallet({ ...pallet }) : null,
         order: order,
         products: products,
+        alignment:packageData.alignment
       });
     }
   );
@@ -114,7 +115,8 @@ export function mapPackageToPackageDetail(uiPackageList: UiPackage[]): PackageDe
           pallet: uiPackage.pallet,
           order: uiPackage.order,
           is_remaining: uiPackage.is_remaining,
-          height: totalHeight
+          height: totalHeight,
+          alignment: uiPackage.alignment
         };
 
         // Pallet için ID referansı kullan (eğer varsa)

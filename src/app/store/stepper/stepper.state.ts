@@ -77,6 +77,7 @@ export interface StepperState {
     modifiedPackages: any[];
     deletedPackages: any[];
     isDirty: boolean;
+    verticalSort:boolean
   };
 
   step3State: {
@@ -154,7 +155,8 @@ export const initialStepperState: StepperState = {
     addedPackages: [],
     modifiedPackages: [],
     deletedPackages: [],
-    isDirty: false
+    isDirty: false,
+    verticalSort:false
   },
 
   step3State: {
