@@ -1,5 +1,5 @@
-import { Component, EventEmitter, inject, Input, OnInit, Output, ViewChild } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { Component, EventEmitter, inject, Input, OnInit, Output, ViewChild, signal, computed, effect } from '@angular/core';
+import { NavigationEnd, Router, RouterLink } from '@angular/router';
 import { MatMenu, MatMenuModule } from '@angular/material/menu';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatIconModule } from '@angular/material/icon';
@@ -7,8 +7,12 @@ import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDividerModule } from '@angular/material/divider';
 import { Store } from '@ngrx/store';
-import { AppState, selectOrder, selectOrderId, selectUser } from '../../../../store';
+import { AppState, resetStepper, selectOrderId, selectUser } from '../../../../store';
 import { AuthService } from '../../../../auth/services/auth.service';
+import { CancelConfirmationDialogComponent } from './cancel-confirmation-dialog/cancel-confirmation-dialog.component';
+import { MatDialog } from '@angular/material/dialog';
+import { filter } from 'rxjs';
+import { OrderService } from '../../services/order.service';
 
 @Component({
   selector: 'app-header',
@@ -26,15 +30,34 @@ export class HeaderComponent implements OnInit {
   companyLogo: string = 'assets/icons/bedisa.png';
 
   private readonly store = inject(Store<AppState>);
-  private readonly authService = inject(AuthService)
-  user$ = this.store.select(selectUser);
-  order = this.store.selectSignal(selectOrderId);
+  private readonly authService = inject(AuthService);
+  private readonly orderService = inject(OrderService);
+  private readonly router = inject(Router);
+  private readonly dialog = inject(MatDialog);
 
-  constructor(private router: Router) {
-  }
+  orderId = this.store.selectSignal(selectOrderId)
+  user$ = this.store.select(selectUser);
+
+
+  // Current URL'i signal olarak tut
+  private currentUrl = signal(this.router.url);
+
+  // Computed signal ile otomatik hesaplama
+  showCancelButton = computed(() => {
+    const url = this.currentUrl();
+    const cleanUrl = url.split('?')[0];
+    return (cleanUrl === '/' || cleanUrl === '' || cleanUrl.length === 0) && this.orderId();
+  });
 
   ngOnInit(): void {
-    this.getProfilePhoto()
+    this.getProfilePhoto();
+
+    // Router değişikliklerini dinle ve signal'i güncelle
+    this.router.events.pipe(
+      filter(event => event instanceof NavigationEnd)
+    ).subscribe((event: NavigationEnd) => {
+      this.currentUrl.set(event.url);
+    });
   }
 
   getProfilePhoto() {
@@ -49,7 +72,33 @@ export class HeaderComponent implements OnInit {
   }
 
   logout() {
-    this.authService.doLogout()
+    this.authService.doLogout();
   }
 
+  onCancelClick(): void {
+    const dialogRef = this.dialog.open(CancelConfirmationDialogComponent, {
+      width: '400px',
+      maxWidth: '95vw',
+      disableClose: true,
+      panelClass: 'cancel-confirmation-dialog'
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result === true) {
+        this.handleCancellation();
+      }
+    });
+  }
+
+  private handleCancellation(): void {
+    console.log('İşlem iptal edildi');
+    this.orderService.delete(this.orderId()).subscribe({
+      next: () => {
+        this.authService.clearLocalAndStore()
+      },
+      error: (error) => {
+        this.authService.clearLocalAndStore()
+      }
+    });
+  }
 }

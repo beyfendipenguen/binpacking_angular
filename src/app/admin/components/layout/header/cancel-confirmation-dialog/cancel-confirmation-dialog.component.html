@@ -1,0 +1,32 @@
+<div class="cancel-dialog-container">
+  <div class="dialog-header">
+    <div class="icon-wrapper">
+      <mat-icon class="warning-icon">warning_amber</mat-icon>
+    </div>
+    <h2 mat-dialog-title>İşlemi İptal Et</h2>
+  </div>
+
+  <mat-dialog-content>
+    <p class="main-text">İşlemi iptal etmek istediğinizden emin misiniz?</p>
+    <div class="warning-box">
+      <mat-icon>info</mat-icon>
+      <span>Girdiğiniz tüm bilgiler kaybolacaktır.</span>
+    </div>
+  </mat-dialog-content>
+
+  <mat-dialog-actions>
+    <button mat-stroked-button (click)="onNoClick()" class="no-button">
+      <mat-icon>close</mat-icon>
+      <span>Hayır</span>
+    </button>
+    <button
+      mat-raised-button
+      (click)="onYesClick()"
+      class="yes-button"
+      cdkFocusInitial
+    >
+      <mat-icon>check</mat-icon>
+      <span>Evet, İptal Et</span>
+    </button>
+  </mat-dialog-actions>
+</div>

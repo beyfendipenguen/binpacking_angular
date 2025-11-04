@@ -1,31 +1,49 @@
 <mat-toolbar>
   <mat-toolbar-row color="primary">
-    <button *ngIf="isToggleButton" mat-icon-button (click)="sidenavOpen.emit(null);">
+    <button
+      *ngIf="isToggleButton"
+      mat-icon-button
+      (click)="sidenavOpen.emit(null)"
+    >
       <mat-icon>menu</mat-icon>
     </button>
 
     <!-- Logo kısmı -->
     <div class="logo-container">
-      <img routerLink="/" [src]="companyLogo" alt="Bin Packing Logo" class="logo">
+      <img
+        routerLink="/"
+        [src]="companyLogo"
+        alt="Bin Packing Logo"
+        class="logo"
+      />
     </div>
 
     <mat-divider></mat-divider>
     <span class="spacer"></span>
     <div class="debug-order-id">
-      <span>{{order()}}</span>
+      <span>{{ orderId() }}</span>
     </div>
     <mat-divider></mat-divider>
     <span class="spacer"></span>
 
+    <!-- İptal Butonu - Sadece stepper sayfasında göster -->
+    @if (showCancelButton()) {
+      <button
+        mat-stroked-button
+        class="navbar-cancel-button"
+        (click)="onCancelClick()"
+      >
+        <mat-icon>close</mat-icon>
+        <span class="cancel-text">İptal</span>
+      </button>
+    }
     <div mat-button [matMenuTriggerFor]="profileMenu" class="profile-menu">
-      <img [src]="this.profilePhoto" class="profile-photo" alt="">
+      <img [src]="this.profilePhoto" class="profile-photo" alt="" />
     </div>
-
   </mat-toolbar-row>
 </mat-toolbar>
 
 <mat-menu #profileMenu="matMenu">
   <button mat-menu-item [routerLink]="['/profile']">Profil</button>
   <button mat-menu-item (click)="logout()">Çıkış Yap</button>
-
 </mat-menu>

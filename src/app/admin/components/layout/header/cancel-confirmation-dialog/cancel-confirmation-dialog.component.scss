@@ -1,0 +1,221 @@
+    .cancel-dialog-container {
+      padding: 0;
+      margin: 0;
+      overflow: hidden;
+      max-width: 500px;
+    }
+
+    .dialog-header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 24px 24px 20px 24px;
+      background: linear-gradient(135deg, #006a6a 0%, #004d4d 100%);
+      border-bottom: 3px solid #d6bb86;
+
+      .icon-wrapper {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 48px;
+        height: 48px;
+        background: rgba(214, 187, 134, 0.2);
+        border-radius: 50%;
+        flex-shrink: 0;
+
+        .warning-icon {
+          color: #d6bb86;
+          font-size: 28px;
+          width: 28px;
+          height: 28px;
+        }
+      }
+
+      h2 {
+        color: #ffffff;
+        font-size: 20px;
+        font-weight: 600;
+        margin: 0;
+        letter-spacing: 0.3px;
+      }
+    }
+
+    mat-dialog-content {
+      padding: 24px !important;
+      margin: 0 !important;
+      overflow: visible !important;
+      max-height: none !important;
+
+      .main-text {
+        margin: 0 0 20px 0;
+        color: #333333;
+        font-size: 16px;
+        line-height: 1.6;
+        font-weight: 500;
+      }
+
+      .warning-box {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 16px;
+        background: linear-gradient(135deg, rgba(255, 152, 0, 0.08) 0%, rgba(255, 193, 7, 0.08) 100%);
+        border-left: 4px solid #ff9800;
+        border-radius: 8px;
+
+        mat-icon {
+          color: #ff9800;
+          font-size: 22px;
+          width: 22px;
+          height: 22px;
+          flex-shrink: 0;
+        }
+
+        span {
+          color: #666666;
+          font-size: 14px;
+          line-height: 1.5;
+          font-weight: 500;
+        }
+      }
+    }
+
+    mat-dialog-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      padding: 20px 24px 24px 24px !important;
+      margin: 0 !important;
+      background: #fafafa;
+      border-top: 1px solid #e0e0e0;
+
+      button {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 24px;
+        font-size: 14px;
+        font-weight: 600;
+        letter-spacing: 0.3px;
+        border-radius: 24px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+        mat-icon {
+          font-size: 18px;
+          width: 18px;
+          height: 18px;
+        }
+      }
+
+      .no-button {
+        background: #ffffff;
+        color: #666666;
+        border: 1.5px solid #cccccc;
+
+        &:hover {
+          background: #f5f5f5;
+          border-color: #999999;
+          color: #333333;
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        &:active {
+          transform: translateY(0);
+          box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        }
+      }
+
+      .yes-button {
+        background: linear-gradient(135deg, #006a6a 0%, #004d4d 100%);
+        color: #ffffff;
+        border: none;
+        box-shadow: 0 4px 12px rgba(0, 106, 106, 0.3);
+
+        &:hover {
+          background: linear-gradient(135deg, #d6bb86 0%, #c9a961 100%);
+          color: #333333;
+          transform: translateY(-2px);
+          box-shadow: 0 6px 20px rgba(214, 187, 134, 0.5);
+
+          mat-icon {
+            transform: scale(1.1);
+          }
+        }
+
+        &:active {
+          transform: translateY(0);
+          box-shadow: 0 3px 10px rgba(214, 187, 134, 0.4);
+        }
+      }
+    }
+
+    /* Mobil responsive */
+    @media (max-width: 768px) {
+      .dialog-header {
+        padding: 20px 20px 16px 20px;
+
+        .icon-wrapper {
+          width: 40px;
+          height: 40px;
+
+          .warning-icon {
+            font-size: 24px;
+            width: 24px;
+            height: 24px;
+          }
+        }
+
+        h2 {
+          font-size: 18px;
+        }
+      }
+
+      mat-dialog-content {
+        padding: 20px !important;
+
+        .main-text {
+          font-size: 15px;
+        }
+
+        .warning-box {
+          padding: 14px;
+
+          span {
+            font-size: 13px;
+          }
+        }
+      }
+
+      mat-dialog-actions {
+        padding: 16px 20px 20px 20px !important;
+
+        button {
+          padding: 8px 20px;
+          font-size: 13px;
+
+          span {
+            display: none;
+          }
+
+          mat-icon {
+            margin: 0;
+          }
+        }
+      }
+    }
+
+    /* Animasyon hassasiyeti */
+    @media (prefers-reduced-motion: reduce) {
+      button {
+        transition: none !important;
+
+        &:hover {
+          transform: none !important;
+        }
+
+        mat-icon {
+          transform: none !important;
+        }
+      }
+    }

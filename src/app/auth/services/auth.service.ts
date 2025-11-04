@@ -87,6 +87,13 @@ export class AuthService {
     this.router.navigate(['/auth/login']);
   }
 
+  clearLocalAndStore(){
+    localStorage.removeItem('invoice_reference_data')
+    localStorage.removeItem('enhanced_stepper_draft_data')
+    this.store.dispatch(resetStepper());
+    this.router.navigate(['/']);
+  }
+
   // Error handling
   private handleError(error: HttpErrorResponse): Observable<never> {
     let msg = error.error instanceof ErrorEvent
