@@ -302,19 +302,20 @@
             <div class="package-title">
               <mat-icon>inbox</mat-icon>
               <span>Palet {{ package.name }}</span>
-              <button
-                class="orientation-toggle"
-                [class.vertical]="package.alignment === 'v'"
-                (click)="toggleAlignment(package)"
-                [matTooltip]="package.alignment === 'v' ? 'Dikey Yerleşim' : 'Yatay Yerleşim'"
-              >
-                <div class="toggle-icon layers">
-                  <span class="layer"></span>
-                  <span class="layer"></span>
-                  <span class="layer"></span>
-                  <span class="layer"></span>
-                </div>
-              </button>
+              @if(package.pallet?.dimension?.depth == 1000 || package.pallet?.dimension?.width == 1000){
+                <button
+                  class="orientation-toggle"
+                  [class.vertical]="package.alignment === 'v'"
+                  (click)="toggleAlignment(package)"
+                  [matTooltip]="package.alignment === 'v' ? 'Dikey Yerleşim' : 'Yatay Yerleşim'">
+                  <div class="toggle-icon layers">
+                    <span class="layer"></span>
+                    <span class="layer"></span>
+                    <span class="layer"></span>
+                    <span class="layer"></span>
+                  </div>
+                </button>
+              }
             </div>
             <div class="package-actions">
               <button
