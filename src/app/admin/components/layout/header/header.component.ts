@@ -9,7 +9,7 @@ import { MatDividerModule } from '@angular/material/divider';
 import { Store } from '@ngrx/store';
 import { AppState, resetStepper, selectOrderId, selectUser } from '../../../../store';
 import { AuthService } from '../../../../auth/services/auth.service';
-import { CancelConfirmationDialogComponent } from './cancel-confirmation-dialog/cancel-confirmation-dialog.component';
+import { CancelConfirmationDialogComponent } from '../../../../components/cancel-confirmation-dialog/cancel-confirmation-dialog.component';
 import { MatDialog } from '@angular/material/dialog';
 import { filter } from 'rxjs';
 import { OrderService } from '../../services/order.service';
@@ -80,7 +80,13 @@ export class HeaderComponent implements OnInit {
       width: '400px',
       maxWidth: '95vw',
       disableClose: true,
-      panelClass: 'cancel-confirmation-dialog'
+      panelClass: 'cancel-confirmation-dialog',
+      data: {
+        header: "İşlemi İptal Et",
+        title: "İşlemi iptal etmek istediğinizden emin misiniz?",
+        info: "Girdiğiniz tüm bilgiler kaybolacaktır.",
+        confirmButtonText: "Evet, İptal Et"
+      }
     });
 
     dialogRef.afterClosed().subscribe(result => {

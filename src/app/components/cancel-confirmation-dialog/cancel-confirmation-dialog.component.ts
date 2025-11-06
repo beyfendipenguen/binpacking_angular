@@ -1,6 +1,6 @@
-import { Component } from '@angular/core';
+import { Component, Inject, Input } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
-import { MatDialogModule, MatDialogRef } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 
 @Component({
@@ -16,8 +16,9 @@ import { MatIconModule } from '@angular/material/icon';
 export class CancelConfirmationDialogComponent {
 
   constructor(
-    public dialogRef: MatDialogRef<CancelConfirmationDialogComponent>
-  ) {}
+    public dialogRef: MatDialogRef<CancelConfirmationDialogComponent>,
+    @Inject(MAT_DIALOG_DATA) public data: { header: string, title: string, info: string, confirmButtonText: string }
+  ) { }
 
   onNoClick(): void {
     this.dialogRef.close(false);

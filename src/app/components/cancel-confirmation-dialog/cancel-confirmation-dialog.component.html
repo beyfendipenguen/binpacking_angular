@@ -3,14 +3,14 @@
     <div class="icon-wrapper">
       <mat-icon class="warning-icon">warning_amber</mat-icon>
     </div>
-    <h2 mat-dialog-title>İşlemi İptal Et</h2>
+    <h2 mat-dialog-title>{{data.header}}</h2>
   </div>
 
   <mat-dialog-content>
-    <p class="main-text">İşlemi iptal etmek istediğinizden emin misiniz?</p>
+    <p class="main-text">{{data.title}}</p>
     <div class="warning-box">
       <mat-icon>info</mat-icon>
-      <span>Girdiğiniz tüm bilgiler kaybolacaktır.</span>
+      <span>{{data.info}}</span>
     </div>
   </mat-dialog-content>
 
@@ -19,14 +19,9 @@
       <mat-icon>close</mat-icon>
       <span>Hayır</span>
     </button>
-    <button
-      mat-raised-button
-      (click)="onYesClick()"
-      class="yes-button"
-      cdkFocusInitial
-    >
+    <button mat-raised-button (click)="onYesClick()" class="yes-button" cdkFocusInitial>
       <mat-icon>check</mat-icon>
-      <span>Evet, İptal Et</span>
+      <span>{{data.confirmButtonText}}</span>
     </button>
   </mat-dialog-actions>
 </div>
