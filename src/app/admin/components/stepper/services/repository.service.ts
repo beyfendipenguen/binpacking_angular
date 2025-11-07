@@ -65,6 +65,36 @@ export class RepositoryService {
       );
   }
 
+  getPalletsByOrder(orderId: string = this.getOrderId()): Observable<any> {
+    return this.http
+      .get<any>(`${this.api.getApiUrl()}/logistics/pallets/`, {
+        params: new HttpParams()
+          .set('limit', 30)
+          .set('offset', 0)
+          .set('order_id', orderId)  // ← Order ID ekle
+      })
+      .pipe(
+        map((response) =>
+          response.results.map((item: any) => new UiPallet(item))
+        )
+      );
+  }
+
+  getPalletsByCompanyRelation(companyRelationId: string): Observable<any> {
+    return this.http
+      .get<any>(`${this.api.getApiUrl()}/logistics/pallets/`, {
+        params: new HttpParams()
+          .set('limit', 30)
+          .set('offset', 0)
+          .set('company_relation_id', companyRelationId)  // ← Relation ID ekle
+      })
+      .pipe(
+        map((response) =>
+          response.results.map((item: any) => new UiPallet(item))
+        )
+      );
+  }
+
   getTrucks(): Observable<any> {
     return this.http.get<Truck>(`${this.api.getApiUrl()}/logistics/trucks/`, {
       params: new HttpParams().set('limit', 30).set('offset', 0),

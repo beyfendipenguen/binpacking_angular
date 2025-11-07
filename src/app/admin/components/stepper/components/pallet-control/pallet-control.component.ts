@@ -216,7 +216,7 @@ export class PalletControlComponent
   }
 
   loadPallets(): void {
-    this.repository.pallets().subscribe({
+    this.repository.getPalletsByOrder().subscribe({
       next: (response) => {
         this.availablePallets.set(response);
       },
