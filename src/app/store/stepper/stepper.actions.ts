@@ -144,6 +144,7 @@ export const setVerticalSort = createAction(
 
 export const uploadFileToOrder = createAction(
   '[Invoice Upload] Upload file to Order',
+  props<{ context?: string }>()
 )
 
 export const uploadInvoiceProcessFile = createAction(

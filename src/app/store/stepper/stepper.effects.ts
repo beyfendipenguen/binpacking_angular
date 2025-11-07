@@ -15,6 +15,7 @@ import { EMPTY, forkJoin, of, timer } from 'rxjs';
 import * as StepperActions from './stepper.actions';
 import {
   AppState,
+  selectCompletedStep,
   selectOrder,
   selectStep1Changes,
   selectStep1IsDirty,
@@ -199,8 +200,17 @@ export class StepperEffects {
   createOrderDetailsInvoiceUploadSubmitFlow$ = createEffect(() => {
     return this.actions$.pipe(
       ofType(StepperActions.createOrderDetailsSuccess),
-      map(() => StepperActions.uploadFileToOrder())
-    );
+      switchMap((action) => {
+        if (action.context === "invoiceUploadSubmitFlow") {
+          return of(
+            StepperActions.uploadFileToOrder({
+              context: action.context
+            }))
+        }
+        else {
+          return EMPTY
+        }
+      }))
   });
 
   updateOrCreateOrderInvoiceUploadSubmitFlow$ = createEffect(() => {
@@ -247,9 +257,10 @@ export class StepperEffects {
   invoiceUploadCompleted$ = createEffect(() =>
     this.actions$.pipe(
       ofType(
-        StepperActions.calculatePackageDetailSuccess,
         StepperActions.createOrderDetailsSuccess
       ),
+      withLatestFrom(this.store.select(selectCompletedStep)),
+      filter(([orderDetails, stepIndex]) => stepIndex <= 1),
       map(() => StepperActions.setStepCompleted({ stepIndex: 1 }))
     )
   );
