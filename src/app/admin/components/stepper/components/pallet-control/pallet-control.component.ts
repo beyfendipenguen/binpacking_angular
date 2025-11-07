@@ -104,6 +104,8 @@ import {
 import { MatOption } from '@angular/material/autocomplete';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatCheckboxModule } from '@angular/material/checkbox';
+import { CancelConfirmationDialogComponent } from '../../../../../components/cancel-confirmation-dialog/cancel-confirmation-dialog.component';
+import { MatDialog } from '@angular/material/dialog';
 
 @Component({
   selector: 'app-pallet-control',
@@ -131,8 +133,8 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PalletControlComponent
-  implements OnInit, AfterViewInit, OnDestroy
-{
+  implements OnInit, AfterViewInit, OnDestroy {
+  private readonly dialog = inject(MatDialog);
   searchControl = new FormControl('');
   isSearching = false;
   filteredProducts: WritableSignal<any[]> = signal<any[]>([]);
@@ -147,7 +149,7 @@ export class PalletControlComponent
   remainingProducts = this.store.selectSignal(selectRemainingProducts);
 
   public orderDetailsIsDirtySignal =
-  this.store.selectSignal(selectStep1IsDirty);
+    this.store.selectSignal(selectStep1IsDirty);
 
   public isDirtySignal = this.store.selectSignal(selectStep2IsDirty);
   public orderSignal = this.store.selectSignal(selectOrder);
@@ -203,7 +205,7 @@ export class PalletControlComponent
     this.setupSearchSubscription();
   }
 
-  ngAfterViewInit(): void {}
+  ngAfterViewInit(): void { }
 
   ngOnDestroy(): void {
     this.destroy$.next();
@@ -269,7 +271,7 @@ export class PalletControlComponent
   }
 
   //merge remaining products process
-  merge(){
+  merge() {
     this.store.dispatch(mergeRemainingProducts())
   }
 
@@ -698,7 +700,7 @@ export class PalletControlComponent
     });
   }
 
-  calculateMaxFitCount(product: UiProduct,pallet: UiPallet,existingProducts: UiProduct[]):{ canFit: boolean; maxCount: number } {
+  calculateMaxFitCount(product: UiProduct, pallet: UiPallet, existingProducts: UiProduct[]): { canFit: boolean; maxCount: number } {
     // Tek bir ürünün boyutsal olarak sığıp sığmadığını kontrol et
     const singleProductCanFit = this.canFitProductToPallet(
       {
@@ -805,8 +807,30 @@ export class PalletControlComponent
     this.store.dispatch(deleteRemainingProduct({ product: product }));
   }
 
+
   submitForm(): void {
-    if (this.isDirtySignal()) {
+    if (this.remainingProductCount() > 0) {
+      const dialogRef = this.dialog.open(CancelConfirmationDialogComponent, {
+        width: '400px',
+        maxWidth: '95vw',
+        disableClose: true,
+        panelClass: 'cancel-confirmation-dialog',
+        data: {
+          header: "Yerleştirilmeyen  Ürünler Var!",
+          title: "Kalan ürünleri yerleştirmeniz gerekmektedir",
+          info: "Eğer bu şekide devam etmek isterseniz yerleştirilmeyen ürünler siparişten kaldırılacaktır.",
+          confirmButtonText: "Yine de devam et."
+        }
+      });
+
+      dialogRef.afterClosed().subscribe(result => {
+        if (result === true) {
+          this.remainingProducts().forEach(product => this.deleteRemainingProduct(product))
+          this.submitForm()
+        }
+      });
+    }
+    else if (this.isDirtySignal()) {
       this.store.dispatch(palletControlSubmit());
     }
   }
