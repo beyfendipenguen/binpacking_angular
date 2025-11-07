@@ -2,6 +2,7 @@
 // mat stepper current indexi gercek hayat ile uyumlu olmasi adina 1 den baslattik
 // mat stepper a verirken - 1 yapiyoruz. cunku ilk step 0 olarak tanimli api da
 
+import { UiPallet } from "../../admin/components/stepper/components/ui-models/ui-pallet.model";
 import { UiProduct } from "../../admin/components/stepper/components/ui-models/ui-product.model";
 
 export interface StepperState {
@@ -9,7 +10,7 @@ export interface StepperState {
   order: any | null;
   currentStep: number;
   completedStep: number;
-  fileExists:boolean;
+  fileExists: boolean;
 
   isEditMode: boolean;
 
@@ -65,11 +66,12 @@ export interface StepperState {
     hasFile: boolean;
     fileName?: string;
     isDirty: boolean;
-    isOnlyOrderDirty:boolean;
+    isOnlyOrderDirty: boolean;
   };
 
-   step2State: {
+  step2State: {
     packages: any[];
+    pallets: UiPallet[];
     remainingProducts: UiProduct[];
     originalPackages: any[];
     originalRemainingProducts: any[];
@@ -77,7 +79,7 @@ export interface StepperState {
     modifiedPackages: any[];
     deletedPackages: any[];
     isDirty: boolean;
-    verticalSort:boolean
+    verticalSort: boolean
   };
 
   step3State: {
@@ -100,8 +102,8 @@ export const initialStepperState: StepperState = {
   // Mevcut initial values...
   order: null,
   currentStep: 1,
-  completedStep:0,
-  fileExists:false,
+  completedStep: 0,
+  fileExists: false,
 
   isEditMode: false,
 
@@ -149,6 +151,7 @@ export const initialStepperState: StepperState = {
 
   step2State: {
     packages: [],
+    pallets: [],
     remainingProducts: [],
     originalPackages: [],
     originalRemainingProducts: [],
@@ -156,7 +159,7 @@ export const initialStepperState: StepperState = {
     modifiedPackages: [],
     deletedPackages: [],
     isDirty: false,
-    verticalSort:false
+    verticalSort: false
   },
 
   step3State: {

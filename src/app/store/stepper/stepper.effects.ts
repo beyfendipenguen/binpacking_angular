@@ -213,6 +213,28 @@ export class StepperEffects {
       }))
   });
 
+  getPalletsFlow$ = createEffect(() => {
+    return this.actions$.pipe(
+      ofType(StepperActions.updateOrCreateOrderSuccess),
+      map(() => StepperActions.getPallets())
+    )
+  })
+
+  getPallets$ = createEffect(() => {
+    return this.actions$.pipe(
+      ofType(StepperActions.getPallets),
+      switchMap(() =>
+        this.repositoryService.getPalletsByOrder().pipe(
+          map((response) => StepperActions.getPalletsSuccess({ pallets: response })),
+          catchError((error) =>
+            of(StepperActions.setStepperError({ error: error.message }))
+          )
+        )
+      )
+    )
+  });
+
+
   updateOrCreateOrderInvoiceUploadSubmitFlow$ = createEffect(() => {
     return this.actions$.pipe(
       ofType(StepperActions.updateOrCreateOrderSuccess),
