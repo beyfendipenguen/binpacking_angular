@@ -94,7 +94,7 @@ export const stepperReducer = createReducer(
 
   on(StepperActions.setVerticalSort, (state, { verticalSort }) => ({
     ...state,
-    step2State:{
+    step2State: {
       ...state.step2State,
       verticalSort: verticalSort
     }

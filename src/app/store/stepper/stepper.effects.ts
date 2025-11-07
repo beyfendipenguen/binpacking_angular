@@ -354,12 +354,6 @@ export class StepperEffects {
               packageDetails: response.package_details,
             })
           ),
-          // Ana işlem bittikten SONRA koşullu action'ı çalıştır
-          tap(() => {
-            if (isOrderDetailsDirty) {
-              StepperActions.updateOrderDetailsChanges({});
-            }
-          }),
           catchError((error) =>
             of(StepperActions.setGlobalError({ error: error.message }))
           )
@@ -367,6 +361,17 @@ export class StepperEffects {
       })
     )
   );
+
+  palletControlSubmitSuccess$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(StepperActions.palletControlSubmitSuccess),
+      withLatestFrom(this.store.select(selectStep1IsDirty)),
+      filter(([_, isDirty]) => isDirty),
+      map(() => StepperActions.updateOrderDetailsChanges({}))
+    )
+  );
+
+
   // pallet 2 de yapilan tum ekleme silme ve guncelleme islemleri icin
   // tetiklenen actionlari dinleyip onlarin success durumlarda veya direk ilgili
   // actionlarin bittigi durumda step1 changes hesaplayip guncelleme islemini yapmaliyim
