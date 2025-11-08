@@ -253,6 +253,9 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, OnChanges, On
           this.modelsLoaded.truck = true;
           resolve();
         },
+        (progress) => {
+          const percent = (progress.loaded / progress.total) * 100;
+        },
         (error) => {
           reject(error);
         }
@@ -267,6 +270,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, OnChanges, On
       this.gltfLoader.load(
         modelPath,
         (gltf) => {
+
           this.trailerWheelModel = gltf.scene;
 
           const box = new THREE.Box3().setFromObject(this.trailerWheelModel);
@@ -298,6 +302,9 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, OnChanges, On
           // ✅ Yükleme tamamlandı
           this.modelsLoaded.trailerWheel = true;
           resolve();
+        },
+        (progress) => {
+          const percent = (progress.loaded / progress.total) * 100;
         },
         (error) => {
           reject(error);
@@ -365,6 +372,8 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, OnChanges, On
         }
       }
     });
+
+    console.log(`✅ ${restoredCount}/${totalDeleted} paket geri yüklendi (${rotatedCount} döndürüldü)`);
   }
 
   clearDeletedPackages(): void {
@@ -397,7 +406,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, OnChanges, On
 
     // Scene
     this.scene = new THREE.Scene();
-
+    // ✅ YENİ: Gradient Background
     const gradientCanvas = document.createElement('canvas');
     gradientCanvas.width = 512;
     gradientCanvas.height = 512;
@@ -418,6 +427,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, OnChanges, On
       0.1,
       100000
     );
+
 
     this.cameraTarget.set(
       this.truckDimension[0] / 2,
