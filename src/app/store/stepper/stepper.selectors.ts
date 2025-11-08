@@ -3,6 +3,7 @@ import { StepperState } from './stepper.state';
 import { Order } from '../../models/order.interface';
 import { UiPackage } from '../../admin/components/stepper/components/ui-models/ui-package.model';
 import { toInteger } from 'lodash-es';
+import { UiPallet } from '../../admin/components/stepper/components/ui-models/ui-pallet.model';
 
 // Feature selector
 export const selectStepperState = createFeatureSelector<StepperState>('stepper');
@@ -26,9 +27,13 @@ export const selectFileExists = createSelector(
 )
 
 
-export const selectUiPackages = createSelector(selectStepperState, (state) =>
-  state.step2State.packages.map((uiPackage: any) => new UiPackage({ ...uiPackage }))
+export const selectUiPackages = createSelector(selectStep2State, (state) =>
+  state.packages.map((uiPackage: any) => new UiPackage({ ...uiPackage }))
 );
+
+export const selectUiPallets = createSelector(selectStep2State, (state) =>
+  state.pallets.map((uiPallet: any) => new UiPallet({ ...uiPallet }))
+)
 
 export const hasRemainingProduct = createSelector(selectStep2State, (state) => state.remainingProducts.length > 0)
 export const uiPackageCount = createSelector(selectStep2State, (state) => state.packages.length)

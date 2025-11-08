@@ -85,6 +85,7 @@ import {
   selectTotalMeter,
   selectTotalWeight,
   selectVerticalSort,
+  selectUiPallets,
 } from '../../../../../store/stepper/stepper.selectors';
 import {
   catchError,
@@ -158,8 +159,7 @@ export class PalletControlComponent
   private autoSaveTimeout: any;
   private destroy$ = new Subject<void>();
 
-  public availablePallets = signal<UiPallet[]>([]);
-  public selectedPallets = signal<UiPallet[]>([]);
+  public availablePallets = this.store.selectSignal(selectUiPallets);
 
   public hasPackage = this.store.selectSignal(hasPackage);
   public uiPackageCount = this.store.selectSignal(uiPackageCount);
@@ -201,7 +201,6 @@ export class PalletControlComponent
   }
 
   ngOnInit(): void {
-    this.loadPallets();
     this.setupSearchSubscription();
   }
 
@@ -215,13 +214,6 @@ export class PalletControlComponent
     }
   }
 
-  loadPallets(): void {
-    this.repository.getPalletsByOrder().subscribe({
-      next: (response) => {
-        this.availablePallets.set(response);
-      },
-    });
-  }
 
   packageTotalWeight(pkg: UiPackage): number {
     const palletWeight = Math.floor(pkg.pallet?.weight ?? 0);

@@ -333,3 +333,13 @@ export const updateStep3OptimizationResult = createAction(
   props<{ optimizationResult: any[] }>()
 );
 
+export const getPallets = createAction(
+  '[pallet control] get pallets'
+)
+
+export const getPalletsSuccess = createAction(
+  '[pallet control] get pallets success',
+  props<{ pallets: any[] }>()
+);
+
+

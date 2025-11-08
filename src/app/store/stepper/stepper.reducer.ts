@@ -1055,7 +1055,13 @@ export const stepperReducer = createReducer(
     }
   })),
 
-
+  on(StepperActions.getPalletsSuccess, (state, { pallets }) => ({
+    ...state,
+    step2State: {
+      ...state.step2State,
+      pallets: pallets
+    }
+  }))
 
 );
 //helper fn
