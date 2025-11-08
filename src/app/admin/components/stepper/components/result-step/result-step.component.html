@@ -2,12 +2,8 @@
   <!-- Enhanced Controls Container -->
   <div class="controls-container">
     <div class="action-buttons">
-      <button
-        mat-raised-button
-        class="calculate-button"
-        [disabled]="isLoading || processingLock"
-        (click)="calculateBinpacking()"
-      >
+      <button mat-raised-button class="calculate-button" [disabled]="isLoading || processingLock"
+        (click)="calculateBinpacking()">
         <mat-icon>play_arrow</mat-icon>
         {{ isLoading ? "İşlem Devam Ediyor..." : "Optimizasyonu Çalıştır" }}
       </button>
@@ -15,198 +11,154 @@
 
     <!-- Enhanced View Controls -->
     @if (hasResults && showVisualization) {
-      <div class="view-controls">
-        <button
-          class="view-button"
-          [class.active]="currentViewType === 'front'"
-          [disabled]="isLoading"
-          (click)="threeJSComponent.setView('front')"
-        >
-          <mat-icon>view_agenda</mat-icon>
-          <span>Ön</span>
-        </button>
+    <div class="view-controls">
+      <button class="view-button" [class.active]="currentViewType === 'front'" [disabled]="isLoading"
+        (click)="threeJSComponent.setView('front')">
+        <mat-icon>view_agenda</mat-icon>
+        <span>Ön</span>
+      </button>
 
-        <button
-          class="view-button"
-          [class.active]="currentViewType === 'side'"
-          [disabled]="isLoading"
-          (click)="threeJSComponent.setView('side')"
-        >
-          <mat-icon>view_sidebar</mat-icon>
-          <span>Yan</span>
-        </button>
+      <button class="view-button" [class.active]="currentViewType === 'side'" [disabled]="isLoading"
+        (click)="threeJSComponent.setView('side')">
+        <mat-icon>view_sidebar</mat-icon>
+        <span>Yan</span>
+      </button>
 
-        <button
-          class="view-button"
-          [class.active]="currentViewType === 'top'"
-          [disabled]="isLoading"
-          (click)="threeJSComponent.setView('top')"
-        >
-          <mat-icon>view_comfy</mat-icon>
-          <span>Üst</span>
-        </button>
+      <button class="view-button" [class.active]="currentViewType === 'top'" [disabled]="isLoading"
+        (click)="threeJSComponent.setView('top')">
+        <mat-icon>view_comfy</mat-icon>
+        <span>Üst</span>
+      </button>
 
-        <button
-          class="view-button"
-          [class.active]="currentViewType === 'isometric'"
-          [disabled]="isLoading"
-          (click)="threeJSComponent.resetView()"
-        >
-          <mat-icon>view_in_ar</mat-icon>
-          <span>3D</span>
-        </button>
-      </div>
+      <button class="view-button" [class.active]="currentViewType === 'isometric'" [disabled]="isLoading"
+        (click)="threeJSComponent.resetView()">
+        <mat-icon>view_in_ar</mat-icon>
+        <span>3D</span>
+      </button>
+    </div>
     }
   </div>
 
   <!-- Enhanced Visualization Container -->
   <div class="visualization-container">
-    <!-- Loading Overlay -->
-    @if (isLoading) {
-      <div class="loading-overlay">
-        <app-loading></app-loading>
-        <div class="loading-text">Görselleştirme hazırlanıyor...</div>
-      </div>
-    }
 
     <!-- Visualization Overlay (No Results) -->
     @if (!hasResults && !isLoading) {
-      <div class="visualization-overlay">
-        <div class="overlay-content">
-          <mat-icon class="overlay-icon">local_shipping</mat-icon>
-          <h3>Görselleştirme Hazır</h3>
-          <p>
-            Gelişmiş tır yükleme optimizasyonunu çalıştırdıktan sonra burada
-            etkileşimli 3D görselleştirmeyi görebilirsiniz.
-          </p>
-          <div class="quick-stats">
-            <div class="quick-stat">
-              <mat-icon class="stat-icon">3d_rotation</mat-icon>
-              <span>Gerçek Zamanlı 3D</span>
-            </div>
-            <div class="quick-stat">
-              <mat-icon class="stat-icon">touch_app</mat-icon>
-              <span>Drag & Drop</span>
-            </div>
-            <div class="quick-stat">
-              <mat-icon class="stat-icon">sync_alt</mat-icon>
-              <span>Canlı Veri Senkronizasyonu</span>
-            </div>
+    <div class="visualization-overlay">
+      <div class="overlay-content">
+        <mat-icon class="overlay-icon">local_shipping</mat-icon>
+        <h3>Görselleştirme Hazır</h3>
+        <p>
+          Gelişmiş tır yükleme optimizasyonunu çalıştırdıktan sonra burada
+          etkileşimli 3D görselleştirmeyi görebilirsiniz.
+        </p>
+        <div class="quick-stats">
+          <div class="quick-stat">
+            <mat-icon class="stat-icon">3d_rotation</mat-icon>
+            <span>Gerçek Zamanlı 3D</span>
+          </div>
+          <div class="quick-stat">
+            <mat-icon class="stat-icon">touch_app</mat-icon>
+            <span>Drag & Drop</span>
+          </div>
+          <div class="quick-stat">
+            <mat-icon class="stat-icon">sync_alt</mat-icon>
+            <span>Canlı Veri Senkronizasyonu</span>
           </div>
         </div>
       </div>
+    </div>
     }
 
     <!-- ENHANCED: ThreeJS Truck Visualization Component with NEW dataChanged event -->
     @if (hasResults && showVisualization && !hasThreeJSError) {
-      <app-threejs-truck-visualization
-        #threeJSComponent
-        [weightCalculationDepth]="3000"
-        [showWeightDisplay]="true"
-        [piecesData]="piecesData"
-        [truckDimension]="truckDimension()"
-        [showHelp]="true"
-        (dataChanged)="onDataChanged($event)"
-        (error)="onThreeJSError($event)"
-      >
-      </app-threejs-truck-visualization>
+    <app-threejs-truck-visualization #threeJSComponent [weightCalculationDepth]="3000" [showWeightDisplay]="true"
+      [piecesData]="piecesData" [truckDimension]="truckDimension()" [showHelp]="true"
+      (dataChanged)="onDataChanged($event)" (error)="onThreeJSError($event)">
+    </app-threejs-truck-visualization>
     }
 
     <!-- Enhanced Three.js Error Display -->
     @if (hasThreeJSError) {
-      <div class="threejs-error-display">
-        <div class="error-content">
-          <mat-icon class="error-icon">error_outline</mat-icon>
-          <h3>3D Görselleştirme Hatası</h3>
-          <p>
-            3D görselleştirme yüklenirken bir sorun oluştu. Lütfen sayfayı
-            yenileyin veya tarayıcınızın WebGL desteğini kontrol edin.
-          </p>
-          <button
-            mat-raised-button
-            color="primary"
-            (click)="hasThreeJSError = false; showVisualization = true"
-          >
-            <mat-icon>refresh</mat-icon>
-            Tekrar Dene
-          </button>
-        </div>
+    <div class="threejs-error-display">
+      <div class="error-content">
+        <mat-icon class="error-icon">error_outline</mat-icon>
+        <h3>3D Görselleştirme Hatası</h3>
+        <p>
+          3D görselleştirme yüklenirken bir sorun oluştu. Lütfen sayfayı
+          yenileyin veya tarayıcınızın WebGL desteğini kontrol edin.
+        </p>
+        <button mat-raised-button color="primary" (click)="hasThreeJSError = false; showVisualization = true">
+          <mat-icon>refresh</mat-icon>
+          Tekrar Dene
+        </button>
       </div>
+    </div>
     }
   </div>
 
   <!-- Enhanced Report Files Container -->
   @if (reportFiles && reportFiles.length > 0) {
-    <div class="report-files-container">
-      <div class="report-files-header">
-        <mat-icon>description</mat-icon>
-        <span>Rapor Dosyaları</span>
-        <div class="file-count">{{ reportFiles.length }}</div>
+  <div class="report-files-container">
+    <div class="report-files-header">
+      <mat-icon>description</mat-icon>
+      <span>Rapor Dosyaları</span>
+      <div class="file-count">{{ reportFiles.length }}</div>
 
-        <!-- ✅ NEW: Unsaved Changes Badge -->
-        @if (hasUnsavedChanges) {
-          <div class="unsaved-badge" title="Kaydedilmemiş değişiklikler var">
-            <mat-icon>warning</mat-icon>
-            <span>Değişiklikler Kaydedilmedi</span>
-          </div>
-        }
-      </div>
-
-      <div class="report-files-list">
-        @for (file of reportFiles; track trackByFileId($index, file)) {
-          <div
-            class="report-file-item"
-            [class.has-changes]="hasUnsavedChanges"
-          >
-            <div
-              class="file-icon"
-              [class]="'file-type-' + getFileIcon(file.file_type)"
-            >
-              <mat-icon>{{ getFileIcon(file.file_type) }}</mat-icon>
-            </div>
-            <div class="file-info">
-              <!-- ✅ CHANGED: Click handler ekle, href kaldır -->
-              <a
-                class="file-link"
-                (click)="onFileClick($event, file)"
-                [class.saving]="hasUnsavedChanges"
-                style="cursor: pointer;"
-              >
-                <span class="file-name">{{ file.name }}</span>
-                @if (file.file_size) {
-                  <span class="file-size">
-                    {{ formatFileSize(file.file_size) }}
-                  </span>
-                }
-
-                <!-- ✅ NEW: Icon değişimi -->
-                @if (!hasUnsavedChanges) {
-                  <mat-icon class="download-icon">download</mat-icon>
-                }
-                @if (hasUnsavedChanges) {
-                  <mat-icon class="save-icon">save</mat-icon>
-                }
-              </a>
-            </div>
-          </div>
-        }
-
-        @if (reportFiles.length === 0) {
-          <div class="empty-files">
-            <mat-icon>folder_open</mat-icon>
-            <span>Henüz rapor dosyası oluşturulmadı</span>
-          </div>
-        }
-      </div>
-
-      <!-- ✅ NEW: Info Message -->
+      <!-- ✅ NEW: Unsaved Changes Badge -->
       @if (hasUnsavedChanges) {
-        <div class="auto-save-info">
-          <mat-icon>info</mat-icon>
-          <span>Dosyaya tıkladığınızda değişiklikler otomatik kaydedilecek</span>
-        </div>
+      <div class="unsaved-badge" title="Kaydedilmemiş değişiklikler var">
+        <mat-icon>warning</mat-icon>
+        <span>Değişiklikler Kaydedilmedi</span>
+      </div>
       }
     </div>
+
+    <div class="report-files-list">
+      @for (file of reportFiles; track trackByFileId($index, file)) {
+      <div class="report-file-item" [class.has-changes]="hasUnsavedChanges">
+        <div class="file-icon" [class]="'file-type-' + getFileIcon(file.file_type)">
+          <mat-icon>{{ getFileIcon(file.file_type) }}</mat-icon>
+        </div>
+        <div class="file-info">
+          <!-- ✅ CHANGED: Click handler ekle, href kaldır -->
+          <a class="file-link" (click)="onFileClick($event, file)" [class.saving]="hasUnsavedChanges"
+            style="cursor: pointer;">
+            <span class="file-name">{{ file.name }}</span>
+            @if (file.file_size) {
+            <span class="file-size">
+              {{ formatFileSize(file.file_size) }}
+            </span>
+            }
+
+            <!-- ✅ NEW: Icon değişimi -->
+            @if (!hasUnsavedChanges) {
+            <mat-icon class="download-icon">download</mat-icon>
+            }
+            @if (hasUnsavedChanges) {
+            <mat-icon class="save-icon">save</mat-icon>
+            }
+          </a>
+        </div>
+      </div>
+      }
+
+      @if (reportFiles.length === 0) {
+      <div class="empty-files">
+        <mat-icon>folder_open</mat-icon>
+        <span>Henüz rapor dosyası oluşturulmadı</span>
+      </div>
+      }
+    </div>
+
+    <!-- ✅ NEW: Info Message -->
+    @if (hasUnsavedChanges) {
+    <div class="auto-save-info">
+      <mat-icon>info</mat-icon>
+      <span>Dosyaya tıkladığınızda değişiklikler otomatik kaydedilecek</span>
+    </div>
+    }
+  </div>
   }
 
   <!-- Enhanced Navigation Controls -->
@@ -217,12 +169,8 @@
         <span>Geri</span>
       </button>
 
-      <button
-        mat-raised-button
-        class="next-button"
-        [disabled]="!hasResults && hasUnsavedChanges"
-        (click)="completeShipment()"
-      >
+      <button mat-raised-button class="next-button" [disabled]="!hasResults && hasUnsavedChanges"
+        (click)="completeShipment()">
         <mat-icon>check_circle</mat-icon>
         Sevkiyatı Tamamla
       </button>

@@ -9,7 +9,6 @@ import {
   Output,
   ChangeDetectionStrategy
 } from '@angular/core';
-import { LoadingComponent } from '../../../../../components/loading/loading.component';
 import { MatButton } from '@angular/material/button';
 import { MatStepperPrevious } from '@angular/material/stepper';
 import { RepositoryService } from '../../services/repository.service';
@@ -45,7 +44,6 @@ interface PackageData {
   standalone: true,
   imports: [
     CommonModule,
-    LoadingComponent,
     MatButton,
     MatStepperPrevious,
     MatIconModule,
@@ -611,14 +609,10 @@ export class ResultStepComponent implements OnInit, OnDestroy {
 
       this.repositoryService.partialUpdateOrderResult(this.piecesData, this.orderResultId)
         .pipe(
-          switchMap(() => this.repositoryService.createTruckPlacementReport()),
+          switchMap(() => this.repositoryService.createReport()),
           tap((response) => {
             if (response?.file) {
-              // Eski tır yerleşim raporunu çıkar
-              this.reportFiles = this.reportFiles.filter(f =>
-                !f.name.startsWith('Tır_Yerleşimi')
-              );
-              this.reportFiles.push(response.file);
+              this.reportFiles = response.file
             }
           }),
           finalize(() => {
@@ -690,6 +684,14 @@ export class ResultStepComponent implements OnInit, OnDestroy {
   }
 
   completeShipment(): void {
+    // tira yerlesmeyen packagelar otomatik olarak siparisten kaldirilacaktir.
+    // onayliyor musunuz.
+    // yine de devam et
+    // result guncelle
+    // order detail guncelle
+    // package guncelle
+
+
     if (!this.hasResults) {
       this.toastService.warning('Önce optimizasyonu tamamlayın');
       return;
@@ -703,7 +705,6 @@ export class ResultStepComponent implements OnInit, OnDestroy {
     try {
       this.localStorageService.clearStorage();
       this.store.dispatch(resetStepper());
-      this.resetComponentState();
 
       this.toastService.success(
         `Sevkiyat başarıyla tamamlandı!`,
@@ -717,32 +718,5 @@ export class ResultStepComponent implements OnInit, OnDestroy {
     } catch (error) {
       this.toastService.error('Sevkiyat tamamlanırken hata oluştu');
     }
-  }
-
-  private resetComponentState(): void {
-    this.hasResults = false;
-    this.showVisualization = false;
-    this.isLoading = false;
-    this.hasThreeJSError = false;
-    this.piecesData = [];
-    this.originalPiecesData = []; // NEW
-    this.reportFiles = [];
-    this.optimizationProgress = 0;
-    this.processedPackages = [];
-    this.currentViewType = 'isometric';
-
-    this.hasUnsavedChanges = false;
-    this.lastDataChangeTime = new Date();
-    this.totalPackagesProcessed = 0;
-
-
-    this.performanceMetrics = {
-      startTime: 0,
-      endTime: 0,
-      memoryUsage: 0,
-      renderTime: 0,
-      dataChangeCount: 0,
-      averageResponseTime: 0
-    };
   }
 }

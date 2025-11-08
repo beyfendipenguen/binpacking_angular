@@ -1,13 +1,12 @@
 import {
   Component, inject, ViewChild, OnInit,
-  ChangeDetectionStrategy, ChangeDetectorRef,
-  AfterViewInit,
+  ChangeDetectionStrategy,
 } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { BreakpointObserver } from '@angular/cdk/layout';
 import { StepperOrientation, MatStepperModule, MatStepper } from '@angular/material/stepper';
 import { Observable, Subject } from 'rxjs';
-import { map, take, takeUntil, distinctUntilChanged } from 'rxjs/operators';
+import { map, takeUntil, distinctUntilChanged } from 'rxjs/operators';
 import { MatButtonModule } from '@angular/material/button';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -25,7 +24,6 @@ import { Store } from '@ngrx/store';
 // Legacy services
 import { LocalStorageService } from './services/local-storage.service';
 import { ActivatedRoute, Router } from '@angular/router';
-import { UIStateManager } from './components/invoice-upload/managers/ui-state.manager';
 import { LoadingComponent } from '../../../components/loading/loading.component';
 import { ToastService } from '../../../services/toast.service';
 import { AppState } from '../../../store';
@@ -46,15 +44,13 @@ import * as StepperSelectors from '../../../store/stepper/stepper.selectors';
   styleUrl: './stepper.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class StepperComponent implements OnInit , AfterViewInit{
+export class StepperComponent implements OnInit {
 
   // View References
   @ViewChild('stepper') stepper!: MatStepper;
-  private readonly cdr = inject(ChangeDetectorRef);
   private readonly localStorageService = inject(LocalStorageService);
   private readonly legacyToastService = inject(ToastService);
   private readonly route = inject(ActivatedRoute);
-  private readonly uiStateManager = inject(UIStateManager);
 
   private readonly store = inject(Store<AppState>);
   private readonly router = inject(Router);
@@ -68,7 +64,6 @@ export class StepperComponent implements OnInit , AfterViewInit{
   public isEditModeSignal = this.store.selectSignal(StepperSelectors.selectIsEditMode);
 
   public selectedIndexSignal = this.store.selectSignal(StepperSelectors.selectCurrentStep)
-  public orderIdSignal = this.store.selectSignal((StepperSelectors.selectOrder))
 
   public stepperOrientation: Observable<StepperOrientation>;
 
@@ -88,62 +83,19 @@ export class StepperComponent implements OnInit , AfterViewInit{
 
   onStepChange = (event: StepperSelectionEvent): void => {
     const currentStep = event.selectedIndex;
-    this.store.dispatch(StepperActions.navigateToStep({ stepIndex: currentStep + 1}));
+    this.store.dispatch(StepperActions.navigateToStep({ stepIndex: currentStep + 1 }));
   };
 
-
-  onPalletControlCompleted = (): void => {
-    this.store.dispatch(StepperActions.setStepCompleted({ stepIndex: 1 }));
-    this.cdr.markForCheck();
-  };
 
   onShipmentCompleted = (): void => {
     try {
-      this.store.dispatch(StepperActions.resetStepper());
-      this.performFullReset();
       this.router.navigate(['/'], {
         replaceUrl: true,
         queryParams: {}
       });
     } catch (error) {
-      this.handleResetFailure();
     }
   };
-
-  clearDraftData = (): void => {
-    if (confirm('Draft verilerini silmek istediğinizden emin misiniz?')) {
-      this.localStorageService.clearStorage();
-      this.store.dispatch(StepperActions.resetStepper());
-      this.cdr.markForCheck();
-    }
-  };
-
-  resetStepper = (): void => {
-    this.store.dispatch(StepperActions.resetStepper());
-    this.cdr.markForCheck();
-  };
-
-  private handleInitializationFailure(error?: any): void {
-    // Edit mode'daysa anasayfaya yönlendirme
-    let isEditMode = false;
-    this.route.queryParams.pipe(take(1)).subscribe(params => {
-      isEditMode = params?.['mode'] === 'edit';
-    });
-
-    if (isEditMode) {
-      this.legacyToastService?.error('Edit mode yüklenirken hata oluştu. Lütfen tekrar deneyin.');
-      // Edit mode'da hata varsa query params'ı temizleyip aynı sayfada kal
-      this.router.navigate([], {
-        relativeTo: this.route,
-        queryParams: {},
-        replaceUrl: true
-      });
-    } else {
-      this.legacyToastService?.error('Component yüklenirken hata oluştu');
-      this.store.dispatch(StepperActions.initializeStepper({}));
-      this.router.navigate(['/'], { queryParams: {} });
-    }
-  }
 
   ngOnInit(): void {
     // TODO:
@@ -175,33 +127,5 @@ export class StepperComponent implements OnInit , AfterViewInit{
 
   }
 
-  private performFullReset(): void {
-    this.uiStateManager.resetAllStates();
-    this.localStorageService.clearStorage();
-    this.resetStepperNavigation();
-  }
 
-  private resetStepperNavigation(): void {
-    if (!this.stepper) return;
-    this.stepper.linear = false;
-    this.stepper.selectedIndex = 0;
-    setTimeout(() => {
-      this.cdr.markForCheck();
-    }, 500);
-  }
-
-  private handleResetFailure(): void {
-    if (this.legacyToastService?.error) {
-      this.legacyToastService.error('Reset sırasında hata oluştu. Sayfa yeniden yüklenecek.');
-    }
-    setTimeout(() => {
-      window.location.reload();
-    }, 2000);
-  }
-
-  ngAfterViewInit(): void {
-   const index = this.selectedIndexSignal();
-   const selectedIndex: number = index;
-   this.stepper.selectedIndex = selectedIndex;
-  }
 }
