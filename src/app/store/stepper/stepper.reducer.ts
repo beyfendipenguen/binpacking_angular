@@ -227,10 +227,12 @@ export const stepperReducer = createReducer(
     }
     return state
   }),
-
-  on(StepperActions.setStepperData, (state, { data }) => ({
+  on(StepperActions.createReportFileSuccess, (state, { reportFiles }) => ({
     ...state,
-    ...data
+    step3State: {
+      ...state.step3State,
+      reportFiles: reportFiles
+    }
   })),
 
   on(StepperActions.createOrderDetailsSuccess, (state, { orderDetails }) => ({

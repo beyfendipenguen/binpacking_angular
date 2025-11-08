@@ -19,6 +19,7 @@ import {
   selectOrder,
   selectStep1Changes,
   selectStep1IsDirty,
+  selectStep3OptimizationResult,
   selectStepperState,
   selectUiPackages,
   selectVerticalSort,
@@ -378,9 +379,8 @@ export class StepperEffects {
       ofType(StepperActions.palletControlSubmit),
       withLatestFrom(
         this.store.select(selectUiPackages),
-        this.store.select(selectStep1IsDirty)
       ),
-      concatMap(([action, uiPackages, isOrderDetailsDirty]) => {
+      concatMap(([action, uiPackages]) => {
         return this.repositoryService.bulkCreatePackageDetail(uiPackages).pipe(
           map((response) =>
             StepperActions.palletControlSubmitSuccess({
@@ -425,4 +425,31 @@ export class StepperEffects {
       )
     )
   );
+
+  updateOrderResult$ = createEffect(() => {
+    return this.actions$.pipe(
+      ofType(StepperActions.updateOrderResult),
+      withLatestFrom(this.store.select(selectStep3OptimizationResult)),
+      switchMap(([action, orderResult]) => {
+        return this.repositoryService.partialUpdateOrderResult(orderResult).pipe(
+          map((response) =>
+            StepperActions.createReportFile()
+          ))
+      })
+    );
+  })
+
+  createReportFile$ = createEffect(() => {
+    return this.actions$.pipe(
+      ofType(StepperActions.createReportFile),
+      switchMap((action) => {
+        return this.repositoryService.createReport().pipe(
+          map((response) => StepperActions.createReportFileSuccess({ reportFiles: response.files }))
+
+        )
+      }
+      )
+    )
+  })
+
 }

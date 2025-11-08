@@ -346,4 +346,14 @@ export const getPalletsSuccess = createAction(
   props<{ pallets: any[] }>()
 );
 
+export const createReportFile = createAction(
+  '[Migration] Create Report File'
+);
+
+export const createReportFileSuccess = createAction(
+  '[Migration] Create Report File Success',
+  props<{ reportFiles: any[] }>()
+);
+
+
 

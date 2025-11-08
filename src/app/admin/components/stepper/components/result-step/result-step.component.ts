@@ -640,8 +640,8 @@ export class ResultStepComponent implements OnInit, OnDestroy {
         disableClose: true,
         panelClass: 'cancel-confirmation-dialog',
         data: {
-          header: "Yerleştirilmeyen  Ürünler Var!",
-          title: "Kalan ürünleri yerleştirmeniz gerekmektedir",
+          header: "Yerleştirilmeyen paketler var!",
+          title: "Bütün paketler yerleştirilmemiş veya sığmıyor olabilir.",
           info: "Eğer bu şekide devam etmek isterseniz yerleştirilmeyen ürünler siparişten kaldırılacaktır.",
           confirmButtonText: "Yine de devam et."
         }
