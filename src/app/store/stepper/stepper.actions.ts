@@ -327,6 +327,10 @@ export const deleteOrderDetail = createAction(
   props<{ orderDetailId: string }>()
 );
 
+export const updateOrderResult = createAction(
+  '[Migration] Update Order Result'
+);
+
 
 export const updateStep3OptimizationResult = createAction(
   '[Migration] Update Step3 Optimization Result',

@@ -23,8 +23,10 @@ import { ThreeJSTruckVisualizationComponent } from '../../../../../components/th
 import { OrderResultService } from '../../../services/order-result.service';
 
 import { Store } from '@ngrx/store';
-import { AppState, forceSave, resetStepper, selectAutoSaveStatusText, selectIsEditMode, selectOrderId, selectStepAutoSaveStatus, selectStepHasPendingChanges, selectStepperSummary, setGlobalError, setStepCompleted, setStepLoading, setStepValidation, triggerAutoSave, updateStep3OptimizationResult } from '../../../../../store';
+import { AppState, deleteRemainingProduct, forceSave, palletControlSubmit, removePackage, resetStepper, selectAutoSaveStatusText, selectIsEditMode, selectOrderId, selectRemainingProducts, selectStepAutoSaveStatus, selectStepHasPendingChanges, selectStepperSummary, setGlobalError, setStepCompleted, setStepLoading, setStepValidation, triggerAutoSave, updateOrderDetailsChanges, updateOrderResult, updateStep3OptimizationResult } from '../../../../../store';
 import { selectTruck } from '../../../../../store';
+import { CancelConfirmationDialogComponent } from '../../../../../components/cancel-confirmation-dialog/cancel-confirmation-dialog.component';
+import { MatDialog } from '@angular/material/dialog';
 
 interface PackageData {
   id: number;
@@ -61,13 +63,14 @@ export class ResultStepComponent implements OnInit, OnDestroy {
   private isDestroyed = false;
   public processingLock = false;
   private readonly store = inject(Store<AppState>);
-
+  private readonly dialog = inject(MatDialog);
   piecesData: any[] = [];
   originalPiecesData: any[] = []; // NEW: Track original data
   truckDimension = this.store.selectSignal(selectTruck)
   orderResultId: string = '';
 
 
+  remainingProducts = this.store.selectSignal(selectRemainingProducts);
   isLoading: boolean = false;
   hasResults: boolean = false;
   showVisualization: boolean = false;
@@ -255,24 +258,6 @@ export class ResultStepComponent implements OnInit, OnDestroy {
       });
   }
 
-  onDataChanged(updatedData: any[]): void {
-    if (this.isDestroyed || !updatedData || !Array.isArray(updatedData)) {
-      return;
-    }
-
-    this.piecesData = updatedData;
-    this.store.dispatch(updateStep3OptimizationResult({
-      optimizationResult: updatedData
-    }));
-
-    this.hasUnsavedChanges = true;
-    this.lastDataChangeTime = new Date();
-
-    this.performanceMetrics.dataChangeCount++;
-
-    this.safeUpdateUI();
-    this.cdr.markForCheck();
-  }
 
 
   resetToOriginalData(): void {
@@ -308,22 +293,6 @@ export class ResultStepComponent implements OnInit, OnDestroy {
     }
   }
 
-  forceSaveStep3(): void {
-    if (this.hasResults) {
-      const SaveData = {
-        optimizationResult: this.piecesData || [],
-        reportFiles: this.reportFiles || [],
-        hasResults: this.hasResults,
-        showVisualization: this.showVisualization,
-        timestamp: new Date().toISOString()
-      };
-
-      this.store.dispatch(forceSave({
-        stepNumber: 2,
-        data: SaveData
-      }));
-    }
-  }
 
   private safeResetState(): void {
     if (this.isDestroyed) return;
@@ -637,37 +606,6 @@ export class ResultStepComponent implements OnInit, OnDestroy {
     });
   }
 
-  saveResults(): void {
-    if (!this.hasResults || this.isDestroyed) {
-      this.toastService.warning('Kaydetmek için önce optimizasyonu çalıştırın.');
-      return;
-    }
-
-    this.repositoryService.partialUpdateOrderResult(this.piecesData, this.orderResultId)
-      .pipe(
-        switchMap(() => this.repositoryService.createTruckPlacementReport()),
-        tap((response) => {
-          if (response?.file) {
-            // Eski tır yerleşim raporunu çıkar
-            this.reportFiles = this.reportFiles.filter(f =>
-              !f.name.startsWith('Tır_Yerleşimi')
-            );
-            this.reportFiles.push(response.file);
-          }
-        }),
-        finalize(() => {
-          this.hasUnsavedChanges = false;
-          this.cdr.detectChanges();
-        }),
-        catchError(error => {
-          this.toastService.error('İşlem sırasında hata: ' + error.message);
-          return EMPTY;
-        })
-      )
-      .subscribe(() => {
-        this.toastService.success('Sonuçlar başarıyla kaydedildi.');
-      });
-  }
 
   trackByFileId(index: number, file: any): any {
     return file?.id || file?.name || index;
@@ -690,6 +628,36 @@ export class ResultStepComponent implements OnInit, OnDestroy {
     // result guncelle
     // order detail guncelle
     // package guncelle
+
+
+
+    // create dialog property to use material dialog api
+
+    if (this.threeJSComponent.deletedPackages.length > 0) {
+      const dialogRef = this.dialog.open(CancelConfirmationDialogComponent, {
+        width: '400px',
+        maxWidth: '95vw',
+        disableClose: true,
+        panelClass: 'cancel-confirmation-dialog',
+        data: {
+          header: "Yerleştirilmeyen  Ürünler Var!",
+          title: "Kalan ürünleri yerleştirmeniz gerekmektedir",
+          info: "Eğer bu şekide devam etmek isterseniz yerleştirilmeyen ürünler siparişten kaldırılacaktır.",
+          confirmButtonText: "Yine de devam et."
+        }
+      });
+
+      dialogRef.afterClosed().subscribe(result => {
+        if (result === true) {
+          // eger islemler sirasinda sync olmadigi icin hata olursa burayi tek bir action ile baslatip chain olustur.
+          this.threeJSComponent.deletedPackages.forEach(uiPackage => this.store.dispatch(removePackage({ packageToRemove: uiPackage })))
+          this.remainingProducts().forEach(product => this.store.dispatch(deleteRemainingProduct({ product: product })));
+          this.store.dispatch(palletControlSubmit())
+          this.store.dispatch(updateOrderResult())
+          this.completeShipment()
+        }
+      });
+    }
 
 
     if (!this.hasResults) {
