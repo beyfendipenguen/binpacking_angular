@@ -1,13 +1,15 @@
-<div class="threejs-visualization-container" [class.loading]="isLoading">
+<div class="threejs-visualization-container" [class.loading]="isLoadingModels || isLoadingData">
   <!-- Three.js Canvas Container -->
-  <div #threeContainer
-       class="threejs-canvas-container"
-       [class.drag-mode]="dragModeEnabled"
-       (contextmenu)="$event.preventDefault()">
-  </div>
+
+    <div #threeContainer
+        class="threejs-canvas-container"
+        [class.drag-mode]="dragModeEnabled"
+        (contextmenu)="$event.preventDefault()">
+    </div>
+
 
   <!-- No Data Message -->
-  <div class="no-data-message" *ngIf="!isLoading && (!piecesData || piecesData.length === 0)">
+  <div class="no-data-message"  *ngIf="!isLoadingModels && !isLoadingData && (!piecesData || piecesData.length === 0)">
     <div class="no-data-content">
       <div class="empty-icon">🚛</div>
       <h4>Henüz Yükleme Verisi Yok</h4>
@@ -17,7 +19,7 @@
 
   <!-- Weight Display Panel (Top Center) -->
   <div class="weight-display-panel"
-       *ngIf="showWeightDisplay && !isLoading && piecesData && piecesData.length > 0"
+       *ngIf="showWeightDisplay && !isLoadingModels && !isLoadingData && piecesData && piecesData.length > 0"
        title="İlk {{ (weightCalculationDepth / 1000).toFixed(1) }}m bölgesindeki toplam ağırlık">
     <div class="weight-content">
       <h4>İlk {{ (weightCalculationDepth / 1000).toFixed(1) }}m Ağırlık</h4>
@@ -27,7 +29,7 @@
   </div>
 
   <!-- Package Info Panel (Top Right) -->
-  <div class="package-info-panel" *ngIf="selectedPackage && !isLoading">
+  <div class="package-info-panel" *ngIf="selectedPackage && !isLoadingModels && !isLoadingData">
     <div class="info-content">
       <h4>📦 Seçili Paket</h4>
 
@@ -84,7 +86,7 @@
 
   <!-- Deleted Packages Panel (Bottom Right) -->
   <div class="deleted-packages-panel"
-       *ngIf="deletedPackages.length > 0 && !isLoading"
+       *ngIf="deletedPackages.length > 0 && !isLoadingModels && !isLoadingData"
        [class.below-selection]="selectedPackage">
     <div class="deleted-content">
       <h4>
@@ -125,13 +127,24 @@
   </div>
 
   <!-- Loading Overlay -->
-  <div class="loading-overlay" *ngIf="isLoading">
+  <div class="loading-overlay" *ngIf="isLoadingModels">
     <div class="loading-spinner">
       <div class="spinner"></div>
-      <p>3D görselleştirme yükleniyor...</p>
+      <p>3D modeller yükleniyor...</p>
+      <div class="loading-details">
+        <div class="model-status">
+          <span [class.loaded]="modelsLoaded.truck">🚛 Tır Modeli</span>
+          <span [class.loaded]="modelsLoaded.trailerWheel">⚙️ Tekerlek Modeli</span>
+        </div>
+      </div>
     </div>
   </div>
-
+  <div class="loading-overlay secondary" *ngIf="!isLoadingModels && isLoadingData">
+    <div class="loading-spinner">
+      <div class="spinner small"></div>
+      <p>Paketler yerleştiriliyor...</p>
+    </div>
+  </div>
   <!-- Collision Warning
   <div class="collision-warning" *ngIf="showCollisionWarning">
     <div class="warning-content">

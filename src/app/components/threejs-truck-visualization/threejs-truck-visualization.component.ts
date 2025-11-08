@@ -12,11 +12,15 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   NgZone,
-  HostListener
+  HostListener,
+  inject
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import * as THREE from 'three';
+import { AppState, updateStep3OptimizationResult } from '../../store';
+import { Store } from '@ngrx/store';
 
 interface PackageData {
   id: number;
@@ -57,8 +61,29 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, OnChanges, On
 
   @Output() dataChanged = new EventEmitter<any[]>();
 
+  private readonly store = inject(Store<AppState>)
+
+  // ✅ Kamera limitleri ekle
+  private readonly minCameraPhi = Math.PI / 6;     // 30 derece (yukarı sınır)
+  private readonly maxCameraPhi = Math.PI / 2.2;   // ~80 derece (aşağı sınır)
+  private readonly minCameraHeight = 500;          // Minimum kamera yüksekliği
+
+  //Models
+  private gltfLoader!: GLTFLoader;
+  private truckModel?: THREE.Group; // ✅ Yüklenen model için
+  private trailerWheelModel?: THREE.Group;
+  private platformMesh?: THREE.Mesh;
+
+  // ✅ Model yükleme durumu
+  modelsLoaded = {
+    truck: false,
+    trailerWheel: false
+  };
+
   // UI State
-  isLoading = false;
+  isLoadingModels = true;      // ✅ YENİ: Model yükleme durumu
+  isLoadingData = false;       // ✅ YENİ: Data processing durumu
+
   dragModeEnabled = true;
   wireframeMode = false;
   currentView = 'isometric';
@@ -136,28 +161,23 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, OnChanges, On
   ) {}
 
   ngOnInit(): void {
+    this.gltfLoader = new GLTFLoader();
+
+    this.isLoadingModels = true;
+
     this.setupThreeJS();
+    this.loadAllModels();
     this.startRenderLoop();
 
-    setTimeout(() => {
-      if (!this.isDestroyed) {
-        this.safeProcessData();
-      }
-    }, 100);
   }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (this.isDestroyed) return;
 
     if (changes['piecesData'] || changes['truckDimension']) {
-      if (this.scene && this.truckGroup && this.packagesGroup) {
+      // ✅ Modeller yüklenmişse data'yı process et
+      if (!this.isLoadingModels && this.scene && this.truckGroup && this.packagesGroup) {
         this.safeProcessData();
-      } else {
-        setTimeout(() => {
-          if (!this.isDestroyed && this.scene && this.truckGroup && this.packagesGroup) {
-            this.safeProcessData();
-          }
-        }, 200);
       }
     }
   }
@@ -167,12 +187,131 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, OnChanges, On
     this.cleanup();
   }
 
+  private async loadAllModels(): Promise<void> {
+    try {
+      this.isLoadingModels = true;
+
+      // Promise.all ile paralel yükleme
+      await Promise.all([
+        this.loadTruckModel(),
+        this.loadTrailerWheelModel()
+      ]);
+
+      // ✅ Modeller yüklendikten SONRA data'yı işle
+      if (!this.isDestroyed) {
+        await this.safeProcessData();
+      }
+
+      // ✅ Her şey bitti, loading'i kapatfv
+      this.isLoadingModels = false;
+      this.cdr.detectChanges();
+
+    } catch (error) {
+      this.isLoadingModels = false;
+      this.cdr.detectChanges();
+    }
+  }
+
+  //Models
+  private loadTruckModel(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const modelPath = '/assets/models/truck/truck.gltf';
+
+      this.gltfLoader.load(
+        modelPath,
+        (gltf) => {
+
+          this.truckModel = gltf.scene;
+
+          const box = new THREE.Box3().setFromObject(this.truckModel);
+          const size = box.getSize(new THREE.Vector3());
+
+          const scaleX = this.truckDimension[0] / size.x;
+          const scaleY = this.truckDimension[2] / size.y;
+          const scaleZ = this.truckDimension[1] / size.z;
+
+          const scale = Math.min(scaleX, scaleY, scaleZ);
+          this.truckModel.scale.setScalar(scale * 2.5);
+
+          this.truckModel.rotation.y = -Math.PI / 2;
+          this.truckModel.position.set(
+            0,
+            0,
+            this.truckDimension[1] / 2 + 100
+          );
+
+          this.truckModel.traverse((child) => {
+            if ((child as THREE.Mesh).isMesh) {
+              child.castShadow = true;
+              child.receiveShadow = true;
+            }
+          });
+
+          this.truckGroup.add(this.truckModel);
+
+          // ✅ Yükleme tamamlandı
+          this.modelsLoaded.truck = true;
+          resolve();
+        },
+        (error) => {
+          reject(error);
+        }
+      );
+    });
+  }
+
+  private loadTrailerWheelModel(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const modelPath = '/assets/models/truck/truck-wheels.gltf';
+
+      this.gltfLoader.load(
+        modelPath,
+        (gltf) => {
+          this.trailerWheelModel = gltf.scene;
+
+          const box = new THREE.Box3().setFromObject(this.trailerWheelModel);
+          const size = box.getSize(new THREE.Vector3());
+
+          const scaleX = this.truckDimension[0] / size.x;
+          const scaleY = this.truckDimension[2] / size.y;
+          const scaleZ = this.truckDimension[1] / size.z;
+
+          const scale = Math.min(scaleX, scaleY, scaleZ);
+          this.trailerWheelModel.scale.setScalar(scale);
+
+          this.trailerWheelModel.rotation.y = Math.PI / 2;
+          this.trailerWheelModel.position.set(
+            this.truckDimension[0] / 2,
+            0,
+            this.truckDimension[1] / 2
+          );
+
+          this.trailerWheelModel.traverse((child) => {
+            if ((child as THREE.Mesh).isMesh) {
+              child.castShadow = true;
+              child.receiveShadow = true;
+            }
+          });
+
+          this.truckGroup.add(this.trailerWheelModel);
+
+          // ✅ Yükleme tamamlandı
+          this.modelsLoaded.trailerWheel = true;
+          resolve();
+        },
+        (error) => {
+          reject(error);
+        }
+      );
+    });
+  }
+
   //Listener
   // Three.js Component'e ekle
 
   @HostListener('document:keydown', ['$event'])
   handleKeyboardShortcuts(event: KeyboardEvent): void {
-    if (this.isLoading || this.isDragging) return;
+    if (this.isDragging) return;
 
     switch(event.key) {
       case 'r':
@@ -226,8 +365,6 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, OnChanges, On
         }
       }
     });
-
-    console.log(`✅ ${restoredCount}/${totalDeleted} paket geri yüklendi (${rotatedCount} döndürüldü)`);
   }
 
   clearDeletedPackages(): void {
@@ -260,8 +397,20 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, OnChanges, On
 
     // Scene
     this.scene = new THREE.Scene();
-    this.scene.background = new THREE.Color(0xf8fafc);
 
+    const gradientCanvas = document.createElement('canvas');
+    gradientCanvas.width = 512;
+    gradientCanvas.height = 512;
+    const context = gradientCanvas.getContext('2d')!;
+    const gradient = context.createLinearGradient(0, 0, 0, 512);
+    gradient.addColorStop(0, '#e0f2fe');    // Açık mavi (üst)
+    gradient.addColorStop(0.5, '#f0f9ff');  // Beyazımsı (orta)
+    gradient.addColorStop(1, '#f8fafc');    // Gri-beyaz (alt)
+    context.fillStyle = gradient;
+    context.fillRect(0, 0, 512, 512);
+
+    const gradientTexture = new THREE.CanvasTexture(gradientCanvas);
+    this.scene.background = gradientTexture;
     // Camera
     this.camera = new THREE.PerspectiveCamera(
       75,
@@ -294,8 +443,14 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, OnChanges, On
     // Groups
     this.truckGroup = new THREE.Group();
     this.packagesGroup = new THREE.Group();
+
+    this.packagesGroup.position.y = 1100;
+
     this.scene.add(this.truckGroup);
     this.scene.add(this.packagesGroup);
+
+    this.createPlatform();
+    this.createGroundPlane();
 
     this.dragPlane.setFromNormalAndCoplanarPoint(
       new THREE.Vector3(0, 1, 0),
@@ -306,14 +461,100 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, OnChanges, On
   }
 
   private setupLighting(): void {
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+    // ✅ Ambient Light - daha güçlü
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.7); // 0.6 → 0.7
     this.scene.add(ambientLight);
 
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
-    directionalLight.position.set(200, 200, 100);
-    directionalLight.castShadow = true;
-    this.scene.add(directionalLight);
+    // ✅ Main Directional Light (Ana güneş ışığı)
+    const mainLight = new THREE.DirectionalLight(0xffffff, 1.0);
+    mainLight.position.set(5000, 8000, 3000); // Daha yukarıda ve uzakta
+    mainLight.castShadow = true;
+
+    // Gölge kalitesi ayarları
+    mainLight.shadow.mapSize.width = 2048;  // Yüksek kalite
+    mainLight.shadow.mapSize.height = 2048;
+    mainLight.shadow.camera.near = 1;
+    mainLight.shadow.camera.far = 20000;
+    mainLight.shadow.camera.left = -8000;
+    mainLight.shadow.camera.right = 8000;
+    mainLight.shadow.camera.top = 8000;
+    mainLight.shadow.camera.bottom = -8000;
+    mainLight.shadow.bias = -0.0005; // Gölge artifactlarını önler
+
+    this.scene.add(mainLight);
+
+    // ✅ Fill Light (Dolgu ışığı - gölgeleri yumuşatır)
+    const fillLight = new THREE.DirectionalLight(0xffffff, 0.3);
+    fillLight.position.set(-3000, 4000, -2000);
+    this.scene.add(fillLight);
+
+    // ✅ Rim Light (Kenar ışığı - depth verir)
+    const rimLight = new THREE.DirectionalLight(0xadd8e6, 0.2);
+    rimLight.position.set(-2000, 3000, 5000);
+    this.scene.add(rimLight);
+
+    // ✅ Hemisphere Light (Gökyüzü + zemin ışığı)
+    const hemiLight = new THREE.HemisphereLight(
+      0xffffff, // Gökyüzü rengi
+      0x444444, // Zemin rengi
+      0.4
+    );
+    this.scene.add(hemiLight);
   }
+
+  private createGroundPlane(): void {
+    const groundGeometry = new THREE.PlaneGeometry(300000, 300000);
+    const groundMaterial = new THREE.MeshStandardMaterial({
+      color: 0xf5f5f5,    // Açık gri
+      metalness: 0,
+      roughness: 0.8,
+      side: THREE.DoubleSide
+    });
+
+    const groundMesh = new THREE.Mesh(groundGeometry, groundMaterial);
+    groundMesh.rotation.x = -Math.PI / 2; // Yatay yap
+    groundMesh.position.y = -200;             // Zemin seviyesinde
+    groundMesh.receiveShadow = true;       // Gölge alsın
+
+    this.scene.add(groundMesh);
+  }
+
+  private createPlatform(): void {
+        // Platform boyutları (kamyon boyutundan biraz daha büyük)
+        const platformLength = this.truckDimension[0];
+        const platformWidth = this.truckDimension[1] ;
+        const platformHeight = 200; // 10cm kalınlık
+
+        const geometry = new THREE.BoxGeometry(
+          platformLength,
+          platformHeight,
+          platformWidth
+        );
+
+        // ✅ Gri metalik material
+        const material = new THREE.MeshStandardMaterial({
+          color: 0x808080,        // Gri
+          metalness: 0.3,         // Hafif metalik
+          roughness: 0.7,         // Pürüzlü yüzey
+          side: THREE.DoubleSide
+        });
+
+        this.platformMesh = new THREE.Mesh(geometry, material);
+
+        // ✅ Pozisyon (paket grubu yüksekliğinin hemen altında)
+        this.platformMesh.position.set(
+          this.truckDimension[0] / 2,
+          1100 - platformHeight / 2, // packagesGroup yüksekliğinin altında
+          this.truckDimension[1] / 2
+        );
+
+        // ✅ Gölge ayarları
+        this.platformMesh.castShadow = false;    // Platform gölge yapmaz
+        this.platformMesh.receiveShadow = true;  // Ama gölge alır!
+
+        this.scene.add(this.platformMesh);
+      }
+
 
   //Weight calculation
   get frontSectionWeight(): number {
@@ -510,8 +751,23 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, OnChanges, On
     panOffset.add(cameraRight.multiplyScalar(-deltaX * panSensitivity));
     panOffset.add(cameraUp.multiplyScalar(deltaY * panSensitivity));
 
-    this.camera.position.add(panOffset);
-    this.cameraTarget.add(panOffset);
+    // ✅ Yeni pozisyonları hesapla
+    const newCameraPosition = this.camera.position.clone().add(panOffset);
+    const newTargetPosition = this.cameraTarget.clone().add(panOffset);
+
+    // ✅ Kamera yükseklik kontrolü
+    if (newCameraPosition.y < this.minCameraHeight) {
+      // Eğer minimum yüksekliğin altına inecekse, Y offset'ini sıfırla
+      const heightDiff = this.minCameraHeight - newCameraPosition.y;
+      panOffset.y += heightDiff;
+
+      newCameraPosition.y = this.minCameraHeight;
+      newTargetPosition.y = this.cameraTarget.y + heightDiff;
+    }
+
+    // ✅ Pozisyonları uygula
+    this.camera.position.copy(newCameraPosition);
+    this.cameraTarget.copy(newTargetPosition);
 
     this.lastPanMouseX = event.clientX;
     this.lastPanMouseY = event.clientY;
@@ -525,10 +781,25 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, OnChanges, On
   private rotateViewAroundTarget(deltaX: number, deltaY: number): void {
     const spherical = new THREE.Spherical();
     spherical.setFromVector3(this.camera.position.clone().sub(this.cameraTarget));
-    spherical.theta -= deltaX;
-    spherical.phi = Math.max(0.1, Math.min(Math.PI - 0.1, spherical.phi - deltaY));
 
-    this.camera.position.copy(new THREE.Vector3().setFromSpherical(spherical).add(this.cameraTarget));
+    spherical.theta -= deltaX;
+
+    // ✅ Phi açısını sınırla (vertical rotation)
+    spherical.phi = Math.max(
+      this.minCameraPhi,                              // Min: 30 derece
+      Math.min(this.maxCameraPhi, spherical.phi - deltaY) // Max: 80 derece
+    );
+
+    const newPosition = new THREE.Vector3()
+      .setFromSpherical(spherical)
+      .add(this.cameraTarget);
+
+    // ✅ Kamera yüksekliğini sınırla (Y ekseninde)
+    if (newPosition.y < this.minCameraHeight) {
+      newPosition.y = this.minCameraHeight;
+    }
+
+    this.camera.position.copy(newPosition);
     this.camera.lookAt(this.cameraTarget);
   }
 
@@ -549,6 +820,11 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, OnChanges, On
       this.cameraTarget,
       direction.multiplyScalar(newDistance)
     );
+
+    // ✅ Zoom yaparken de yükseklik kontrolü
+    if (newPosition.y < this.minCameraHeight) {
+      newPosition.y = this.minCameraHeight;
+    }
 
     this.camera.position.copy(newPosition);
     this.camera.lookAt(this.cameraTarget);
@@ -933,12 +1209,10 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, OnChanges, On
       // ✅ Kullanıcıya bilgi ver
       if (packageData.rotation && packageData.rotation % 180 === 90) {
         // Dönmüş halde yerleştirildi
-        console.log(`📦 Paket #${packageData.id} 90° döndürülerek yerleştirildi`);
       }
     } else {
       // ❌ Hiç yer bulunamadı
       this.deletedPackages.push(packageData);
-      console.warn(`⚠️ Paket #${packageData.id} için yer bulunamadı (normal ve döndürülmüş halde denendi)`);
     }
   }
 
@@ -1327,7 +1601,9 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, OnChanges, On
     const updatedData = this.processedPackages.map(pkg => [
       pkg.x, pkg.y, pkg.z, pkg.length, pkg.width, pkg.height, pkg.id, pkg.weight
     ]);
-    this.dataChanged.emit(updatedData);
+    this.store.dispatch(updateStep3OptimizationResult({
+      optimizationResult:updatedData
+    }))
   }
 
   private findValidPosition(packageData: PackageData): { x: number, y: number, z: number } | null {
@@ -1364,19 +1640,19 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, OnChanges, On
   // LIFECYCLE METHODS
   // ========================================
 
-  private safeProcessData(): void {
+  private async safeProcessData(): Promise<void> {
     if (this.isDestroyed) return;
 
     if (!this.scene || !this.truckGroup || !this.packagesGroup) {
-      setTimeout(() => {
-        if (!this.isDestroyed) {
-          this.safeProcessData();
-        }
-      }, 100);
+      // Bekle ve tekrar dene
+      await new Promise(resolve => setTimeout(resolve, 100));
+      if (!this.isDestroyed) {
+        return this.safeProcessData();
+      }
       return;
     }
 
-    this.isLoading = true;
+    this.isLoadingData = true;
 
     try {
       this.processData();
@@ -1384,13 +1660,23 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, OnChanges, On
       this.createPackageVisualization();
     } catch (error) {
     } finally {
-      this.isLoading = false;
+      this.isLoadingData = false;
+      this.cdr.detectChanges();
     }
   }
 
   private createTruckVisualization(): void {
     if (!this.truckGroup) {
       return;
+    }
+
+    const savedTruckModel = this.truckModel;
+    const savedTrailerWheelModel = this.trailerWheelModel;
+    if (savedTruckModel) {
+      this.truckGroup.remove(savedTruckModel);
+    }
+    if(savedTrailerWheelModel){
+      this.truckGroup.remove(savedTrailerWheelModel);
     }
 
     this.truckGroup.clear();
@@ -1410,11 +1696,18 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, OnChanges, On
     const wireframe = new THREE.LineSegments(edges, material);
     wireframe.position.set(
       this.truckDimension[0] / 2,
-      this.truckDimension[2] / 2,
+      this.truckDimension[2] / 2 + 1100,
       this.truckDimension[1] / 2
     );
 
     this.truckGroup.add(wireframe);
+
+    if (savedTruckModel) {
+      this.truckGroup.add(savedTruckModel);
+    }
+    if(savedTrailerWheelModel){
+      this.truckGroup.add(savedTrailerWheelModel)
+    }
   }
 
   private createPackageVisualization(): void {
