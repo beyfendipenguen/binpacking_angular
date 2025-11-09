@@ -1,0 +1,33 @@
+<div class="dialog-container">
+  <!-- Dialog Header -->
+  <div class="dialog-header">
+    <div class="header-icon">
+      <mat-icon>list_alt</mat-icon>
+    </div>
+    <div class="header-content">
+      <h2 class="dialog-title">Ürün Detayları</h2>
+      <p class="dialog-subtitle">
+        <span class="order-name">{{ data.orderName }}</span>
+        <span class="separator">•</span>
+        <span class="company-name">{{ data.companyName }}</span>
+      </p>
+    </div>
+    <button mat-icon-button class="close-button" (click)="close()">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <!-- Dialog Content -->
+  <div class="dialog-content">
+    <app-generic-table
+      [externalDataFetcher]="fetchOrderDetails"
+      [displayedColumns]="displayedColumns"
+      [columnDefinitions]="columnDefinitions"
+      [nestedDisplayColumns]="nestedDisplayColumns"
+      [filterableColumns]="filterableColumns"
+      [title]="'Sipariş Ürünleri'"
+      [showRowNumbers]="true"
+      [showAddButton]="false">
+    </app-generic-table>
+  </div>
+</div>

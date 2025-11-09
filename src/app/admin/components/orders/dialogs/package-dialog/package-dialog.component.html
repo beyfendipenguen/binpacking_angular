@@ -1,0 +1,90 @@
+<div class="dialog-container">
+  <!-- Dialog Header -->
+  <div class="dialog-header">
+    <div class="header-icon">
+      <mat-icon>inventory_2</mat-icon>
+    </div>
+    <div class="header-content">
+      <h2 class="dialog-title">Palet Yapılandırması</h2>
+      <p class="dialog-subtitle">
+        <span class="order-name">{{ data.orderName }}</span>
+        <span class="separator">•</span>
+        <span class="company-name">{{ data.companyName }}</span>
+      </p>
+    </div>
+    <button mat-icon-button class="close-button" (click)="close()">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <!-- Loading State -->
+  @if (isLoading) {
+  <div class="loading-state">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>Paletler yükleniyor...</p>
+  </div>
+  }
+
+  <!-- Dialog Content -->
+  @if (!isLoading && groupedPackages.length > 0) {
+  <div class="dialog-content">
+    <div class="packages-list">
+      @for (pkg of groupedPackages; track pkg.id; let i = $index) {
+      <div class="package-card" [class.expanded]="pkg.expanded">
+        <!-- Package Header -->
+        <div class="package-header" (click)="togglePackage(pkg)">
+          <div class="package-visual">
+            <div class="pallet-icon">
+              <mat-icon>view_in_ar</mat-icon>
+            </div>
+            <div class="package-number">{{ i + 1 }}</div>
+          </div>
+
+          <div class="package-info">
+            <h4 class="package-title">{{ pkg.palletName }} {{ i + 1 }}</h4>
+            <p class="package-dimensions">{{ pkg.dimension }}</p>
+            <div class="package-metrics">
+              <div class="metric-chip">
+                <mat-icon>inventory</mat-icon>
+                <span>{{ pkg.itemCount }} Ürün</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="expand-control">
+            <mat-icon>{{ pkg.expanded ? 'expand_less' : 'expand_more' }}</mat-icon>
+          </div>
+        </div>
+
+        <!-- Package Content (Expandable) -->
+        @if (pkg.expanded) {
+        <div class="package-content">
+          <div class="products-list">
+            @for (item of pkg.items; track $index) {
+            <div class="product-item">
+              <div class="product-dot"></div>
+              <div class="product-name">
+                {{ item.product?.name || 'N/A' }}
+              </div>
+              <div class="product-count">
+                <span class="count-badge">{{ item.count }}</span>
+              </div>
+            </div>
+            }
+          </div>
+        </div>
+        }
+      </div>
+      }
+    </div>
+  </div>
+  }
+
+  <!-- Empty State -->
+  @if (!isLoading && groupedPackages.length === 0) {
+  <div class="empty-state">
+    <mat-icon>inventory_2</mat-icon>
+    <p>Bu sipariş için paket bilgisi bulunamadı.</p>
+  </div>
+  }
+</div>

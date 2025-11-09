@@ -1,5 +1,5 @@
-<div class="logistics-container">
-  <!-- Hero Header with Gradient -->
+<div class="orders-container">
+  <!-- Hero Header -->
   <div class="hero-header">
     <div class="hero-background">
       <div class="hero-pattern"></div>
@@ -13,254 +13,25 @@
       </div>
       <div class="hero-text">
         <h1 class="hero-title">Sevkiyat Yönetimi</h1>
-        <p class="hero-subtitle">Aktif siparişleri görüntüleyin ve akıllı paket yapılandırması yapın</p>
-        <div class="hero-stats">
-          <div class="stat-item">
-            <span class="stat-icon material-icons">inventory</span>
-            <span class="stat-text">Aktif Siparişler</span>
-          </div>
-          <div class="stat-item">
-            <span class="stat-icon material-icons">science</span>
-            <span class="stat-text">Optimizasyon</span>
-          </div>
-        </div>
+        <p class="hero-subtitle">Aktif siparişleri görüntüleyin ve detaylı bilgilere erişin</p>
       </div>
     </div>
   </div>
 
-  <!-- Modern Grid Layout -->
-  <div class="dashboard-grid">
-    <!-- Enhanced Left Column -->
-    <div class="grid-section orders-section">
-      <div class="section-wrapper">
-        <!-- Floating Order Selector -->
-        <div class="floating-selector">
-          <div class="selector-header">
-            <div class="selector-icon">
-              <span class="material-icons">search</span>
-            </div>
-            <h3>Sevkiyat Emri Seçimi</h3>
-          </div>
-
-          <div class="selector-field-wrapper">
-            <div class="select-field-container">
-              <label class="floating-label">Sipariş Seçin</label>
-              <select class="custom-select" [(ngModel)]="selectedOrder" (change)="onOrderResultSelected()">
-                <option value="">Sevkiyat Emri Seçin</option>
-                <option *ngFor="let o of filteredOrderResults" [ngValue]="o">
-                  {{ o.name }} - {{ o.company_relation.target_company_name }}
-                </option>
-              </select>
-              <div class="select-arrow">
-                <span class="material-icons">expand_more</span>
-              </div>
-            </div>
-
-            <!-- Search Enhancement -->
-            <div class="search-enhancement">
-              <div class="search-input-wrapper">
-                <span class="material-icons search-icon">search</span>
-                <input
-                  type="text"
-                  class="search-input"
-                  placeholder="Sevkiyat veya firma ara..."
-                  [(ngModel)]="searchTerm"
-                  (ngModelChange)="filterOrders($event)">
-                <div class="search-ripple"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Enhanced Order Summary -->
-        <div *ngIf="selectedOrder" class="glass-card order-summary-card">
-          <div class="card-glow"></div>
-          <div class="card-header-modern">
-            <div class="header-left">
-              <div class="card-icon-modern">
-                <span class="material-icons">assignment</span>
-                <div class="icon-ripple"></div>
-              </div>
-              <div class="header-content">
-                <h3 class="card-title-modern">Sevkiyat Özeti</h3>
-                <p class="card-subtitle-modern">
-                  <span class="company-name">{{ selectedOrder.company_relation.target_company_name }}</span>
-                  <span class="separator">•</span>
-                  <span class="order-date">{{ selectedOrder.date | date:'dd MMM yyyy' }}</span>
-                </p>
-              </div>
-            </div>
-            <div class="header-right">
-              <div class="status-indicator">
-                <div class="status-pulse"></div>
-                <span>Aktif</span>
-              </div>
-              <button class="modern-btn primary" (click)="editOrder()">
-                <span class="material-icons">edit</span>
-                <span>Düzenle</span>
-                <div class="btn-ripple"></div>
-              </button>
-            </div>
-          </div>
-
-          <div class="card-content-modern">
-            <!-- Enhanced Error State -->
-            <div *ngIf="detailsError" class="error-state">
-              <div class="error-animation">
-                <span class="material-icons error-icon">error_outline</span>
-                <div class="error-pulse"></div>
-              </div>
-              <p class="error-message">{{ detailsError }}</p>
-              <button class="modern-btn secondary" (click)="loadOrderDetails(selectedOrder.id)">
-                <span class="material-icons">refresh</span>
-                <span>Tekrar Dene</span>
-              </button>
-            </div>
-
-            <!-- Kompakt Product List -->
-            <div *ngIf="orderDetails && !loadingDetails && !detailsError" class="products-showcase">
-              <div class="products-grid">
-                <div *ngFor="let detail of orderDetails; let i = index" class="product-card"
-                     [style.animation-delay]="i * 100 + 'ms'">
-                  <div class="product-visual">
-                    <div class="product-icon-bg">
-                      <span class="material-icons">inventory_2</span>
-                    </div>
-                    <div class="product-badge">{{ detail.count || 0 }}</div>
-                  </div>
-                  <div class="product-info">
-                    <h4 class="product-name" [title]="detail.product?.name || 'N/A'">
-                      {{ detail.product?.name || 'N/A' }}
-                    </h4>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Kompakt Totals -->
-              <div class="metrics-dashboard">
-                <div class="metric-card total-products">
-                  <div class="metric-icon">
-                    <span class="material-icons">inventory_2</span>
-                  </div>
-                  <div class="metric-content">
-                    <span class="metric-value">{{ getTotalCount() }}</span>
-                    <span class="metric-label">Toplam Ürün</span>
-                  </div>
-                </div>
-
-                <div class="metric-card total-meters">
-                  <div class="metric-icon">
-                    <span class="material-icons">straighten</span>
-                  </div>
-                  <div class="metric-content">
-                    <span class="metric-value">{{ getTotalMeter() }}</span>
-                    <span class="metric-label">Toplam Metre</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Enhanced Files Section -->
-        <div *ngIf="files && files.length > 0" class="glass-card files-card">
-          <div class="card-header-modern">
-            <div class="header-left">
-              <div class="card-icon-modern files">
-                <span class="material-icons">folder</span>
-              </div>
-              <div class="header-content">
-                <h3 class="card-title-modern">Sipariş Dosyaları</h3>
-                <p class="card-subtitle-modern">{{ files.length }} dosya mevcut</p>
-              </div>
-            </div>
-          </div>
-
-          <div class="card-content-modern">
-            <div class="files-showcase">
-              <div *ngFor="let file of files; let i = index" class="file-item-modern"
-                   [style.animation-delay]="i * 50 + 'ms'">
-                <div class="file-icon-wrapper">
-                  <span class="material-icons">{{ getFileIcon(file.type) }}</span>
-                </div>
-                <div class="file-details">
-                  <span class="file-name">{{ file.name }}</span>
-                </div>
-                <a [href]="file.file" target="_blank" class="file-download">
-                  <span class="material-icons">download</span>
-                </a>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Enhanced Right Column - Kompakt Palet Yapılandırması -->
-    <div class="grid-section packages-section" *ngIf="groupedPackages && groupedPackages.length > 0">
-      <div class="section-wrapper">
-        <div class="section-header-modern">
-          <div class="header-icon-wrapper">
-            <span class="material-icons">view_in_ar</span>
-            <div class="header-pulse"></div>
-          </div>
-          <div class="header-text">
-            <h2>Palet Yapılandırması</h2>
-            <p>{{ groupedPackages.length }} palet • Optimum düzen</p>
-          </div>
-        </div>
-
-        <div class="packages-container">
-          <div class="packages-masonry">
-            <div class="package-card-modern"
-                 *ngFor="let packageGroup of groupedPackages; let index = index"
-                 [style.animation-delay]="index * 100 + 'ms'">
-
-              <div class="package-header-modern" (click)="togglePackage(packageGroup)">
-                <div class="package-visual">
-                  <div class="pallet-3d">
-                    <div class="pallet-base"></div>
-                    <div class="pallet-boxes"></div>
-                    <div class="pallet-shadow"></div>
-                  </div>
-                  <div class="package-number">{{ index + 1 }}</div>
-                </div>
-
-                <div class="package-info">
-                  <h4 class="package-title">Palet {{ index + 1 }}</h4>
-                  <p class="package-dimensions">{{ packageGroup.dimension.width }} × {{ packageGroup.dimension.depth }} {{ packageGroup.dimension.unit }}</p>
-
-                  <div class="package-metrics-modern">
-                    <div class="metric-chip">
-                      <span class="material-icons">inventory</span>
-                      <span>{{ packageGroup.items.length }}</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="expand-control">
-                  <div class="expand-icon" [class.expanded]="packageGroup.expanded">
-                    <span class="material-icons">expand_more</span>
-                  </div>
-                </div>
-              </div>
-
-              <div class="package-content-modern" *ngIf="packageGroup.expanded">
-                <div class="products-list-modern">
-                  <div *ngFor="let detail of packageGroup.items; let i = index"
-                       class="product-item-modern"
-                       [style.animation-delay]="i * 30 + 'ms'">
-                    <div class="product-dot"></div>
-                    <div class="product-name-modern" [title]="detail.product.name + ' (' + detail.count + ')'">
-                      {{ detail.product.name }} • {{ detail.count }}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+  <!-- Generic Table -->
+  <div class="table-wrapper">
+    <app-generic-table
+      [service]="orderService"
+      [displayedColumns]="displayedColumns"
+      [columnTypes]="columnTypes"
+      [columnDefinitions]="columnDefinitions"
+      [nestedDisplayColumns]="nestedDisplayColumns"
+      [filterableColumns]="filterableColumns"
+      [title]="'Sevkiyat Emirleri'"
+      [showRowNumbers]="true"
+      [showAddButton]="false"
+      (cellButtonClick)="onCellButtonClick($event)"
+      (rowClick)="onRowClick($event)">
+    </app-generic-table>
   </div>
 </div>

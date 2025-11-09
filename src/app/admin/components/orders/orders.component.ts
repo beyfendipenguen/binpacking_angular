@@ -1,109 +1,224 @@
 import { Component, inject, OnInit, ViewChild } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { OrderService } from '../services/order.service';
 import { OrderDetailService } from '../services/order-detail.service';
 import { PackageDetailService } from '../services/package-detail.service';
-import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatSelect, MatSelectModule } from '@angular/material/select';
-import { MatButtonModule } from '@angular/material/button';
-import { MatCardModule } from '@angular/material/card';
-import { MatDividerModule } from '@angular/material/divider';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { CdkAccordionModule } from '@angular/cdk/accordion';
-import { MatIconModule } from '@angular/material/icon';
 import { FileService } from '../services/file.service';
-import { Router } from '@angular/router';
-import { OrderService } from '../services/order.service';
-import { ApiService } from '../../../services/api.service';
+import { GenericTableComponent, ColumnDefinition, CellButtonClickEvent } from '../../../components/generic-table/generic-table.component';
+import { OrderDetailsDialogComponent } from './dialogs/order-details-dialog/order-details-dialog.component';
+import { PackageDialogComponent } from './dialogs/package-dialog/package-dialog.component';
+import { FilesDialogComponent } from './dialogs/files-dialog/files-dialog.component';
 
 @Component({
   selector: 'app-orders',
   standalone: true,
   imports: [
     CommonModule,
-    FormsModule,
-    MatFormFieldModule,
-    MatSelectModule,
-    MatInputModule,
-    MatCardModule,
-    MatProgressSpinnerModule,
-    MatDividerModule,
     MatButtonModule,
-    CdkAccordionModule,
-    MatIconModule
+    MatIconModule,
+    MatDialogModule,
+    GenericTableComponent
   ],
   templateUrl: './orders.component.html',
   styleUrl: './orders.component.scss'
 })
 export class OrdersComponent implements OnInit {
+  // Services
   orderService = inject(OrderService);
-  apiService = inject(ApiService)
   orderDetailService = inject(OrderDetailService);
   packageDetailService = inject(PackageDetailService);
-  fileService = inject(FileService)
+  fileService = inject(FileService);
+  dialog = inject(MatDialog);
+  router = inject(Router);
 
-  @ViewChild('orderSelect') orderSelect!: MatSelect;
+  @ViewChild(GenericTableComponent) genericTable!: GenericTableComponent<any>;
 
-  // Order results data
-  orders: any[] = [];
-  filteredOrderResults: any[] = [];
-  selectedOrder: any;
+  // Table configuration
+  displayedColumns: string[] = [
+    'name',
+    'date',
+    'company_relation.target_company_name',
+    'company_relation.target_company.country',
+    'order_details',
+    'package',
+    'files'
+  ];
 
-  // Order details data
-  orderDetails: any = null;
-  loadingDetails = false;
-  detailsError: string | null = null;
+  columnTypes: { [key: string]: string } = {
+    'date': 'date'
+  };
 
-  // Package details data
-  packageDetails: any = null;
-  groupedPackages: any[] = [];
+  columnDefinitions: ColumnDefinition[] = [
+    {
+      key: 'name',
+      label: 'Sipariş Adı',
+      type: 'text',
+      required: true
+    },
+    {
+      key: 'date',
+      label: 'Tarih',
+      type: 'text',
+      required: true
+    },
+    {
+      key: 'company_relation.target_company_name',
+      label: 'Firma Adı',
+      type: 'text',
+      required: false
+    },
+    {
+      key: 'company_relation.target_company.country',
+      label: 'Ülke',
+      type: 'text',
+      required: false
+    },
+    {
+      key: 'order_details',
+      label: 'Ürün Detayları',
+      type: 'button',
+      required: false,
+      buttonConfig: {
+        icon: 'list_alt',
+        color: 'primary',
+        tooltip: 'Ürün Detaylarını Görüntüle',
+        class: 'details-button'
+      }
+    },
+    {
+      key: 'package',
+      label: 'Paletler',
+      type: 'button',
+      required: false,
+      buttonConfig: {
+        icon: 'inventory_2',
+        color: 'primary',
+        tooltip: 'Palet Detaylarını Görüntüle',
+        class: 'package-button'
+      }
+    },
+    {
+      key: 'files',
+      label: 'Dosyalar',
+      type: 'button',
+      required: false,
+      buttonConfig: {
+        icon: 'folder',
+        color: 'accent',
+        tooltip: 'Dosyaları Görüntüle',
+        class: 'files-button'
+      }
+    }
+  ];
 
-  // File data
-  files: any = null;
+  nestedDisplayColumns: { [key: string]: string } = {
+    'company_relation.target_company_name': 'Firma Adı',
+    'company_relation.target_company.country': 'Ülke',
+    'order_details': 'Ürün Detayları',
+    'package': 'Paletler',
+    'files': 'Dosyalar',
+    'date': 'Tarih',
+    'name': 'Sipariş Adı'
+  };
 
-  // Search params
-  searchTerm = '';
+  filterableColumns: string[] = [
+    'name',
+    'date',
+    'company_relation.target_company_name',
+    'company_relation.target_company.country'
+  ];
 
-  constructor(
-  // ... mevcut inject'ler
-  private router: Router
-) {}
-
-  ngOnInit() {
-    this.loadOrderResults();
+  ngOnInit(): void {
+    // Component initialization
   }
 
-  // Filter orders based on search term
-  filterOrders(searchTerm: string) {
-    this.searchTerm = searchTerm.toLowerCase().trim();
+  /**
+   * Handle button clicks in table cells
+   */
+  onCellButtonClick(event: CellButtonClickEvent<any>): void {
+    const { row, column } = event;
 
-    if (!this.searchTerm) {
-      this.filteredOrderResults = this.orders.slice(0, 10);
+    switch (column) {
+      case 'order_details':
+        this.openOrderDetailsDialog(row);
+        break;
+      case 'package':
+        this.openPackageDialog(row);
+        break;
+      case 'files':
+        this.openFilesDialog(row);
+        break;
+    }
+  }
+
+  /**
+   * Open Order Details Dialog
+   */
+  openOrderDetailsDialog(order: any): void {
+    this.dialog.open(OrderDetailsDialogComponent, {
+      width: '90%',
+      maxWidth: '1200px',
+      height: '80vh',
+      data: {
+        orderId: order.id,
+        orderName: order.name,
+        companyName: order.company_relation?.target_company_name || 'N/A'
+      }
+    });
+  }
+
+  /**
+   * Open Package Dialog
+   */
+  openPackageDialog(order: any): void {
+    this.dialog.open(PackageDialogComponent, {
+      width: '90%',
+      maxWidth: '1200px',
+      height: '80vh',
+      data: {
+        orderId: order.id,
+        orderName: order.name,
+        companyName: order.company_relation?.target_company_name || 'N/A'
+      }
+    });
+  }
+
+  /**
+   * Open Files Dialog
+   */
+  openFilesDialog(order: any): void {
+    this.dialog.open(FilesDialogComponent, {
+      width: '800px',
+      maxHeight: '80vh',
+      data: {
+        orderId: order.id,
+        orderName: order.name,
+        companyName: order.company_relation?.target_company_name || 'N/A'
+      }
+    });
+  }
+
+  /**
+   * Handle row click - Navigate to edit page
+   */
+  onRowClick(order: any): void {
+    this.editOrder(order);
+  }
+
+  /**
+   * Navigate to order edit page
+   * ÖNEMLİ: Bu metod olduğu gibi kalacak, değiştirilmeyecek!
+   */
+  editOrder(order: any): void {
+    if (!order) {
       return;
     }
 
-    this.filteredOrderResults = this.orders.filter(o => {
-      const orderId = o.id.toLowerCase();
-      const companyName = o.company_relation.target_company_name.toLowerCase();
-      const country = o.company_relation.target_company_name.toLowerCase();
-
-      return orderId.includes(this.searchTerm) ||
-             companyName.includes(this.searchTerm) ||
-             country.includes(this.searchTerm);
-    }).slice(0, 10);
-  }
-
-  togglePackage(packageGroup: any) {
-    packageGroup.expanded = !packageGroup.expanded;
-  }
-
-  editOrder(): void {
-    if (!this.selectedOrder) {
-      return;
-    }
-
-    const orderId = this.selectedOrder.id;
+    const orderId = order.id;
 
     // Ana sayfaya orderId ile yönlendir
     this.router.navigate(['/'], {
@@ -114,89 +229,9 @@ export class OrdersComponent implements OnInit {
     });
   }
 
-  // Load all order results
-  loadOrderResults() {
-    this.orderService.getAll().subscribe({
-      next: (response) => {
-        this.orders = response.results;
-        this.filteredOrderResults = this.orders.slice(0, 10);
-
-      },
-      error: (error) => {
-      }
-    });
-  }
-
-  loadOrderDetails(orderId: string) {
-    this.loadingDetails = true;
-
-    const params = {order_id: orderId.toString() || '', limit:8000};
-    this.orderDetailService.getAll(params).subscribe({
-      next: (response) => {
-        // Doğrudan response.results'ı atıyoruz
-        this.orderDetails = response.results;
-        this.loadingDetails = false;
-
-
-        // Detaylar yüklendikten sonra paket bilgilerini yükle
-        this.loadPackageDetails(orderId);
-        this.loadFile(orderId);
-      },
-      error: (error) => {
-        this.detailsError = 'Sipariş detayları yüklenirken bir hata oluştu.';
-        this.loadingDetails = false;
-
-      }
-    });
-  }
-
-  loadPackageDetails(orderId: string) {
-    this.loadingDetails = true;
-
-    const params = {
-      order_id: orderId.toString() || '',
-      limit: 400  // Çok büyük bir limit değeri
-    };
-
-    this.packageDetailService.getAll(params).subscribe({
-      next: (response) => {
-        this.packageDetails = response.results;
-        this.loadingDetails = false;
-
-        // Paket detaylarını aynı paketlere göre grupla
-        this.groupPackageDetails();
-
-
-
-      },
-      error: (error) => {
-        this.loadingDetails = false;
-
-      }
-    });
-  }
-
-  loadFile(orderId:string){
-    this.loadingDetails = true;
-
-    const params = {
-      order_id: orderId.toString() || '',
-      limit: 30
-    };
-
-    this.fileService.getAll(params).subscribe({
-      next: (response) => {
-        this.files = response.results;
-        this.loadingDetails = false;
-
-      },
-      error: (error) => {
-        this.loadingDetails = false;
-
-      }
-    });
-  }
-
+  /**
+   * Get file icon based on file type
+   */
   getFileIcon(fileType: string | null): string {
     if (!fileType) return 'insert_drive_file';
 
@@ -220,84 +255,6 @@ export class OrdersComponent implements OnInit {
       return 'audiotrack';
     }
 
-    return 'insert_drive_file'; // Varsayılan ikon
-  }
-
-  // Paket detaylarını grup olarak düzenle
-  groupPackageDetails() {
-    if (!this.packageDetails || !this.packageDetails.length) {
-      this.groupedPackages = [];
-      return;
-    }
-    // Paketleri ID'ye göre grupla
-    const packageMap = new Map();
-
-    // Her paket detayını döngü ile gezerek gruplandır
-    this.packageDetails.forEach((detail: any) => {
-      const packageId = detail.package.id;
-
-      // Eğer bu package id daha önce görülmediyse, yeni bir grup oluştur
-      if (!packageMap.has(packageId)) {
-        packageMap.set(packageId, {
-          id: packageId,
-          pallet: detail.package.pallet,
-          dimension: detail.package.pallet.dimension,
-          items: []
-        });
-      }
-
-      // Package'a ait detayı listeye ekle
-      packageMap.get(packageId).items.push(detail);
-    });
-
-    // Map'i array'e dönüştür
-    this.groupedPackages = Array.from(packageMap.values());
-  }
-
-  // This method will be called when an option is selected
-  onOrderResultSelected() {
-
-
-    // Reset previous details and errors
-    this.orderDetails = null;
-    this.detailsError = null;
-    this.packageDetails = null;
-    this.groupedPackages = [];
-
-    // Load order details if an order is selected
-    if (this.selectedOrder) {
-      this.loadOrderDetails(this.selectedOrder.id);
-    }
-  }
-
-  // Close the panel when clicking outside
-  onClickedOutside() {
-    this.orderSelect.close();
-  }
-
-  // Toplam adet hesaplama
-  getTotalCount(): number {
-    if (!this.orderDetails || !this.orderDetails.length) {
-      return 0;
-    }
-
-    return this.orderDetails.reduce((total: number, detail: any) => {
-      // Sayısal dönüşümü zorla
-      const detailCount = detail.count ? Number(detail.count) : 0;
-      return total + detailCount;
-    }, 0);
-  }
-
-  // Toplam hacim hesaplama (depth * count)
-  getTotalMeter(): number {
-    if (!this.orderDetails || !this.orderDetails.length) {
-      return 0;
-    }
-
-    return this.orderDetails.reduce((total: number, detail: any) => {
-      const depth = detail.product?.dimension?.depth || 0;
-      const count = detail.count || 0;
-      return (total + (depth * count) / 1000)
-    }, 0);
+    return 'insert_drive_file';
   }
 }

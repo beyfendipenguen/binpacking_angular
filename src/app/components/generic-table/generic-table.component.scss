@@ -1,281 +1,314 @@
+// Tema Renkleri
+$primary-dark: #006A6A;
+$primary-darker: #004A4A;
+$accent-gold: #D6BB86;
+$accent-gold-light: #E8D5A8;
+
 .table-container {
   position: relative;
-  min-height: 400px;
-  max-width: 100%;
-  margin: 20px;
-  border-radius: 8px;
+  background: white;
+  border-radius: 16px;
   overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-}
 
-.table-header {
-  display: flex;
-  align-items: center;
-  padding: 16px 24px;
-  background-color: #f5f5f5;
-  border-bottom: 1px solid #e0e0e0;
-
-  h2 {
-    margin: 0;
-    font-weight: 500;
-    color: #333;
-  }
-}
-
-.spacer {
-  flex: 1 1 auto;
-}
-
-// Aktif filtreler alanı
-.active-filters {
-  padding: 8px 16px;
-  background-color: #f9f9f9;
-  border-bottom: 1px solid #e0e0e0;
-
-  .chip-list {
+  .table-header {
     display: flex;
-    flex-wrap: wrap;
     align-items: center;
-    gap: 8px;
-  }
+    padding: 24px;
+    background: linear-gradient(135deg, rgba($primary-dark, 0.05) 0%, rgba($accent-gold, 0.05) 100%);
+    border-bottom: 2px solid rgba($primary-dark, 0.1);
 
-  .filter-label {
-    font-weight: 500;
-    color: rgba(0, 0, 0, 0.6);
-    margin-right: 8px;
-  }
-
-  .filter-chip {
-    display: inline-flex;
-    align-items: center;
-    padding: 4px 12px 4px 16px;
-    background-color: #e3f2fd;
-    border-radius: 16px;
-    font-size: 13px;
-    color: #1976d2;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    transition: all 0.2s ease;
-    height: 28px;
-
-    &:hover {
-      background-color: #bbdefb;
+    h2 {
+      margin: 0;
+      font-size: 24px;
+      font-weight: 600;
+      color: $primary-dark;
     }
 
-    .chip-remove {
-      width: 20px;
-      height: 20px;
-      min-width: 20px;
-      padding: 0;
-      margin-left: 4px;
-      margin-right: -8px;
-      transition: all 0.2s ease;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
+    .spacer {
+      flex: 1;
+    }
 
-      &:hover {
-        background-color: rgba(0, 0, 0, 0.05);
-        border-radius: 50%;
-      }
-
-      .mat-icon {
-        font-size: 16px;
-        width: 16px;
-        height: 16px;
-        line-height: 16px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-      }
+    button {
+      margin-left: 16px;
     }
   }
-}
 
-.loading-shade {
-  position: absolute;
-  top: 0;
-  left: 0;
-  bottom: 0;
-  right: 0;
-  background: rgba(255, 255, 255, 0.8);
-  z-index: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-table {
-  width: 100%;
-
-  .mat-mdc-row {
-    cursor: pointer;
-
-    &:hover {
-      background-color: rgba(0, 0, 0, 0.04);
-    }
-  }
-}
-
-// Sıra numarası hücresi için özel stil - SADECE BU DARALTILMIŞ OLARAK KALIYOR
-.row-number-cell {
-  width: 32px !important;
-  min-width: 32px !important;
-  max-width: 32px !important;
-  padding: 0 !important;
-  text-align: center;
-  color: rgba(0, 0, 0, 0.54);
-  font-weight: 500;
-  background-color: rgba(0, 0, 0, 0.02);
-}
-
-// Sütun başlığı içeriği
-.header-content {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-
-  // Filtre ikonu stilini geliştirme
-  .filter-icon {
-    margin-left: 8px;
-    width: 28px;
-    height: 28px;
-    min-width: 28px;
-    padding: 0;
-    border-radius: 50%;
-    transition: all 0.2s ease;
-    display: inline-flex;
+  .loading-shade {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.8);
+    z-index: 1000;
+    display: flex;
     align-items: center;
     justify-content: center;
+    backdrop-filter: blur(2px);
+  }
 
-    .mat-icon {
-      font-size: 18px;
-      width: 18px;
-      height: 18px;
-      line-height: 18px;
-      display: inline-flex;
+  .active-filters {
+    padding: 16px 24px;
+    background: rgba($accent-gold, 0.1);
+    border-bottom: 1px solid rgba($primary-dark, 0.1);
+
+    .chip-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
       align-items: center;
-      justify-content: center;
-      opacity: 0.6;
-      transition: all 0.2s ease;
+
+      .filter-label {
+        font-weight: 600;
+        color: $primary-dark;
+        margin-right: 8px;
+      }
+
+      .filter-chip {
+        display: flex;
+        align-items: center;
+        background: white;
+        border: 1px solid rgba($primary-dark, 0.2);
+        border-radius: 20px;
+        padding: 6px 12px;
+        gap: 8px;
+
+        .chip-label {
+          font-size: 14px;
+          color: $primary-dark;
+        }
+
+        .chip-remove {
+          width: 20px;
+          height: 20px;
+          padding: 0;
+
+          mat-icon {
+            font-size: 16px;
+            width: 16px;
+            height: 16px;
+            line-height: 16px;
+          }
+        }
+      }
     }
+  }
 
-    &:hover {
-      background-color: rgba(0, 0, 0, 0.05);
+  table {
+    width: 100%;
 
-      .mat-icon {
-        opacity: 1;
+    th.mat-header-cell {
+      background: linear-gradient(135deg, rgba($primary-dark, 0.03) 0%, rgba($accent-gold, 0.03) 100%);
+      color: $primary-dark;
+      font-weight: 600;
+      font-size: 14px;
+      padding: 16px;
+      border-bottom: 2px solid rgba($primary-dark, 0.15);
+
+      &.text-center {
+        text-align: center;
+      }
+
+      .header-content {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+
+        .filter-icon {
+          width: 28px;
+          height: 28px;
+          padding: 0;
+          opacity: 0.6;
+          transition: all 0.3s ease;
+
+          &:hover {
+            opacity: 1;
+            background: rgba($primary-dark, 0.1);
+          }
+
+          &.active-filter {
+            opacity: 1;
+            color: $accent-gold;
+            background: rgba($accent-gold, 0.15);
+          }
+
+          mat-icon {
+            font-size: 18px;
+            width: 18px;
+            height: 18px;
+            line-height: 18px;
+          }
+        }
       }
     }
 
-    &.active-filter {
-      background-color: rgba(25, 118, 210, 0.1);
+    td.mat-cell {
+      padding: 16px;
+      color: #333;
+      font-size: 14px;
+      border-bottom: 1px solid rgba($primary-dark, 0.08);
 
-      .mat-icon {
-        color: #1976d2;
-        opacity: 1;
+      &.row-number-cell {
+        text-align: center;
+        font-weight: 600;
+        color: $primary-dark;
+        width: 60px;
       }
+
+      &.numeric-cell {
+        text-align: right;
+        font-variant-numeric: tabular-nums;
+      }
+
+      // Button Cell Styling
+      &.button-cell {
+        text-align: center;
+
+        button {
+          transition: all 0.3s ease;
+
+          &:hover {
+            transform: scale(1.1);
+          }
+
+          &.mat-primary {
+            color: $primary-dark;
+
+            &:hover {
+              background: rgba($primary-dark, 0.1);
+            }
+          }
+
+          &.mat-accent {
+            color: $accent-gold;
+
+            &:hover {
+              background: rgba($accent-gold, 0.1);
+            }
+          }
+
+          .button-text {
+            margin-left: 8px;
+            font-size: 13px;
+            font-weight: 500;
+          }
+        }
+      }
+
+      .action-buttons {
+        display: flex;
+        gap: 8px;
+        justify-content: flex-end;
+
+        button {
+          transition: all 0.3s ease;
+
+          &:hover {
+            transform: scale(1.1);
+          }
+        }
+      }
+    }
+
+    tr.mat-row {
+      transition: background-color 0.3s ease;
+      cursor: pointer;
 
       &:hover {
-        background-color: rgba(25, 118, 210, 0.2);
+        background: linear-gradient(90deg, rgba($primary-dark, 0.03) 0%, rgba($accent-gold, 0.03) 100%);
       }
     }
   }
-}
 
-// İşlem butonları için stil
-.action-buttons {
-  display: flex;
-  gap: 8px;
-  opacity: 0.7;
-  transition: all 0.2s ease;
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+    color: #666;
 
-  &:hover {
-    opacity: 1;
-  }
-
-  button {
-    transition: all 0.2s ease;
-
-    &:hover {
-      transform: scale(1.1);
+    mat-icon {
+      font-size: 64px;
+      width: 64px;
+      height: 64px;
+      color: rgba($primary-dark, 0.3);
+      margin-bottom: 16px;
     }
 
-    &.mat-warn {
-      .mat-icon {
-        color: #f44336;
-      }
+    p {
+      margin: 8px 0;
+      font-size: 16px;
+    }
+
+    button {
+      margin-top: 16px;
+      background: linear-gradient(135deg, $primary-dark, $primary-darker);
+      color: white;
 
       &:hover {
-        background-color: rgba(244, 67, 54, 0.1);
-      }
-    }
-
-    &.mat-info {
-      .mat-icon {
-        color: #fff3cd;
-      }
-
-      &:hover {
-        background-color: rgba(244, 67, 54, 0.1);
+        background: linear-gradient(135deg, $primary-darker, $primary-dark);
       }
     }
   }
-}
 
-// "Filtreleri Temizle" butonu stil iyileştirmesi
-button[color="primary"] {
-  .mat-icon {
-    margin-right: 4px;
-    transition: all 0.2s ease;
-  }
-
-  &:hover .mat-icon {
-    transform: rotate(-10deg);
+  .mat-mdc-paginator {
+    border-top: 2px solid rgba($primary-dark, 0.1);
+    background: linear-gradient(135deg, rgba($primary-dark, 0.02) 0%, rgba($accent-gold, 0.02) 100%);
   }
 }
 
-.empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 48px 16px;
-  color: rgba(0, 0, 0, 0.54);
-
-  mat-icon {
-    font-size: 48px;
-    height: 48px;
-    width: 48px;
-    margin-bottom: 16px;
-    opacity: 0.5;
+// Material overrides for theme colors
+::ng-deep {
+  .mat-mdc-button.mat-primary,
+  .mat-mdc-icon-button.mat-primary {
+    color: $primary-dark !important;
   }
 
-  p {
-    margin-bottom: 16px;
+  .mat-mdc-button.mat-accent,
+  .mat-mdc-icon-button.mat-accent {
+    color: $accent-gold !important;
   }
 
-  button {
-    transition: all 0.2s ease;
+  .mat-mdc-raised-button.mat-primary {
+    background-color: $primary-dark !important;
+    color: white !important;
+  }
 
-    &:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  .mat-mdc-raised-button.mat-accent {
+    background-color: $accent-gold !important;
+    color: white !important;
+  }
+
+  .mat-sort-header-arrow {
+    color: $primary-dark !important;
+  }
+
+  .mat-mdc-progress-spinner circle {
+    stroke: $primary-dark !important;
+  }
+}
+
+// Responsive
+@media (max-width: 768px) {
+  .table-container {
+    .table-header {
+      flex-direction: column;
+      gap: 16px;
+      align-items: flex-start;
+
+      h2 {
+        font-size: 20px;
+      }
+    }
+
+    table {
+      font-size: 12px;
+
+      th.mat-header-cell,
+      td.mat-cell {
+        padding: 12px 8px;
+      }
     }
   }
-}
-
-// Aşağıdaki CSS stil, Angular Material'ın ikonlar için varsayılan stilini ezer
-// Bu, tüm mat-icon'ların düzgün hizalanmasını sağlar
-
-::ng-deep .mat-icon-button .mat-icon {
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  line-height: normal !important;
-}
-
-.numeric-cell {
-  font-family: "Roboto Mono", monospace;
-  font-weight: 500;
 }

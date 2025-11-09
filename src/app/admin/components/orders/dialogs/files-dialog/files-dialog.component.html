@@ -1,0 +1,64 @@
+<div class="dialog-container">
+  <!-- Dialog Header -->
+  <div class="dialog-header">
+    <div class="header-icon">
+      <mat-icon>folder</mat-icon>
+    </div>
+    <div class="header-content">
+      <h2 class="dialog-title">Sipariş Dosyaları</h2>
+      <p class="dialog-subtitle">
+        <span class="order-name">{{ data.orderName }}</span>
+        <span class="separator">•</span>
+        <span class="company-name">{{ data.companyName }}</span>
+      </p>
+    </div>
+    <button mat-icon-button class="close-button" (click)="close()">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <!-- Loading State -->
+  @if (isLoading) {
+  <div class="loading-state">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>Dosyalar yükleniyor...</p>
+  </div>
+  }
+
+  <!-- Dialog Content -->
+  @if (!isLoading && files.length > 0) {
+  <div class="dialog-content">
+    <div class="files-header">
+      <mat-icon>info</mat-icon>
+      <span>{{ files.length }} dosya bulundu</span>
+    </div>
+
+    <div class="files-grid">
+      @for (file of files; track file.id) {
+      <div class="file-card" (click)="downloadFile(file)">
+        <div class="file-icon-wrapper">
+          <mat-icon [class]="'file-icon-' + file.icon">{{ file.icon }}</mat-icon>
+        </div>
+        <div class="file-info">
+          <h4 class="file-name" [matTooltip]="file.name">{{ file.name }}</h4>
+          <p class="file-type">{{ getFileTypeLabel(file.type) }}</p>
+        </div>
+        <div class="file-action">
+          <button mat-icon-button (click)="downloadFile(file); $event.stopPropagation()" matTooltip="İndir">
+            <mat-icon>download</mat-icon>
+          </button>
+        </div>
+      </div>
+      }
+    </div>
+  </div>
+  }
+
+  <!-- Empty State -->
+  @if (!isLoading && files.length === 0) {
+  <div class="empty-state">
+    <mat-icon>folder_off</mat-icon>
+    <p>Bu sipariş için dosya bulunamadı.</p>
+  </div>
+  }
+</div>

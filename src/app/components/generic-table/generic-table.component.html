@@ -75,8 +75,29 @@
           }
         </div>
       </th>
-      <td mat-cell *matCellDef="let row" [class.numeric-cell]="isNumeric(getNestedPropertyValue(row, column))">
-        <span>{{ getNestedPropertyValue(row, column) }}</span>
+
+      <td mat-cell *matCellDef="let row"
+          [class.numeric-cell]="!isButtonColumn(column) && isNumeric(getNestedPropertyValue(row, column))"
+          [class.button-cell]="isButtonColumn(column)">
+
+        <!-- Button Column Template -->
+        @if (isButtonColumn(column)) {
+          @if (getButtonConfig(column); as btnConfig) {
+            <button mat-icon-button
+                    [color]="btnConfig.color || 'primary'"
+                    [matTooltip]="btnConfig.tooltip || ''"
+                    [class]="btnConfig.class || ''"
+                    (click)="onCellButtonClick(row, column, $event)">
+              <mat-icon>{{ btnConfig.icon || 'more_vert' }}</mat-icon>
+              @if (btnConfig.text) {
+                <span class="button-text">{{ btnConfig.text }}</span>
+              }
+            </button>
+          }
+        } @else {
+          <!-- Regular Cell Content -->
+          <span>{{ getNestedPropertyValue(row, column) }}</span>
+        }
       </td>
     </ng-container>
     }
