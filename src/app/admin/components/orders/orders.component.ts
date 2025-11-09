@@ -42,7 +42,7 @@ export class OrdersComponent implements OnInit {
     'name',
     'date',
     'company_relation.target_company_name',
-    'company_relation.target_company.country',
+    'company_relation.target_company_country_name',
     'order_details',
     'package',
     'files'
@@ -72,7 +72,7 @@ export class OrdersComponent implements OnInit {
       required: false
     },
     {
-      key: 'company_relation.target_company.country',
+      key: 'company_relation.target_company_country_name',
       label: 'Ülke',
       type: 'text',
       required: false
@@ -117,7 +117,7 @@ export class OrdersComponent implements OnInit {
 
   nestedDisplayColumns: { [key: string]: string } = {
     'company_relation.target_company_name': 'Firma Adı',
-    'company_relation.target_company.country': 'Ülke',
+    'company_relation.target_company_country_name': 'Ülke',
     'order_details': 'Ürün Detayları',
     'package': 'Paletler',
     'files': 'Dosyalar',
@@ -129,7 +129,7 @@ export class OrdersComponent implements OnInit {
     'name',
     'date',
     'company_relation.target_company_name',
-    'company_relation.target_company.country'
+    'company_relation.target_company_country_name'
   ];
 
   ngOnInit(): void {
