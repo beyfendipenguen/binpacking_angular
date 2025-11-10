@@ -651,25 +651,34 @@ export class ResultStepComponent implements OnInit, OnDestroy {
         if (result === true) {
           // eger islemler sirasinda sync olmadigi icin hata olursa burayi tek bir action ile baslatip chain olustur.
           this.threeJSComponent.deletedPackages.forEach(uiPackage => this.store.dispatch(removePackage({ packageToRemove: uiPackage })))
+          this.threeJSComponent.deletedPackages = []
           this.remainingProducts().forEach(product => this.store.dispatch(deleteRemainingProduct({ product: product })));
           this.store.dispatch(palletControlSubmit())
           this.store.dispatch(updateOrderResult())
-          this.completeShipment()
+          try {
+            this.localStorageService.clearStorage();
+            this.store.dispatch(resetStepper());
+
+            this.toastService.success(
+              `Sevkiyat başarıyla tamamlandı!`,
+              'Tamamlandı!'
+            );
+
+            setTimeout(() => {
+              this.shipmentCompleted.emit();
+            }, 1500);
+
+          } catch (error) {
+            this.toastService.error('Sevkiyat tamamlanırken hata oluştu');
+          }
         }
       });
     }
-
-
     if (!this.hasResults) {
       this.toastService.warning('Önce optimizasyonu tamamlayın');
       return;
     }
-
-    const confirmMessage = 'Sevkiyat tamamlanacak, onaylıyor musunuz?'
-
-    const confirmed = confirm(confirmMessage);
-    if (!confirmed) return;
-
+    this.store.dispatch(updateOrderResult())
     try {
       this.localStorageService.clearStorage();
       this.store.dispatch(resetStepper());
