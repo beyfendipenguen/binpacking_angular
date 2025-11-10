@@ -1,0 +1,129 @@
+// Tema Renkleri
+$primary-dark: #006A6A;
+$primary-darker: #004A4A;
+$accent-gold: #D6BB86;
+
+.dialog-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  max-height: 80vh;
+
+  .dialog-header {
+    display: flex;
+    align-items: center;
+    padding: 20px 24px;
+    background: linear-gradient(135deg, rgba($primary-dark, 0.05) 0%, rgba($accent-gold, 0.05) 100%);
+    border-bottom: 2px solid rgba($primary-dark, 0.1);
+    flex-shrink: 0;
+
+    .header-icon {
+      width: 48px;
+      height: 48px;
+      background: linear-gradient(135deg, $primary-dark, $primary-darker);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 16px;
+
+      mat-icon {
+        color: white;
+        font-size: 24px;
+        width: 24px;
+        height: 24px;
+      }
+    }
+
+    .header-content {
+      flex: 1;
+
+      .dialog-title {
+        margin: 0 0 4px;
+        font-size: 20px;
+        font-weight: 600;
+        color: $primary-dark;
+      }
+
+      .dialog-subtitle {
+        margin: 0;
+        font-size: 14px;
+        color: #666;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+
+        .order-name {
+          font-weight: 500;
+          color: $primary-dark;
+        }
+
+        .separator {
+          color: #ccc;
+        }
+
+        .company-name {
+          color: #888;
+        }
+      }
+    }
+
+    .close-button {
+      color: #666;
+      transition: all 0.3s ease;
+
+      &:hover {
+        color: $primary-dark;
+        background: rgba($primary-dark, 0.1);
+        transform: rotate(90deg);
+      }
+    }
+  }
+
+  .dialog-content {
+    flex: 1;
+    overflow: auto;
+    padding: 24px;
+    background: #f8f9fa;
+
+    app-generic-table {
+      display: block;
+      height: 100%;
+    }
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .dialog-container {
+    .dialog-header {
+      padding: 16px;
+
+      .header-icon {
+        width: 40px;
+        height: 40px;
+
+        mat-icon {
+          font-size: 20px;
+          width: 20px;
+          height: 20px;
+        }
+      }
+
+      .header-content {
+        .dialog-title {
+          font-size: 18px;
+        }
+
+        .dialog-subtitle {
+          font-size: 12px;
+          flex-wrap: wrap;
+        }
+      }
+    }
+
+    .dialog-content {
+      padding: 16px;
+    }
+  }
+}

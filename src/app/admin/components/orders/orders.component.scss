@@ -1,1109 +1,123 @@
-/* Modern Base Styles */
-.logistics-container {
-  padding: 0;
-  max-width: 100%;
-  margin: 0;
+// Tema Renkleri
+$primary-dark: #006A6A;
+$primary-darker: #004A4A;
+$accent-gold: #D6BB86;
+$accent-gold-light: #E8D5A8;
+
+.orders-container {
   min-height: 100vh;
   background: linear-gradient(135deg, #f8fffe 0%, #e8f5f5 100%);
-  position: relative;
-}
-
-/* Hero Header */
-.hero-header {
-  position: relative;
-  padding: 40px 24px 60px;
-  overflow: hidden;
-}
-
-.hero-background {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 100%;
-  background: linear-gradient(135deg, #006A6A 0%, #004A4A 50%, #D6BB86 100%);
-  z-index: 0;
-}
-
-.hero-pattern {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-image:
-    radial-gradient(circle at 20% 80%, rgba(255,255,255,0.1) 0%, transparent 50%),
-    radial-gradient(circle at 80% 20%, rgba(255,255,255,0.1) 0%, transparent 50%);
-}
-
-.hero-content {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  align-items: center;
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
-.hero-icon-wrapper {
-  position: relative;
-  margin-right: 32px;
-}
-
-.hero-icon {
-  position: relative;
-  width: 80px;
-  height: 80px;
-  background: rgba(255,255,255,0.2);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255,255,255,0.3);
-}
-
-.hero-icon .material-icons {
-  font-size: 40px;
-  color: white;
-}
-
-.icon-glow {
-  position: absolute;
-  top: -10px;
-  left: -10px;
-  right: -10px;
-  bottom: -10px;
-  background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 70%);
-  border-radius: 50%;
-  animation: pulse 2s ease-in-out infinite;
-}
-
-.hero-text {
-  color: white;
-  flex: 1;
-}
-
-.hero-title {
-  font-size: 36px;
-  font-weight: 700;
-  margin: 0 0 8px;
-  text-shadow: 0 2px 4px rgba(0,0,0,0.3);
-}
-
-.hero-subtitle {
-  font-size: 18px;
-  margin: 0 0 24px;
-  opacity: 0.9;
-  font-weight: 300;
-}
-
-.hero-stats {
-  display: flex;
-  gap: 32px;
-}
-
-.stat-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 12px 20px;
-  background: rgba(255,255,255,0.1);
-  border-radius: 25px;
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255,255,255,0.2);
-}
-
-.stat-icon {
-  font-size: 20px;
-}
-
-.stat-text {
-  font-size: 14px;
-  font-weight: 500;
-}
-
-/* Dashboard Grid */
-.dashboard-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 32px;
-  max-width: 1200px;
-  margin: -30px auto 0;
-  padding: 0 24px 40px;
-  position: relative;
-  z-index: 2;
-}
-
-.grid-section {
-  min-height: 0;
-}
-
-.section-wrapper {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-  height: 100%;
-}
-
-/* Glass Card Effect */
-.glass-card {
-  position: relative;
-  background: rgba(255,255,255,0.95);
-  backdrop-filter: blur(20px);
-  border-radius: 20px;
-  border: 1px solid rgba(255,255,255,0.2);
-  box-shadow:
-    0 8px 32px rgba(0,0,0,0.1),
-    0 0 0 1px rgba(255,255,255,0.05);
-  overflow: hidden;
-  transition: all 0.3s ease;
-}
-
-.glass-card:hover {
-  transform: translateY(-2px);
-  box-shadow:
-    0 12px 40px rgba(0,0,0,0.15),
-    0 0 0 1px rgba(255,255,255,0.1);
-}
-
-.card-glow {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, #006A6A, transparent);
-}
-
-/* Floating Selector */
-.floating-selector {
-  background: rgba(255,255,255,0.95);
-  backdrop-filter: blur(20px);
-  border-radius: 20px;
-  border: 1px solid rgba(255,255,255,0.2);
-  box-shadow: 0 8px 32px rgba(0,0,0,0.1);
-  overflow: hidden;
-  animation: slideInFromTop 0.6s ease-out;
-}
-
-.selector-header {
-  display: flex;
-  align-items: center;
-  padding: 20px 24px 16px;
-  background: linear-gradient(135deg, rgba(0,106,106,0.05) 0%, rgba(214,187,134,0.05) 100%);
-}
-
-.selector-icon {
-  width: 40px;
-  height: 40px;
-  background: linear-gradient(135deg, #006A6A, #004A4A);
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-right: 16px;
-}
-
-.selector-icon .material-icons {
-  color: white;
-  font-size: 20px;
-}
-
-.selector-header h3 {
+  padding: 0;
   margin: 0;
-  font-size: 18px;
-  font-weight: 600;
-  color: #006A6A;
-}
 
-.selector-field-wrapper {
-  padding: 0 24px 24px;
-}
-
-.select-field-container {
-  position: relative;
-  margin-bottom: 16px;
-}
-
-.floating-label {
-  position: absolute;
-  top: -10px;
-  left: 16px;
-  background: white;
-  padding: 0 8px;
-  font-size: 12px;
-  color: #006A6A;
-  font-weight: 500;
-  z-index: 1;
-}
-
-.custom-select {
-  width: 100%;
-  padding: 16px 50px 16px 16px;
-  border: 2px solid #e0e0e0;
-  border-radius: 12px;
-  background: white;
-  font-size: 16px;
-  color: #333;
-  transition: all 0.3s ease;
-  appearance: none;
-}
-
-.custom-select:focus {
-  outline: none;
-  border-color: #006A6A;
-  box-shadow: 0 0 0 3px rgba(0,106,106,0.1);
-}
-
-.select-arrow {
-  position: absolute;
-  right: 16px;
-  top: 50%;
-  transform: translateY(-50%);
-  pointer-events: none;
-  color: #006A6A;
-  transition: transform 0.3s ease;
-}
-
-.search-enhancement {
-  margin-top: 16px;
-}
-
-.search-input-wrapper {
-  position: relative;
-}
-
-.search-input {
-  width: 100%;
-  padding: 16px 16px 16px 50px;
-  border: 2px solid #e0e0e0;
-  border-radius: 12px;
-  background: white;
-  font-size: 16px;
-  transition: all 0.3s ease;
-}
-
-.search-input:focus {
-  outline: none;
-  border-color: #D6BB86;
-  box-shadow: 0 0 0 3px rgba(214,187,134,0.1);
-}
-
-.search-icon {
-  position: absolute;
-  left: 16px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #666;
-  font-size: 20px;
-}
-
-/* Modern Card Headers */
-.card-header-modern {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 24px;
-  background: linear-gradient(135deg, rgba(0,106,106,0.02) 0%, rgba(214,187,134,0.02) 100%);
-  border-bottom: 1px solid rgba(0,0,0,0.05);
-}
-
-.header-left {
-  display: flex;
-  align-items: center;
-}
-
-.card-icon-modern {
-  position: relative;
-  width: 48px;
-  height: 48px;
-  background: linear-gradient(135deg, #006A6A, #004A4A);
-  border-radius: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-right: 16px;
-}
-
-.card-icon-modern.files {
-  background: linear-gradient(135deg, #D6BB86, #C0A670);
-}
-
-.card-icon-modern .material-icons {
-  color: white;
-  font-size: 24px;
-}
-
-.icon-ripple {
-  position: absolute;
-  top: -2px;
-  left: -2px;
-  right: -2px;
-  bottom: -2px;
-  border-radius: 16px;
-  background: linear-gradient(135deg, #006A6A, #004A4A);
-  opacity: 0.3;
-  animation: ripple 2s ease-in-out infinite;
-}
-
-.header-content {
-  flex: 1;
-}
-
-.card-title-modern {
-  margin: 0 0 4px;
-  font-size: 20px;
-  font-weight: 600;
-  color: #006A6A;
-}
-
-.card-subtitle-modern {
-  margin: 0;
-  font-size: 14px;
-  color: #666;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.company-name {
-  font-weight: 500;
-  color: #006A6A;
-}
-
-.separator {
-  color: #ccc;
-}
-
-.order-date {
-  color: #888;
-}
-
-.header-right {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.status-indicator {
-  display: flex;
-  align-items: center;
-  padding: 8px 16px;
-  background: rgba(0,106,106,0.1);
-  border-radius: 20px;
-  font-size: 14px;
-  font-weight: 500;
-  color: #006A6A;
-  position: relative;
-}
-
-.status-pulse {
-  width: 8px;
-  height: 8px;
-  background: #006A6A;
-  border-radius: 50%;
-  margin-right: 8px;
-  animation: pulse 2s ease-in-out infinite;
-}
-
-/* Modern Buttons */
-.modern-btn {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 12px 20px;
-  border: none;
-  border-radius: 12px;
-  font-weight: 500;
-  cursor: pointer;
-  position: relative;
-  overflow: hidden;
-  transition: all 0.3s ease;
-  text-decoration: none;
-}
-
-.modern-btn.primary {
-  background: linear-gradient(135deg, #006A6A, #004A4A);
-  color: white;
-}
-
-.modern-btn.secondary {
-  background: linear-gradient(135deg, #D6BB86, #C0A670);
-  color: white;
-}
-
-.modern-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
-}
-
-.btn-ripple {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 70%);
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-
-.modern-btn:hover .btn-ripple {
-  opacity: 1;
-}
-
-/* Enhanced Loading Animation */
-.loading-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 60px 20px;
-}
-
-.loading-animation {
-  position: relative;
-  margin-bottom: 24px;
-}
-
-.truck-container {
-  position: relative;
-}
-
-.truck-icon {
-  font-size: 48px;
-  color: #006A6A;
-  animation: drive 3s ease-in-out infinite;
-}
-
-.loading-dots {
-  position: absolute;
-  bottom: -15px;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  gap: 6px;
-}
-
-.loading-dots span {
-  width: 6px;
-  height: 6px;
-  background: #D6BB86;
-  border-radius: 50%;
-  animation: bounce 1.5s ease-in-out infinite;
-}
-
-.loading-dots span:nth-child(2) { animation-delay: 0.2s; }
-.loading-dots span:nth-child(3) { animation-delay: 0.4s; }
-
-.loading-waves {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 100px;
-  height: 100px;
-}
-
-.wave {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 20px;
-  height: 20px;
-  border: 2px solid rgba(0,106,106,0.3);
-  border-radius: 50%;
-  animation: wave 2s linear infinite;
-}
-
-.wave2 { animation-delay: 0.5s; }
-.wave3 { animation-delay: 1s; }
-
-.loading-text {
-  color: #666;
-  font-size: 16px;
-  text-align: center;
-}
-
-/* Products Showcase - Kompakt Tasarım */
-.products-showcase {
-  padding: 16px 24px 20px;
-}
-
-.products-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 6px; // Daha küçük boşluk
-  max-height: 300px; // Maksimum yükseklik sınırı
-  overflow-y: auto; // Scroll özelliği
-  overflow-x: hidden;
-  padding-right: 4px;
-}
-
-/* Scrollbar Styling */
-.products-grid::-webkit-scrollbar {
-  width: 4px;
-}
-
-.products-grid::-webkit-scrollbar-track {
-  background: rgba(0,0,0,0.05);
-  border-radius: 2px;
-}
-
-.products-grid::-webkit-scrollbar-thumb {
-  background: rgba(0,106,106,0.3);
-  border-radius: 2px;
-}
-
-.products-grid::-webkit-scrollbar-thumb:hover {
-  background: rgba(0,106,106,0.5);
-}
-
-.product-card {
-  background: white;
-  border-radius: 10px; // Daha küçük radius
-  border: 1px solid rgba(0,0,0,0.05);
-  transition: all 0.2s ease; // Daha hızlı transition
-  animation: slideInFromBottom 0.4s ease-out forwards;
-  opacity: 0;
-  transform: translateY(10px); // Daha küçük başlangıç offset
-  display: flex;
-  align-items: center;
-  gap: 12px; // Daha küçük gap
-  padding: 10px 14px; // Daha kompakt padding
-  min-height: auto; // Auto height
-}
-
-.product-card:hover {
-  transform: translateY(-1px); // Daha subtle hover effect
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-}
-
-.product-visual {
-  display: flex;
-  align-items: center;
-  gap: 8px; // İcon ve badge arası mesafe
-}
-
-.product-icon-bg {
-  width: 32px;
-  height: 32px; // Daha küçük icon
-  border-radius: 8px;
-  background: linear-gradient(135deg, rgba(0,106,106,0.1), rgba(214,187,134,0.1));
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0; // Küçülmeyi engelle
-}
-
-.product-icon-bg .material-icons {
-  color: #006A6A;
-  font-size: 18px; // Daha küçük icon
-}
-
-.product-badge {
-  background: linear-gradient(135deg, #006A6A, #004A4A);
-  color: white;
-  padding: 2px 8px; // Daha kompakt
-  font-size: 11px; // Daha küçük font
-  border-radius: 12px;
-  font-weight: 600;
-  min-width: 24px;
-  text-align: center;
-  flex-shrink: 0;
-}
-
-.product-info {
-  flex: 1;
-  min-width: 0; // Text overflow için
-}
-
-.product-name {
-  margin: 0;
-  font-size: 14px; // Daha küçük font
-  font-weight: 500;
-  color: #333;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis; // Uzun metinler için
-}
-
-/* Metrics Dashboard - Kompakt */
-.metrics-dashboard {
-  display: grid;
-  grid-template-columns: 1fr 1fr; // İki kolon yan yana
-  gap: 12px; // Daha küçük gap
-  margin-top: 16px; // Üstten mesafe
-}
-
-.metric-card {
-  background: white;
-  border-radius: 12px; // Daha küçük radius
-  padding: 16px; // Daha küçük padding
-  border: 1px solid rgba(0,0,0,0.05);
-  display: flex;
-  align-items: center;
-  gap: 12px; // Daha küçük gap
-  transition: all 0.3s ease;
-  position: relative;
-  overflow: hidden;
-  min-height: auto; // Auto height
-}
-
-.metric-card:hover {
-  transform: translateY(-1px); // Daha subtle hover
-  box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-}
-
-.metric-card.total-products {
-  border-left: 3px solid #006A6A; // Daha ince border
-}
-
-.metric-card.total-meters {
-  border-left: 3px solid #D6BB86;
-}
-
-.metric-icon {
-  width: 40px; // Daha küçük icon container
-  height: 40px;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, rgba(0,106,106,0.1), rgba(0,106,106,0.05));
-  flex-shrink: 0;
-}
-
-.metric-icon .material-icons {
-  color: #006A6A;
-  font-size: 20px; // Daha küçük icon
-}
-
-.metric-content {
-  flex: 1;
-  min-width: 0;
-}
-
-.metric-value {
-  display: block;
-  font-size: 20px; // Daha küçük değer
-  font-weight: 700;
-  color: #006A6A;
-  line-height: 1.1;
-}
-
-.metric-label {
-  display: block;
-  font-size: 12px; // Daha küçük label
-  color: #666;
-  margin-top: 2px;
-}
-
-.metric-trend {
-  color: #4CAF50;
-  display: none; // Trend'i gizle - yer tasarrufu için
-}
-
-/* Files Showcase */
-.files-showcase {
-  padding: 0 24px 24px;
-}
-
-.file-item-modern {
-  display: flex;
-  align-items: center;
-  padding: 16px;
-  background: white;
-  border-radius: 12px;
-  margin-bottom: 12px;
-  border: 1px solid rgba(0,0,0,0.05);
-  transition: all 0.3s ease;
-  animation: slideInFromLeft 0.6s ease-out forwards;
-  opacity: 0;
-  transform: translateX(-20px);
-}
-
-.file-item-modern:hover {
-  transform: translateX(4px);
-  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-}
-
-.file-icon-wrapper {
-  width: 40px;
-  height: 40px;
-  background: linear-gradient(135deg, rgba(214,187,134,0.1), rgba(214,187,134,0.05));
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-right: 16px;
-}
-
-.file-icon-wrapper .material-icons {
-  color: #D6BB86;
-  font-size: 20px;
-}
-
-.file-details {
-  flex: 1;
-}
-
-.file-name {
-  font-weight: 500;
-  color: #333;
-}
-
-.file-download {
-  width: 36px;
-  height: 36px;
-  background: linear-gradient(135deg, #006A6A, #004A4A);
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  text-decoration: none;
-  transition: all 0.3s ease;
-}
-
-.file-download:hover {
-  transform: scale(1.1);
-  box-shadow: 0 4px 12px rgba(0,106,106,0.3);
-}
-
-/* Section Header Modern - Kompakt */
-.section-header-modern {
-  display: flex;
-  align-items: center;
-  padding: 18px 20px; // Daha küçük padding
-  background: rgba(255,255,255,0.95);
-  backdrop-filter: blur(20px);
-  border-radius: 16px; // Daha küçük radius
-  border: 1px solid rgba(255,255,255,0.2);
-  box-shadow: 0 4px 16px rgba(0,0,0,0.08); // Daha subtle shadow
-}
-
-.header-icon-wrapper {
-  position: relative;
-  width: 44px; // Daha küçük icon
-  height: 44px;
-  background: linear-gradient(135deg, #006A6A, #004A4A);
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-right: 16px;
-}
-
-.header-icon-wrapper .material-icons {
-  color: white;
-  font-size: 22px; // Daha küçük icon
-}
-
-.header-pulse {
-  position: absolute;
-  top: -1px;
-  left: -1px;
-  right: -1px;
-  bottom: -1px;
-  background: linear-gradient(135deg, #006A6A, #004A4A);
-  border-radius: 13px;
-  opacity: 0.3;
-  animation: pulse 2s ease-in-out infinite;
-}
-
-.header-text h2 {
-  margin: 0 0 2px;
-  font-size: 20px; // Daha küçük başlık
-  font-weight: 700;
-  color: #006A6A;
-}
-
-.header-text p {
-  margin: 0;
-  color: #666;
-  font-size: 13px; // Daha küçük alt başlık
-}
-
-/* Packages Container - Kompakt */
-.packages-container {
-  max-height: 500px; // Daha küçük sabit yükseklik
-  overflow-y: auto;
-  overflow-x: hidden;
-  padding-right: 4px; // Scrollbar için yer
-}
-
-/* Scrollbar Styling for Packages */
-.packages-container::-webkit-scrollbar {
-  width: 4px;
-}
-
-.packages-container::-webkit-scrollbar-track {
-  background: rgba(0,0,0,0.05);
-  border-radius: 2px;
-}
-
-.packages-container::-webkit-scrollbar-thumb {
-  background: rgba(0,106,106,0.3);
-  border-radius: 2px;
-}
-
-.packages-container::-webkit-scrollbar-thumb:hover {
-  background: rgba(0,106,106,0.5);
-}
-
-.packages-masonry {
-  display: flex;
-  flex-direction: column; // Dikey layout - daha verimli
-  gap: 12px; // Daha küçük gap
-  padding: 0 4px;
-}
-
-.package-card-modern {
-  background: rgba(255,255,255,0.95);
-  backdrop-filter: blur(20px);
-  border-radius: 14px; // Daha küçük radius
-  border: 1px solid rgba(255,255,255,0.2);
-  box-shadow: 0 4px 16px rgba(0,0,0,0.08); // Daha subtle shadow
-  overflow: hidden;
-  transition: all 0.2s ease; // Daha hızlı transition
-  animation: slideInFromRight 0.4s ease-out forwards;
-  opacity: 0;
-  transform: translateX(10px); // Daha küçük başlangıç offset
-}
-
-.package-card-modern:hover {
-  transform: translateY(-2px) translateX(0);
-  box-shadow: 0 6px 20px rgba(0,0,0,0.12);
-}
-
-.package-header-modern {
-  padding: 16px; // Daha küçük padding
-  cursor: pointer;
-  position: relative;
-}
-
-.package-visual {
-  display: flex;
-  align-items: center;
-  margin-bottom: 12px; // Daha küçük margin
-}
-
-.pallet-3d {
-  position: relative;
-  width: 36px; // Daha küçük palet icon
-  height: 36px;
-  margin-right: 12px;
-}
-
-.pallet-base {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 6px; // Daha ince
-  background: linear-gradient(135deg, #D6BB86, #C0A670);
-  border-radius: 3px;
-}
-
-.pallet-boxes {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 24px; // Daha küçük
-  background: linear-gradient(135deg, rgba(0,106,106,0.2), rgba(0,106,106,0.1));
-  border: 1px solid rgba(0,106,106,0.3);
-  border-radius: 3px;
-}
-
-.pallet-shadow {
-  position: absolute;
-  bottom: -3px;
-  left: 1px;
-  right: -1px;
-  height: 3px;
-  background: rgba(0,0,0,0.1);
-  border-radius: 50%;
-  filter: blur(1px);
-}
-
-.package-number {
-  position: absolute;
-  top: -6px;
-  right: -6px;
-  width: 20px; // Daha küçük
-  height: 20px;
-  background: linear-gradient(135deg, #006A6A, #004A4A);
-  color: white;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 11px; // Daha küçük font
-  font-weight: 600;
-}
-
-.package-info {
-  flex: 1;
-  min-width: 0;
-}
-
-.package-title {
-  margin: 0 0 3px;
-  font-size: 16px; // Daha küçük
-  font-weight: 600;
-  color: #006A6A;
-}
-
-.package-dimensions {
-  margin: 0 0 8px; // Daha küçük margin
-  color: #666;
-  font-size: 12px; // Daha küçük font
-}
-
-.package-metrics-modern {
-  display: flex;
-  gap: 6px; // Daha küçük gap
-}
-
-.metric-chip {
-  display: flex;
-  align-items: center;
-  gap: 3px; // Daha küçük gap
-  padding: 4px 8px; // Daha kompakt
-  background: rgba(0,106,106,0.1);
-  border-radius: 12px;
-  font-size: 11px; // Daha küçük font
-  color: #006A6A;
-  font-weight: 500;
-}
-
-.metric-chip .material-icons {
-  font-size: 14px; // Daha küçük icon
-}
-
-.expand-control {
-  position: absolute;
-  top: 16px;
-  right: 16px;
-}
-
-.expand-icon {
-  width: 28px; // Daha küçük
-  height: 28px;
-  background: rgba(0,106,106,0.1);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.3s ease;
-}
-
-.expand-icon .material-icons {
-  color: #006A6A;
-  font-size: 18px; // Daha küçük icon
-  transition: transform 0.3s ease;
-}
-
-.expand-icon.expanded .material-icons {
-  transform: rotate(180deg);
-}
-
-/* Package Content - Kompakt */
-.package-content-modern {
-  padding: 0 16px 16px; // Daha küçük padding
-  background: rgba(0,106,106,0.02);
-  border-top: 1px solid rgba(0,0,0,0.05);
-}
-
-.products-list-modern {
-  max-height: 150px; // Daha küçük maksimum yükseklik
-  overflow-y: auto;
-  overflow-x: hidden;
-  padding-right: 4px;
-}
-
-/* Scrollbar for products list */
-.products-list-modern::-webkit-scrollbar {
-  width: 3px;
-}
-
-.products-list-modern::-webkit-scrollbar-track {
-  background: rgba(0,0,0,0.05);
-  border-radius: 2px;
-}
-
-.products-list-modern::-webkit-scrollbar-thumb {
-  background: rgba(0,106,106,0.3);
-  border-radius: 2px;
-}
-
-.product-item-modern {
-  display: flex;
-  align-items: center;
-  padding: 8px 0; // Daha küçük padding
-  animation: slideInFromBottom 0.3s ease-out forwards;
-  opacity: 0;
-  transform: translateY(5px); // Daha küçük offset
-  border-bottom: 1px solid rgba(0,0,0,0.02); // Subtle ayırıcı
-}
-
-.product-item-modern:last-child {
-  border-bottom: none;
-}
-
-.product-dot {
-  width: 6px; // Daha küçük dot
-  height: 6px;
-  background: #D6BB86;
-  border-radius: 50%;
-  margin-right: 10px; // Daha küçük margin
-  flex-shrink: 0;
-}
-
-.product-name-modern {
-  font-size: 13px; // Daha küçük font
-  color: #333;
-  font-weight: 500;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  /* Hero Header */
+  .hero-header {
+    position: relative;
+    padding: 40px 24px 60px;
+    overflow: hidden;
+    margin-bottom: 32px;
+  }
+
+  .hero-background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 100%;
+    background: linear-gradient(135deg, $primary-dark 0%, $primary-darker 50%, $accent-gold 100%);
+    z-index: 0;
+  }
+
+  .hero-pattern {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image:
+      radial-gradient(circle at 20% 80%, rgba(255,255,255,0.1) 0%, transparent 50%),
+      radial-gradient(circle at 80% 20%, rgba(255,255,255,0.1) 0%, transparent 50%);
+  }
+
+  .hero-content {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    max-width: 95%;
+    margin: 0 auto;
+  }
+
+  .hero-icon-wrapper {
+    position: relative;
+    margin-right: 32px;
+  }
+
+  .hero-icon {
+    position: relative;
+    width: 80px;
+    height: 80px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.3);
+
+    .material-icons {
+      font-size: 40px;
+      color: white;
+    }
+  }
+
+  .icon-glow {
+    position: absolute;
+    top: -10px;
+    left: -10px;
+    right: -10px;
+    bottom: -10px;
+    background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 70%);
+    border-radius: 50%;
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  .hero-text {
+    color: white;
+    flex: 1;
+
+    .hero-title {
+      font-size: 36px;
+      font-weight: 700;
+      margin: 0 0 8px;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    }
+
+    .hero-subtitle {
+      font-size: 18px;
+      margin: 0;
+      opacity: 0.9;
+      font-weight: 300;
+    }
+  }
+
+  /* Table Wrapper */
+  .table-wrapper {
+    max-width: 95%;
+    margin: 0 auto;
+    padding: 0 24px 40px;
+    position: relative;
+    z-index: 2;
+    margin-top: -30px;
+
+    app-generic-table {
+      display: block;
+      animation: slideInFromTop 0.6s ease-out;
+    }
+  }
 }
 
 /* Animations */
-@keyframes slideInFromTop {
-  from {
-    opacity: 0;
-    transform: translateY(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes slideInFromBottom {
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes slideInFromLeft {
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-@keyframes slideInFromRight {
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
 @keyframes pulse {
   0%, 100% {
     opacity: 0.3;
@@ -1115,188 +129,97 @@
   }
 }
 
-@keyframes ripple {
-  0% {
-    opacity: 0.3;
-    transform: scale(1);
-  }
-  100% {
+@keyframes slideInFromTop {
+  from {
     opacity: 0;
-    transform: scale(1.5);
+    transform: translateY(-20px);
   }
-}
-
-@keyframes drive {
-  0%, 100% { transform: translateX(-10px); }
-  50% { transform: translateX(10px); }
-}
-
-@keyframes bounce {
-  0%, 100% { transform: translateY(0); opacity: 0.3; }
-  50% { transform: translateY(-10px); opacity: 1; }
-}
-
-@keyframes wave {
-  0% {
-    transform: translate(-50%, -50%) scale(0);
+  to {
     opacity: 1;
-  }
-  100% {
-    transform: translate(-50%, -50%) scale(1);
-    opacity: 0;
+    transform: translateY(0);
   }
 }
 
-/* Responsive Design - Optimized */
+/* Custom Button Styles in Generic Table */
+::ng-deep {
+  .details-button,
+  .package-button,
+  .files-button {
+    transition: all 0.3s ease;
+
+    &:hover {
+      transform: scale(1.15) !important;
+      box-shadow: 0 4px 12px rgba($primary-dark, 0.3);
+    }
+  }
+
+  .files-button:hover {
+    box-shadow: 0 4px 12px rgba($accent-gold, 0.4);
+  }
+}
+
+/* Responsive Design */
 @media (max-width: 1024px) {
-  .dashboard-grid {
-    grid-template-columns: 1fr;
-    gap: 20px; // Daha küçük gap
-  }
-
-  .hero-content {
-    flex-direction: column;
-    text-align: center;
-  }
-
-  .hero-icon-wrapper {
-    margin-right: 0;
-    margin-bottom: 20px; // Daha küçük margin
-  }
-
-  .hero-stats {
-    justify-content: center;
-  }
-
-  .packages-container {
-    max-height: 350px; // Daha küçük yükseklik
-  }
-
-  .products-grid {
-    max-height: 250px; // Daha küçük yükseklik
+  .orders-container {
+    .table-wrapper {
+      max-width: 100%;
+      padding: 0 16px 32px;
+    }
   }
 }
 
 @media (max-width: 768px) {
-  .hero-header {
-    padding: 20px 16px 32px; // Daha küçük padding
-  }
+  .orders-container {
+    .hero-header {
+      padding: 20px 16px 40px;
+    }
 
-  .hero-title {
-    font-size: 26px; // Daha küçük başlık
-  }
+    .hero-content {
+      flex-direction: column;
+      text-align: center;
+    }
 
-  .hero-subtitle {
-    font-size: 15px;
-  }
+    .hero-icon-wrapper {
+      margin-right: 0;
+      margin-bottom: 20px;
+    }
 
-  .dashboard-grid {
-    padding: 0 16px 20px; // Daha küçük padding
-    margin-top: -16px;
-  }
+    .hero-icon {
+      width: 60px;
+      height: 60px;
 
-  .hero-stats {
-    flex-direction: column;
-    gap: 10px; // Daha küçük gap
-  }
+      .material-icons {
+        font-size: 32px;
+      }
+    }
 
-  .stat-item {
-    width: 100%;
-    justify-content: center;
-  }
+    .hero-text {
+      .hero-title {
+        font-size: 28px;
+      }
 
-  .packages-container {
-    max-height: 300px; // Daha da küçük
-  }
+      .hero-subtitle {
+        font-size: 16px;
+      }
+    }
 
-  .products-grid {
-    max-height: 200px; // Daha küçük
-  }
-
-  .metrics-dashboard {
-    grid-template-columns: 1fr; // Tek kolon
-    gap: 8px; // Daha küçük gap
-  }
-
-  .metric-card {
-    padding: 12px; // Daha küçük padding
-  }
-
-  .metric-icon {
-    width: 36px; // Daha küçük icon
-    height: 36px;
-  }
-
-  .metric-icon .material-icons {
-    font-size: 18px;
-  }
-
-  .metric-value {
-    font-size: 18px; // Daha küçük değer
-  }
-
-  .section-header-modern {
-    padding: 14px 16px; // Daha küçük padding
-  }
-
-  .header-icon-wrapper {
-    width: 36px; // Daha küçük icon
-    height: 36px;
-    margin-right: 12px;
-  }
-
-  .header-icon-wrapper .material-icons {
-    font-size: 18px;
-  }
-
-  .header-text h2 {
-    font-size: 18px; // Daha küçük başlık
-  }
-
-  .header-text p {
-    font-size: 12px;
+    .table-wrapper {
+      margin-top: -20px;
+      padding: 0 12px 24px;
+    }
   }
 }
 
 @media (max-width: 480px) {
-  .hero-icon {
-    width: 56px; // Daha küçük hero icon
-    height: 56px;
-  }
+  .orders-container {
+    .hero-text {
+      .hero-title {
+        font-size: 24px;
+      }
 
-  .hero-icon .material-icons {
-    font-size: 28px;
-  }
-
-  .hero-title {
-    font-size: 22px;
-  }
-
-  .card-header-modern {
-    flex-direction: column;
-    gap: 12px; // Daha küçük gap
-    align-items: flex-start;
-    padding: 16px; // Daha küçük padding
-  }
-
-  .header-right {
-    width: 100%;
-    justify-content: space-between;
-  }
-
-  .products-grid {
-    max-height: 180px; // En küçük yükseklik
-  }
-
-  .packages-container {
-    max-height: 250px; // En küçük yükseklik
-  }
-
-  .product-card {
-    padding: 8px 12px; // Daha küçük padding
-  }
-
-  .package-header-modern {
-    padding: 12px; // Daha küçük padding
+      .hero-subtitle {
+        font-size: 14px;
+      }
+    }
   }
 }

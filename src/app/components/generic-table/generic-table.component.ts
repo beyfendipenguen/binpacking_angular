@@ -9,7 +9,7 @@ import {
   AfterViewInit,
   SimpleChanges,
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import {
@@ -49,6 +49,30 @@ export interface ExternalDataResult<T> {
   count: number;
 }
 
+// Interface for button configuration in columns
+export interface ButtonConfig {
+  icon?: string;
+  text?: string;
+  color?: 'primary' | 'accent' | 'warn';
+  tooltip?: string;
+  class?: string;
+}
+
+// Interface for column definition with button support
+export interface ColumnDefinition {
+  key: string;
+  label: string;
+  type?: string;
+  required?: boolean;
+  buttonConfig?: ButtonConfig;
+}
+
+// Interface for cell button click event
+export interface CellButtonClickEvent<T> {
+  row: T;
+  column: string;
+}
+
 @Component({
   selector: 'app-generic-table',
   imports: [
@@ -69,6 +93,7 @@ export interface ExternalDataResult<T> {
     MatChipsModule,
     MatButtonToggleModule,
   ],
+  providers: [DatePipe],
   templateUrl: './generic-table.component.html',
   styleUrl: './generic-table.component.scss',
 })
@@ -79,12 +104,7 @@ export class GenericTableComponent<T> implements OnInit, AfterViewInit {
   @Input() title: string = 'Items';
   @Input() filterableColumns: string[] = [];
   @Input() relationOptions: { [key: string]: any[] } = {};
-  @Input() columnDefinitions: {
-    key: string;
-    label: string;
-    type?: string;
-    required?: boolean;
-  }[] = [];
+  @Input() columnDefinitions: ColumnDefinition[] = [];
   @Input() nestedDisplayColumns: { [key: string]: string } = {}; // İç içe sütunlar için görünen başlıklar
   @Input() showRowNumbers: boolean = true; // Sıra numaralarını gösterme ayarı
   @Input() showAddButton: boolean = true; // Ekleme butonu gösterme ayarı
@@ -109,11 +129,16 @@ export class GenericTableComponent<T> implements OnInit, AfterViewInit {
   @Output() addClick = new EventEmitter<void>(); // Yeni ekleme düğmesi tıklama olayı
   @Output() updateItem = new EventEmitter<T>();
   @Output() itemAdded = new EventEmitter<T>(); // Yeni öğe eklendiğinde tetiklenecek olay
+
+  // NEW: Output for custom button clicks
+  @Output() cellButtonClick = new EventEmitter<CellButtonClickEvent<T>>();
+
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
 
   private dialog = inject(MatDialog);
   private toastService = inject(ToastService);
+  private datePipe = inject(DatePipe);
 
   dataSource = new MatTableDataSource<T>([]);
   filterValues: { [key: string]: string } = {}; // Aktif filtre değerlerinin izlenmesi
@@ -124,6 +149,30 @@ export class GenericTableComponent<T> implements OnInit, AfterViewInit {
   currentSortField: string = '';
   currentSortDirection: string = '';
   isExternalMode: boolean = false; // Flag to determine if using external data source
+
+  /**
+   * Check if a column is a button type
+   */
+  isButtonColumn(column: string): boolean {
+    const colDef = this.columnDefinitions.find(def => def.key === column);
+    return colDef?.type === 'button' || colDef?.type === 'icon-button';
+  }
+
+  /**
+   * Get button configuration for a column
+   */
+  getButtonConfig(column: string): ButtonConfig | undefined {
+    const colDef = this.columnDefinitions.find(def => def.key === column);
+    return colDef?.buttonConfig;
+  }
+
+  /**
+   * Handle button click in a cell
+   */
+  onCellButtonClick(row: T, column: string, event: Event): void {
+    event.stopPropagation(); // Prevent row click event
+    this.cellButtonClick.emit({ row, column });
+  }
 
   /**
    * Bir değerin sayısal olup olmadığını kontrol eder
@@ -453,13 +502,11 @@ export class GenericTableComponent<T> implements OnInit, AfterViewInit {
     // Tabloda gösterilen sütunlara göre dinamik olarak görünür alanları belirle
 
     if (this.displayedColumns.length === 0) {
-
       return;
     }
 
     // Sütun tanımlarımız yoksa bir hata mesajı göster
     if (!this.columnDefinitions || this.columnDefinitions.length === 0) {
-
       //Basit sütun tanımları oluştur
       this.columnDefinitions = this.displayedColumns
         .filter((col) => col !== 'actions' && col !== 'rowNumber')
@@ -470,9 +517,6 @@ export class GenericTableComponent<T> implements OnInit, AfterViewInit {
           required: true,
         }));
     }
-
-    // Debug için bilgileri konsola yaz
-
 
     const dialogRef = this.dialog.open(AddOrUpdateDialogComponent, {
       width: '500px',
@@ -510,7 +554,6 @@ export class GenericTableComponent<T> implements OnInit, AfterViewInit {
                 this.isLoading = false;
               },
               error: (error) => {
-
                 this.toastService.error('Hata oluştu', 'Güncellenemedi');
                 this.isLoading = false;
               },
@@ -541,8 +584,6 @@ export class GenericTableComponent<T> implements OnInit, AfterViewInit {
                 this.isLoading = false;
               },
               error: (error) => {
-
-
                 this.toastService.error('Hata oluştu', 'Eklenemedi');
                 this.isLoading = false;
               },
@@ -630,6 +671,26 @@ export class GenericTableComponent<T> implements OnInit, AfterViewInit {
         return '';
       }
       value = value[prop];
+    }
+
+    return this.formatValue(value, path);
+  }
+
+  /**
+   * Format value based on column type
+   * @param value The value to format
+   * @param column The column name
+   * @returns Formatted value
+   */
+  formatValue(value: any, column: string): any {
+    if (value === null || value === undefined || value === '') {
+      return '';
+    }
+
+    // Check if this column is a date type
+    if (this.columnTypes[column] === 'date') {
+      // Format date as dd/MM/yyyy
+      return this.datePipe.transform(value, 'dd/MM/yyyy') || value;
     }
 
     // Sayısal değerleri formatlamak için kontrol

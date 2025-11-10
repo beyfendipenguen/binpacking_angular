@@ -1,0 +1,346 @@
+// Tema Renkleri
+$primary-dark: #006A6A;
+$primary-darker: #004A4A;
+$accent-gold: #D6BB86;
+
+.dialog-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  max-height: 80vh;
+
+  .dialog-header {
+    display: flex;
+    align-items: center;
+    padding: 20px 24px;
+    background: linear-gradient(135deg, rgba($primary-dark, 0.05) 0%, rgba($accent-gold, 0.05) 100%);
+    border-bottom: 2px solid rgba($primary-dark, 0.1);
+    flex-shrink: 0;
+
+    .header-icon {
+      width: 48px;
+      height: 48px;
+      background: linear-gradient(135deg, $accent-gold, darken($accent-gold, 10%));
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 16px;
+
+      mat-icon {
+        color: white;
+        font-size: 24px;
+        width: 24px;
+        height: 24px;
+      }
+    }
+
+    .header-content {
+      flex: 1;
+
+      .dialog-title {
+        margin: 0 0 4px;
+        font-size: 20px;
+        font-weight: 600;
+        color: $primary-dark;
+      }
+
+      .dialog-subtitle {
+        margin: 0;
+        font-size: 14px;
+        color: #666;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+
+        .order-name {
+          font-weight: 500;
+          color: $primary-dark;
+        }
+
+        .separator {
+          color: #ccc;
+        }
+
+        .company-name {
+          color: #888;
+        }
+      }
+    }
+
+    .close-button {
+      color: #666;
+      transition: all 0.3s ease;
+
+      &:hover {
+        color: $primary-dark;
+        background: rgba($primary-dark, 0.1);
+        transform: rotate(90deg);
+      }
+    }
+  }
+
+  .loading-state,
+  .empty-state {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+    color: #666;
+
+    mat-icon {
+      font-size: 64px;
+      width: 64px;
+      height: 64px;
+      color: rgba($accent-gold, 0.5);
+      margin-bottom: 16px;
+    }
+
+    p {
+      margin: 16px 0 0;
+      font-size: 16px;
+    }
+  }
+
+  .dialog-content {
+    flex: 1;
+    overflow: auto;
+    padding: 24px;
+    background: #f8f9fa;
+
+    .files-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 16px;
+      background: white;
+      border-radius: 12px;
+      margin-bottom: 20px;
+      border: 1px solid rgba($accent-gold, 0.2);
+
+      mat-icon {
+        color: $accent-gold;
+        font-size: 20px;
+        width: 20px;
+        height: 20px;
+      }
+
+      span {
+        font-size: 14px;
+        font-weight: 500;
+        color: $primary-dark;
+      }
+    }
+
+    .files-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+
+      .file-card {
+        background: white;
+        border-radius: 16px;
+        border: 2px solid rgba($accent-gold, 0.2);
+        padding: 20px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        animation: slideIn 0.4s ease-out;
+
+        &:hover {
+          transform: translateY(-4px);
+          box-shadow: 0 8px 24px rgba($accent-gold, 0.25);
+          border-color: $accent-gold;
+
+          .file-action button {
+            opacity: 1;
+            transform: scale(1.1);
+          }
+        }
+
+        .file-icon-wrapper {
+          width: 56px;
+          height: 56px;
+          background: linear-gradient(135deg, rgba($accent-gold, 0.1), rgba($accent-gold, 0.05));
+          border-radius: 14px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+
+          mat-icon {
+            font-size: 32px;
+            width: 32px;
+            height: 32px;
+            color: $accent-gold;
+
+            &.file-icon-picture_as_pdf {
+              color: #dc3545;
+            }
+
+            &.file-icon-image {
+              color: #17a2b8;
+            }
+
+            &.file-icon-table_chart {
+              color: #28a745;
+            }
+
+            &.file-icon-description {
+              color: #007bff;
+            }
+
+            &.file-icon-folder_zip {
+              color: #ffc107;
+            }
+
+            &.file-icon-videocam {
+              color: #e83e8c;
+            }
+
+            &.file-icon-audiotrack {
+              color: #6f42c1;
+            }
+          }
+        }
+
+        .file-info {
+          flex: 1;
+          min-width: 0;
+
+          .file-name {
+            margin: 0 0 4px;
+            font-size: 15px;
+            font-weight: 600;
+            color: #333;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+          }
+
+          .file-type {
+            margin: 0;
+            font-size: 13px;
+            color: #888;
+            text-transform: uppercase;
+            font-weight: 500;
+          }
+        }
+
+        .file-action {
+          button {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, $accent-gold, darken($accent-gold, 10%));
+            color: white;
+            opacity: 0.8;
+            transition: all 0.3s ease;
+
+            mat-icon {
+              font-size: 20px;
+              width: 20px;
+              height: 20px;
+            }
+
+            &:hover {
+              opacity: 1;
+              box-shadow: 0 4px 12px rgba($accent-gold, 0.4);
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+/* Animations */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .dialog-container {
+    .dialog-header {
+      padding: 16px;
+
+      .header-icon {
+        width: 40px;
+        height: 40px;
+
+        mat-icon {
+          font-size: 20px;
+          width: 20px;
+          height: 20px;
+        }
+      }
+
+      .header-content {
+        .dialog-title {
+          font-size: 18px;
+        }
+
+        .dialog-subtitle {
+          font-size: 12px;
+          flex-wrap: wrap;
+        }
+      }
+    }
+
+    .dialog-content {
+      padding: 16px;
+
+      .files-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+
+        .file-card {
+          padding: 16px;
+
+          .file-icon-wrapper {
+            width: 48px;
+            height: 48px;
+
+            mat-icon {
+              font-size: 24px;
+              width: 24px;
+              height: 24px;
+            }
+          }
+
+          .file-info {
+            .file-name {
+              font-size: 14px;
+            }
+
+            .file-type {
+              font-size: 12px;
+            }
+          }
+
+          .file-action button {
+            width: 36px;
+            height: 36px;
+
+            mat-icon {
+              font-size: 18px;
+              width: 18px;
+              height: 18px;
+            }
+          }
+        }
+      }
+    }
+  }
+}
