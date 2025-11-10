@@ -108,6 +108,8 @@ export class GenericTableComponent<T> implements OnInit, AfterViewInit {
   @Input() nestedDisplayColumns: { [key: string]: string } = {}; // İç içe sütunlar için görünen başlıklar
   @Input() showRowNumbers: boolean = true; // Sıra numaralarını gösterme ayarı
   @Input() showAddButton: boolean = true; // Ekleme butonu gösterme ayarı
+  @Input() showUpdateButton: boolean = true; // Güncelleme butonu gösterme ayarı
+  @Input() showDeleteButton: boolean = true; // Silme butonu gösterme ayarı
   @Input() excludeFields: string[] = [];
 
   @Input() parentId: string | null = null; // Bağlı olduğu üst nesne ID'si
@@ -206,8 +208,10 @@ export class GenericTableComponent<T> implements OnInit, AfterViewInit {
       columns = ['rowNumber', ...columns];
     }
 
-    // En sona 'actions' sütununu ekle
-    columns.push('actions');
+    // En sona 'actions' sütununu ekle (sadece en az bir buton gösteriliyorsa)
+    if (this.showUpdateButton || this.showDeleteButton) {
+      columns.push('actions');
+    }
 
     return columns;
   }

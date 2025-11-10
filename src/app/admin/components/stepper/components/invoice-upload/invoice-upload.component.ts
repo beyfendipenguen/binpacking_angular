@@ -6,7 +6,8 @@ import {
   OnDestroy,
   ChangeDetectionStrategy,
   ChangeDetectorRef,
-  computed
+  computed,
+  effect
 } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
 import { MatStepperModule } from '@angular/material/stepper';
@@ -64,6 +65,7 @@ import { CompanyRelation } from '../../../../../models/company-relation.interfac
 import { Truck } from '../../../../../models/truck.interface';
 import { combineLatest } from 'rxjs';
 import { debounceTime, distinctUntilChanged, map, takeUntil } from 'rxjs/operators';
+import { CompanyRelationService } from '../../../services/company-relation.service';
 
 @Component({
   selector: 'app-invoice-upload',
@@ -102,7 +104,7 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
   private readonly uiStateManager = inject(UIStateManager);
   private readonly dataLoaderService = inject(InvoiceDataLoaderService);
   private readonly calculatorService = inject(InvoiceCalculatorService);
-
+  private readonly companyRelationService = inject(CompanyRelationService);
   // Original services still needed
   private readonly toastService = inject(ToastService);
 
@@ -203,20 +205,27 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.initializeComponent();
 
-    const palletHeight = this.orderSignal().max_pallet_height;
-    const unitProductHeight = this.unitProductHeight();
-    const unitProductCount = palletHeight / unitProductHeight;
-    this.unitsControl.setValue(unitProductCount);
-    this.unitsControl.valueChanges.pipe(
-      debounceTime(300),
-      distinctUntilChanged(),
-      takeUntil(this.destroy$)
-    ).subscribe(units => {
-      if (units !== null && units !== undefined && units > 0) {
-        const newHeight = units * this.unitProductHeight();
-        this.onMaxPalletHeightChange(newHeight);
-      }
+    effect(() => {
+      const order = this.orderSignal();
+      if (!order) return;
+
+      const palletHeight = order.max_pallet_height;
+      const unitProductHeight = this.unitProductHeight();
+      if (!unitProductHeight) return;
+
+      const unitProductCount = palletHeight / unitProductHeight;
+      this.unitsControl.setValue(unitProductCount, { emitEvent: false });
     });
+    // this.unitsControl.valueChanges.pipe(
+    //   debounceTime(300),
+    //   distinctUntilChanged(),
+    //   takeUntil(this.destroy$)
+    // ).subscribe(units => {
+    //   if (units !== null && units !== undefined && units > 0) {
+    //     const newHeight = units * this.unitProductHeight();
+    //     this.onMaxPalletHeightChange(newHeight);
+    //   }
+    // });
   }
 
   ngOnDestroy(): void {
@@ -282,7 +291,45 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
     if (currentOrder) {
       const updatedOrder = { ...currentOrder, company_relation: selectedCompany };
       this.store.dispatch(StepperActions.setOrder({ order: updatedOrder }));
+
+      // ✅ Settings'i al ve order'ı güncelle
+      if (selectedCompany?.id) {
+        this.loadCompanyRelationSettings(selectedCompany.id);
+      }
     }
+  }
+
+   /**
+   * Company Relation settings'ini yükle ve order'ı güncelle
+   */
+  private loadCompanyRelationSettings(relationId: string): void {
+    this.companyRelationService.getSettings(relationId).subscribe({
+      next: (settings) => {
+        let currentOrder = this.orderSignal();
+        if (currentOrder) {
+          const palletHeight = settings.max_pallet_height;
+          const unitProductHeight = this.unitProductHeight();
+          const unitProductCount = palletHeight / unitProductHeight;
+          this.unitsControl.setValue(unitProductCount);
+          // Order'ı settings ile güncelle
+          const updatedOrder = {
+            ...currentOrder,
+            truck_weight_limit: settings.truck_weight_limit,
+            max_pallet_height: settings.max_pallet_height,
+            weight_type: settings.weight_type
+          };
+
+          this.store.dispatch(StepperActions.setOrder({ order: updatedOrder }));
+
+          // Paletleri de güncelle (relation değişti)
+          // this.repositoryService.getPalletsByCompanyRelation(relationId);
+        }
+      },
+      error: (error) => {
+        console.error('Settings yüklenirken hata:', error);
+        // Hata durumunda default değerleri kullan (zaten order'da var)
+      }
+    });
   }
 
   onTruckChange(selectedTruck: any): void {
@@ -312,14 +359,23 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
   // + butonu için
   onUnitsIncrease(): void {
     const currentValue = this.unitsControl.value || 1;
-    this.unitsControl.setValue(currentValue + 1);
+    const newValue = currentValue + 1;
+    this.unitsControl.setValue(newValue);
+
+    // Direkt çağır
+    const newHeight = newValue * this.unitProductHeight();
+    this.onMaxPalletHeightChange(newHeight);
   }
 
   // - butonu için
   onUnitsDecrease(): void {
     const currentValue = this.unitsControl.value || 1;
     if (currentValue > 1) {
-      this.unitsControl.setValue(currentValue - 1);
+      const newValue = currentValue - 1;
+      this.unitsControl.setValue(newValue);
+
+      const newHeight = newValue * this.unitProductHeight();
+      this.onMaxPalletHeightChange(newHeight);
     }
   }
 

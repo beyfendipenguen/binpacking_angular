@@ -100,6 +100,11 @@ export const stepperReducer = createReducer(
     }
   })),
 
+  on(StepperActions.setStepperData, (state, { data }) => ({
+    ...state,
+    ...data
+  })),
+
   on(StepperActions.calculatePackageDetailSuccess, (state, { packages, remainingOrderDetails }) => {
     const remainingProducts: any[] = [];
 
