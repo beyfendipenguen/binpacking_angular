@@ -211,11 +211,22 @@ $accent-gold-light: #E8D5A8;
     }
 
     tr.mat-row {
-      transition: background-color 0.3s ease;
+      transition: all 0.3s ease;
       cursor: pointer;
 
       &:hover {
-        background: linear-gradient(90deg, rgba($primary-dark, 0.03) 0%, rgba($accent-gold, 0.03) 100%);
+        background: linear-gradient(90deg, rgba($primary-dark, 0.08) 0%, rgba($accent-gold, 0.08) 100%);
+        transform: translateX(4px);
+        box-shadow: -4px 0 0 0 $primary-dark;
+
+        .edit-hint-icon {
+          opacity: 1;
+        }
+      }
+
+      &:active {
+        transform: translateX(2px);
+        background: linear-gradient(90deg, rgba($primary-dark, 0.12) 0%, rgba($accent-gold, 0.12) 100%);
       }
     }
   }

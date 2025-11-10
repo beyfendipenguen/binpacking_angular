@@ -64,6 +64,7 @@ import { CompanyRelation } from '../../../../../models/company-relation.interfac
 import { Truck } from '../../../../../models/truck.interface';
 import { combineLatest } from 'rxjs';
 import { debounceTime, distinctUntilChanged, map, takeUntil } from 'rxjs/operators';
+import { CompanyRelationService } from '../../../services/company-relation.service';
 
 @Component({
   selector: 'app-invoice-upload',
@@ -102,7 +103,7 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
   private readonly uiStateManager = inject(UIStateManager);
   private readonly dataLoaderService = inject(InvoiceDataLoaderService);
   private readonly calculatorService = inject(InvoiceCalculatorService);
-
+  private readonly companyRelationService = inject(CompanyRelationService);
   // Original services still needed
   private readonly toastService = inject(ToastService);
 
@@ -282,7 +283,41 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
     if (currentOrder) {
       const updatedOrder = { ...currentOrder, company_relation: selectedCompany };
       this.store.dispatch(StepperActions.setOrder({ order: updatedOrder }));
+
+      // ✅ Settings'i al ve order'ı güncelle
+      if (selectedCompany?.id) {
+        this.loadCompanyRelationSettings(selectedCompany.id);
+      }
     }
+  }
+
+   /**
+   * Company Relation settings'ini yükle ve order'ı güncelle
+   */
+  private loadCompanyRelationSettings(relationId: string): void {
+    this.companyRelationService.getSettings(relationId).subscribe({
+      next: (settings) => {
+        let currentOrder = this.orderSignal();
+        if (currentOrder) {
+          // Order'ı settings ile güncelle
+          const updatedOrder = {
+            ...currentOrder,
+            truck_weight_limit: settings.truck_weight_limit,
+            max_pallet_height: settings.max_pallet_height,
+            weight_type: settings.weight_type
+          };
+
+          this.store.dispatch(StepperActions.setOrder({ order: updatedOrder }));
+
+          // Paletleri de güncelle (relation değişti)
+          // this.repositoryService.getPalletsByCompanyRelation(relationId);
+        }
+      },
+      error: (error) => {
+        console.error('Settings yüklenirken hata:', error);
+        // Hata durumunda default değerleri kullan (zaten order'da var)
+      }
+    });
   }
 
   onTruckChange(selectedTruck: any): void {

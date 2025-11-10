@@ -107,14 +107,18 @@
       <th mat-header-cell *matHeaderCellDef>İşlemler</th>
       <td mat-cell *matCellDef="let row">
         <div class="action-buttons">
+          @if (showDeleteButton) {
           <button class="btn" mat-icon-button color="warn" (click)="confirmDelete(row.id); $event.stopPropagation();"
             matTooltip="Sil">
             <mat-icon>delete</mat-icon>
           </button>
+          }
+          @if (showUpdateButton) {
           <button class="btn" mat-icon-button (click)="openAddOrUpdateDialog(row); $event.stopPropagation();"
             matTooltip="Güncelle">
             <mat-icon>update</mat-icon>
           </button>
+          }
         </div>
       </td>
     </ng-container>

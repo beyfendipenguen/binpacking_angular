@@ -10,7 +10,7 @@ import { Observable } from 'rxjs';
 export class CompanyService extends GenericCrudService<Company> {
 
   constructor(http: HttpClient) {
-    super(http, 'companys/companys');
+    super(http, 'orders/companies');
   }
 
   getTargetCompanies(companyId?: number): Observable<Company[]> {
