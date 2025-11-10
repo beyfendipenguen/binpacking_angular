@@ -60,6 +60,7 @@ import {
   movePartialProductBetweenPackages,
   movePartialRemainingProductToPackage,
   setVerticalSort,
+  navigateToStep,
 } from '../../../../../store';
 
 import {
@@ -819,11 +820,16 @@ export class PalletControlComponent
         if (result === true) {
           this.remainingProducts().forEach(product => this.deleteRemainingProduct(product))
           this.submitForm()
+        } else {
+          return;
         }
+
       });
     }
     else if (this.isDirtySignal()) {
       this.store.dispatch(palletControlSubmit());
+    } else {
+      this.store.dispatch(navigateToStep({ stepIndex: 3 }))
     }
   }
 }

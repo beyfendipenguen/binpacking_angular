@@ -137,7 +137,11 @@ export class StepperEffects {
   updateOrderDetailChanges$ = createEffect(() =>
     this.actions$.pipe(
       ofType(StepperActions.updateOrderDetailsChanges),
-      withLatestFrom(this.store.select(selectStep1Changes)),
+      withLatestFrom(
+        this.store.select(selectStep1Changes),
+        this.store.select(selectStep1IsDirty)
+      ),
+      filter(([_, changes, isDirty]) => isDirty),
       switchMap(([action, changes]) =>
         this.repositoryService.bulkUpdateOrderDetails(changes).pipe(
           map((result) =>
