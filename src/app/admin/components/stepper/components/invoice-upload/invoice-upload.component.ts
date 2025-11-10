@@ -6,7 +6,8 @@ import {
   OnDestroy,
   ChangeDetectionStrategy,
   ChangeDetectorRef,
-  computed
+  computed,
+  effect
 } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
 import { MatStepperModule } from '@angular/material/stepper';
@@ -204,20 +205,27 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.initializeComponent();
 
-    const palletHeight = this.orderSignal().max_pallet_height;
-    const unitProductHeight = this.unitProductHeight();
-    const unitProductCount = palletHeight / unitProductHeight;
-    this.unitsControl.setValue(unitProductCount);
-    this.unitsControl.valueChanges.pipe(
-      debounceTime(300),
-      distinctUntilChanged(),
-      takeUntil(this.destroy$)
-    ).subscribe(units => {
-      if (units !== null && units !== undefined && units > 0) {
-        const newHeight = units * this.unitProductHeight();
-        this.onMaxPalletHeightChange(newHeight);
-      }
+    effect(() => {
+      const order = this.orderSignal();
+      if (!order) return;
+
+      const palletHeight = order.max_pallet_height;
+      const unitProductHeight = this.unitProductHeight();
+      if (!unitProductHeight) return;
+
+      const unitProductCount = palletHeight / unitProductHeight;
+      this.unitsControl.setValue(unitProductCount, { emitEvent: false });
     });
+    // this.unitsControl.valueChanges.pipe(
+    //   debounceTime(300),
+    //   distinctUntilChanged(),
+    //   takeUntil(this.destroy$)
+    // ).subscribe(units => {
+    //   if (units !== null && units !== undefined && units > 0) {
+    //     const newHeight = units * this.unitProductHeight();
+    //     this.onMaxPalletHeightChange(newHeight);
+    //   }
+    // });
   }
 
   ngOnDestroy(): void {
@@ -299,6 +307,10 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
       next: (settings) => {
         let currentOrder = this.orderSignal();
         if (currentOrder) {
+          const palletHeight = settings.max_pallet_height;
+          const unitProductHeight = this.unitProductHeight();
+          const unitProductCount = palletHeight / unitProductHeight;
+          this.unitsControl.setValue(unitProductCount);
           // Order'ı settings ile güncelle
           const updatedOrder = {
             ...currentOrder,
@@ -347,14 +359,23 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
   // + butonu için
   onUnitsIncrease(): void {
     const currentValue = this.unitsControl.value || 1;
-    this.unitsControl.setValue(currentValue + 1);
+    const newValue = currentValue + 1;
+    this.unitsControl.setValue(newValue);
+
+    // Direkt çağır
+    const newHeight = newValue * this.unitProductHeight();
+    this.onMaxPalletHeightChange(newHeight);
   }
 
   // - butonu için
   onUnitsDecrease(): void {
     const currentValue = this.unitsControl.value || 1;
     if (currentValue > 1) {
-      this.unitsControl.setValue(currentValue - 1);
+      const newValue = currentValue - 1;
+      this.unitsControl.setValue(newValue);
+
+      const newHeight = newValue * this.unitProductHeight();
+      this.onMaxPalletHeightChange(newHeight);
     }
   }
 
