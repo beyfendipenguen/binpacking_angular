@@ -100,15 +100,17 @@ export const stepperReducer = createReducer(
     }
   })),
 
-  on(StepperActions.setVerticalSortInPackage, (state, { pkgId,alignment }) => {
-    const packages = state.step2State.packages.map(p => p.id === pkgId ? {...p ,alignment}:p)
+  on(StepperActions.setVerticalSortInPackage, (state, { pkgId, alignment }) => {
+    const packages = state.step2State.packages.map(p => p.id === pkgId ? { ...p, alignment } : p)
 
     return {
       ...state,
       step2State: {
         ...state.step2State,
-        packages: packages
-      }}
+        packages: packages,
+        isDirty: true
+      }
+    }
   }),
 
 
@@ -253,11 +255,11 @@ export const stepperReducer = createReducer(
     }
   })),
 
-  on(StepperActions.cleanUpInvalidPackagesFromOrder, (state, { packages }) => {
-    console.log(packages);
+  on(StepperActions.cleanUpInvalidPackagesFromOrder, (state, { packageNames }) => {
+    console.log(packageNames);
     const currentPackages = state.step2State.packages;
     const packagesToKeep = currentPackages.filter(
-      (pkg) => !packages.some((invalidPkg) => invalidPkg.id == pkg.name)
+      (pkg) => !packageNames.some((packageName) => packageName == pkg.name)
     );
 
     return {
@@ -336,7 +338,7 @@ export const stepperReducer = createReducer(
   on(StepperActions.moveRemainingProductToPackage, (state, { targetPackageId, previousIndex }) => {
 
     const sourceProducts = [...state.step2State.remainingProducts];
-    const targetPackage = state.step2State.packages.find(p=>p.id === targetPackageId)
+    const targetPackage = state.step2State.packages.find(p => p.id === targetPackageId)
     const targetProducts = [...targetPackage.products];
 
     const removedProduct = sourceProducts.splice(previousIndex, 1)[0];
@@ -480,7 +482,7 @@ export const stepperReducer = createReducer(
     };
   }),
 
-  on(StepperActions.removePackage, (state, { packageId  }) => {
+  on(StepperActions.removePackage, (state, { packageId }) => {
     const currentPackages = state.step2State.packages;
     const packageToDelete = currentPackages.find(p => p.id === packageId);
 
@@ -985,9 +987,9 @@ export const stepperReducer = createReducer(
     }
   })),
 
-  on(StepperActions.setTemplateFile,(state,{templateFile})=>({
+  on(StepperActions.setTemplateFile, (state, { templateFile }) => ({
     ...state,
-    step1State:{
+    step1State: {
       ...state.step1State,
       templateFile: templateFile
     }
@@ -1005,7 +1007,7 @@ export const stepperReducer = createReducer(
       fileName: undefined,
       isDirty: false,
       isOnlyOrderDirty: false,
-      templateFile:[]
+      templateFile: []
     }
   })),
 
@@ -1022,7 +1024,7 @@ export const stepperReducer = createReducer(
       fileName,
       isDirty: true,
       isOnlyOrderDirty: false,
-      templateFile:[]
+      templateFile: []
     }
   })),
 

@@ -648,7 +648,7 @@ export class ResultStepComponent implements OnInit, OnDestroy {
 
       dialogRef.afterClosed().subscribe(result => {
         if (result === true) {
-          this.store.dispatch(cleanUpInvalidPackagesFromOrder({ packages: this.threeJSComponent.deletedPackages }));
+          this.store.dispatch(cleanUpInvalidPackagesFromOrder({ packageNames: this.threeJSComponent.deletedPackages.map(pckg => pckg.id) }));
           this.threeJSComponent.deletedPackages = []
           this.store.dispatch(updateOrderResult())
         }

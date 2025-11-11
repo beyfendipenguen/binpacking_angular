@@ -61,7 +61,7 @@ export const removeAllPackage = createAction(
 
 export const removePackage = createAction(
   '[Stepper] Remove Package',
-  props<{ packageId: string  }>()
+  props<{ packageId: string }>()
 );
 
 export const moveUiProductInPackageToPackage = createAction(
@@ -144,7 +144,7 @@ export const setVerticalSort = createAction(
 
 export const setVerticalSortInPackage = createAction(
   '[Stepper] Set Vertical Sort In Package',
-  props<{pkgId:string, alignment:string}>()
+  props<{ pkgId: string, alignment: string }>()
 )
 
 export const uploadFileToOrder = createAction(
@@ -184,7 +184,7 @@ export const restoreLocalStorageData = createAction(
 
 export const setTemplateFile = createAction(
   '[Invoice Upload] Set Template File',
-  props<{templateFile:any}>()
+  props<{ templateFile: any }>()
 )
 
 export const setOrder = createAction(
@@ -362,7 +362,7 @@ export const createReportFileSuccess = createAction(
 
 export const cleanUpInvalidPackagesFromOrder = createAction(
   '[Stepper] clean up packages',
-  props<{ packages: any[] }>()
+  props<{ packageNames: any[] }>()
 );
 
 

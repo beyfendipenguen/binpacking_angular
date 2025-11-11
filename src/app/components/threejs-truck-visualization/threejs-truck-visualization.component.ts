@@ -397,7 +397,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, OnChanges, On
 
     dialogRef.afterClosed().subscribe(result => {
       if (result === true) {
-        this.store.dispatch(cleanUpInvalidPackagesFromOrder({ packages: this.deletedPackages }));
+        this.store.dispatch(cleanUpInvalidPackagesFromOrder({ packageNames: this.deletedPackages.map((pckg) => pckg.id) }));
         this.deletedPackages.forEach(pkg => {
           if (pkg.originalColor) {
             this.releaseColor(pkg.originalColor);
