@@ -10,7 +10,7 @@
     </div>
 
     <!-- Enhanced View Controls -->
-    @if (hasResults && showVisualization) {
+    @if (hasResults ) {
     <div class="view-controls">
       <button class="view-button" [class.active]="currentViewType === 'front'" [disabled]="isLoading"
         (click)="threeJSComponent.setView('front')">
@@ -71,7 +71,7 @@
     }
 
     <!-- ENHANCED: ThreeJS Truck Visualization Component with NEW dataChanged event -->
-    @if (hasResults && showVisualization && !hasThreeJSError) {
+    @if (hasResults && !hasThreeJSError) {
     <app-threejs-truck-visualization #threeJSComponent [weightCalculationDepth]="3000" [showWeightDisplay]="true"
       [piecesData]="piecesData" [truckDimension]="truckDimension()" [showHelp]="true" (error)="onThreeJSError($event)">
     </app-threejs-truck-visualization>
@@ -163,7 +163,7 @@
   <!-- Enhanced Navigation Controls -->
   <div class="navigation-controls">
     <div class="stepper-controls">
-      <button mat-raised-button class="prev-button" matStepperPrevious>
+      <button (click)="goPreviousStep()" mat-raised-button class="prev-button">
         <mat-icon>arrow_back</mat-icon>
         <span>Geri</span>
       </button>

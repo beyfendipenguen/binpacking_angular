@@ -19,6 +19,7 @@ import {
   selectOrder,
   selectStep1Changes,
   selectStep1IsDirty,
+  selectStep2IsDirty,
   selectStep3OptimizationResult,
   selectStepperState,
   selectUiPackages,
@@ -74,7 +75,7 @@ export class StepperEffects {
         }).pipe(
           mergeMap(({ order, orderDetails, packagesAndRemainingProducts }) => {
             return of(
-              StepperActions.setOrder({ order: order }),
+              StepperActions.setStepperData({ data: { order: order, completedStep: 2 } }),
               StepperActions.setOrderDetails({ orderDetails: orderDetails }),
               StepperActions.setUiPackages({
                 packages: packagesAndRemainingProducts.packages,
@@ -383,7 +384,9 @@ export class StepperEffects {
       ofType(StepperActions.palletControlSubmit),
       withLatestFrom(
         this.store.select(selectUiPackages),
+        this.store.select(selectStep2IsDirty)
       ),
+      filter(([action, uiPackages, isDirty]) => isDirty),
       concatMap(([action, uiPackages]) => {
         return this.repositoryService.bulkCreatePackageDetail(uiPackages).pipe(
           map((response) =>
@@ -455,5 +458,15 @@ export class StepperEffects {
       )
     )
   })
+
+  cleanUpInvalidPakcagesFromOrder$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(StepperActions.cleanUpInvalidPackagesFromOrder),
+      map(() => StepperActions.palletControlSubmit()),
+      catchError((error) =>
+        of(StepperActions.setGlobalError({ error: error.message }))
+      )
+    )
+  );
 
 }

@@ -1,4 +1,4 @@
-import { createFeatureSelector, createSelector, MemoizedSelector } from '@ngrx/store';
+import { createFeatureSelector, createSelector, MemoizedSelector, State } from '@ngrx/store';
 import { StepperState } from './stepper.state';
 import { Order } from '../../models/order.interface';
 import { UiPackage } from '../../admin/components/stepper/components/ui-models/ui-package.model';
@@ -532,6 +532,10 @@ export const selectStep3OptimizationResult = createSelector(
   (step3State) => step3State.optimizationResult
 );
 
+export const selectOrderResultId = createSelector(
+  selectStepperState,
+  (state) => state.orderResultId
+);
 export const selectStep3ReportFiles = createSelector(
   selectStep3State,
   (step3State) => step3State.reportFiles

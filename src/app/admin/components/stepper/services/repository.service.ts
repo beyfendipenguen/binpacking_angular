@@ -15,7 +15,7 @@ import { OrderDetailDiffCalculator } from '../../../../models/utils/order-detail
 
 import { Store } from '@ngrx/store';
 import { AppState, updateOrderDetailsChanges } from '../../../../store';
-import { selectOrderId, selectOriginalOrderDetails, selectRemainingProducts } from '../../../../store/stepper/stepper.selectors';
+import { selectOrderId, selectOrderResultId, selectOriginalOrderDetails, selectRemainingProducts } from '../../../../store/stepper/stepper.selectors';
 import { UiPackage } from '../components/ui-models/ui-package.model';
 
 @Injectable({
@@ -27,6 +27,9 @@ export class RepositoryService {
   constructor(private api: ApiService, private http: HttpClient) { }
 
   private getOrderId = this.store.selectSignal(selectOrderId)
+  private getOrderResultId = this.store.selectSignal(selectOrderResultId)
+
+
 
 
   orderDetails(id: string): Observable<any> {
@@ -116,7 +119,7 @@ export class RepositoryService {
   }
 
 
-  uploadFile(file: File, orderId: string, type:string): Observable<FileResponse> {
+  uploadFile(file: File, orderId: string, type: string): Observable<FileResponse> {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('order_id', orderId); // Burada order_id olarak gönderiyoruz
@@ -222,11 +225,11 @@ export class RepositoryService {
     )
   }
 
-  partialUpdateOrderResult(piecesData: any, order_result_id: string = this.getOrderId()) {
+  partialUpdateOrderResult(piecesData: any, order_id: string = this.getOrderResultId()) {
     const resultString = JSON.stringify(piecesData);
     const updateData = {
       result: resultString
     };
-    return this.http.patch<any>(`${this.api.getApiUrl()}/orders/order-results/${order_result_id}/`, updateData)
+    return this.http.patch<any>(`${this.api.getApiUrl()}/orders/order-results/${order_id}/`, updateData)
   }
 }

@@ -299,9 +299,9 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
     }
   }
 
-   /**
-   * Company Relation settings'ini yükle ve order'ı güncelle
-   */
+  /**
+  * Company Relation settings'ini yükle ve order'ı güncelle
+  */
   private loadCompanyRelationSettings(relationId: string): void {
     this.companyRelationService.getSettings(relationId).subscribe({
       next: (settings) => {
@@ -467,7 +467,7 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
       if (this.isOnlyOrderDirtySignal()) {
         this.store.dispatch(StepperActions.updateOrCreateOrder({ context: 'order' }))
       }
-      this.store.dispatch(StepperActions.navigateToStep({ stepIndex: 2 }));
+      this.store.dispatch(StepperActions.navigateToStep({ stepIndex: 1 }));
       return;
     } if (!this.isFormValid()) {
       this.toastService.warning(INVOICE_UPLOAD_CONSTANTS.MESSAGES.WARNING.FILL_REQUIRED_FIELDS);

@@ -23,7 +23,7 @@ import { ThreeJSTruckVisualizationComponent } from '../../../../../components/th
 import { OrderResultService } from '../../../services/order-result.service';
 
 import { Store } from '@ngrx/store';
-import { AppState, deleteRemainingProduct, forceSave, palletControlSubmit, removePackage, resetStepper, selectAutoSaveStatusText, selectIsEditMode, selectOrderId, selectRemainingProducts, selectStepAutoSaveStatus, selectStepHasPendingChanges, selectStepperSummary, setGlobalError, setStepCompleted, setStepLoading, setStepValidation, triggerAutoSave, updateOrderDetailsChanges, updateOrderResult, updateStep3OptimizationResult } from '../../../../../store';
+import { AppState, cleanUpInvalidPackagesFromOrder, deleteRemainingProduct, forceSave, navigateToStep, palletControlSubmit, removePackage, resetStepper, selectAutoSaveStatusText, selectIsEditMode, selectOrderId, selectRemainingProducts, selectStep3IsDirty, selectStepAutoSaveStatus, selectStepHasPendingChanges, selectStepperSummary, setGlobalError, setStepCompleted, setStepLoading, setStepperData, setStepValidation, triggerAutoSave, updateOrderDetailsChanges, updateOrderResult, updateStep3OptimizationResult } from '../../../../../store';
 import { selectTruck } from '../../../../../store';
 import { CancelConfirmationDialogComponent } from '../../../../../components/cancel-confirmation-dialog/cancel-confirmation-dialog.component';
 import { MatDialog } from '@angular/material/dialog';
@@ -47,7 +47,6 @@ interface PackageData {
   imports: [
     CommonModule,
     MatButton,
-    MatStepperPrevious,
     MatIconModule,
     ThreeJSTruckVisualizationComponent
   ],
@@ -71,6 +70,7 @@ export class ResultStepComponent implements OnInit, OnDestroy {
 
 
   remainingProducts = this.store.selectSignal(selectRemainingProducts);
+  public isDirtySignal = this.store.selectSignal(selectStep3IsDirty);
   isLoading: boolean = false;
   hasResults: boolean = false;
   showVisualization: boolean = false;
@@ -207,6 +207,7 @@ export class ResultStepComponent implements OnInit, OnDestroy {
             throw new Error('Component destroyed during processing');
           }
           this.orderResultId = response.data.order_result_id
+          this.store.dispatch(setStepperData({ data: { orderResultId: this.orderResultId } }));
           this.safeProcessOptimizationResult(response);
           this.originalPiecesData = JSON.parse(JSON.stringify(this.piecesData));
           this.optimizationProgress = Math.min(80, this.optimizationProgress);
@@ -620,19 +621,17 @@ export class ResultStepComponent implements OnInit, OnDestroy {
 
     return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
   }
+  goPreviousStep() {
+    this.store.dispatch(navigateToStep({ stepIndex: 1 }));
+  }
 
   completeShipment(): void {
-    // tira yerlesmeyen packagelar otomatik olarak siparisten kaldirilacaktir.
-    // onayliyor musunuz.
-    // yine de devam et
-    // result guncelle
-    // order detail guncelle
-    // package guncelle
-
-
-
-    // create dialog property to use material dialog api
-
+    // eger step 3 isDirty ise veya deletedPackages varsa  kaydet yazmali
+    // eger step 3 isDirty degilse siparisi kapat yazmali
+    if (!this.hasResults) {
+      this.toastService.warning('Önce optimizasyonu tamamlayın');
+      return;
+    }
     if (this.threeJSComponent.deletedPackages.length > 0) {
       const dialogRef = this.dialog.open(CancelConfirmationDialogComponent, {
         width: '400px',
@@ -649,51 +648,19 @@ export class ResultStepComponent implements OnInit, OnDestroy {
 
       dialogRef.afterClosed().subscribe(result => {
         if (result === true) {
-          // eger islemler sirasinda sync olmadigi icin hata olursa burayi tek bir action ile baslatip chain olustur.
-          this.threeJSComponent.deletedPackages.forEach(uiPackage => this.store.dispatch(removePackage({ packageToRemove: uiPackage })))
+          this.store.dispatch(cleanUpInvalidPackagesFromOrder({ packages: this.threeJSComponent.deletedPackages }));
           this.threeJSComponent.deletedPackages = []
-          this.remainingProducts().forEach(product => this.store.dispatch(deleteRemainingProduct({ product: product })));
-          this.store.dispatch(palletControlSubmit())
           this.store.dispatch(updateOrderResult())
-          try {
-            this.localStorageService.clearStorage();
-            this.store.dispatch(resetStepper());
-
-            this.toastService.success(
-              `Sevkiyat başarıyla tamamlandı!`,
-              'Tamamlandı!'
-            );
-
-            setTimeout(() => {
-              this.shipmentCompleted.emit();
-            }, 1500);
-
-          } catch (error) {
-            this.toastService.error('Sevkiyat tamamlanırken hata oluştu');
-          }
+        }
+        else {
+          return;
         }
       });
+    } else {
+      // this.store.dispatch(updateOrderResult())
     }
-    if (!this.hasResults) {
-      this.toastService.warning('Önce optimizasyonu tamamlayın');
-      return;
-    }
-    this.store.dispatch(updateOrderResult())
-    try {
-      this.localStorageService.clearStorage();
-      this.store.dispatch(resetStepper());
-
-      this.toastService.success(
-        `Sevkiyat başarıyla tamamlandı!`,
-        'Tamamlandı!'
-      );
-
-      setTimeout(() => {
-        this.shipmentCompleted.emit();
-      }, 1500);
-
-    } catch (error) {
-      this.toastService.error('Sevkiyat tamamlanırken hata oluştu');
+    if (!this.isDirtySignal()) {// step 3 is dirty
+      this.shipmentCompleted.emit();
     }
   }
 }

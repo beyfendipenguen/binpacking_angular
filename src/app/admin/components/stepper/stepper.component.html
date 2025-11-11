@@ -1,8 +1,7 @@
 <ng-container>
 
   <mat-stepper #stepper class="responsive-stepper" [orientation]="(stepperOrientation | async)!"
-    [linear]="!isEditModeSignal()" [selectedIndex]="selectedIndexSignal() - 1"
-    (selectionChange)="onStepChange($event)">
+    [linear]="!isEditModeSignal()" [selectedIndex]="(selectedIndex | async) ">
     <app-loading></app-loading>
 
     <mat-step [completed]="(completedStepsSignal() >= 1)" [editable]="true">

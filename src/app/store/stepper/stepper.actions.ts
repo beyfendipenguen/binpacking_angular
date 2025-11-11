@@ -355,5 +355,10 @@ export const createReportFileSuccess = createAction(
   props<{ reportFiles: any[] }>()
 );
 
+export const cleanUpInvalidPackagesFromOrder = createAction(
+  '[Stepper] mseajinini aldim',
+  props<{ packages: any[] }>()
+);
+
 
 

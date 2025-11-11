@@ -11,6 +11,7 @@ export interface StepperState {
   currentStep: number;
   completedStep: number;
   fileExists: boolean;
+  orderResultId: string;
 
   isEditMode: boolean;
 
@@ -101,7 +102,7 @@ export interface StepperState {
 export const initialStepperState: StepperState = {
   // Mevcut initial values...
   order: null,
-  currentStep: 1,
+  currentStep: 0,
   completedStep: 0,
   fileExists: false,
 
@@ -175,5 +176,6 @@ export const initialStepperState: StepperState = {
     dataChangeHistory: [],
     hasUnsavedChanges: false,
     isDirty: false
-  }
+  },
+  orderResultId: ""
 };

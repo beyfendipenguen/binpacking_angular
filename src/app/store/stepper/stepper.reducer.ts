@@ -177,7 +177,6 @@ export const stepperReducer = createReducer(
     return {
       ...state,
       completedStep: 2,
-      currentStep: 3,
       step2State: {
         ...state.step2State,
         packgages: uiPackages,
@@ -232,6 +231,7 @@ export const stepperReducer = createReducer(
     }
     return state
   }),
+
   on(StepperActions.createReportFileSuccess, (state, { reportFiles }) => ({
     ...state,
     step3State: {
@@ -239,6 +239,27 @@ export const stepperReducer = createReducer(
       reportFiles: reportFiles
     }
   })),
+
+  on(StepperActions.cleanUpInvalidPackagesFromOrder, (state, { packages }) => {
+    console.log(packages);
+    const currentPackages = state.step2State.packages;
+    const packagesToKeep = currentPackages.filter(
+      (pkg) => !packages.some((invalidPkg) => invalidPkg.id == pkg.name)
+    );
+
+    return {
+      ...state,
+      step1State: {
+        ...state.step1State,
+        isDirty: true
+      },
+      step2State: {
+        ...state.step2State,
+        packages: ensureEmptyPackageAdded(packagesToKeep, state.order),
+        isDirty: true,
+      }
+    };
+  }),
 
   on(StepperActions.createOrderDetailsSuccess, (state, { orderDetails }) => ({
     ...state,
@@ -266,14 +287,16 @@ export const stepperReducer = createReducer(
     }
   })),
 
-  on(StepperActions.setOrder, (state, { order }) => ({
-    ...state,
-    order: order,
-    step1State: {
-      ...state.step1State,
-      isOnlyOrderDirty: true
+  on(StepperActions.setOrder, (state, { order }) => {
+    return {
+      ...state,
+      order: order,
+      step1State: {
+        ...state.step1State,
+        isOnlyOrderDirty: true
+      }
     }
-  })),
+  }),
 
   on(StepperActions.updateOrCreateOrderSuccess, (state, { order }) => ({
     ...state,
@@ -445,24 +468,18 @@ export const stepperReducer = createReducer(
 
   on(StepperActions.removePackage, (state, { packageToRemove }) => {
     const currentPackages = state.step2State.packages;
-    const packageIndex = currentPackages.findIndex(
-      (pkg) => pkg.id === packageToRemove.id
-    );
+    const packageToDelete = currentPackages.find(p => p.id === packageToRemove.id);
 
-    if (packageIndex === -1) {
+    if (!packageToDelete) {
       return state;
     }
 
-    const packageToDelete = currentPackages[packageIndex];
-    const updatedPackages = currentPackages.filter((_, index) => index !== packageIndex);
+    const updatedPackages = currentPackages.filter(p => p.id !== packageToRemove.id);
 
-    let remainingProducts = state.step2State.remainingProducts;
-
-    if (packageToDelete.products?.length > 0) {
-      const allProducts = [...remainingProducts, ...packageToDelete.products];
-      remainingProducts = consolidateProducts(allProducts);
-    }
-
+    const remainingProducts = consolidateProducts(
+      state.step2State.remainingProducts
+        .concat(packageToDelete.products || [])
+    );
     return {
       ...state,
       step2State: {
@@ -1050,17 +1067,6 @@ export const stepperReducer = createReducer(
     };
   }),
 
-  on(StepperActions.updateStep3OptimizationResult, (state, { optimizationResult }) => ({
-    ...state,
-    step3State: {
-      ...state.step3State,
-      optimizationResult: [...optimizationResult],
-      hasResults: optimizationResult.length > 0,
-      showVisualization: optimizationResult.length > 0,
-      hasUnsavedChanges: true,
-      isDirty: true
-    }
-  })),
 
   on(StepperActions.getPalletsSuccess, (state, { pallets }) => ({
     ...state,

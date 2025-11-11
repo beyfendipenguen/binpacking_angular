@@ -63,7 +63,7 @@ export class StepperComponent implements OnInit {
   public completedStepsSignal = this.store.selectSignal(StepperSelectors.selectCompletedStep);
   public isEditModeSignal = this.store.selectSignal(StepperSelectors.selectIsEditMode);
 
-  public selectedIndexSignal = this.store.selectSignal(StepperSelectors.selectCurrentStep)
+  public selectedIndex = this.store.select(StepperSelectors.selectCurrentStep)
 
   public stepperOrientation: Observable<StepperOrientation>;
 
@@ -80,11 +80,6 @@ export class StepperComponent implements OnInit {
       );
 
   }
-
-  onStepChange = (event: StepperSelectionEvent): void => {
-    const currentStep = event.selectedIndex;
-    this.store.dispatch(StepperActions.navigateToStep({ stepIndex: currentStep + 1 }));
-  };
 
 
   onShipmentCompleted = (): void => {

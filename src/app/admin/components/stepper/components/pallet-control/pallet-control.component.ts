@@ -829,7 +829,12 @@ export class PalletControlComponent
     else if (this.isDirtySignal()) {
       this.store.dispatch(palletControlSubmit());
     } else {
-      this.store.dispatch(navigateToStep({ stepIndex: 3 }))
+      this.store.dispatch(navigateToStep({ stepIndex: 2 }))
     }
   }
+
+  goPreviousStep() {
+    this.store.dispatch(navigateToStep({ stepIndex: 0 }))
+  }
+
 }
