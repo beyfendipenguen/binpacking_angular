@@ -1,7 +1,4 @@
 import { createAction, props } from '@ngrx/store';
-import { UiProduct } from '../../admin/components/stepper/components/ui-models/ui-product.model';
-import { UiPackage } from '../../admin/components/stepper/components/ui-models/ui-package.model';
-
 
 
 export const calculateOrderDetailChanges = createAction(
@@ -11,13 +8,13 @@ export const calculateOrderDetailChanges = createAction(
 
 export const deleteRemainingProduct = createAction(
   '[Stepper] Delete Remaining Product',
-  props<{ product: UiProduct }>()
+  props<{ productUiId: string }>()
 );
 
 
 export const addUiProductToRemainingProducts = createAction(
   '[Stepper] Add Ui Product To Remaining Products',
-  props<{ product: UiProduct }>()
+  props<{ productUiId: string }>()
 );
 
 
@@ -32,7 +29,7 @@ export const movePalletToPackage = createAction(
 
 export const splitProduct = createAction(
   '[Stepper] Split Product',
-  props<{ product: UiProduct, splitCount: number | null }>()
+  props<{ productUiId: string, splitCount: number | null }>()
 );
 
 export const moveRemainingProductToPackage = createAction(
@@ -47,7 +44,7 @@ export const moveUiProductInSamePackage = createAction(
 
 export const removeProductFromPackage = createAction(
   '[Stepper] Remove Product From Package',
-  props<{ pkg: UiPackage, productIndex: number }>()
+  props<{ pkgId: string, productIndex: number }>()
 );
 
 export const removePalletFromPackage = createAction(
@@ -224,7 +221,7 @@ export const moveProductToRemainingProducts = createAction(
 export const movePartialRemainingProductToPackage = createAction(
   '[Stepper] Move Partial Remaining Product To Package',
   props<{
-    targetPackage: UiPackage;
+    targetPackageId: string;
     previousIndex: number;
     maxCount: number;
   }>()
@@ -233,8 +230,8 @@ export const movePartialRemainingProductToPackage = createAction(
 export const movePartialProductBetweenPackages = createAction(
   '[Stepper] Move Partial Product Between Packages',
   props<{
-    sourcePackage: UiPackage;
-    targetPackage: UiPackage;
+    sourcePackageId: string;
+    targetPackageId: string;
     previousIndex: number;
     maxCount: number;
   }>()

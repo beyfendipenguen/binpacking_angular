@@ -2,9 +2,6 @@
 // mat stepper current indexi gercek hayat ile uyumlu olmasi adina 1 den baslattik
 // mat stepper a verirken - 1 yapiyoruz. cunku ilk step 0 olarak tanimli api da
 
-import { UiPallet } from "../../admin/components/stepper/components/ui-models/ui-pallet.model";
-import { UiProduct } from "../../admin/components/stepper/components/ui-models/ui-product.model";
-
 export interface StepperState {
   // Mevcut properties...
   order: any | null;
@@ -73,8 +70,8 @@ export interface StepperState {
 
   step2State: {
     packages: any[];
-    pallets: UiPallet[];
-    remainingProducts: UiProduct[];
+    pallets: any[];
+    remainingProducts: any[];
     originalPackages: any[];
     originalRemainingProducts: any[];
     addedPackages: any[];

@@ -128,7 +128,7 @@
             <input class="mini-split-input" type="number" min="1" [max]="product.count - 1" placeholder="1" #splitInput
               (keydown.enter)="
                 splitProduct(
-                  product,
+                  product.ui_id,
                   splitInput.value ? +splitInput.value : null
                 );
                 splitInput.value = ''
@@ -137,7 +137,7 @@
 
             <button mat-icon-button class="action-button split-button" (click)="
                 splitProduct(
-                  product,
+                  product.ui_id,
                   splitInput.value ? +splitInput.value : null
                 );
                 splitInput.value = ''
@@ -146,7 +146,7 @@
             </button>
           </div>
           <div class="split-product-container">
-            <button mat-icon-button class="action-button" (click)="deleteRemainingProduct(product)"
+            <button mat-icon-button class="action-button" (click)="deleteRemainingProduct(product.ui_id)"
               matTooltip="Ürünü Sil">
               <mat-icon>close</mat-icon>
             </button>
@@ -275,10 +275,10 @@
                     <span class="product-count">{{ product.count }} Adet</span>
                   </div>
                   <div class="button-container">
-                    <button mat-icon-button class="action-button" (click)="addUiProduct(product)" matTooltip="Ekle">
+                    <button mat-icon-button class="action-button" (click)="addUiProduct(product.ui_id)" matTooltip="Ekle">
                       <mat-icon>add</mat-icon>
                     </button>
-                    <button mat-icon-button class="action-button" (click)="removeProductFromPackage(package, j)"
+                    <button mat-icon-button class="action-button" (click)="removeProductFromPackage(package.id, j)"
                       matTooltip="Ürünü çıkar">
                       <mat-icon>close</mat-icon>
                     </button>

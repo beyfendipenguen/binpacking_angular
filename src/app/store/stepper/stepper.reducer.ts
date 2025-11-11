@@ -1,7 +1,6 @@
 import { createReducer, on } from '@ngrx/store';
 import { initialStepperState } from './stepper.state';
 import * as StepperActions from './stepper.actions';
-import { v4 as Guid } from 'uuid';
 import { mapPackageDetailToPackage } from '../../models/mappers/package-detail.mapper';
 import { UiPackage } from '../../admin/components/stepper/components/ui-models/ui-package.model';
 import { UiPallet } from '../../admin/components/stepper/components/ui-models/ui-pallet.model';
@@ -9,6 +8,7 @@ import { UiProduct } from '../../admin/components/stepper/components/ui-models/u
 import { isEqual } from 'lodash-es';
 import { OrderDetailDiffCalculator } from '../../models/utils/order-detail-diff.util';
 import { mapUiPackagesToOrderDetails, mapUiProductsToOrderDetails } from '../../models/mappers/ui-package-to-order-detail.mapper';
+import { v4 as Guid } from 'uuid';
 
 export const stepperReducer = createReducer(
   initialStepperState,
@@ -50,10 +50,10 @@ export const stepperReducer = createReducer(
     }
   }),
 
-  on(StepperActions.deleteRemainingProduct, (state, { product }) => {
+  on(StepperActions.deleteRemainingProduct, (state, { productUiId }) => {
 
     const remainingProducts = state.step2State.remainingProducts;
-    const updatedRemainingProducts = remainingProducts.filter(p => p.ui_id !== product.ui_id);
+    const updatedRemainingProducts = remainingProducts.filter(p => p.ui_id !== productUiId);
 
     return {
       ...state,
@@ -74,22 +74,33 @@ export const stepperReducer = createReducer(
     }
   )),
 
-  on(StepperActions.addUiProductToRemainingProducts, (state, { product }) => {
-    const remainingProducts = state.step2State.remainingProducts;
+  on(StepperActions.addUiProductToRemainingProducts, (state, { productUiId }) => {
+    const product = state.step2State.packages.flatMap(p => p.products).find(p => p.ui_id === productUiId)
+    if (!product) {
+      console.error('❌ Product bulunamadı');
+      return state;
+    }
 
-    // Check if a product with the same base ID already exists.
+    const remainingProducts = state.step2State.remainingProducts;
     const alreadyExists = remainingProducts.some(p => p.ui_id === product.ui_id);
 
     if (alreadyExists) {
-      // If a product with the same base ID exists, do nothing as per the original logic's intent.
       return state;
     }
-    const newProduct = new UiProduct({
+
+    const newProduct = {
       ...product,
       count: 1,
-    });
+    };
 
-    return { ...state, step2State: { ...state.step2State, remainingProducts: [...remainingProducts, newProduct], isDirty: true } };
+    return {
+      ...state,
+      step2State: {
+        ...state.step2State,
+        remainingProducts: [...remainingProducts, newProduct],
+        isDirty: true
+      }
+    };
   }),
 
   on(StepperActions.setVerticalSort, (state, { verticalSort }) => ({
@@ -426,32 +437,42 @@ export const stepperReducer = createReducer(
     }
   }),
 
-  on(StepperActions.removeProductFromPackage, (state, { pkg, productIndex }) => {
+  on(StepperActions.removeProductFromPackage, (state, { pkgId, productIndex }) => {
     const currentPackages = state.step2State.packages;
-    const currentRemainingProducts = state.step2State.remainingProducts;
+    const pkg = currentPackages.find(p => p.id === pkgId);
 
+    if (!pkg) {
+      console.error('❌ Package bulunamadı', { pkgId });
+      return state;
+    }
+
+    const currentRemainingProducts = state.step2State.remainingProducts;
     const productToRemove = pkg.products[productIndex];
-    if (!productToRemove) return state;
+
+    if (!productToRemove) {
+      console.error('❌ Product bulunamadı', { productIndex });
+      return state;
+    }
 
     const updatedPackageProducts = [...pkg.products];
     const removedProduct = updatedPackageProducts.splice(productIndex, 1)[0];
 
     const updatedPackage = { ...pkg, products: updatedPackageProducts };
     const updatedPackages = currentPackages.map(p =>
-      p.id === pkg.id ? updatedPackage : p
-    ) as UiPackage[];
+      p.id === pkgId ? updatedPackage : { ...p }
+    );
 
-    const updatedRemainingProducts = [...currentRemainingProducts, removedProduct];
+    const updatedRemainingProducts = [...currentRemainingProducts, { ...removedProduct }];
 
     return {
       ...state,
       step2State: {
         ...state.step2State,
-        packages: [...updatedPackages],
-        remainingProducts: [...updatedRemainingProducts],
+        packages: updatedPackages,
+        remainingProducts: updatedRemainingProducts,
         isDirty: true
       }
-    }
+    };
   }),
 
   on(StepperActions.removeAllPackage, (state) => {
@@ -546,10 +567,12 @@ export const stepperReducer = createReducer(
     };
   }),
 
-  on(StepperActions.splitProduct, (state, { product, splitCount }) => {
+  on(StepperActions.splitProduct, (state, { productUiId, splitCount }) => {
+    const product = state.step2State.remainingProducts.find(p => p.ui_id === productUiId);
 
-    if (!(product instanceof UiProduct)) {
-      product = new UiProduct(product);
+    if (!product) {
+      console.error('❌ Product bulunamadı', { productUiId });
+      return state;
     }
 
     if (product.count <= 1) {
@@ -561,198 +584,232 @@ export const stepperReducer = createReducer(
     let isCustomSplit = false;
 
     if (splitCount !== undefined && splitCount !== null) {
-
       if (splitCount <= 0 || splitCount >= product.count) {
         return state;
       }
       validatedCount = splitCount;
       isCustomSplit = true;
     } else {
-
       validatedCount = Math.floor(product.count / 2);
       isCustomSplit = false;
     }
 
-    let remainingProducts: UiProduct[];
-    const originalIndex = currentProducts.findIndex(p => p.ui_id === product.ui_id);
+    const originalIndex = currentProducts.findIndex(p => p.ui_id === productUiId);
+
+    if (originalIndex === -1) {
+      return state;
+    }
+
+    let remainingProducts: any[];
 
     if (isCustomSplit) {
-      const firstPart = new UiProduct({
+      const firstPart = {
         ...product,
         count: validatedCount,
-      });
+      };
 
-      const secondPart = new UiProduct({
+      const secondPart = {
         ...product,
         count: product.count - validatedCount,
-      });
+      };
 
       remainingProducts = [...currentProducts];
       remainingProducts.splice(originalIndex, 1, firstPart, secondPart);
     } else {
-      if (typeof product.split !== 'function') {
-        return state;
-      }
+      const firstHalf = {
+        ...product,
+        count: validatedCount,
+      };
 
-      const splitProducts = product.split();
-      if (!splitProducts || splitProducts.length === 0) {
-        return state;
-      }
+      const secondHalf = {
+        ...product,
+        count: product.count - validatedCount,
+      };
 
       remainingProducts = [...currentProducts];
-      remainingProducts.splice(originalIndex, 1, ...splitProducts);
+      remainingProducts.splice(originalIndex, 1, firstHalf, secondHalf);
     }
 
     return {
       ...state,
       step2State: {
         ...state.step2State,
-        remainingProducts: [...remainingProducts],
+        remainingProducts: remainingProducts,
         isDirty: true
       }
     };
   }),
 
-  on(StepperActions.movePartialRemainingProductToPackage, (state, { targetPackage, previousIndex, maxCount }) => {
-    const sourceProducts = [...state.step2State.remainingProducts];
-    const targetProducts = [...targetPackage.products];
+  on(StepperActions.movePartialRemainingProductToPackage, (state, { targetPackageId, previousIndex, maxCount }) => {
+    const targetPackage = state.step2State.packages.find(p => p.id === targetPackageId);
 
+    if (!targetPackage) {
+      console.error('❌ Target package bulunamadı', { targetPackageId });
+      return state;
+    }
+
+    const sourceProducts = [...state.step2State.remainingProducts];
     const product = sourceProducts[previousIndex];
 
-    // remainingProducts'tan maxCount kadar azalt
+    if (!product) {
+      console.error('❌ Product bulunamadı', { previousIndex });
+      return state;
+    }
+
+    const targetProducts = [...targetPackage.products];
     const remainingCount = product.count - maxCount;
 
     if (remainingCount > 0) {
-      // Ürün hala var, sadece count'unu güncelle
-      sourceProducts[previousIndex] = new UiProduct({
+      sourceProducts[previousIndex] = {
         ...product,
         count: remainingCount
-      });
+      };
     } else {
-      // Tüm ürün transfer edildi, listeden çıkar
       sourceProducts.splice(previousIndex, 1);
     }
 
-    // targetPackage'e maxCount kadar ekle
     const existingProductIndex = targetProducts.findIndex(p => p.id === product.id);
 
     if (existingProductIndex !== -1) {
-      // Aynı ürün varsa count'ları topla
-      targetProducts[existingProductIndex] = new UiProduct({
+      targetProducts[existingProductIndex] = {
         ...targetProducts[existingProductIndex],
         count: targetProducts[existingProductIndex].count + maxCount
-      });
+      };
     } else {
-      // Yeni ürün ekle
-      targetProducts.push(new UiProduct({
+      targetProducts.push({
         ...product,
         count: maxCount
-      }));
+      });
     }
 
     const updatedPackage = { ...targetPackage, products: targetProducts };
     const updatedPackages = state.step2State.packages.map(pkg =>
-      pkg.id === updatedPackage.id ? updatedPackage : pkg
-    ) as UiPackage[];
+      pkg.id === targetPackageId ? updatedPackage : { ...pkg }
+    );
 
-    const isOriginal = state.step2State.originalPackages.some(item => item.id === updatedPackage.id);
-    const isAlreadyModified = state.step2State.modifiedPackages.some(item => item.id === updatedPackage.id);
+    const isOriginal = state.step2State.originalPackages.some(item => item.id === targetPackageId);
+    const isAlreadyModified = state.step2State.modifiedPackages.some(item => item.id === targetPackageId);
 
     let modified = [...state.step2State.modifiedPackages];
     if (isOriginal && !isAlreadyModified) {
       modified.push(updatedPackage);
     } else if (isAlreadyModified) {
-      modified = modified.map(item => item.id === updatedPackage.id ? updatedPackage : item);
+      modified = modified.map(item => item.id === targetPackageId ? updatedPackage : item);
     }
 
     return {
       ...state,
       step2State: {
         ...state.step2State,
-        packages: ensureEmptyPackageAdded([...updatedPackages], state.order),
-        remainingProducts: [...sourceProducts],
-        modifiedPackages: [...modified],
+        packages: ensureEmptyPackageAdded(updatedPackages, state.order),
+        remainingProducts: sourceProducts,
+        modifiedPackages: modified,
         isDirty: true
       }
     };
   }),
 
-  on(StepperActions.movePartialProductBetweenPackages, (state, { sourcePackage, targetPackage, previousIndex, maxCount }) => {
+  on(StepperActions.movePartialProductBetweenPackages, (state, { sourcePackageId, targetPackageId, previousIndex, maxCount }) => {
+
+    // 1. Package'leri bul
+    const sourcePackage = state.step2State.packages.find(p => p.id === sourcePackageId);
+    const targetPackage = state.step2State.packages.find(p => p.id === targetPackageId);
+
+    // ✅ KRITIK: Null check
+    if (!sourcePackage || !targetPackage) {
+      console.error('❌ Package bulunamadı', { sourcePackageId, targetPackageId });
+      return state;
+    }
+
+    // 2. Product array'lerini kopyala
     const sourceProducts = [...sourcePackage.products];
     const targetProducts = [...targetPackage.products];
 
     const product = sourceProducts[previousIndex];
 
-    // sourcePackage'den maxCount kadar azalt
+    // ✅ KRITIK: Product check
+    if (!product) {
+      console.error('❌ Product bulunamadı', { previousIndex });
+      return state;
+    }
+
+    // 3. Source'dan azalt
     const remainingCount = product.count - maxCount;
 
     if (remainingCount > 0) {
-      // Ürün hala var, sadece count'unu güncelle
-      sourceProducts[previousIndex] = new UiProduct({
+      // ✅ Plain object kullan
+      sourceProducts[previousIndex] = {
         ...product,
         count: remainingCount
-      });
+      };
     } else {
-      // Tüm ürün transfer edildi, listeden çıkar
       sourceProducts.splice(previousIndex, 1);
     }
 
-    // targetPackage'e maxCount kadar ekle
+    // 4. Target'a ekle
     const existingProductIndex = targetProducts.findIndex(p => p.id === product.id);
 
     if (existingProductIndex !== -1) {
-      // Aynı ürün varsa count'ları topla
-      targetProducts[existingProductIndex] = new UiProduct({
+      // ✅ Plain object kullan
+      targetProducts[existingProductIndex] = {
         ...targetProducts[existingProductIndex],
         count: targetProducts[existingProductIndex].count + maxCount
-      });
+      };
     } else {
-      // Yeni ürün ekle
-      targetProducts.push(new UiProduct({
+      // ✅ Plain object kullan
+      targetProducts.push({
         ...product,
         count: maxCount
-      }));
+      });
     }
 
-    // Her iki package'i de güncelle
-    const updatedSourcePackage = { ...sourcePackage, products: sourceProducts };
-    const updatedTargetPackage = { ...targetPackage, products: targetProducts };
+    // 5. Package'leri güncelle - ✅ Plain object
+    const updatedSourcePackage = {
+      ...sourcePackage,
+      products: sourceProducts
+    };
+    const updatedTargetPackage = {
+      ...targetPackage,
+      products: targetProducts
+    };
 
+    // 6. Tüm packages array'ini güncelle - ✅ Her şeyi kopyala
     const updatedPackages = state.step2State.packages.map(pkg => {
-      if (pkg.id === updatedSourcePackage.id) return updatedSourcePackage;
-      if (pkg.id === updatedTargetPackage.id) return updatedTargetPackage;
-      return pkg;
-    }) as UiPackage[];
+      if (pkg.id === sourcePackageId) return updatedSourcePackage;
+      if (pkg.id === targetPackageId) return updatedTargetPackage;
+      return { ...pkg };  // ✅ Diğer package'leri de kopyala
+    });
 
-    // modifiedPackages'i güncelle - her iki paket için
+    // 7. Modified packages'i güncelle
     let modified = [...state.step2State.modifiedPackages];
 
     // Source package için
-    const isSourceOriginal = state.step2State.originalPackages.some(item => item.id === updatedSourcePackage.id);
-    const isSourceAlreadyModified = modified.some(item => item.id === updatedSourcePackage.id);
+    const isSourceOriginal = state.step2State.originalPackages.some(item => item.id === sourcePackageId);
+    const isSourceAlreadyModified = modified.some(item => item.id === sourcePackageId);
 
     if (isSourceOriginal && !isSourceAlreadyModified) {
       modified.push(updatedSourcePackage);
     } else if (isSourceAlreadyModified) {
-      modified = modified.map(item => item.id === updatedSourcePackage.id ? updatedSourcePackage : item);
+      modified = modified.map(item => item.id === sourcePackageId ? updatedSourcePackage : item);
     }
 
     // Target package için
-    const isTargetOriginal = state.step2State.originalPackages.some(item => item.id === updatedTargetPackage.id);
-    const isTargetAlreadyModified = modified.some(item => item.id === updatedTargetPackage.id);
+    const isTargetOriginal = state.step2State.originalPackages.some(item => item.id === targetPackageId);
+    const isTargetAlreadyModified = modified.some(item => item.id === targetPackageId);
 
     if (isTargetOriginal && !isTargetAlreadyModified) {
       modified.push(updatedTargetPackage);
     } else if (isTargetAlreadyModified) {
-      modified = modified.map(item => item.id === updatedTargetPackage.id ? updatedTargetPackage : item);
+      modified = modified.map(item => item.id === targetPackageId ? updatedTargetPackage : item);
     }
 
+    // 8. Yeni state döndür
     return {
       ...state,
       step2State: {
         ...state.step2State,
-        packages: ensureEmptyPackageAdded([...updatedPackages], state.order),
-        modifiedPackages: [...modified],
+        packages: ensureEmptyPackageAdded(updatedPackages, state.order),  // spread gereksiz
+        modifiedPackages: modified,  // spread gereksiz (zaten yeni array)
         isDirty: true
       }
     };

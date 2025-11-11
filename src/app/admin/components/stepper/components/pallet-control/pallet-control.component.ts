@@ -553,8 +553,8 @@ export class PalletControlComponent
             );
             this.store.dispatch(
               movePartialProductBetweenPackages({
-                sourcePackage: sourcePackage,
-                targetPackage: targetPackage,
+                sourcePackageId: sourcePackage.id,
+                targetPackageId: targetPackage.id,
                 previousIndex: event.previousIndex,
                 maxCount: fitResult.maxCount,
               })
@@ -600,7 +600,7 @@ export class PalletControlComponent
         );
         this.store.dispatch(
           movePartialRemainingProductToPackage({
-            targetPackage: targetPackage,
+            targetPackageId: targetPackage.id,
             previousIndex: event.previousIndex,
             maxCount: fitResult.maxCount,
           })
@@ -744,16 +744,16 @@ export class PalletControlComponent
   }
 
   // Product manipulation methods
-  splitProduct(product: UiProduct, splitCount?: number | null): void {
+  splitProduct(productUiId: string, splitCount?: number | null): void {
     this.store.dispatch(
-      splitProduct({ product: product, splitCount: splitCount ?? null })
+      splitProduct({ productUiId: productUiId, splitCount: splitCount ?? null })
     );
   }
 
-  removeProductFromPackage(pkg: UiPackage, productIndex: number): void {
+  removeProductFromPackage(pkgId: string, productIndex: number): void {
     this.store.dispatch(
       removeProductFromPackage({
-        pkg: pkg,
+        pkgId: pkgId,
         productIndex: productIndex,
       })
     );
@@ -794,12 +794,12 @@ export class PalletControlComponent
     this.store.dispatch(setVerticalSortInPackage({pkgId: _package.id,alignment:_package.alignment}))
   }
 
-  addUiProduct(product: UiProduct) {
-    this.store.dispatch(addUiProductToRemainingProducts({ product: product }));
+  addUiProduct(productUiId: string) {
+    this.store.dispatch(addUiProductToRemainingProducts({ productUiId: productUiId }));
   }
 
-  deleteRemainingProduct(product: UiProduct): void {
-    this.store.dispatch(deleteRemainingProduct({ product: product }));
+  deleteRemainingProduct(productUiId: string): void {
+    this.store.dispatch(deleteRemainingProduct({ productUiId: productUiId }));
   }
 
 
@@ -820,7 +820,7 @@ export class PalletControlComponent
 
       dialogRef.afterClosed().subscribe(result => {
         if (result === true) {
-          this.remainingProducts().forEach(product => this.deleteRemainingProduct(product))
+          this.remainingProducts().forEach(product => this.deleteRemainingProduct(product.ui_id))
           this.submitForm()
         } else {
           return;
