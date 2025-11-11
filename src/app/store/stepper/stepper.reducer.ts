@@ -361,7 +361,7 @@ export const stepperReducer = createReducer(
       ...state,
       step2State: {
         ...state.step2State,
-        packages: ensureEmptyPackageAdded([...updatedPackages], state.order),
+        packages: ensureEmptyPackageAdded(updatedPackages, state.order),
         remainingProducts: [...sourceProducts],
         modifiedPackages: [...modified],
         isDirty: true
@@ -752,7 +752,7 @@ export const stepperReducer = createReducer(
     let targetProducts = [...targetPackage.products];
     const [removedProduct] = sourceProducts.splice(previousIndex, 1);
 
-    targetProducts = targetProducts.map(p => p.id === removedProduct.id ? new UiProduct({ ...p, count: p.count + removedProduct.count }) : p)
+    targetProducts = targetProducts.map(p => p.id === removedProduct.id ? new UiProduct({ ...p, count: p.count + removedProduct.count }) : new UiProduct({ ...p }))
 
     if (targetProducts.findIndex(p => p.id === removedProduct.id) === -1)
       targetProducts.push(removedProduct);
@@ -1078,7 +1078,7 @@ export const stepperReducer = createReducer(
 
 );
 //helper fn
-const consolidateProducts = (products: UiProduct[]): UiProduct[] => {
+const consolidateProductsEski = (products: UiProduct[]): UiProduct[] => {
   const consolidatedMap = new Map<string, UiProduct>();
 
   for (const product of products) {
@@ -1099,6 +1099,27 @@ const consolidateProducts = (products: UiProduct[]): UiProduct[] => {
   return Array.from(consolidatedMap.values());
 };
 
+const consolidateProducts = (products: UiProduct[]): UiProduct[] => {
+  const consolidatedMap = new Map<string, UiProduct>();
+
+  for (const product of products) {
+    const existing = consolidatedMap.get(product.id);
+
+    if (existing) {
+      // ✅ Yeni obje oluştur, mevcut objeyi değiştirme!
+      consolidatedMap.set(
+        product.id,
+        new UiProduct({
+          ...existing,
+          count: existing.count + product.count
+        })
+      );
+    } else {
+      consolidatedMap.set(product.id, new UiProduct({ ...product }));
+    }
+  }
+  return Array.from(consolidatedMap.values());
+};
 
 const ensureEmptyPackageAdded = (packages: any[], order: any): any => {
   const emptyPackage = new UiPackage({
@@ -1109,7 +1130,7 @@ const ensureEmptyPackageAdded = (packages: any[], order: any): any => {
     name: `${packages.length + 1}`,
     isSavedInDb: false,
   });
-  if (packages.filter(pkg => pkg.pallet == null || pkg.products.length === 0).length > 0)
+  if (packages.some(pkg => pkg.pallet === null || pkg.products.length === 0))
     return ensurePackgesNamesOrdered(packages);
   return ensurePackgesNamesOrdered([...packages, emptyPackage]);
 }

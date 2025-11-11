@@ -23,7 +23,7 @@ import { ThreeJSTruckVisualizationComponent } from '../../../../../components/th
 import { OrderResultService } from '../../../services/order-result.service';
 
 import { Store } from '@ngrx/store';
-import { AppState, cleanUpInvalidPackagesFromOrder, deleteRemainingProduct, forceSave, navigateToStep, palletControlSubmit, removePackage, resetStepper, selectAutoSaveStatusText, selectIsEditMode, selectOrderId, selectRemainingProducts, selectStep3IsDirty, selectStepAutoSaveStatus, selectStepHasPendingChanges, selectStepperSummary, setGlobalError, setStepCompleted, setStepLoading, setStepperData, setStepValidation, triggerAutoSave, updateOrderDetailsChanges, updateOrderResult, updateStep3OptimizationResult } from '../../../../../store';
+import { AppState, cleanUpInvalidPackagesFromOrder, navigateToStep, selectAutoSaveStatusText, selectIsEditMode, selectOrderId, selectRemainingProducts, selectStep3IsDirty, selectStepAutoSaveStatus, selectStepHasPendingChanges, selectStepperSummary, setGlobalError, setStepCompleted, setStepLoading, setStepperData, setStepValidation, updateOrderResult } from '../../../../../store';
 import { selectTruck } from '../../../../../store';
 import { CancelConfirmationDialogComponent } from '../../../../../components/cancel-confirmation-dialog/cancel-confirmation-dialog.component';
 import { MatDialog } from '@angular/material/dialog';

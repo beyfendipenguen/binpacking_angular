@@ -222,6 +222,7 @@ export class StepperEffects {
   getPalletsFlow$ = createEffect(() => {
     return this.actions$.pipe(
       ofType(StepperActions.updateOrCreateOrderSuccess),
+      filter((action) => ['invoiceUploadSubmitFlow', 'companyRelationUpdated'].includes(action.context)),
       map(() => StepperActions.getPallets())
     )
   })
@@ -407,10 +408,18 @@ export class StepperEffects {
       ofType(StepperActions.palletControlSubmitSuccess),
       withLatestFrom(this.store.select(selectStep1IsDirty)),
       filter(([_, isDirty]) => isDirty),
-      map(() => StepperActions.updateOrderDetailsChanges({}))
+      map(() => StepperActions.calculateOrderDetailChanges())
     )
   );
 
+  updateOrderDetailsChanges$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(StepperActions.calculateOrderDetailChanges),
+      withLatestFrom(this.store.select(selectStep1IsDirty)),
+      filter(([_, isDirty]) => isDirty),
+      map(() => StepperActions.updateOrderDetailsChanges({}))
+    )
+  );
 
   // pallet 2 de yapilan tum ekleme silme ve guncelleme islemleri icin
   // tetiklenen actionlari dinleyip onlarin success durumlarda veya direk ilgili
@@ -432,6 +441,7 @@ export class StepperEffects {
       )
     )
   );
+
 
   updateOrderResult$ = createEffect(() => {
     return this.actions$.pipe(

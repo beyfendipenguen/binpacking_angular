@@ -19,8 +19,10 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import * as THREE from 'three';
-import { AppState, updateStep3OptimizationResult } from '../../store';
+import { AppState, cleanUpInvalidPackagesFromOrder } from '../../store';
 import { Store } from '@ngrx/store';
+import { MatDialog } from '@angular/material/dialog';
+import { CancelConfirmationDialogComponent } from '../cancel-confirmation-dialog/cancel-confirmation-dialog.component';
 
 interface PackageData {
   id: number;
@@ -62,6 +64,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, OnChanges, On
   @Output() dataChanged = new EventEmitter<any[]>();
 
   private readonly store = inject(Store<AppState>)
+  private readonly dialog = inject(MatDialog);
 
   // ✅ Kamera limitleri ekle
   private readonly minCameraPhi = Math.PI / 6;     // 30 derece (yukarı sınır)
@@ -158,7 +161,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, OnChanges, On
   constructor(
     private cdr: ChangeDetectorRef,
     private ngZone: NgZone
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.gltfLoader = new GLTFLoader();
@@ -320,7 +323,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, OnChanges, On
   handleKeyboardShortcuts(event: KeyboardEvent): void {
     if (this.isDragging) return;
 
-    switch(event.key) {
+    switch (event.key) {
       case 'r':
       case 'R':
         if (this.selectedPackage) {
@@ -379,22 +382,34 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, OnChanges, On
   clearDeletedPackages(): void {
     if (this.deletedPackages.length === 0) return;
 
-    const confirmed = confirm(
-      `🗑️ ${this.deletedPackages.length} silinen paketi kalıcı olarak temizle?\n\n` +
-      '⚠️ Bu işlem geri alınamaz!'
-    );
-
-    if (!confirmed) return;
-
-    // Renkleri serbest bırak
-    this.deletedPackages.forEach(pkg => {
-      if (pkg.originalColor) {
-        this.releaseColor(pkg.originalColor);
+    const dialogRef = this.dialog.open(CancelConfirmationDialogComponent, {
+      width: '400px',
+      maxWidth: '95vw',
+      disableClose: true,
+      panelClass: 'cancel-confirmation-dialog',
+      data: {
+        header: "Silinen paketleri kalıcı olarak kaldır!",
+        title: "Silinen paketler siparişten kaldırılacaklar!",
+        info: "Eğer bu şekide devam etmek isterseniz yerleştirilmeyen ürünler siparişten kaldırılacaktır.",
+        confirmButtonText: "Yine de devam et."
       }
     });
 
-    this.deletedPackages = [];
-    this.cdr.detectChanges();
+    dialogRef.afterClosed().subscribe(result => {
+      if (result === true) {
+        this.store.dispatch(cleanUpInvalidPackagesFromOrder({ packages: this.deletedPackages }));
+        this.deletedPackages.forEach(pkg => {
+          if (pkg.originalColor) {
+            this.releaseColor(pkg.originalColor);
+          }
+        });
+        this.deletedPackages = []
+        this.cdr.detectChanges();
+      }
+      else {
+        return;
+      }
+    });
   }
 
   // ========================================
@@ -530,40 +545,40 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, OnChanges, On
   }
 
   private createPlatform(): void {
-        // Platform boyutları (kamyon boyutundan biraz daha büyük)
-        const platformLength = this.truckDimension[0];
-        const platformWidth = this.truckDimension[1] ;
-        const platformHeight = 200; // 10cm kalınlık
+    // Platform boyutları (kamyon boyutundan biraz daha büyük)
+    const platformLength = this.truckDimension[0];
+    const platformWidth = this.truckDimension[1];
+    const platformHeight = 200; // 10cm kalınlık
 
-        const geometry = new THREE.BoxGeometry(
-          platformLength,
-          platformHeight,
-          platformWidth
-        );
+    const geometry = new THREE.BoxGeometry(
+      platformLength,
+      platformHeight,
+      platformWidth
+    );
 
-        // ✅ Gri metalik material
-        const material = new THREE.MeshStandardMaterial({
-          color: 0x808080,        // Gri
-          metalness: 0.3,         // Hafif metalik
-          roughness: 0.7,         // Pürüzlü yüzey
-          side: THREE.DoubleSide
-        });
+    // ✅ Gri metalik material
+    const material = new THREE.MeshStandardMaterial({
+      color: 0x808080,        // Gri
+      metalness: 0.3,         // Hafif metalik
+      roughness: 0.7,         // Pürüzlü yüzey
+      side: THREE.DoubleSide
+    });
 
-        this.platformMesh = new THREE.Mesh(geometry, material);
+    this.platformMesh = new THREE.Mesh(geometry, material);
 
-        // ✅ Pozisyon (paket grubu yüksekliğinin hemen altında)
-        this.platformMesh.position.set(
-          this.truckDimension[0] / 2,
-          1100 - platformHeight / 2, // packagesGroup yüksekliğinin altında
-          this.truckDimension[1] / 2
-        );
+    // ✅ Pozisyon (paket grubu yüksekliğinin hemen altında)
+    this.platformMesh.position.set(
+      this.truckDimension[0] / 2,
+      1100 - platformHeight / 2, // packagesGroup yüksekliğinin altında
+      this.truckDimension[1] / 2
+    );
 
-        // ✅ Gölge ayarları
-        this.platformMesh.castShadow = false;    // Platform gölge yapmaz
-        this.platformMesh.receiveShadow = true;  // Ama gölge alır!
+    // ✅ Gölge ayarları
+    this.platformMesh.castShadow = false;    // Platform gölge yapmaz
+    this.platformMesh.receiveShadow = true;  // Ama gölge alır!
 
-        this.scene.add(this.platformMesh);
-      }
+    this.scene.add(this.platformMesh);
+  }
 
 
   //Weight calculation
@@ -971,11 +986,11 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, OnChanges, On
 
       // AABB collision check (3D)
       if (newPos.x < otherPackage.x + otherLength &&
-          newPos.x + checkLength > otherPackage.x &&
-          newPos.y < otherPackage.y + otherWidth &&
-          newPos.y + checkWidth > otherPackage.y &&
-          newPos.z < otherPackage.z + otherPackage.height &&
-          newPos.z + packageToCheck.height > otherPackage.z) {
+        newPos.x + checkLength > otherPackage.x &&
+        newPos.y < otherPackage.y + otherWidth &&
+        newPos.y + checkWidth > otherPackage.y &&
+        newPos.z < otherPackage.z + otherPackage.height &&
+        newPos.z + packageToCheck.height > otherPackage.z) {
         return true; // Collision var
       }
     }
@@ -1020,7 +1035,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, OnChanges, On
         return color;
       }
     }
-    const randomColor = `#${Math.floor(Math.random()*16777215).toString(16)}`;
+    const randomColor = `#${Math.floor(Math.random() * 16777215).toString(16)}`;
     this.usedColors.add(randomColor);
     return randomColor;
   }
@@ -1289,7 +1304,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, OnChanges, On
         originalColor = color;
       }
 
-      const pkg : PackageData = {
+      const pkg: PackageData = {
         id,
         x: piece[0] || 0,
         y: piece[1] || 0,
@@ -1316,7 +1331,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, OnChanges, On
     });
 
     this.processedPackages = processed;
-    if(deleted.length != 0){
+    if (deleted.length != 0) {
       this.deletedPackages = deleted;
     }
     this.originalPackageCount = this.processedPackages.length;
@@ -1491,12 +1506,12 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, OnChanges, On
   // UTILITY METHODS
   // ========================================
 
-    /**
-   * Yakındaki paketlere otomatik snap yapar (mıknatıs gibi)
-   * @param pkg - Taşınan paket
-   * @param targetPos - Hedef pozisyon (mesh koordinatlarında)
-   * @returns Snap edilmiş pozisyon
-   */
+  /**
+ * Yakındaki paketlere otomatik snap yapar (mıknatıs gibi)
+ * @param pkg - Taşınan paket
+ * @param targetPos - Hedef pozisyon (mesh koordinatlarında)
+ * @returns Snap edilmiş pozisyon
+ */
   private snapToNearbyPackages(
     pkg: PackageData,
     targetPos: THREE.Vector3
@@ -1611,9 +1626,9 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, OnChanges, On
     const updatedData = this.processedPackages.map(pkg => [
       pkg.x, pkg.y, pkg.z, pkg.length, pkg.width, pkg.height, pkg.id, pkg.weight
     ]);
-    this.store.dispatch(updateStep3OptimizationResult({
-      optimizationResult:updatedData
-    }))
+    // this.store.dispatch(updateStep3OptimizationResult({
+    //   optimizationResult: updatedData
+    // }))
   }
 
   private findValidPosition(packageData: PackageData): { x: number, y: number, z: number } | null {
@@ -1685,7 +1700,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, OnChanges, On
     if (savedTruckModel) {
       this.truckGroup.remove(savedTruckModel);
     }
-    if(savedTrailerWheelModel){
+    if (savedTrailerWheelModel) {
       this.truckGroup.remove(savedTrailerWheelModel);
     }
 
@@ -1715,7 +1730,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, OnChanges, On
     if (savedTruckModel) {
       this.truckGroup.add(savedTruckModel);
     }
-    if(savedTrailerWheelModel){
+    if (savedTrailerWheelModel) {
       this.truckGroup.add(savedTrailerWheelModel)
     }
   }
@@ -1730,7 +1745,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, OnChanges, On
       this.createPackageMesh(packageData);
     });
 
-     this.ngZone.run(() => {
+    this.ngZone.run(() => {
       this.cdr.markForCheck();
     });
   }

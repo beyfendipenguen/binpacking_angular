@@ -53,8 +53,19 @@ export const appConfig: ApplicationConfig = {
     {
       provide: ErrorHandler, useClass: GlobalErrorHandler
     },
-    provideStore(reducers),
-    provideEffects([StepperEffects,UserEffects]),
+    provideStore(reducers,
+      {
+        runtimeChecks: {
+          strictStateImmutability: true,      // State mutasyonlarını yakalar
+          strictActionImmutability: true,     // Action mutasyonlarını yakalar
+          strictStateSerializability: true,   // Class instance'ları yakalar (UiPackage, UiProduct vb.)
+          strictActionSerializability: true,  // Action payload'larındaki class'ları yakalar
+          strictActionWithinNgZone: true,     // Zone dışı action'ları yakalar
+          strictActionTypeUniqueness: true,   // Duplicate action type'ları yakalar
+        }
+      }
+    ),
+    provideEffects([StepperEffects, UserEffects]),
     provideStoreDevtools({
       maxAge: 25,
       logOnly: false,

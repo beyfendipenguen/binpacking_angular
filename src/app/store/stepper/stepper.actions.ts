@@ -133,7 +133,7 @@ export const updateOrderDetailsChanges = createAction(
 )
 
 export const updateOrderDetailsChangesSuccess = createAction(
-  '[Invoice Upload] Create Order Details Success',
+  '[Invoice Upload] update order detail changes success',
   props<{ orderDetails: any[], context?: string }>()
 );
 
@@ -179,7 +179,7 @@ export const restoreLocalStorageData = createAction(
 
 export const setOrder = createAction(
   '[Stepper] Set Order',
-  props<{ order: any }>()
+  props<{ order: any, context?: string }>()
 );
 
 export const setFileExists = createAction(
@@ -332,11 +332,6 @@ export const updateOrderResult = createAction(
 );
 
 
-export const updateStep3OptimizationResult = createAction(
-  '[Migration] Update Step3 Optimization Result',
-  props<{ optimizationResult: any[] }>()
-);
-
 export const getPallets = createAction(
   '[pallet control] get pallets'
 )
@@ -356,7 +351,7 @@ export const createReportFileSuccess = createAction(
 );
 
 export const cleanUpInvalidPackagesFromOrder = createAction(
-  '[Stepper] mseajinini aldim',
+  '[Stepper] clean up packages',
   props<{ packages: any[] }>()
 );
 
