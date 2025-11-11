@@ -1,4 +1,4 @@
-import { ApplicationConfig, provideZoneChangeDetection, inject, provideAppInitializer, importProvidersFrom, APP_INITIALIZER } from '@angular/core';
+import { ApplicationConfig, provideZoneChangeDetection, inject, provideAppInitializer, importProvidersFrom, isDevMode } from '@angular/core';
 import { provideRouter, withComponentInputBinding } from '@angular/router';
 import { ErrorHandler } from '@angular/core';
 
@@ -16,15 +16,13 @@ import { PermissionService } from './services/permission.service';
 
 import { provideStore } from '@ngrx/store';
 import { provideEffects } from '@ngrx/effects';
-import { provideStoreDevtools, StoreDevtoolsModule } from '@ngrx/store-devtools';
+import { provideStoreDevtools } from '@ngrx/store-devtools';
 import { reducers } from './store';
 import { StepperEffects } from './store/stepper/stepper.effects';
 import { UserEffects } from './store/user/user.effects';
 
 export function appInitialization() {
   const configService = inject(ConfigService);
-
-  // Directly return the promise chain
   return configService.load();
 }
 
@@ -38,8 +36,7 @@ export const appConfig: ApplicationConfig = {
       withInterceptors([
         AuthInterceptor,
         loadingInterceptor
-      ]
-      )
+      ])
     ),
     provideAnimations(),
     importProvidersFrom(
@@ -51,26 +48,38 @@ export const appConfig: ApplicationConfig = {
       })
     ),
     {
-      provide: ErrorHandler, useClass: GlobalErrorHandler
+      provide: ErrorHandler,
+      useClass: GlobalErrorHandler
     },
-    provideStore(reducers,
-      {
-        runtimeChecks: {
-          strictStateImmutability: true,      // State mutasyonlarını yakalar
-          strictActionImmutability: true,     // Action mutasyonlarını yakalar
-          strictStateSerializability: true,   // Class instance'ları yakalar (UiPackage, UiProduct vb.)
-          strictActionSerializability: true,  // Action payload'larındaki class'ları yakalar
-          strictActionWithinNgZone: true,     // Zone dışı action'ları yakalar
-          strictActionTypeUniqueness: true,   // Duplicate action type'ları yakalar
-        }
+
+    // ✅ NgRx Store - Runtime Checks ile
+    provideStore(reducers, {
+      runtimeChecks: {
+        strictStateImmutability: true,      // State mutasyonlarını yakalar
+        strictActionImmutability: true,     // Action mutasyonlarını yakalar
+        strictStateSerializability: true,   // Class instance'ları yakalar (UiPackage, UiProduct vb.)
+        strictActionSerializability: true,  // Action payload'larındaki class'ları yakalar
+        strictActionWithinNgZone: true,     // Zone dışı action'ları yakalar
+        strictActionTypeUniqueness: true,   // Duplicate action type'ları yakalar
       }
-    ),
+    }),
+
+    // ✅ NgRx Effects
     provideEffects([StepperEffects, UserEffects]),
+
+    // ✅ NgRx DevTools - Geliştirilmiş Ayarlar
     provideStoreDevtools({
-      maxAge: 25,
-      logOnly: false,
-      trace: true, // <-- SET THIS TO TRUE FOR TRACING
-      traceLimit: 75, // The maximum number of stack frames to be stored (default: 10)
+      maxAge: 25,                           // Son 25 action'ı sakla
+      logOnly: !isDevMode(),                // Production'da sadece log, development'ta tam özellikler
+      autoPause: true,                      // İnaktif sekmede otomatik durdur
+      trace: true,                          // Stack trace aktif (mutasyon yerini gösterir)
+      traceLimit: 75,                       // Stack trace derinliği
+      connectInZone: true,                  // Zone içinde bağlan
+      // features: {
+      //   pause: true,                        // Manuel pause özelliği
+      //   lock: true,                         // State lock özelliği
+      //   // persist: true                       // State'i localStorage'da sakla
+      // }
     }),
   ]
 };

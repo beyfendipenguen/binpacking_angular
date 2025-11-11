@@ -100,6 +100,18 @@ export const stepperReducer = createReducer(
     }
   })),
 
+  on(StepperActions.setVerticalSortInPackage, (state, { pkgId,alignment }) => {
+    const packages = state.step2State.packages.map(p => p.id === pkgId ? {...p ,alignment}:p)
+
+    return {
+      ...state,
+      step2State: {
+        ...state.step2State,
+        packages: packages
+      }}
+  }),
+
+
   on(StepperActions.setStepperData, (state, { data }) => ({
     ...state,
     ...data
@@ -145,8 +157,9 @@ export const stepperReducer = createReducer(
     };
   }),
 
-  on(StepperActions.removePalletFromPackage, (state, { pkg }) => {
+  on(StepperActions.removePalletFromPackage, (state, { pkgId }) => {
 
+    const pkg = state.step2State.packages.find(p => p.id === pkgId)
     if (!pkg.pallet) return state;
 
     let updatedRemainingProducts;
@@ -320,9 +333,10 @@ export const stepperReducer = createReducer(
     }
   }),
 
-  on(StepperActions.moveRemainingProductToPackage, (state, { targetPackage, previousIndex }) => {
+  on(StepperActions.moveRemainingProductToPackage, (state, { targetPackageId, previousIndex }) => {
 
     const sourceProducts = [...state.step2State.remainingProducts];
+    const targetPackage = state.step2State.packages.find(p=>p.id === targetPackageId)
     const targetProducts = [...targetPackage.products];
 
     const removedProduct = sourceProducts.splice(previousIndex, 1)[0];
@@ -466,15 +480,15 @@ export const stepperReducer = createReducer(
     };
   }),
 
-  on(StepperActions.removePackage, (state, { packageToRemove }) => {
+  on(StepperActions.removePackage, (state, { packageId  }) => {
     const currentPackages = state.step2State.packages;
-    const packageToDelete = currentPackages.find(p => p.id === packageToRemove.id);
+    const packageToDelete = currentPackages.find(p => p.id === packageId);
 
     if (!packageToDelete) {
       return state;
     }
 
-    const updatedPackages = currentPackages.filter(p => p.id !== packageToRemove.id);
+    const updatedPackages = currentPackages.filter(p => p.id !== packageId);
 
     const remainingProducts = consolidateProducts(
       state.step2State.remainingProducts
@@ -742,11 +756,13 @@ export const stepperReducer = createReducer(
     };
   }),
 
-  on(StepperActions.moveUiProductInPackageToPackage, (state, { sourcePackage, targetPackage, previousIndex }) => {
+  on(StepperActions.moveUiProductInPackageToPackage, (state, { sourcePackageId, targetPackageId, previousIndex }) => {
 
-    if (sourcePackage.id === targetPackage.id) {
+    if (sourcePackageId === targetPackageId) {
       return state;
     }
+    const sourcePackage = state.step2State.packages.find(p => p.id === sourcePackageId)
+    const targetPackage = state.step2State.packages.find(p => p.id === targetPackageId)
 
     const sourceProducts = [...sourcePackage.products];
     let targetProducts = [...targetPackage.products];

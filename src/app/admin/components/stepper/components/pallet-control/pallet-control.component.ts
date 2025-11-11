@@ -61,6 +61,7 @@ import {
   movePartialRemainingProductToPackage,
   setVerticalSort,
   navigateToStep,
+  setVerticalSortInPackage,
 } from '../../../../../store';
 
 import {
@@ -564,8 +565,8 @@ export class PalletControlComponent
         // Normal transfer
         this.store.dispatch(
           moveUiProductInPackageToPackage({
-            sourcePackage: sourcePackage,
-            targetPackage: targetPackage,
+            sourcePackageId: sourcePackage.id,
+            targetPackageId: targetPackage.id,
             previousIndex: event.previousIndex,
           })
         );
@@ -610,7 +611,7 @@ export class PalletControlComponent
     // Normal transfer
     this.store.dispatch(
       moveRemainingProductToPackage({
-        targetPackage: targetPackage,
+        targetPackageId: targetPackage.id,
         previousIndex: event.previousIndex,
       })
     );
@@ -763,13 +764,13 @@ export class PalletControlComponent
   }
 
   removePackage(packageToRemove: any): void {
-    this.store.dispatch(removePackage({ packageToRemove: packageToRemove }));
+    this.store.dispatch(removePackage({ packageId: packageToRemove.id }));
   }
 
   removePalletFromPackage(packageItem: UiPackage): void {
     this.store.dispatch(
       removePalletFromPackage({
-        pkg: packageItem,
+        pkgId: packageItem.id,
       })
     );
   }
@@ -790,6 +791,7 @@ export class PalletControlComponent
 
   toggleAlignment(_package: any): void {
     _package.alignment = _package.alignment === 'v' ? 'h' : 'v';
+    this.store.dispatch(setVerticalSortInPackage({pkgId: _package.id,alignment:_package.alignment}))
   }
 
   addUiProduct(product: UiProduct) {

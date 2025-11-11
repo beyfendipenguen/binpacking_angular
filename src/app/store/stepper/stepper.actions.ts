@@ -37,7 +37,7 @@ export const splitProduct = createAction(
 
 export const moveRemainingProductToPackage = createAction(
   '[Stepper] Move Remaining Product From Package',
-  props<{ targetPackage: UiPackage, previousIndex: number }>()
+  props<{ targetPackageId: string, previousIndex: number }>()
 );
 
 export const moveUiProductInSamePackage = createAction(
@@ -52,7 +52,7 @@ export const removeProductFromPackage = createAction(
 
 export const removePalletFromPackage = createAction(
   '[Stepper] Remove Pallet From Package',
-  props<{ pkg: UiPackage }>()
+  props<{ pkgId: string }>()
 );
 
 export const removeAllPackage = createAction(
@@ -61,12 +61,12 @@ export const removeAllPackage = createAction(
 
 export const removePackage = createAction(
   '[Stepper] Remove Package',
-  props<{ packageToRemove: any }>()
+  props<{ packageId: string  }>()
 );
 
 export const moveUiProductInPackageToPackage = createAction(
   '[Stepper] Move Ui Product In Package To Package',
-  props<{ sourcePackage: UiPackage, targetPackage: UiPackage, previousIndex: number }>()
+  props<{ sourcePackageId: string, targetPackageId: string, previousIndex: number }>()
 );
 
 export const moveUiProductInSamePackageSuccess = createAction(
@@ -141,6 +141,11 @@ export const setVerticalSort = createAction(
   '[Stepper] Set Vertical Sort',
   props<{ verticalSort: boolean }>()
 );
+
+export const setVerticalSortInPackage = createAction(
+  '[Stepper] Set Vertical Sort In Package',
+  props<{pkgId:string, alignment:string}>()
+)
 
 export const uploadFileToOrder = createAction(
   '[Invoice Upload] Upload file to Order',
