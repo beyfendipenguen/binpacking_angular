@@ -969,6 +969,14 @@ export const stepperReducer = createReducer(
     }
   })),
 
+  on(StepperActions.setTemplateFile,(state,{templateFile})=>({
+    ...state,
+    step1State:{
+      ...state.step1State,
+      templateFile: templateFile
+    }
+  })),
+
   on(StepperActions.resetStep1State, (state) => ({
     ...state,
     step1State: {
@@ -980,7 +988,8 @@ export const stepperReducer = createReducer(
       hasFile: false,
       fileName: undefined,
       isDirty: false,
-      isOnlyOrderDirty: false
+      isOnlyOrderDirty: false,
+      templateFile:[]
     }
   })),
 
@@ -996,7 +1005,8 @@ export const stepperReducer = createReducer(
       hasFile,
       fileName,
       isDirty: true,
-      isOnlyOrderDirty: false
+      isOnlyOrderDirty: false,
+      templateFile:[]
     }
   })),
 

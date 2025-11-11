@@ -345,7 +345,8 @@ export class StepperEffects {
         StepperActions.updateOrCreateOrderSuccess,
         StepperActions.calculatePackageDetailSuccess,
         StepperActions.setUiPackages,
-        StepperActions.palletControlSubmitSuccess
+        StepperActions.palletControlSubmitSuccess,
+        StepperActions.setTemplateFile
       ),
       map(() => StepperActions.stepperStepUpdated())
     )

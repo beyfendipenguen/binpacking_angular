@@ -357,6 +357,10 @@ export const selectStep1FileName = createSelector(
   (step1State) => step1State.fileName
 );
 
+export const selectInvoiceTemplateFile = createSelector(
+  selectStep1State,
+  (step1State) => step1State.templateFile
+);
 
 export const selectStep2Packages = createSelector(
   selectStep2State,
