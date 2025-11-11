@@ -177,6 +177,11 @@ export const restoreLocalStorageData = createAction(
   '[Stepper] Restore Local Storage Data'
 );
 
+export const setTemplateFile = createAction(
+  '[Invoice Upload] Set Template File',
+  props<{templateFile:any}>()
+)
+
 export const setOrder = createAction(
   '[Stepper] Set Order',
   props<{ order: any }>()

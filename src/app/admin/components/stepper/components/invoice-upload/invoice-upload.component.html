@@ -15,6 +15,17 @@
   <!-- Empty State Card -->
   @if(!orderSignal() && !isLoadingSignal() ){
   <div class="logistics-card">
+    <!-- Template Info Button - Sağ üst köşe -->
+    <button
+      mat-icon-button
+      class="template-info-floating"
+      (click)="downloadTemplate()"
+      matTooltip="İSB Raporu şablonunu indir"
+      matTooltipPosition="left"
+    >
+      <mat-icon>info</mat-icon>
+    </button>
+
     <div class="empty-state">
       <div class="empty-icon">
         <mat-icon>description</mat-icon>
@@ -36,11 +47,21 @@
         </div>
 
         <div class="file-upload-container">
-          <button mat-raised-button class="action-button secondary" (click)="fileInput.click()">
+          <button
+            mat-raised-button
+            class="action-button secondary"
+            (click)="fileInput.click()"
+          >
             <mat-icon>file_upload</mat-icon>
             <span>{{ file?.name || "Excel Dosyası Seç" }}</span>
           </button>
-          <input (change)="onFileSelected($event)" #fileInput type="file" accept=".pdf,.xls,.xlsx" hidden />
+          <input
+            (change)="onFileSelected($event)"
+            #fileInput
+            type="file"
+            accept=".pdf,.xls,.xlsx"
+            hidden
+          />
         </div>
       </div>
     </div>
@@ -60,9 +81,19 @@
           <span class="dashboard-label">Sipariş Tarihi</span>
           <div class="dashboard-value-container">
             <mat-form-field class="edit-field" appearance="outline">
-              <input readonly matInput [matDatepicker]="picker" [value]="orderSignal()?.date"
-                (dateChange)="onOrderFieldChange('date', $event.value)" placeholder="Tarih seçin" required />
-              <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+              <input
+                readonly
+                matInput
+                [matDatepicker]="picker"
+                [value]="orderSignal()?.date"
+                (dateChange)="onOrderFieldChange('date', $event.value)"
+                placeholder="Tarih seçin"
+                required
+              />
+              <mat-datepicker-toggle
+                matSuffix
+                [for]="picker"
+              ></mat-datepicker-toggle>
               <mat-datepicker #picker></mat-datepicker>
               @if(!orderSignal()?.date){
               <mat-error> Sipariş tarihi zorunludur </mat-error>}
@@ -80,11 +111,17 @@
           <span class="dashboard-label">Müşteri</span>
           <div class="dashboard-value-container">
             <mat-form-field class="edit-field" appearance="outline">
-              <mat-select [value]="orderSignal()?.company_relation" (selectionChange)="onCompanyChange($event.value)"
-                placeholder="Müşteri seçin" [compareWith]="compareCompanies" required>
+              <mat-select
+                [value]="orderSignal()?.company_relation"
+                (selectionChange)="onCompanyChange($event.value)"
+                placeholder="Müşteri seçin"
+                [compareWith]="compareCompanies"
+                required
+              >
                 @for (company of targetCompanies; track company.id) {
                 <mat-option [value]="company">
-                  {{ company.target_company_name }} </mat-option>}
+                  {{ company.target_company_name }} </mat-option
+                >}
               </mat-select>
               @if(!orderSignal()?.company_relation){
               <mat-error> Müşteri seçimi zorunludur </mat-error>}
@@ -102,11 +139,15 @@
           <span class="dashboard-label">Tır</span>
           <div class="dashboard-value-container">
             <mat-form-field class="edit-field" appearance="outline">
-              <mat-select [value]="orderSignal()?.truck" (selectionChange)="onTruckChange($event.value)"
-                placeholder="Tır seçin" [compareWith]="compareObjects" required>
+              <mat-select
+                [value]="orderSignal()?.truck"
+                (selectionChange)="onTruckChange($event.value)"
+                placeholder="Tır seçin"
+                [compareWith]="compareObjects"
+                required
+              >
                 @for(truck of trucks; track truck.id){
-                <mat-option [value]="truck">
-                  {{ truck.name }} </mat-option>}
+                <mat-option [value]="truck"> {{ truck.name }} </mat-option>}
               </mat-select>
               @if(!orderSignal()?.truck){
               <mat-error> Tır seçimi zorunludur </mat-error>}
@@ -124,8 +165,13 @@
           <span class="dashboard-label">Ağırlık Tipi</span>
           <div class="dashboard-value-container">
             <mat-form-field class="edit-field" appearance="outline">
-              <mat-select [value]="orderSignal()?.weight_type" (selectionChange)="onWeightTypeChange($event.value)"
-                placeholder="Ağırlık tipi seçin" [compareWith]="compareWeightTypes" required>
+              <mat-select
+                [value]="orderSignal()?.weight_type"
+                (selectionChange)="onWeightTypeChange($event.value)"
+                placeholder="Ağırlık tipi seçin"
+                [compareWith]="compareWeightTypes"
+                required
+              >
                 <mat-option value="eco">Eco</mat-option>
                 <mat-option value="std">Std</mat-option>
                 <mat-option value="pre">Pre</mat-option>
@@ -147,19 +193,36 @@
           <div class="dashboard-value-container">
             <div class="units-input-container">
               <!-- Azaltma butonu -->
-              <button mat-icon-button (click)="onUnitsDecrease()" [disabled]="isMinimumUnits()" type="button"
-                class="unit-button">
+              <button
+                mat-icon-button
+                (click)="onUnitsDecrease()"
+                [disabled]="isMinimumUnits()"
+                type="button"
+                class="unit-button"
+              >
                 <mat-icon>remove</mat-icon>
               </button>
 
               <!-- Input alanı - FormControl'e bağlı -->
               <mat-form-field class="units-field" appearance="outline">
-                <input matInput type="number" [formControl]="unitsControl" readonly min="1" step="1"
-                  placeholder="Kat adedi" />
+                <input
+                  matInput
+                  type="number"
+                  [formControl]="unitsControl"
+                  readonly
+                  min="1"
+                  step="1"
+                  placeholder="Kat adedi"
+                />
               </mat-form-field>
 
               <!-- Artırma butonu -->
-              <button mat-icon-button (click)="onUnitsIncrease()" type="button" class="unit-button">
+              <button
+                mat-icon-button
+                (click)="onUnitsIncrease()"
+                type="button"
+                class="unit-button"
+              >
                 <mat-icon>add</mat-icon>
               </button>
             </div>
@@ -176,9 +239,15 @@
           <span class="dashboard-label">Tır Ağırlık Limiti</span>
           <div class="dashboard-value-container">
             <mat-form-field class="edit-field" appearance="outline">
-              <input matInput type="number" [value]="orderSignal()?.truck_weight_limit"
-                (input)="onTruckWeightLimitChange($any($event.target).value)" placeholder="Ağırlık limiti (kg)" min="0"
-                step="1" />
+              <input
+                matInput
+                type="number"
+                [value]="orderSignal()?.truck_weight_limit"
+                (input)="onTruckWeightLimitChange($any($event.target).value)"
+                placeholder="Ağırlık limiti (kg)"
+                min="0"
+                step="1"
+              />
               @if(!orderSignal()?.truck_weight_limit){
               <mat-error> Ağırlık limiti zorunludur </mat-error>}
             </mat-form-field>
@@ -196,12 +265,22 @@
         </div>
       </div>
 
-      <app-generic-table [externalData]="orderDetailsSignal()" [columnTypes]="columnTypes"
-        [externalTotalCount]="orderDetailsSignal().length" [displayedColumns]="displayedColumns"
-        [nestedDisplayColumns]="nestedDisplayColumns" [parentId]="orderSignal().id" [useParentId]="true"
-        [parentIdFieldName]="'order_id'" [title]="''" [showRowNumbers]="true" (addClick)="openOrderDetailAddDialog()"
-        (externalDataUpdate)="updateOrderDetail($event)" (externalDataDelete)="deleteOrderDetail($event)"
-        [excludeFields]="excludeFields">
+      <app-generic-table
+        [externalData]="orderDetailsSignal()"
+        [columnTypes]="columnTypes"
+        [externalTotalCount]="orderDetailsSignal().length"
+        [displayedColumns]="displayedColumns"
+        [nestedDisplayColumns]="nestedDisplayColumns"
+        [parentId]="orderSignal().id"
+        [useParentId]="true"
+        [parentIdFieldName]="'order_id'"
+        [title]="''"
+        [showRowNumbers]="true"
+        (addClick)="openOrderDetailAddDialog()"
+        (externalDataUpdate)="updateOrderDetail($event)"
+        (externalDataDelete)="deleteOrderDetail($event)"
+        [excludeFields]="excludeFields"
+      >
       </app-generic-table>
 
       <div class="summary-footer">
@@ -217,11 +296,11 @@
             </div>
             <div class="metric">
               <mat-icon>straighten</mat-icon>
-              <span>{{getTotalMeter()}} m</span>
+              <span>{{ getTotalMeter() }} m</span>
             </div>
             <div class="metric">
               <mat-icon>shopping_cart</mat-icon>
-              <span>{{getTotalCount()}} adet ürün</span>
+              <span>{{ getTotalCount() }} adet ürün</span>
             </div>
           </div>
           <div class="status-badge">
@@ -236,8 +315,15 @@
 
   <!-- Navigation Controls -->
   <div class="navigation-controls">
-    <button mat-raised-button class="next-button" (click)="submit()" [disabled]="!orderSignal() || !isFormValid()">
-      <span>{{ isDirtySignal() || isOnlyOrderDirtySignal() ? "Kaydet" : "İleri" }}</span>
+    <button
+      mat-raised-button
+      class="next-button"
+      (click)="submit()"
+      [disabled]="!orderSignal() || !isFormValid()"
+    >
+      <span>{{
+        isDirtySignal() || isOnlyOrderDirtySignal() ? "Kaydet" : "İleri"
+      }}</span>
       <mat-icon>arrow_forward</mat-icon>
     </button>
   </div>

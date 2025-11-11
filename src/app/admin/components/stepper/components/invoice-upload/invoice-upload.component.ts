@@ -5,7 +5,6 @@ import {
   ViewChild,
   OnDestroy,
   ChangeDetectionStrategy,
-  ChangeDetectorRef,
   computed,
   effect
 } from '@angular/core';
@@ -52,20 +51,21 @@ import {
   WeightType,
 } from './models/invoice-upload-interfaces';
 import { INVOICE_UPLOAD_CONSTANTS } from './constants/invoice-upload.constants';
-import { AppState } from '../../../../../store';
+import { AppState, selectUser, setTemplateFile } from '../../../../../store';
 import { Store } from '@ngrx/store';
-
 import {
   selectOrder, selectStep1OrderDetails, selectStep1IsDirty,
   selectStep1HasFile, selectStep1FileName,
   selectAverageOrderDetailHeight, selectIsStepLoading, selectIsEditMode,
   selectIsOnlyOrderDirty,
+  selectInvoiceTemplateFile,
 } from '../../../../../store/stepper/stepper.selectors';
 import { CompanyRelation } from '../../../../../models/company-relation.interface';
 import { Truck } from '../../../../../models/truck.interface';
 import { combineLatest } from 'rxjs';
-import { debounceTime, distinctUntilChanged, map, takeUntil } from 'rxjs/operators';
+import { map } from 'rxjs/operators';
 import { CompanyRelationService } from '../../../services/company-relation.service';
+import { FileService } from '../../../services/file.service';
 
 @Component({
   selector: 'app-invoice-upload',
@@ -105,6 +105,7 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
   private readonly dataLoaderService = inject(InvoiceDataLoaderService);
   private readonly calculatorService = inject(InvoiceCalculatorService);
   private readonly companyRelationService = inject(CompanyRelationService);
+  private readonly fileService = inject(FileService)
   // Original services still needed
   private readonly toastService = inject(ToastService);
 
@@ -119,6 +120,8 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
   public fileNameSignal = this.store.selectSignal(selectStep1FileName);
   public isLoadingSignal = this.store.selectSignal(selectIsStepLoading(1));
   public isEditModeSignal = this.store.selectSignal(selectIsEditMode);
+  public userSignal = this.store.selectSignal(selectUser);
+  public templateFileSignal = this.store.selectSignal(selectInvoiceTemplateFile);
 
   private readonly unitProductHeight = this.store.selectSignal(selectAverageOrderDetailHeight)
   unitsControl = new FormControl(20);
@@ -204,7 +207,7 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.initializeComponent();
-
+    this.getTemplateFile();
     effect(() => {
       const order = this.orderSignal();
       if (!order) return;
@@ -260,7 +263,46 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
     this.subscriptions.push(dataSub);
   }
 
+  downloadTemplate() {
+    const templateFile = this.templateFileSignal();
+    if (templateFile) {
+      const file = templateFile;
 
+      // HTTP ile dosyayı blob olarak indir
+      fetch(file.file)
+        .then(response => response.blob())
+        .then(blob => {
+          const url = window.URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = `${file.name}.xlsx`;
+          document.body.appendChild(link);
+          link.click();
+
+          // Temizlik
+          document.body.removeChild(link);
+          window.URL.revokeObjectURL(url);
+        })
+        .catch(error => {
+          console.error('Dosya indirme hatası:', error);
+          // Hata bildirimi göster
+        });
+    } else {
+      console.warn('Template dosyası bulunamadı');
+    }
+  }
+
+  getTemplateFile(){
+    if(!this.templateFileSignal() || this.templateFileSignal().length === 0){
+      const company_id = this.userSignal()?.company.id
+      this.fileService.getAll({
+        company_id: company_id,
+        type: 'isb_template'
+      }).subscribe(response =>{
+        this.store.dispatch(setTemplateFile({templateFile: response.results[0]}))
+      })
+    }
+  }
 
   onFileSelected(event: Event): void {
     this.fileUploadManager.selectFile(event);

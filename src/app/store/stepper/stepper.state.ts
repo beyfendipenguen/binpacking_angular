@@ -68,6 +68,7 @@ export interface StepperState {
     fileName?: string;
     isDirty: boolean;
     isOnlyOrderDirty: boolean;
+    templateFile:any;
   };
 
   step2State: {
@@ -147,7 +148,8 @@ export const initialStepperState: StepperState = {
     deleted: [],
     hasFile: false,
     isDirty: false,
-    isOnlyOrderDirty: false
+    isOnlyOrderDirty: false,
+    templateFile:null
   },
 
   step2State: {
