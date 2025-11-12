@@ -292,14 +292,14 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
     }
   }
 
-  getTemplateFile(){
-    if(!this.templateFileSignal() || this.templateFileSignal().length === 0){
+  getTemplateFile() {
+    if (!this.templateFileSignal() || this.templateFileSignal().length === 0) {
       const company_id = this.userSignal()?.company.id
       this.fileService.getAll({
         company_id: company_id,
         type: 'isb_template'
-      }).subscribe(response =>{
-        this.store.dispatch(setTemplateFile({templateFile: response.results[0]}))
+      }).subscribe(response => {
+        this.store.dispatch(setTemplateFile({ templateFile: response.results[0] }))
       })
     }
   }
@@ -333,6 +333,7 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
     if (currentOrder) {
       const updatedOrder = { ...currentOrder, company_relation: selectedCompany };
       this.store.dispatch(StepperActions.setOrder({ order: updatedOrder }));
+      this.store.dispatch(StepperActions.updateOrCreateOrder({ context: 'companyRelationUpdated' }))
 
       // ✅ Settings'i al ve order'ı güncelle
       if (selectedCompany?.id) {
@@ -505,6 +506,10 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
   }
 
   submit(): void {
+    // eger is diry ise
+    //  eger isonlyorderdiry ise
+    //    update or create order
+    //
     if (!this.isDirtySignal()) {
       if (this.isOnlyOrderDirtySignal()) {
         this.store.dispatch(StepperActions.updateOrCreateOrder({ context: 'order' }))

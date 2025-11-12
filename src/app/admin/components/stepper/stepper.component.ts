@@ -92,6 +92,11 @@ export class StepperComponent implements OnInit {
     }
   };
 
+  onStepChange(event: StepperSelectionEvent): void {
+    this.store.dispatch(StepperActions.navigateToStep({ stepIndex: event.selectedIndex }))
+  }
+
+
   ngOnInit(): void {
     // TODO:
     // localdan okuyup store a yazama islemini tamamla

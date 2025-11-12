@@ -605,11 +605,13 @@ export const stepperReducer = createReducer(
     if (isCustomSplit) {
       const firstPart = {
         ...product,
+        ui_id: Guid(),
         count: validatedCount,
       };
 
       const secondPart = {
         ...product,
+        ui_id: Guid(),
         count: product.count - validatedCount,
       };
 
@@ -618,11 +620,13 @@ export const stepperReducer = createReducer(
     } else {
       const firstHalf = {
         ...product,
+        ui_id: Guid(),
         count: validatedCount,
       };
 
       const secondHalf = {
         ...product,
+        ui_id: Guid(),
         count: product.count - validatedCount,
       };
 

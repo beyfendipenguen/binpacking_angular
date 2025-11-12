@@ -10,6 +10,7 @@ import {
   mergeMap,
   filter,
   concatMap,
+  exhaustMap,
 } from 'rxjs/operators';
 import { EMPTY, forkJoin, of, timer } from 'rxjs';
 import * as StepperActions from './stepper.actions';
@@ -32,6 +33,7 @@ import { FileUploadManager } from '../../admin/components/stepper/components/inv
 import { LocalStorageService } from '../../admin/components/stepper/services/local-storage.service';
 import { RepositoryService } from '../../admin/components/stepper/services/repository.service';
 import { UIStateManager } from '../../admin/components/stepper/components/invoice-upload/managers/ui-state.manager';
+import { HttpErrorResponse } from '@angular/common/http';
 
 @Injectable()
 export class StepperEffects {
@@ -203,45 +205,6 @@ export class StepperEffects {
     )
   );
 
-  createOrderDetailsInvoiceUploadSubmitFlow$ = createEffect(() => {
-    return this.actions$.pipe(
-      ofType(StepperActions.createOrderDetailsSuccess),
-      switchMap((action) => {
-        if (action.context === "invoiceUploadSubmitFlow") {
-          return of(
-            StepperActions.uploadFileToOrder({
-              context: action.context
-            }))
-        }
-        else {
-          return EMPTY
-        }
-      }))
-  });
-
-  getPalletsFlow$ = createEffect(() => {
-    return this.actions$.pipe(
-      ofType(StepperActions.updateOrCreateOrderSuccess),
-      filter((action) => ['invoiceUploadSubmitFlow', 'companyRelationUpdated'].includes(action.context)),
-      map(() => StepperActions.getPallets())
-    )
-  })
-
-  getPallets$ = createEffect(() => {
-    return this.actions$.pipe(
-      ofType(StepperActions.getPallets),
-      switchMap(() =>
-        this.repositoryService.getPalletsByOrder().pipe(
-          map((response) => StepperActions.getPalletsSuccess({ pallets: response })),
-          catchError((error) =>
-            of(StepperActions.setStepperError({ error: error.message }))
-          )
-        )
-      )
-    )
-  });
-
-
   updateOrCreateOrderInvoiceUploadSubmitFlow$ = createEffect(() => {
     return this.actions$.pipe(
       ofType(StepperActions.updateOrCreateOrderSuccess),
@@ -264,6 +227,44 @@ export class StepperEffects {
         );
       })
     );
+  });
+
+  getPalletsFlow$ = createEffect(() => {
+    return this.actions$.pipe(
+      ofType(StepperActions.updateOrCreateOrderSuccess),
+      filter((action) => ['invoiceUploadSubmitFlow', 'companyRelationUpdated'].includes(action.context)),
+      map(() => StepperActions.getPallets())
+    )
+  });
+
+  getPallets$ = createEffect(() => {
+    return this.actions$.pipe(
+      ofType(StepperActions.getPallets),
+      switchMap(() =>
+        this.repositoryService.getPalletsByOrder().pipe(
+          map((response) => StepperActions.getPalletsSuccess({ pallets: response })),
+          catchError((error) =>
+            of(StepperActions.setStepperError({ error: error.message }))
+          )
+        )
+      )
+    )
+  });
+
+  createOrderDetailsInvoiceUploadSubmitFlow$ = createEffect(() => {
+    return this.actions$.pipe(
+      ofType(StepperActions.createOrderDetailsSuccess),
+      switchMap((action) => {
+        if (action.context === "invoiceUploadSubmitFlow") {
+          return of(
+            StepperActions.uploadFileToOrder({
+              context: action.context
+            }))
+        }
+        else {
+          return EMPTY
+        }
+      }))
   });
 
   calculatePackageDetail$ = createEffect(() =>
@@ -389,15 +390,15 @@ export class StepperEffects {
         this.store.select(selectStep2IsDirty)
       ),
       filter(([action, uiPackages, isDirty]) => isDirty),
-      concatMap(([action, uiPackages]) => {
+      exhaustMap(([action, uiPackages]) => {
         return this.repositoryService.bulkCreatePackageDetail(uiPackages).pipe(
           map((response) =>
             StepperActions.palletControlSubmitSuccess({
               packageDetails: response.package_details,
             })
           ),
-          catchError((error) =>
-            of(StepperActions.setGlobalError({ error: error.message }))
+          catchError((error: HttpErrorResponse) =>
+            of(StepperActions.setGlobalError({ error: { message: error.message, code: error.error.code } }))
           )
         );
       })
