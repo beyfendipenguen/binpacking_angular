@@ -19,7 +19,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import * as THREE from 'three';
-import { AppState, cleanUpInvalidPackagesFromOrder } from '../../store';
+import { AppState, cleanUpInvalidPackagesFromOrder, selectStep3IsDirty, setStep3IsDirty } from '../../store';
 import { Store } from '@ngrx/store';
 import { MatDialog } from '@angular/material/dialog';
 import { CancelConfirmationDialogComponent } from '../cancel-confirmation-dialog/cancel-confirmation-dialog.component';
@@ -70,7 +70,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, OnChanges, On
   private readonly minCameraPhi = Math.PI / 6;     // 30 derece (yukarı sınır)
   private readonly maxCameraPhi = Math.PI / 2.2;   // ~80 derece (aşağı sınır)
   private readonly minCameraHeight = 500;          // Minimum kamera yüksekliği
-
+  private selectIsDirtySignal = this.store.selectSignal(selectStep3IsDirty)
   //Models
   private gltfLoader!: GLTFLoader;
   private truckModel?: THREE.Group; // ✅ Yüklenen model için
@@ -1009,7 +1009,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, OnChanges, On
     this.draggedPackage.isBeingDragged = false;
 
     if (this.pendingDataChange) {
-      this.debouncedEmitDataChange();
+       this.orderResultChange();
       this.pendingDataChange = false;
     }
 
@@ -1092,21 +1092,10 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, OnChanges, On
     this.highlightSelectedPackage();
 
     // 7. ✅ Event'leri emit et
-    // this.debouncedEmitDataChange();
-    this.emitDataChangeImmediate();
+     this.orderResultChange();
+    // this.emitDataChangeImmediate();
     // 8. ✅ Change detection'ı tetikle
     this.cdr.detectChanges();
-  }
-
-  private emitDataChangeImmediate(): void {
-    // Debounce'u temizle
-    if (this.dataChangeTimeout) {
-      clearTimeout(this.dataChangeTimeout);
-      this.dataChangeTimeout = null;
-    }
-
-    // Hemen emit et
-    this.emitDataChange();
   }
 
   private recreatePackageMeshCompletely(packageData: PackageData): void {
@@ -1172,7 +1161,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, OnChanges, On
 
       this.deletedPackages.push(deletedPackage);
       this.selectedPackage = null;
-      this.debouncedEmitDataChange();
+      this.orderResultChange();
     }
   }
 
@@ -1229,7 +1218,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, OnChanges, On
 
       this.createPackageMesh(packageData);
       this.processedPackages.push(packageData);
-      this.debouncedEmitDataChange();
+      this.orderResultChange();
 
       // ✅ Kullanıcıya bilgi ver
       if (packageData.rotation && packageData.rotation % 180 === 90) {
@@ -1613,22 +1602,10 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, OnChanges, On
     }
   }
 
-  private debouncedEmitDataChange(): void {
-    if (this.dataChangeTimeout) {
-      clearTimeout(this.dataChangeTimeout);
-    }
-    this.dataChangeTimeout = setTimeout(() => {
-      this.emitDataChange();
-    }, 100);
-  }
-
-  private emitDataChange(): void {
-    const updatedData = this.processedPackages.map(pkg => [
-      pkg.x, pkg.y, pkg.z, pkg.length, pkg.width, pkg.height, pkg.id, pkg.weight
-    ]);
-    // this.store.dispatch(updateStep3OptimizationResult({
-    //   optimizationResult: updatedData
-    // }))
+  private orderResultChange(): void {
+    // if(!this.selectIsDirtySignal()){
+      this.store.dispatch(setStep3IsDirty())
+    // }
   }
 
   private findValidPosition(packageData: PackageData): { x: number, y: number, z: number } | null {

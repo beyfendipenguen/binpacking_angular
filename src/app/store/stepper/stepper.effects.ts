@@ -20,7 +20,7 @@ import {
   selectStep1Changes,
   selectStep1IsDirty,
   selectStep2IsDirty,
-  selectStep3OptimizationResult,
+  selectOrderResult,
   selectStepperState,
   selectUiPackages,
   selectVerticalSort,
@@ -447,7 +447,7 @@ export class StepperEffects {
   updateOrderResult$ = createEffect(() => {
     return this.actions$.pipe(
       ofType(StepperActions.updateOrderResult),
-      withLatestFrom(this.store.select(selectStep3OptimizationResult)),
+      withLatestFrom(this.store.select(selectOrderResult)),
       switchMap(([action, orderResult]) => {
         return this.repositoryService.partialUpdateOrderResult(orderResult).pipe(
           map((response) =>

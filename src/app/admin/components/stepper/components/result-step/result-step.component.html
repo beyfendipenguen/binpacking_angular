@@ -105,7 +105,7 @@
       <div class="file-count">{{ reportFiles.length }}</div>
 
       <!-- ✅ NEW: Unsaved Changes Badge -->
-      @if (hasUnsavedChanges) {
+      @if (isDirtySignal()) {
       <div class="unsaved-badge" title="Kaydedilmemiş değişiklikler var">
         <mat-icon>warning</mat-icon>
         <span>Değişiklikler Kaydedilmedi</span>
@@ -115,13 +115,13 @@
 
     <div class="report-files-list">
       @for (file of reportFiles; track trackByFileId($index, file)) {
-      <div class="report-file-item" [class.has-changes]="hasUnsavedChanges">
+      <div class="report-file-item" [class.has-changes]="isDirtySignal()">
         <div class="file-icon" [class]="'file-type-' + getFileIcon(file.file_type)">
           <mat-icon>{{ getFileIcon(file.file_type) }}</mat-icon>
         </div>
         <div class="file-info">
           <!-- ✅ CHANGED: Click handler ekle, href kaldır -->
-          <a class="file-link" (click)="onFileClick($event, file)" [class.saving]="hasUnsavedChanges"
+          <a class="file-link" (click)="onFileClick($event, file)" [class.saving]="isDirtySignal()"
             style="cursor: pointer;">
             <span class="file-name">{{ file.name }}</span>
             @if (file.file_size) {
@@ -131,10 +131,10 @@
             }
 
             <!-- ✅ NEW: Icon değişimi -->
-            @if (!hasUnsavedChanges) {
+            @if (!isDirtySignal()) {
             <mat-icon class="download-icon">download</mat-icon>
             }
-            @if (hasUnsavedChanges) {
+            @if (isDirtySignal()) {
             <mat-icon class="save-icon">save</mat-icon>
             }
           </a>
@@ -151,7 +151,7 @@
     </div>
 
     <!-- ✅ NEW: Info Message -->
-    @if (hasUnsavedChanges) {
+    @if (isDirtySignal()) {
     <div class="auto-save-info">
       <mat-icon>info</mat-icon>
       <span>Dosyaya tıkladığınızda değişiklikler otomatik kaydedilecek</span>
@@ -168,7 +168,7 @@
         <span>Geri</span>
       </button>
 
-      <button mat-raised-button class="next-button" [disabled]="!hasResults && hasUnsavedChanges"
+      <button mat-raised-button class="next-button" [disabled]="!hasResults && isDirtySignal()"
         (click)="completeShipment()">
         <mat-icon>check_circle</mat-icon>
         Sevkiyatı Tamamla
