@@ -82,7 +82,7 @@ export interface StepperState {
   };
 
   step3State: {
-    optimizationResult: any[];
+    orderResult: string;
     reportFiles: any[];
     loadingStats: any | null;
     algorithmStats: any | null;
@@ -163,7 +163,7 @@ export const initialStepperState: StepperState = {
   },
 
   step3State: {
-    optimizationResult: [],
+    orderResult: '',
     reportFiles: [],
     loadingStats: null,
     algorithmStats: null,

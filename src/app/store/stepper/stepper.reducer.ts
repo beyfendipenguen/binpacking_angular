@@ -73,6 +73,15 @@ export const stepperReducer = createReducer(
       }
     }
   )),
+  on(StepperActions.updateOrderResult, (state, { orderResult }) => (
+    {
+      ...state,
+      step3State: {
+        ...state.step3State,
+        orderResult:orderResult
+      }
+    }
+  )),
 
   on(StepperActions.addUiProductToRemainingProducts, (state, { productUiId }) => {
     const product = state.step2State.packages.flatMap(p => p.products).find(p => p.ui_id === productUiId)
@@ -124,11 +133,25 @@ export const stepperReducer = createReducer(
     }
   }),
 
-
   on(StepperActions.setStepperData, (state, { data }) => ({
     ...state,
     ...data
   })),
+
+  on(StepperActions.setStep3IsDirty, (state) => {
+
+    if(state.step3State.isDirty){
+      return state
+    }
+    return {
+    ...state,
+    step3State:{
+      ...state.step3State,
+      isDirty:true
+    }}
+  }),
+
+
 
   on(StepperActions.calculatePackageDetailSuccess, (state, { packages, remainingOrderDetails }) => {
     const remainingProducts: any[] = [];
@@ -262,7 +285,8 @@ export const stepperReducer = createReducer(
     ...state,
     step3State: {
       ...state.step3State,
-      reportFiles: reportFiles
+      reportFiles: reportFiles,
+      isDirty:false
     }
   })),
 

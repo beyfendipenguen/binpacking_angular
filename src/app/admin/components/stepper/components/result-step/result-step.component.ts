@@ -7,7 +7,9 @@ import {
   OnInit,
   EventEmitter,
   Output,
-  ChangeDetectionStrategy
+  ChangeDetectionStrategy,
+  signal,
+  effect
 } from '@angular/core';
 import { MatButton } from '@angular/material/button';
 import { MatStepperPrevious } from '@angular/material/stepper';
@@ -77,7 +79,6 @@ export class ResultStepComponent implements OnInit, OnDestroy {
   optimizationProgress: number = 0;
   hasThreeJSError: boolean = false;
 
-  hasUnsavedChanges: boolean = false;
   lastDataChangeTime: Date = new Date();
   totalPackagesProcessed: number = 0;
 
@@ -94,7 +95,19 @@ export class ResultStepComponent implements OnInit, OnDestroy {
   toastService = inject(ToastService);
   private readonly cdr = inject(ChangeDetectorRef);
   orderResultService = inject(OrderResultService)
+  private pendingFile = signal<any>(null);
 
+  // Effect ile isDirty değişimini dinle
+  private fileOpenEffect = effect(() => {
+    const isDirty = this.isDirtySignal();
+    const pending = this.pendingFile();
+
+    // isDirty false oldu VE bekleyen dosya var
+    if (!isDirty && pending) {
+      this.openFile(pending);
+      this.pendingFile.set(null); // Temizle
+    }
+  });
   // NgRx Observables
   public isEditMode$ = this.store.select(selectIsEditMode);
   public editOrderId$ = this.store.select(selectOrderId);
@@ -118,27 +131,27 @@ export class ResultStepComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
 
-    this.setupAutoSaveListeners();
+    this.setupAutoSaveListeners1();
     this.performanceMetrics.startTime = performance.now();
   }
 
-  private setupAutoSaveListeners(): void {
-    this.watchResultChanges();
+  private setupAutoSaveListeners1(): void {
+    this.watchResultChanges1();
   }
 
-  private watchResultChanges(): void {
+  private watchResultChanges1(): void {
     setInterval(() => {
       if (this.isLoading || this.processingLock || this.isDestroyed) {
         return;
       }
-      const currentState = this.getCurrentResultState();
+      const currentState = this.getCurrentResultState1();
       if (currentState !== this.lastResultState && this.hasResults) {
         this.lastResultState = currentState;
       }
     }, 3000);
   }
 
-  private getCurrentResultState(): string {
+  private getCurrentResultState1(): string {
     try {
       return JSON.stringify({
         hasResults: this.hasResults,
@@ -147,7 +160,6 @@ export class ResultStepComponent implements OnInit, OnDestroy {
         reportFilesLength: this.reportFiles?.length || 0,
         currentViewType: this.currentViewType,
         hasThreeJSError: this.hasThreeJSError,
-        hasUnsavedChanges: this.hasUnsavedChanges,
         timestamp: Date.now()
       });
     } catch (error) {
@@ -261,7 +273,7 @@ export class ResultStepComponent implements OnInit, OnDestroy {
 
 
 
-  resetToOriginalData(): void {
+  resetToOriginalData1(): void {
     if (!this.originalPiecesData || this.originalPiecesData.length === 0) {
       this.toastService.warning('Sıfırlamak için orijinal veri bulunamadı');
       return;
@@ -277,7 +289,6 @@ export class ResultStepComponent implements OnInit, OnDestroy {
     if (!confirmed) return;
     try {
       this.piecesData = JSON.parse(JSON.stringify(this.originalPiecesData));
-      this.hasUnsavedChanges = false;
 
       this.safeProcessOptimizationResult({
         data: this.piecesData
@@ -307,7 +318,6 @@ export class ResultStepComponent implements OnInit, OnDestroy {
     this.processedPackages = [];
     this.reportFiles = [];
 
-    this.hasUnsavedChanges = false;
     this.lastDataChangeTime = new Date();
     this.totalPackagesProcessed = 0;
     this.safeUpdateUI();
@@ -524,7 +534,7 @@ export class ResultStepComponent implements OnInit, OnDestroy {
   /**
    * File tıklaması - Unsaved changes varsa önce kaydet
    */
-  async onFileClick(event: Event, file: any): Promise<void> {
+  onFileClick(event: Event, file: any):void {
     event.preventDefault(); // Link'in default davranışını engelle
 
     if (!file?.file) {
@@ -533,15 +543,12 @@ export class ResultStepComponent implements OnInit, OnDestroy {
     }
 
     // Eğer değişiklik varsa, önce kaydet
-    if (this.hasUnsavedChanges) {
+    if (this.isDirtySignal()) {
       this.toastService.info('Değişiklikler kaydediliyor...');
 
       try {
-        // saveResults'ı bekle
-        await this.saveResultsAndWait();
-
-        // Kayıt başarılı, dosyayı aç
-        this.openFile(file);
+        this.pendingFile.set(file);
+        this.completeOrder();
 
       } catch (error) {
         this.toastService.error('Kayıt sırasında hata oluştu');
@@ -567,47 +574,6 @@ export class ResultStepComponent implements OnInit, OnDestroy {
     }
   }
 
-  /**
-   * SaveResults metodunu Promise'e çevir (beklenebilir hale getir)
-   */
-  private saveResultsAndWait(): Promise<void> {
-    return new Promise((resolve, reject) => {
-      if (!this.hasResults || this.isDestroyed) {
-        reject(new Error('No results to save'));
-        return;
-      }
-
-      this.repositoryService.partialUpdateOrderResult(this.piecesData, this.orderResultId)
-        .pipe(
-          switchMap(() => this.repositoryService.createReport()),
-          tap((response) => {
-            if (response?.file) {
-              this.reportFiles = response.file
-            }
-          }),
-          finalize(() => {
-            this.hasUnsavedChanges = false;
-            this.cdr.detectChanges();
-          }),
-          catchError(error => {
-            this.toastService.error('İşlem sırasında hata: ' + error.message);
-            reject(error);
-            return EMPTY;
-          })
-        )
-        .subscribe({
-          next: () => {
-            this.toastService.success('Değişiklikler kaydedildi');
-            resolve();
-          },
-          error: (error) => {
-            reject(error);
-          }
-        });
-    });
-  }
-
-
   trackByFileId(index: number, file: any): any {
     return file?.id || file?.name || index;
   }
@@ -632,6 +598,15 @@ export class ResultStepComponent implements OnInit, OnDestroy {
       this.toastService.warning('Önce optimizasyonu tamamlayın');
       return;
     }
+    this.completeOrder();
+    if (!this.isDirtySignal()) {// step 3 is dirty
+      this.shipmentCompleted.emit();
+    }
+  }
+
+  completeOrder(){
+    const orderResult = this.convertPiecesToJsonString();
+
     if (this.threeJSComponent.deletedPackages.length > 0) {
       const dialogRef = this.dialog.open(CancelConfirmationDialogComponent, {
         width: '400px',
@@ -650,17 +625,32 @@ export class ResultStepComponent implements OnInit, OnDestroy {
         if (result === true) {
           this.store.dispatch(cleanUpInvalidPackagesFromOrder({ packageNames: this.threeJSComponent.deletedPackages.map(pckg => pckg.id) }));
           this.threeJSComponent.deletedPackages = []
-          this.store.dispatch(updateOrderResult())
+          this.store.dispatch(updateOrderResult({orderResult}))
         }
         else {
           return;
         }
       });
     } else {
-      // this.store.dispatch(updateOrderResult())
-    }
-    if (!this.isDirtySignal()) {// step 3 is dirty
-      this.shipmentCompleted.emit();
+      this.store.dispatch(updateOrderResult({orderResult}))
     }
   }
+
+  convertPiecesToJsonString(): string {
+    const piecesData = this.threeJSComponent.processedPackages;
+
+    const formattedData = piecesData.map(piece => [
+      piece.x,
+      piece.y,
+      piece.z,
+      piece.length,
+      piece.width,
+      piece.height,
+      piece.id,
+      piece.weight
+    ]);
+
+    return JSON.stringify(formattedData);
+  }
+
 }

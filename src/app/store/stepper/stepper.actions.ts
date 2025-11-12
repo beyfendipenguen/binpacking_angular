@@ -98,6 +98,10 @@ export const stepperStepUpdated = createAction(
   '[Stepper] Stepper Step Updated'
 );
 
+export const setStep3IsDirty = createAction(
+  '[Stepper] Set Order Result Is Dirty'
+);
+
 export const setStepperData = createAction(
   '[Stepper] Set Stepper Data',
   props<{ data: any }>()
@@ -335,7 +339,9 @@ export const deleteOrderDetail = createAction(
 );
 
 export const updateOrderResult = createAction(
-  '[Migration] Update Order Result'
+  '[Migration] Update Order Result',
+  props<{orderResult:string}>()
+
 );
 
 

@@ -226,9 +226,8 @@ export class RepositoryService {
   }
 
   partialUpdateOrderResult(piecesData: any, order_id: string = this.getOrderResultId()) {
-    const resultString = JSON.stringify(piecesData);
     const updateData = {
-      result: resultString
+      result: piecesData
     };
     return this.http.patch<any>(`${this.api.getApiUrl()}/orders/order-results/${order_id}/`, updateData)
   }

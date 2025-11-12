@@ -531,9 +531,9 @@ export const selectStep3State = createSelector(
   (state) => state.step3State
 );
 
-export const selectStep3OptimizationResult = createSelector(
+export const selectOrderResult = createSelector(
   selectStep3State,
-  (step3State) => step3State.optimizationResult
+  (step3State) => step3State.orderResult
 );
 
 export const selectOrderResultId = createSelector(
