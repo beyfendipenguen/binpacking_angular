@@ -73,7 +73,7 @@
     <!-- ENHANCED: ThreeJS Truck Visualization Component with NEW dataChanged event -->
     @if (hasResults && !hasThreeJSError) {
     <app-threejs-truck-visualization #threeJSComponent [weightCalculationDepth]="3000" [showWeightDisplay]="true"
-      [piecesData]="piecesData" [truckDimension]="truckDimension()" [showHelp]="true" (error)="onThreeJSError($event)">
+      [piecesData]="piecesData" [showHelp]="true" (error)="onThreeJSError($event)">
     </app-threejs-truck-visualization>
     }
 

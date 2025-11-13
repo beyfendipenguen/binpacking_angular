@@ -344,6 +344,11 @@ export const updateOrderResult = createAction(
 
 );
 
+export const completeShipment = createAction(
+  '[Stepper] Shipment Completed',
+  props<{orderResult:string}>()
+
+);
 
 export const getPallets = createAction(
   '[pallet control] get pallets'

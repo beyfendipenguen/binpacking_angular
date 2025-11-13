@@ -73,7 +73,18 @@ export const stepperReducer = createReducer(
       }
     }
   )),
+
   on(StepperActions.updateOrderResult, (state, { orderResult }) => (
+    {
+      ...state,
+      step3State: {
+        ...state.step3State,
+        orderResult:orderResult
+      }
+    }
+  )),
+
+  on(StepperActions.completeShipment, (state, { orderResult }) => (
     {
       ...state,
       step3State: {

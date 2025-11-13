@@ -25,7 +25,7 @@ import { ThreeJSTruckVisualizationComponent } from '../../../../../components/th
 import { OrderResultService } from '../../../services/order-result.service';
 
 import { Store } from '@ngrx/store';
-import { AppState, cleanUpInvalidPackagesFromOrder, navigateToStep, selectAutoSaveStatusText, selectIsEditMode, selectOrderId, selectRemainingProducts, selectStep3IsDirty, selectStepAutoSaveStatus, selectStepHasPendingChanges, selectStepperSummary, setGlobalError, setStepCompleted, setStepLoading, setStepperData, setStepValidation, updateOrderResult } from '../../../../../store';
+import { AppState, cleanUpInvalidPackagesFromOrder, completeShipment, navigateToStep, resetStepper, selectAutoSaveStatusText, selectIsEditMode, selectOrderId, selectRemainingProducts, selectStep3IsDirty, selectStepAutoSaveStatus, selectStepHasPendingChanges, selectStepperSummary, setGlobalError, setStepCompleted, setStepLoading, setStepperData, setStepValidation, updateOrderResult } from '../../../../../store';
 import { selectTruck } from '../../../../../store';
 import { CancelConfirmationDialogComponent } from '../../../../../components/cancel-confirmation-dialog/cancel-confirmation-dialog.component';
 import { MatDialog } from '@angular/material/dialog';
@@ -67,7 +67,6 @@ export class ResultStepComponent implements OnInit, OnDestroy {
   private readonly dialog = inject(MatDialog);
   piecesData: any[] = [];
   originalPiecesData: any[] = []; // NEW: Track original data
-  truckDimension = this.store.selectSignal(selectTruck)
   orderResultId: string = '';
 
 
@@ -508,11 +507,10 @@ export class ResultStepComponent implements OnInit, OnDestroy {
       return;
     }
     this.completeOrder();
-    this.shipmentCompleted.emit();
 
   }
 
-  completeOrder(){
+  completeOrder(isFile:boolean=false){
     const orderResult = this.convertPiecesToJsonString();
 
     if (this.threeJSComponent.deletedPackages.length > 0) {
@@ -533,6 +531,10 @@ export class ResultStepComponent implements OnInit, OnDestroy {
         if (result === true) {
           this.store.dispatch(cleanUpInvalidPackagesFromOrder({ packageNames: this.threeJSComponent.deletedPackages.map(pckg => pckg.id) }));
           this.threeJSComponent.deletedPackages = []
+          if(isFile){
+            this.store.dispatch(completeShipment({orderResult}))
+            return
+          }
           this.store.dispatch(updateOrderResult({orderResult}))
         }
         else {
@@ -540,6 +542,10 @@ export class ResultStepComponent implements OnInit, OnDestroy {
         }
       });
     } else {
+      if(isFile){
+        this.store.dispatch(completeShipment({orderResult}))
+        return
+      }
       this.store.dispatch(updateOrderResult({orderResult}))
     }
   }

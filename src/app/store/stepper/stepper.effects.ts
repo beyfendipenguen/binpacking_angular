@@ -458,6 +458,19 @@ export class StepperEffects {
     );
   })
 
+  completeShipment$ = createEffect(() => {
+    return this.actions$.pipe(
+      ofType(StepperActions.completeShipment),
+      withLatestFrom(this.store.select(selectOrderResult)),
+      switchMap(([action, orderResult]) => {
+        return this.repositoryService.partialUpdateOrderResult(orderResult).pipe(
+          map((response) =>
+            StepperActions.resetStepper()
+          ))
+      })
+    );
+  })
+
   createReportFile$ = createEffect(() => {
     return this.actions$.pipe(
       ofType(StepperActions.createReportFile),
