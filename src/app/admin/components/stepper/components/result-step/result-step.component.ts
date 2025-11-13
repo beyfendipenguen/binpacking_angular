@@ -131,41 +131,9 @@ export class ResultStepComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
 
-    this.setupAutoSaveListeners1();
     this.performanceMetrics.startTime = performance.now();
   }
 
-  private setupAutoSaveListeners1(): void {
-    this.watchResultChanges1();
-  }
-
-  private watchResultChanges1(): void {
-    setInterval(() => {
-      if (this.isLoading || this.processingLock || this.isDestroyed) {
-        return;
-      }
-      const currentState = this.getCurrentResultState1();
-      if (currentState !== this.lastResultState && this.hasResults) {
-        this.lastResultState = currentState;
-      }
-    }, 3000);
-  }
-
-  private getCurrentResultState1(): string {
-    try {
-      return JSON.stringify({
-        hasResults: this.hasResults,
-        showVisualization: this.showVisualization,
-        piecesDataLength: this.piecesData?.length || 0,
-        reportFilesLength: this.reportFiles?.length || 0,
-        currentViewType: this.currentViewType,
-        hasThreeJSError: this.hasThreeJSError,
-        timestamp: Date.now()
-      });
-    } catch (error) {
-      return '';
-    }
-  }
 
   ngOnDestroy(): void {
     this.isDestroyed = true;
@@ -202,7 +170,6 @@ export class ResultStepComponent implements OnInit, OnDestroy {
       return;
     }
     this.processingLock = true;
-    this.safeResetState();
     this.store.dispatch(setStepLoading({
       stepIndex: 2,
       loading: true,
@@ -269,58 +236,6 @@ export class ResultStepComponent implements OnInit, OnDestroy {
           }
         },
       });
-  }
-
-
-
-  resetToOriginalData1(): void {
-    if (!this.originalPiecesData || this.originalPiecesData.length === 0) {
-      this.toastService.warning('Sıfırlamak için orijinal veri bulunamadı');
-      return;
-    }
-
-    const confirmed = confirm(
-      '🔄 Tüm değişiklikleri geri al ve orijinal veriye dön?\n\n' +
-      `Mevcut: ${this.piecesData.length} paket\n` +
-      `Orijinal: ${this.originalPiecesData.length} paket\n` +
-      '⚠️ Bu işlem geri alınamaz!'
-    );
-
-    if (!confirmed) return;
-    try {
-      this.piecesData = JSON.parse(JSON.stringify(this.originalPiecesData));
-
-      this.safeProcessOptimizationResult({
-        data: this.piecesData
-      });
-
-      this.safeUpdateUI();
-
-      this.toastService.success('Veriler orijinal haline sıfırlandı');
-      this.cdr.markForCheck();
-
-    } catch (error) {
-
-      this.toastService.error('Veri sıfırlama hatası');
-    }
-  }
-
-
-  private safeResetState(): void {
-    if (this.isDestroyed) return;
-    this.isLoading = true;
-    this.hasResults = false;
-    this.showVisualization = false;
-    this.hasThreeJSError = false;
-    this.optimizationProgress = 0;
-    this.piecesData = [];
-    this.originalPiecesData = []; // NEW
-    this.processedPackages = [];
-    this.reportFiles = [];
-
-    this.lastDataChangeTime = new Date();
-    this.totalPackagesProcessed = 0;
-    this.safeUpdateUI();
   }
 
   private safeProcessOptimizationResult(response: any): void {
@@ -397,10 +312,6 @@ export class ResultStepComponent implements OnInit, OnDestroy {
       this.processedPackages = [];
     }
   }
-
-
-
-
 
   private safeFinalize(): void {
     if (this.isDestroyed) return;
@@ -544,8 +455,6 @@ export class ResultStepComponent implements OnInit, OnDestroy {
 
     // Eğer değişiklik varsa, önce kaydet
     if (this.isDirtySignal()) {
-      this.toastService.info('Değişiklikler kaydediliyor...');
-
       try {
         this.pendingFile.set(file);
         this.completeOrder();
@@ -599,9 +508,8 @@ export class ResultStepComponent implements OnInit, OnDestroy {
       return;
     }
     this.completeOrder();
-    if (!this.isDirtySignal()) {// step 3 is dirty
-      this.shipmentCompleted.emit();
-    }
+    this.shipmentCompleted.emit();
+
   }
 
   completeOrder(){

@@ -20,6 +20,7 @@ import { provideStoreDevtools } from '@ngrx/store-devtools';
 import { reducers } from './store';
 import { StepperEffects } from './store/stepper/stepper.effects';
 import { UserEffects } from './store/user/user.effects';
+import { STORE_CONFIG, DEVTOOLS_CONFIG } from './ngrx.config';
 
 export function appInitialization() {
   const configService = inject(ConfigService);
@@ -53,33 +54,12 @@ export const appConfig: ApplicationConfig = {
     },
 
     // ✅ NgRx Store - Runtime Checks ile
-    provideStore(reducers, {
-      runtimeChecks: {
-        strictStateImmutability: true,      // State mutasyonlarını yakalar
-        strictActionImmutability: true,     // Action mutasyonlarını yakalar
-        strictStateSerializability: true,   // Class instance'ları yakalar (UiPackage, UiProduct vb.)
-        strictActionSerializability: true,  // Action payload'larındaki class'ları yakalar
-        strictActionWithinNgZone: true,     // Zone dışı action'ları yakalar
-        strictActionTypeUniqueness: true,   // Duplicate action type'ları yakalar
-      }
-    }),
+    provideStore(reducers, STORE_CONFIG),
 
     // ✅ NgRx Effects
     provideEffects([StepperEffects, UserEffects]),
 
     // ✅ NgRx DevTools - Geliştirilmiş Ayarlar
-    provideStoreDevtools({
-      maxAge: 25,                           // Son 25 action'ı sakla
-      logOnly: !isDevMode(),                // Production'da sadece log, development'ta tam özellikler
-      autoPause: true,                      // İnaktif sekmede otomatik durdur
-      trace: true,                          // Stack trace aktif (mutasyon yerini gösterir)
-      traceLimit: 75,                       // Stack trace derinliği
-      connectInZone: true,                  // Zone içinde bağlan
-      // features: {
-      //   pause: true,                        // Manuel pause özelliği
-      //   lock: true,                         // State lock özelliği
-      //   // persist: true                       // State'i localStorage'da sakla
-      // }
-    }),
+    ...(isDevMode() ? [provideStoreDevtools(DEVTOOLS_CONFIG)] : []),
   ]
 };

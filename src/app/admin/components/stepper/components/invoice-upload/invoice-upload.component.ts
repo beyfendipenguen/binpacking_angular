@@ -200,25 +200,22 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
 
 
   constructor() {
-
-    // ValueChanges subscription'ı
-
-  }
-
-  ngOnInit(): void {
-    this.initializeComponent();
-    this.getTemplateFile();
     effect(() => {
-      const order = this.orderSignal();
-      if (!order) return;
+      const currentOrder = this.orderSignal();
+      if (!currentOrder?.max_pallet_height) return;
 
-      const palletHeight = order.max_pallet_height;
+      const palletHeight = currentOrder.max_pallet_height;
       const unitProductHeight = this.unitProductHeight();
       if (!unitProductHeight) return;
 
       const unitProductCount = palletHeight / unitProductHeight;
       this.unitsControl.setValue(unitProductCount, { emitEvent: false });
     });
+  }
+
+  ngOnInit(): void {
+    this.initializeComponent();
+    this.getTemplateFile();
     // this.unitsControl.valueChanges.pipe(
     //   debounceTime(300),
     //   distinctUntilChanged(),
@@ -330,23 +327,16 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
 
   onCompanyChange(selectedCompany: any): void {
     let currentOrder = this.orderSignal();
-    if (currentOrder) {
-      const updatedOrder = { ...currentOrder, company_relation: selectedCompany };
-      this.store.dispatch(StepperActions.setOrder({ order: updatedOrder }));
-      this.store.dispatch(StepperActions.updateOrCreateOrder({ context: 'companyRelationUpdated' }))
-
-      // ✅ Settings'i al ve order'ı güncelle
-      if (selectedCompany?.id) {
-        this.loadCompanyRelationSettings(selectedCompany.id);
-      }
+    if (currentOrder && selectedCompany?.id) {
+      this.loadCompanyRelationSettings(selectedCompany);
     }
   }
 
   /**
   * Company Relation settings'ini yükle ve order'ı güncelle
   */
-  private loadCompanyRelationSettings(relationId: string): void {
-    this.companyRelationService.getSettings(relationId).subscribe({
+  private loadCompanyRelationSettings(selectedCompany: any): void {
+    this.companyRelationService.getSettings(selectedCompany.id).subscribe({
       next: (settings) => {
         let currentOrder = this.orderSignal();
         if (currentOrder) {
@@ -359,11 +349,12 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
             ...currentOrder,
             truck_weight_limit: settings.truck_weight_limit,
             max_pallet_height: settings.max_pallet_height,
-            weight_type: settings.weight_type
+            weight_type: settings.weight_type,
+            company_relation: selectedCompany
           };
 
           this.store.dispatch(StepperActions.setOrder({ order: updatedOrder }));
-
+          this.store.dispatch(StepperActions.updateOrCreateOrder({ context: 'companyRelationUpdated' }))
           // Paletleri de güncelle (relation değişti)
           // this.repositoryService.getPalletsByCompanyRelation(relationId);
         }
