@@ -320,7 +320,14 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
   onOrderFieldChange(field: string, value: any): void {
     let currentOrder = this.orderSignal();
     if (currentOrder) {
-      const updatedOrder = { ...currentOrder, [field]: value };
+      let serializedValue = value;
+      if (value instanceof Date) {
+        serializedValue = value.toLocaleDateString('en-CA'); // en-CA YYYY-MM-DD formatı verir
+      }
+      const updatedOrder = structuredClone({
+        ...currentOrder,
+        [field]: serializedValue
+      });
       this.store.dispatch(StepperActions.setOrder({ order: updatedOrder }));
     }
   }
@@ -345,13 +352,13 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
           const unitProductCount = palletHeight / unitProductHeight;
           this.unitsControl.setValue(unitProductCount);
           // Order'ı settings ile güncelle
-          const updatedOrder = {
+          const updatedOrder = structuredClone({
             ...currentOrder,
             truck_weight_limit: settings.truck_weight_limit,
             max_pallet_height: settings.max_pallet_height,
             weight_type: settings.weight_type,
             company_relation: selectedCompany
-          };
+          });
 
           this.store.dispatch(StepperActions.setOrder({ order: updatedOrder }));
           this.store.dispatch(StepperActions.updateOrCreateOrder({ context: 'companyRelationUpdated' }))
@@ -369,7 +376,7 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
   onTruckChange(selectedTruck: any): void {
     let currentOrder = this.orderSignal();
     if (currentOrder) {
-      const updatedOrder = { ...currentOrder, truck: selectedTruck };
+      const updatedOrder = structuredClone({ ...currentOrder, truck: selectedTruck });
       this.store.dispatch(StepperActions.setOrder({ order: updatedOrder }));
     }
   }
@@ -377,7 +384,10 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
   onWeightTypeChange(selectedWeightType: string): void {
     let currentOrder = this.orderSignal();
     if (currentOrder) {
-      const updatedOrder = { ...currentOrder, weight_type: selectedWeightType };
+      const updatedOrder = structuredClone({
+        ...currentOrder,
+        weight_type: selectedWeightType
+      });
       this.store.dispatch(StepperActions.setOrder({ order: updatedOrder }))
     }
   }

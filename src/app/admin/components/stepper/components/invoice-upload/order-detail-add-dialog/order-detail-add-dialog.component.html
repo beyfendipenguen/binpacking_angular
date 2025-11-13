@@ -1,93 +1,121 @@
-<h2 mat-dialog-title>Sipariş Detayı Ekle</h2>
-<mat-dialog-content>
-  <form [formGroup]="orderDetailForm" (ngSubmit)="onSubmit()">
-    <div class="form-container m-3">
-      <!-- Arama Seçenekleri Tablar -->
-      <mat-tab-group (selectedIndexChange)="onTabChange($event)">
-        <!-- İsim/Kod Araması -->
-        <mat-tab label="Metin Araması">
-          <div class="tab-content">
-            <mat-form-field appearance="fill" class="full-width">
-              <mat-label>Ürün Ara</mat-label>
-              <input type="text" placeholder="Ürün kodu veya tip numarası için en az 3 karakter yazın" matInput
-                formControlName="product" [matAutocomplete]="auto">
-              <!-- TODO: burada bind(this) ne ise yariyor ve ihtiyac varmi
-                           bunun yerine product.name kullanmak dogru olur mu?-->
-              <mat-autocomplete #auto="matAutocomplete" [displayWith]="displayProductFn.bind(this)">
-                <mat-option *ngIf="isLoading" class="loading-indicator">
-                  <mat-spinner diameter="20"></mat-spinner> Aranıyor...
-                </mat-option>
+<div class="order-detail-dialog-container">
+  <div class="dialog-header">
+    <div class="icon-wrapper">
+      <mat-icon class="header-icon">add_shopping_cart</mat-icon>
+    </div>
+    <h2 mat-dialog-title>Sipariş Detayı Ekle</h2>
+  </div>
 
-                <mat-option *ngIf="hasError" class="error-message">
-                  <span class="error-text">{{ errorMessage }}</span>
-                </mat-option>
+  <mat-dialog-content>
+    <form [formGroup]="orderDetailForm" (ngSubmit)="onSubmit()">
+      <!-- Ürün Arama -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Ürün Ara</mat-label>
+        <mat-icon matPrefix>inventory_2</mat-icon>
+        <input type="text" placeholder="Ürün kodu veya tip numarası" matInput
+          formControlName="product" [matAutocomplete]="auto">
+        <mat-autocomplete #auto="matAutocomplete" [displayWith]="displayProductFn.bind(this)">
+          @if(isLoading) {
+            <mat-option class="loading-indicator">
+              <mat-spinner diameter="20"></mat-spinner>
+              <span>Aranıyor...</span>
+            </mat-option>
+          }
 
-                <ng-container *ngIf="!isLoading && !hasError">
-                  <mat-option *ngIf="filteredProducts.length === 0" disabled>
-                    Sonuç bulunamadı
-                  </mat-option>
-                  <mat-option *ngFor="let product of filteredProducts" [value]="product"
-                    (click)="selectProduct(product)">
-                    {{ product.name }}
-                  </mat-option>
-                </ng-container>
-              </mat-autocomplete>
-              <mat-hint>Ürün kodu veya tip numarasıyla arama yapın</mat-hint>
-            </mat-form-field>
+          @if(hasError) {
+            <mat-option class="error-message">
+              <mat-icon>error_outline</mat-icon>
+              <span class="error-text">{{ errorMessage }}</span>
+            </mat-option>
+          }
+
+          @if(!isLoading && !hasError) {
+            @if(filteredProducts.length === 0) {
+              <mat-option disabled>
+                <mat-icon>search_off</mat-icon>
+                <span>Sonuç bulunamadı</span>
+              </mat-option>
+            }
+            @for(product of filteredProducts; track product.id) {
+              <mat-option [value]="product" (click)="selectProduct(product)">
+                <div class="product-option">
+                  <mat-icon>inventory</mat-icon>
+                  <span>{{ product.name }}</span>
+                </div>
+              </mat-option>
+            }
+          }
+        </mat-autocomplete>
+        <mat-hint>En az 3 karakter yazın</mat-hint>
+      </mat-form-field>
+
+      <!-- Miktar -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Miktar</mat-label>
+        <mat-icon matPrefix>numbers</mat-icon>
+        <input type="number" matInput formControlName="count" min="1">
+        @if(orderDetailForm.get('count')?.hasError('required')) {
+          <mat-error>Miktar girilmesi zorunludur</mat-error>
+        }
+        @if(orderDetailForm.get('count')?.hasError('min')) {
+          <mat-error>Miktar en az 1 olmalıdır</mat-error>
+        }
+      </mat-form-field>
+
+      <!-- Seçilen Ürün Bilgisi -->
+      @if(orderDetailForm.get('product_id')?.value && orderDetailForm.get('product_id')?.value.id) {
+        <div class="selected-product-box">
+          <div class="product-header">
+            <mat-icon>check_circle</mat-icon>
+            <h4>Seçilen Ürün</h4>
           </div>
-        </mat-tab>
-      </mat-tab-group>
-
-      <!-- Sipariş Detay Bilgileri -->
-      <div class="order-details-section">
-        <h3>Sipariş Bilgileri</h3>
-
-        <!-- Miktar -->
-        <mat-form-field appearance="fill" class="full-width">
-          <mat-label>Miktar</mat-label>
-          <input type="number" matInput formControlName="count" min="1">
-          @if(orderDetailForm.get('count')?.hasError('required')){
-            <mat-error >
-              Miktar girilmesi zorunludur
-            </mat-error>
-          }
-          @if(orderDetailForm.get('count')?.hasError('min')){
-            <mat-error >
-              Miktar en az 1 olmalıdır
-            </mat-error>
-          }
-        </mat-form-field>
-
-
-        <!-- Seçilen Ürün Bilgisi -->
-        <div class="selected-product"
-          *ngIf="orderDetailForm.get('product_id')?.value && orderDetailForm.get('product_id')?.value.id">
-          <h4>Seçilen Ürün</h4>
-          <div class="product-detail-box">
+          <div class="product-details">
             <div class="product-detail-item">
-              <strong>Kod-Tip:</strong>
-              {{ orderDetailForm.get('product_id')?.value.product_type?.code }}-{{
-              orderDetailForm.get('product_id')?.value.product_type?.type }}
+              <mat-icon>qr_code_2</mat-icon>
+              <div class="detail-content">
+                <span class="detail-label">Kod-Tip:</span>
+                <span class="detail-value">
+                  {{ orderDetailForm.get('product_id')?.value.product_type?.code }}-{{
+                  orderDetailForm.get('product_id')?.value.product_type?.type }}
+                </span>
+              </div>
             </div>
             <div class="product-detail-item">
-              <strong>Boyutlar:</strong>
-              {{ orderDetailForm.get('product_id')?.value.dimension?.width }}x
-              {{ orderDetailForm.get('product_id')?.value.dimension?.height }}x
-              {{ orderDetailForm.get('product_id')?.value.dimension?.depth }}
-              {{ orderDetailForm.get('product_id')?.value.dimension?.unit }}
+              <mat-icon>straighten</mat-icon>
+              <div class="detail-content">
+                <span class="detail-label">Boyutlar:</span>
+                <span class="detail-value">
+                  {{ orderDetailForm.get('product_id')?.value.dimension?.width }}x
+                  {{ orderDetailForm.get('product_id')?.value.dimension?.height }}x
+                  {{ orderDetailForm.get('product_id')?.value.dimension?.depth }}
+                  {{ orderDetailForm.get('product_id')?.value.dimension?.unit }}
+                </span>
+              </div>
             </div>
             <div class="product-detail-item">
-              <strong>Hacim:</strong>
-              {{ orderDetailForm.get('product_id')?.value.dimension?.volume }} mm³
+              <mat-icon>analytics</mat-icon>
+              <div class="detail-content">
+                <span class="detail-label">Hacim:</span>
+                <span class="detail-value">
+                  {{ orderDetailForm.get('product_id')?.value.dimension?.volume | number:'1.0-2' }} mm³
+                </span>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-    </div>
-  </form>
-</mat-dialog-content>
+      }
+    </form>
+  </mat-dialog-content>
 
-<mat-dialog-actions align="end" style="margin-right: 40px;">
-  <button mat-button (click)="onCancel()">İptal</button>
-  <button mat-raised-button color="primary" [disabled]="orderDetailForm.invalid" (click)="onSubmit()">Kaydet</button>
-</mat-dialog-actions>
+  <mat-dialog-actions>
+    <button mat-stroked-button (click)="onCancel()" class="cancel-button">
+      <mat-icon>close</mat-icon>
+      <span>İptal</span>
+    </button>
+    <button mat-raised-button color="primary" [disabled]="orderDetailForm.invalid"
+      (click)="onSubmit()" class="save-button">
+      <mat-icon>save</mat-icon>
+      <span>Kaydet</span>
+    </button>
+  </mat-dialog-actions>
+</div>

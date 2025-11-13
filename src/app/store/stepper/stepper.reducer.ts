@@ -351,7 +351,7 @@ export const stepperReducer = createReducer(
   on(StepperActions.setOrder, (state, { order }) => {
     return {
       ...state,
-      order: order,
+      order: { ...order },
       step1State: {
         ...state.step1State,
         isOnlyOrderDirty: true

@@ -1,14 +1,26 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import {  MatDialogRef, MatDialogModule } from '@angular/material/dialog';
+import {
+  ReactiveFormsModule,
+  FormBuilder,
+  FormGroup,
+  Validators,
+} from '@angular/forms';
+import { MatDialogRef, MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { catchError, debounceTime, distinctUntilChanged, finalize, switchMap } from 'rxjs/operators';
-import {  of } from 'rxjs';
+import {
+  catchError,
+  debounceTime,
+  distinctUntilChanged,
+  finalize,
+  map,
+  switchMap,
+} from 'rxjs/operators';
+import { Observable, of } from 'rxjs';
 import { ProductService } from '../../../../services/product.service';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTabsModule } from '@angular/material/tabs';
@@ -17,6 +29,8 @@ import * as StepperSelectors from '../../../../../../store/stepper/stepper.selec
 import { Store } from '@ngrx/store';
 import { AppState } from '../../../../../../store';
 import { generateUUID } from 'three/src/math/MathUtils.js';
+import { HttpParams, HttpContext } from '@angular/common/http';
+import { SKIP_LOADING } from '../../../../../../components/loading/skip-loading.token';
 
 @Component({
   selector: 'app-order-detail-add-dialog',
@@ -31,10 +45,10 @@ import { generateUUID } from 'three/src/math/MathUtils.js';
     MatAutocompleteModule,
     MatProgressSpinnerModule,
     MatTabsModule,
-    MatIconModule
+    MatIconModule,
   ],
   templateUrl: './order-detail-add-dialog.component.html',
-  styleUrl: './order-detail-add-dialog.component.scss'
+  styleUrl: './order-detail-add-dialog.component.scss',
 })
 export class OrderDetailAddDialogComponent implements OnInit {
   orderDetailForm: FormGroup;
@@ -47,8 +61,8 @@ export class OrderDetailAddDialogComponent implements OnInit {
   errorMessage = '';
   activeTab = 0;
 
-  private store = inject(Store<AppState>)
-  public orderSignal = this.store.selectSignal(StepperSelectors.selectOrder)
+  private store = inject(Store<AppState>);
+  public orderSignal = this.store.selectSignal(StepperSelectors.selectOrder);
 
   constructor(
     private fb: FormBuilder,
@@ -61,39 +75,41 @@ export class OrderDetailAddDialogComponent implements OnInit {
       order: [this.orderSignal(), Validators.required], // Use data directly as the Order object
       product: [this.prod, Validators.required],
       count: [1, [Validators.required, Validators.min(1)]],
-      unit_price: [0, [Validators.required, Validators.min(0.01)]]
+      unit_price: [0, [Validators.required, Validators.min(0.01)]],
     });
 
     // Dimension search form
     this.dimensionSearchForm = this.fb.group({
       width: [null, [Validators.min(0)]],
       height: [null, [Validators.min(0)]],
-      depth: [null, [Validators.min(0)]]
+      depth: [null, [Validators.min(0)]],
     });
   }
 
   ngOnInit(): void {
-    // Text search
-    this.orderDetailForm.get('product')?.valueChanges
-      .pipe(
-        debounceTime(300),
+    this.orderDetailForm
+      .get('product')
+      ?.valueChanges.pipe(
+        debounceTime(500),
         distinctUntilChanged(),
-        switchMap(value => {
-          if (typeof value === 'string' && value.length > 2) {
+        switchMap((value) => {
+          if (typeof value === 'string' && value.trim().length > 2) {
             this.isLoading = true;
             this.hasError = false;
-            // Get maximum 10 results
-            return this.productService.searchProducts(value, 10).pipe(
-              catchError(error => {
-                this.hasError = true;
-                this.errorMessage = 'Ürün arama sırasında bir hata oluştu.';
 
-                return of([]);
-              }),
-              finalize(() => {
-                this.isLoading = false;
-              })
-            );
+            // Artık searchProductsWithParsedQuery kullan
+            return this.productService
+              .searchProductsWithParsedQuery(value, 10)
+              .pipe(
+                catchError((error) => {
+                  this.hasError = true;
+                  this.errorMessage = 'Ürün arama sırasında bir hata oluştu.';
+                  return of([]);
+                }),
+                finalize(() => {
+                  this.isLoading = false;
+                })
+              );
           }
           return of([]);
         })
@@ -101,7 +117,7 @@ export class OrderDetailAddDialogComponent implements OnInit {
       .subscribe({
         next: (products: any[]) => {
           this.filteredProducts = products;
-        }
+        },
       });
   }
 
@@ -113,10 +129,8 @@ export class OrderDetailAddDialogComponent implements OnInit {
     // Update form value when product is selected
     this.orderDetailForm.patchValue({
       product: product,
-      unit_price: 1.00 // Default value or value from product
+      unit_price: 1.0, // Default value or value from product
     });
-
-
   }
 
   onTabChange(event: any): void {
@@ -129,12 +143,14 @@ export class OrderDetailAddDialogComponent implements OnInit {
   onSubmit(): void {
     if (this.orderDetailForm.valid) {
       const requestData = {
-        apiRequestItem:{"count": this.orderDetailForm.value['count'],
-        "unit_price": this.orderDetailForm.value['unit_price'],
-        "product_id": this.orderDetailForm.value['product'],
-        "order_id": this.orderDetailForm.value['order'],},
-        orderDetail : this.orderDetailForm.value
-      }
+        apiRequestItem: {
+          count: this.orderDetailForm.value['count'],
+          unit_price: this.orderDetailForm.value['unit_price'],
+          product_id: this.orderDetailForm.value['product'],
+          order_id: this.orderDetailForm.value['order'],
+        },
+        orderDetail: this.orderDetailForm.value,
+      };
       this.dialogRef.close(requestData);
     }
   }
