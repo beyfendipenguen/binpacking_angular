@@ -139,7 +139,6 @@ export class OrdersComponent implements OnInit {
     'date',
     'company_relation.target_company_name',
     'company_relation.target_company_country_name',
-    'is_completed'
   ];
 
   ngOnInit(): void {
