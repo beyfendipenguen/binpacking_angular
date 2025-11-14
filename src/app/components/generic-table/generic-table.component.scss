@@ -323,3 +323,103 @@ $accent-gold-light: #E8D5A8;
     }
   }
 }
+
+//------------//
+//STATUS STYLE//
+//------------//
+
+.status-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 0;
+}
+
+// Status Indicator (yanıp sönen nokta)
+.status-indicator {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  display: inline-block;
+  position: relative;
+  flex-shrink: 0;
+
+  // Outer pulse ring
+  &::before {
+    content: '';
+    position: absolute;
+    top: -4px;
+    left: -4px;
+    right: -4px;
+    bottom: -4px;
+    border-radius: 50%;
+    animation: pulse-ring 2s cubic-bezier(0.455, 0.03, 0.515, 0.955) infinite;
+  }
+}
+
+// Success (Yeşil - Tamamlandı)
+.status-success {
+  background: linear-gradient(135deg, #66bb6a 0%, #43a047 100%);
+  box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.7);
+  animation: pulse-dot 2s infinite;
+
+  &::before {
+    border: 2px solid rgba(76, 175, 80, 0.6);
+  }
+}
+
+// Warning (Kırmızı/Turuncu - Eksik)
+.status-warning {
+  background: linear-gradient(135deg, #ff7043 0%, #f4511e 100%);
+  box-shadow: 0 0 0 0 rgba(255, 112, 67, 0.7);
+  animation: pulse-dot 2s infinite;
+
+  &::before {
+    border: 2px solid rgba(255, 112, 67, 0.6);
+  }
+}
+
+// Status Text Styling
+.status-text {
+  font-weight: 500;
+  font-size: 13px;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+}
+
+.status-success-text {
+  color: #2e7d32;
+}
+
+.status-warning-text {
+  color: #d84315;
+}
+
+// Dot pulse animation
+@keyframes pulse-dot {
+  0% {
+    box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 6px rgba(76, 175, 80, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(76, 175, 80, 0);
+  }
+}
+
+// Ring pulse animation
+@keyframes pulse-ring {
+  0% {
+    transform: scale(0.8);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.3;
+  }
+  100% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+}

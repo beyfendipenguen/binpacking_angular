@@ -686,28 +686,51 @@ export class GenericTableComponent<T> implements OnInit, AfterViewInit {
    * @param column The column name
    * @returns Formatted value
    */
-  formatValue(value: any, column: string): any {
-    if (value === null || value === undefined || value === '') {
-      return '';
-    }
+  // generic-table.component.ts - formatValue metodunun içine ekle
+formatValue(value: any, column: string): any {
+  if (value === null || value === undefined || value === '') {
+    return '';
+  }
 
-    // Check if this column is a date type
-    if (this.columnTypes[column] === 'date') {
-      // Format date as dd/MM/yyyy
-      return this.datePipe.transform(value, 'dd/MM/yyyy') || value;
-    }
+  //  is_completed special format
+  if (column === 'is_completed') {
+    return value === true || value === 'true' ? 'Tamamlandı' : 'Eksik Sipariş';
+  }
 
-    // Sayısal değerleri formatlamak için kontrol
-    if (typeof value === 'number') {
-      // Ondalık sayı ise, 2 basamağa yuvarla
-      if (value % 1 !== 0) {
-        return value.toFixed(2);
-      }
-    }
+  // Date check
+  if (this.columnTypes[column] === 'date') {
+    return this.datePipe.transform(value, 'dd/MM/yyyy') || value;
+  }
 
+  // Number check
+  if (typeof value === 'number') {
+    if (value % 1 !== 0) {
+      return value.toFixed(2);
+    }
+  }
+
+  return value;
+}
+
+  /**
+   * Status değerini boolean'a çevirir
+   */
+  isStatusCompleted(row: any, column: string): boolean {
+  const value = this.getNestedPropertyValue(row, column);
+
+  // Boolean kontrolü
+  if (typeof value === 'boolean') {
     return value;
   }
 
+  // String kontrolü
+  if (typeof value === 'string') {
+    return value.toLowerCase() === 'true';
+  }
+
+  // Diğer truthy değerler
+  return !!value;
+}
   // Get the display name for a column
   getColumnDisplayName(column: string): string {
     // "rowNumber" sütunu için özel isim

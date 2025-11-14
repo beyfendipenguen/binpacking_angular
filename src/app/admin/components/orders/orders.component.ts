@@ -45,11 +45,13 @@ export class OrdersComponent implements OnInit {
     'company_relation.target_company_country_name',
     'order_details',
     'package',
-    'files'
+    'files',
+    'is_completed'
   ];
 
   columnTypes: { [key: string]: string } = {
-    'date': 'date'
+    'date': 'date',
+    'is_completed': 'status'
   };
 
   columnDefinitions: ColumnDefinition[] = [
@@ -112,6 +114,12 @@ export class OrdersComponent implements OnInit {
         tooltip: 'Dosyaları Görüntüle',
         class: 'files-button'
       }
+    },
+    {
+      key: 'is_completed',
+      label: 'Durum',
+      type: 'status',
+      required: false,
     }
   ];
 
@@ -122,14 +130,16 @@ export class OrdersComponent implements OnInit {
     'package': 'Paletler',
     'files': 'Dosyalar',
     'date': 'Tarih',
-    'name': 'Sipariş Adı'
+    'name': 'Sipariş Adı',
+    'is_completed': 'Durum',
   };
 
   filterableColumns: string[] = [
     'name',
     'date',
     'company_relation.target_company_name',
-    'company_relation.target_company_country_name'
+    'company_relation.target_company_country_name',
+    'is_completed'
   ];
 
   ngOnInit(): void {
