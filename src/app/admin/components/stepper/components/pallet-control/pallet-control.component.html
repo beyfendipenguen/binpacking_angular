@@ -82,26 +82,37 @@
           <input matInput class="search-input" type="text" placeholder="Ürün ara..." [formControl]="searchControl"
             [matAutocomplete]="auto" id="searchControl" name="searchControl" />
 
-          @if(searchControl.value){
-          <button mat-icon-button class="clear-search" (click)="clearSearch()" matTooltip="Aramayı Temizle">
-            <mat-icon>close</mat-icon>
-          </button>
+          @if(searchControl.value) {
+            <button mat-icon-button class="clear-search" (click)="clearSearch()" matTooltip="Aramayı Temizle">
+              <mat-icon>close</mat-icon>
+            </button>
           }
 
           <mat-autocomplete #auto="matAutocomplete" class="search-autocomplete"
             [displayWith]="displayProductFn.bind(this)">
-            <mat-option *ngIf="isSearching" class="loading-indicator">
-              <mat-spinner diameter="20"></mat-spinner> Aranıyor...
-            </mat-option>
+            @if(isSearching) {
+              <mat-option class="loading-indicator">
+                <mat-spinner diameter="20"></mat-spinner>
+                <span>Aranıyor...</span>
+              </mat-option>
+            }
 
-            <ng-container style="width: 1000px" *ngIf="!isSearching">
-              <mat-option *ngIf="filteredProducts().length === 0" disabled>
-                Sonuç bulunamadı
-              </mat-option>
-              <mat-option *ngFor="let product of filteredProducts()" [value]="product" (click)="selectProduct(product)">
-                {{ product.name }}
-              </mat-option>
-            </ng-container>
+            @if(!isSearching) {
+              @if(filteredProducts().length === 0) {
+                <mat-option disabled>
+                  <mat-icon>search_off</mat-icon>
+                  <span>Sonuç bulunamadı</span>
+                </mat-option>
+              }
+              @for(product of filteredProducts(); track product.id) {
+                <mat-option [value]="product" (click)="selectProduct(product)">
+                  <div class="product-option">
+                    <mat-icon>inventory</mat-icon>
+                    <span>{{ product.name }}</span>
+                  </div>
+                </mat-option>
+              }
+            }
           </mat-autocomplete>
         </div>
       </div>

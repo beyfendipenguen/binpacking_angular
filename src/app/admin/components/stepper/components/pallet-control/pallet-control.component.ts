@@ -431,6 +431,8 @@ export class PalletControlComponent
         newCount: 0,
       })
     );
+    // Seçimden sonra aramayı temizle (opsiyonel)
+    this.clearSearch();
   }
 
   displayProductFn(product: any): string {
@@ -440,13 +442,13 @@ export class PalletControlComponent
   private setupSearchSubscription(): void {
     this.searchControl.valueChanges
       .pipe(
-        debounceTime(300),
+        debounceTime(500), // 300 → 500 (daha az istek)
         distinctUntilChanged(),
         takeUntil(this.destroy$),
         switchMap((value) => {
           if (typeof value === 'string' && value.length > 2) {
             this.isSearching = true;
-            return this.productService.searchProducts(value, 10).pipe(
+            return this.productService.searchProductsWithParsedQuery(value, 10).pipe( // Yeni parse servisini kullan
               catchError((error) => {
                 return of([]);
               }),
@@ -455,6 +457,8 @@ export class PalletControlComponent
               })
             );
           }
+          // Kısa giriş yapınca listeyi temizle
+          this.filteredProducts.set([]);
           return of([]);
         })
       )

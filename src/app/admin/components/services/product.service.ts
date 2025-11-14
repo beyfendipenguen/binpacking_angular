@@ -1,14 +1,17 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { HttpClient, HttpContext, HttpParams } from '@angular/common/http';
-import { catchError, map, Observable, of } from 'rxjs';
+import { catchError, map, Observable, of, switchMap, take } from 'rxjs';
 import { GenericCrudService } from '../../../services/generic-crud.service';
 import { Product } from '../../../models/product.interface';
 import { SKIP_LOADING } from '../../../components/loading/skip-loading.token';
+import { Store } from '@ngrx/store';
+import { AppState, selectStep1OrderDetails } from '../../../store';
 
 @Injectable({
   providedIn: 'root',
 })
 export class ProductService extends GenericCrudService<Product> {
+  private readonly store = inject(Store<AppState>);
   constructor(http: HttpClient) {
     super(http, 'products/products');
   }
@@ -57,26 +60,40 @@ export class ProductService extends GenericCrudService<Product> {
       return of([]);
     }
 
-    const parsedParams = this.parseProductQuery(query);
+    // 1️⃣ İlk önce store'daki orderDetails'lerde ara
+    return this.store.select(selectStep1OrderDetails).pipe(
+      take(1), // Sadece bir kez oku
+      switchMap((orderDetails) => {
+        const localResults = this.searchInLocalProducts(query, orderDetails);
 
-    if (Object.keys(parsedParams).length === 0) {
-      return of([]);
-    }
+        if (localResults.length > 0) {
+          // Store'da bulundu, backend'e gitme
+          return of(localResults);
+        }
 
-    let params = new HttpParams().set('limit', limit.toString());
+        // 2️⃣ Store'da bulunamadı, backend'e git
+        const parsedParams = this.parseProductQuery(query);
 
-    Object.keys(parsedParams).forEach((key) => {
-      if (parsedParams[key]) {
-        params = params.set(key, parsedParams[key]);
-      }
-    });
+        if (Object.keys(parsedParams).length === 0) {
+          return of([]);
+        }
 
-    let context = new HttpContext().set(SKIP_LOADING, true);
+        let params = new HttpParams().set('limit', limit.toString());
 
-    return this.http.get<any>(`${this.apiUrl}`, { params, context }).pipe(
-      map((response) => response?.results || []),
-      catchError((error) => {
-        throw error;
+        Object.keys(parsedParams).forEach((key) => {
+          if (parsedParams[key]) {
+            params = params.set(key, parsedParams[key]);
+          }
+        });
+
+        let context = new HttpContext().set(SKIP_LOADING, true);
+
+        return this.http.get<any>(`${this.apiUrl}`, { params, context }).pipe(
+          map((response) => response?.results || []),
+          catchError((error) => {
+            throw error;
+          })
+        );
       })
     );
   }
@@ -143,5 +160,51 @@ export class ProductService extends GenericCrudService<Product> {
     }
 
     return params;
+  }
+
+  // Yardımcı metod
+  private searchInLocalProducts(query: string, orderDetails: any[]): any[] {
+    if (!orderDetails || orderDetails.length === 0) {
+      return [];
+    }
+
+    // Query'i küçük harfe çevir
+    const lowerQuery = query.toLowerCase().trim();
+
+    // OrderDetails'teki ürünlerde ara
+    const matchedProducts = orderDetails
+      .map((detail) => detail.product)
+      .filter((product) => {
+        // Name ile eşleşme kontrolü
+        if (product.name && product.name.toLowerCase().includes(lowerQuery)) {
+          return true;
+        }
+
+        // Product type code ile eşleşme
+        if (
+          product.product_type?.code &&
+          product.product_type.code.toLowerCase().includes(lowerQuery)
+        ) {
+          return true;
+        }
+
+        // Product type type ile eşleşme
+        if (
+          product.product_type?.type &&
+          product.product_type.type.toLowerCase().includes(lowerQuery)
+        ) {
+          return true;
+        }
+
+        return false;
+      });
+
+    // Unique products (aynı ürün birden fazla orderDetail'de olabilir)
+    const uniqueProducts = matchedProducts.filter(
+      (product, index, self) =>
+        index === self.findIndex((p) => p.id === product.id)
+    );
+
+    return uniqueProducts;
   }
 }

@@ -235,93 +235,266 @@ form {
    SEARCH CONTAINER - ESKİ CSS KORUNDU
 ===================== */
 .search-container {
-  padding: 0;
-  margin: 0;
-  background-color: transparent;
-  border-bottom: 1px solid $border-color;
+  padding: 8px;
+  margin-bottom: 8px;
+
+  .search-input-wrapper {
+    display: flex;
+    align-items: center;
+    padding: 8px 10px;
+    min-height: 38px;
+    border-radius: 4px;
+    background-color: $white;
+    border: 1px solid $border-color;
+    transition: all 0.3s ease;
+
+    &:hover {
+      background-color: rgba(0, 106, 106, 0.1);
+      border-color: $primary-color;
+    }
+
+    &:focus-within {
+      background-color: rgba(0, 106, 106, 0.05);
+      border-color: $primary-color;
+      box-shadow: 0 0 0 1px rgba(0, 106, 106, 0.2);
+    }
+
+    .search-icon {
+      width: 20px;
+      height: 20px;
+      background-color: $primary-color;
+      border-radius: 4px;
+      margin-right: 10px;
+      position: relative;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: $white;
+      font-size: 14px;
+
+      // Search icon içinde "S" harfi gibi gösterim (opsiyonel)
+      &::before {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 10px;
+        height: 10px;
+        border: 2px solid rgba(255, 255, 255, 0.5);
+        border-radius: 50%;
+        border-bottom-color: transparent;
+        border-right-color: transparent;
+      }
+    }
+
+    .search-input {
+      flex: 1;
+      border: none;
+      outline: none;
+      font-size: 14px;
+      color: $text-dark;
+      background: transparent;
+      padding: 0;
+      line-height: 1.2;
+      min-width: 0;
+
+      &::placeholder {
+        color: $text-light;
+        font-size: 14px;
+      }
+    }
+
+    .clear-search {
+      width: 20px;
+      height: 20px;
+      padding: 0;
+      margin-left: 8px;
+      flex-shrink: 0;
+      color: $text-light;
+      transition: all 0.3s ease;
+
+      mat-icon {
+        font-size: 16px;
+        width: 16px;
+        height: 16px;
+        line-height: 16px;
+        display: block;
+        margin: auto;
+        color: $secondary-color;
+      }
+
+      &:hover {
+        color: $primary-color;
+        background-color: rgba(0, 106, 106, 0.1);
+        border-radius: 3px;
+
+        mat-icon {
+          color: $primary-color;
+        }
+      }
+    }
+  }
 }
 
-.search-input-wrapper {
-  position: relative;
-  display: flex;
-  align-items: center;
-  background-color: $white;
+// Autocomplete panel styling - ürün listesi gibi
+::ng-deep .search-autocomplete.mat-mdc-autocomplete-panel {
+  max-height: 300px !important;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  margin-top: 4px;
   border: 1px solid $border-color;
-  border-radius: 0;
-  transition: all 0.3s ease;
-  overflow: hidden;
-  margin: 0;
 
-  &:hover {
-    border-color: $primary-color;
-  }
+  .mat-mdc-option {
+    padding: 8px 10px;
+    min-height: 38px;
+    transition: all 0.3s ease;
 
-  &:focus-within {
-    border-color: $primary-color;
-    box-shadow: 0 0 0 1px rgba(0, 106, 106, 0.2);
+    &:hover {
+      background-color: rgba(0, 106, 106, 0.1);
+      border-color: $primary-color;
+    }
+
+    &.loading-indicator {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: $text-light;
+
+      mat-spinner {
+        margin-right: 4px;
+      }
+
+      span {
+        font-size: 14px;
+        color: $text-dark;
+      }
+    }
+
+    .product-option {
+      display: flex;
+      align-items: center;
+      width: 100%;
+
+      mat-icon {
+        width: 20px;
+        height: 20px;
+        background-color: $primary-color;
+        border-radius: 4px;
+        margin-right: 10px;
+        position: relative;
+        flex-shrink: 0;
+        color: $white;
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        // Product icon stili
+        &::before,
+        &::after {
+          content: "";
+          position: absolute;
+          background-color: rgba(255, 255, 255, 0.5);
+        }
+
+        &::before {
+          top: 4px;
+          left: 2px;
+          right: 2px;
+          height: 2px;
+        }
+
+        &::after {
+          left: 4px;
+          top: 2px;
+          bottom: 2px;
+          width: 2px;
+        }
+      }
+
+      span {
+        flex: 1;
+        font-size: 14px;
+        color: $text-dark;
+        line-height: 1.2;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+    }
+
+    &[disabled] {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: $text-light;
+
+      mat-icon {
+        background-color: $border-color;
+        color: $text-light;
+        font-size: 14px;
+        width: 20px;
+        height: 20px;
+
+        // Disabled icon için before/after kaldır
+        &::before,
+        &::after {
+          display: none;
+        }
+      }
+
+      span {
+        font-size: 14px;
+        color: $text-light;
+      }
+    }
   }
 }
 
-.search-icon {
-  color: $text-light;
-  font-size: 18px !important;
-  width: 18px !important;
-  height: 18px !important;
-  margin-left: 12px;
-  margin-right: 8px;
-  flex-shrink: 0;
-  transition: color 0.3s ease;
+/* Mobil responsive */
+@media (max-width: 768px) {
+  .search-container {
+    padding: 6px;
 
-  .search-input-wrapper:focus-within & {
-    color: $primary-color;
+    .search-input-wrapper {
+      padding: 6px 8px;
+      min-height: 32px;
+
+      .search-icon {
+        width: 16px;
+        height: 16px;
+        margin-right: 8px;
+        font-size: 12px;
+
+        &::before {
+          width: 8px;
+          height: 8px;
+        }
+      }
+
+      .search-input {
+        font-size: 13px;
+
+        &::placeholder {
+          font-size: 13px;
+        }
+      }
+
+      .clear-search {
+        width: 18px;
+        height: 18px;
+
+        mat-icon {
+          font-size: 14px;
+          width: 14px;
+          height: 14px;
+        }
+      }
+    }
   }
 }
-
-.search-spinner {
-  margin-left: 12px !important;
-  margin-right: 8px !important;
-  flex-shrink: 0;
-
-  ::ng-deep .mat-mdc-progress-spinner circle {
-    stroke: $primary-color !important;
-  }
-}
-
-.search-input {
-  flex: 1;
-  border: none;
-  outline: none;
-  padding: 12px 8px;
-  font-size: 14px;
-  color: $text-dark;
-  background-color: transparent;
-  margin: 0;
-
-  &::placeholder {
-    color: $text-light;
-    font-style: italic;
-  }
-}
-
-.clear-search {
-  width: 32px !important;
-  height: 32px !important;
-  margin-right: 4px;
-  color: $text-light;
-  flex-shrink: 0;
-
-  &:hover {
-    background-color: rgba(0, 106, 106, 0.1);
-    color: $primary-color;
-  }
-
-  mat-icon {
-    font-size: 16px !important;
-    width: 16px !important;
-    height: 16px !important;
-  }
-}
-
 /* =====================
    AUTOCOMPLETE PANEL DÜZELTİLMİŞ
 ===================== */
