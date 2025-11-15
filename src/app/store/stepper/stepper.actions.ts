@@ -18,6 +18,7 @@ export const addUiProductToRemainingProducts = createAction(
 );
 
 
+
 export const calculatePackageDetail = createAction(
   '[Stepper] Calculate Package Detail'
 );
@@ -98,8 +99,16 @@ export const stepperStepUpdated = createAction(
   '[Stepper] Stepper Step Updated'
 );
 
+export const setStep1IsDirty = createAction(
+  '[Stepper] Set invoice upload component Is Dirty'
+);
+
+export const setStep2IsDirty = createAction(
+  '[Stepper] set pallet control component is dirty'
+);
+
 export const setStep3IsDirty = createAction(
-  '[Stepper] Set Order Result Is Dirty'
+  '[Stepper] Set Order Result Component Is Dirty'
 );
 
 export const setStepperData = createAction(
@@ -165,18 +174,7 @@ export const uploadInvoiceProcessFileSuccess = createAction(
   '[Invoice Upload] Upload Invoice Process File Success',
 );
 
-export const invoiceUploadSubmitSuccess = createAction(
-  '[Invoice Upload] Submit Success',
-  props<{ orderDetails: any[] }>()
-);
 
-export const invoiceUploadSubmitFlow = createAction(
-  '[Invoice Upload] Submit Flow',
-);
-
-export const invoiceUploadSubmitFlowSuccess = createAction(
-  '[Invoice Upload] Submit Flow Success',
-);
 
 // create getLocalStorageData
 export const restoreLocalStorageData = createAction(
@@ -340,13 +338,13 @@ export const deleteOrderDetail = createAction(
 
 export const updateOrderResult = createAction(
   '[Migration] Update Order Result',
-  props<{orderResult:string}>()
+  props<{ orderResult: string }>()
 
 );
 
 export const completeShipment = createAction(
   '[Stepper] Shipment Completed',
-  props<{orderResult:string}>()
+  props<{ orderResult: string }>()
 
 );
 
@@ -373,5 +371,6 @@ export const cleanUpInvalidPackagesFromOrder = createAction(
   props<{ packageNames: any[] }>()
 );
 
-
-
+export const syncInvoiceUploadStep = createAction(
+  '[Invoice upload] sync invoice upload step'
+);

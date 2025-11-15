@@ -14,19 +14,24 @@ export interface CompanyRelation {
   id?: number;
 
   // İlişkinin başlangıç noktası olan şirket (kaynak şirket)
-  source_company: Company;
+  source_company: string;
 
   // İlişkinin hedef şirketi
-  target_company: Company;
+  target_company: string;
 
   // İlişkinin başlangıç noktası olan şirketin adı
   source_company_name: string;
+
+  target_company_country_name: string;
 
   // İlişkinin hedef şirketinin adı
   target_company_name: string;
 
   // İlişki türü
   relation_type: RelationType;
+
+  // iliski turu gorunumu
+  relation_type_display: string;
 
   // İlişkinin aktif olup olmadığı
   is_active: boolean;

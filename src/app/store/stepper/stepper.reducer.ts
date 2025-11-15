@@ -18,7 +18,7 @@ export const stepperReducer = createReducer(
       ...state.step1State,
       orderDetails: [...orderDetails],
       originalOrderDetails: [...orderDetails],
-      isDirty: false
+      isOrderDetailsDirty: false
     }
   })),
 
@@ -38,13 +38,11 @@ export const stepperReducer = createReducer(
       mergeOrderDetails = [...mapperOrderDetails]
     }
 
-    const isDirty = changes.modified.length > 0 || changes.added.length > 0 || changes.deleted.length > 0 ? true : false
     return {
       ...state,
       step1State: {
         ...state.step1State,
         orderDetails: mergeOrderDetails,
-        isDirty: isDirty,
         ...changes
       }
     }
@@ -79,7 +77,7 @@ export const stepperReducer = createReducer(
       ...state,
       step3State: {
         ...state.step3State,
-        orderResult:orderResult
+        orderResult: orderResult
       }
     }
   )),
@@ -89,7 +87,7 @@ export const stepperReducer = createReducer(
       ...state,
       step3State: {
         ...state.step3State,
-        orderResult:orderResult
+        orderResult: orderResult
       }
     }
   )),
@@ -149,29 +147,47 @@ export const stepperReducer = createReducer(
     ...data
   })),
 
-  on(StepperActions.setStep3IsDirty, (state) => {
 
-    if(state.step3State.isDirty){
+  on(StepperActions.setStep2IsDirty, (state) => {
+
+    if (state.step2State.isDirty) {
       return state
     }
     return {
-    ...state,
-    step3State:{
-      ...state.step3State,
-      isDirty:true
-    }}
+      ...state,
+      step2State: {
+        ...state.step2State,
+        isDirty: true
+      }
+    }
+  }),
+
+  on(StepperActions.setStep3IsDirty, (state) => {
+
+    if (state.step3State.isDirty) {
+      return state
+    }
+    return {
+      ...state,
+      step3State: {
+        ...state.step3State,
+        isDirty: true
+      }
+    }
   }),
 
 
 
   on(StepperActions.calculatePackageDetailSuccess, (state, { packages, remainingOrderDetails }) => {
     const remainingProducts: any[] = [];
+    const order = state.order;
+    if (!order) return state;
 
     const filteredPackages = packages.filter((pkg) => {
       const palletVolume =
         parseFloat(pkg.pallet.dimension.width) *
         parseFloat(pkg.pallet.dimension.depth) *
-        parseFloat(state.order.max_pallet_height);
+        parseFloat(order.max_pallet_height.toString() ?? '0');
 
       const productsVolume = pkg.products.reduce((sum: number, product: any) => {
         const productVolume =
@@ -297,7 +313,7 @@ export const stepperReducer = createReducer(
     step3State: {
       ...state.step3State,
       reportFiles: reportFiles,
-      isDirty:false
+      isDirty: false
     }
   })),
 
@@ -312,7 +328,6 @@ export const stepperReducer = createReducer(
       ...state,
       step1State: {
         ...state.step1State,
-        isDirty: true
       },
       step2State: {
         ...state.step2State,
@@ -331,7 +346,7 @@ export const stepperReducer = createReducer(
       added: [],
       deleted: [],
       modified: [],
-      isDirty: false,
+      isOrderDetailsDirty: false,
     }
   })),
 
@@ -344,17 +359,15 @@ export const stepperReducer = createReducer(
       added: [],
       deleted: [],
       modified: [],
-      isDirty: false,
     }
   })),
 
-  on(StepperActions.setOrder, (state, { order }) => {
+  on(StepperActions.setOrder, (state, { order, context }) => {
     return {
       ...state,
       order: { ...order },
       step1State: {
         ...state.step1State,
-        isOnlyOrderDirty: true
       }
     }
   }),
@@ -362,9 +375,9 @@ export const stepperReducer = createReducer(
   on(StepperActions.updateOrCreateOrderSuccess, (state, { order }) => ({
     ...state,
     order: order,
+    originalOrder: order,
     step1State: {
       ...state.step1State,
-      isOnlyOrderDirty: false
     }
   })),
 
@@ -565,8 +578,14 @@ export const stepperReducer = createReducer(
 
   on(StepperActions.setFileExists, (state) => ({
     ...state,
-    fileExists: !state.fileExists
+    fileExists: true
   })),
+
+  on(StepperActions.uploadFileToOrderSuccess, (state) => ({
+    ...state,
+    fileExists: false
+  })),
+
 
   on(StepperActions.mergeRemainingProducts, (state) => {
     const currentProducts = state.step2State.remainingProducts;
@@ -984,7 +1003,7 @@ export const stepperReducer = createReducer(
       ...state,
       step1State: {
         ...state.step1State,
-        isDirty: true
+        isOrderDetailsDirty: true
       },
       step2State: {
         ...state.step2State,
@@ -1001,16 +1020,10 @@ export const stepperReducer = createReducer(
 
   on(StepperActions.setStepCompleted, (state, { stepIndex }) => ({
     ...state,
-    completedStep: stepIndex
+    completedStep: Math.max(state.completedStep, stepIndex)
   })),
 
-  on(StepperActions.setStepValidation, (state, { stepIndex, isValid }) => ({
-    ...state,
-    stepValidations: {
-      ...state.stepValidations,
-      [stepIndex]: isValid
-    }
-  })),
+
 
   on(StepperActions.enableEditMode, (state, { orderId }) => ({
     ...state,
@@ -1101,8 +1114,6 @@ export const stepperReducer = createReducer(
       deleted: [],
       hasFile: false,
       fileName: undefined,
-      isDirty: false,
-      isOnlyOrderDirty: false,
       templateFile: []
     }
   })),
@@ -1118,8 +1129,6 @@ export const stepperReducer = createReducer(
       deleted: [],
       hasFile,
       fileName,
-      isDirty: true,
-      isOnlyOrderDirty: false,
       templateFile: []
     }
   })),
@@ -1130,7 +1139,6 @@ export const stepperReducer = createReducer(
       ...state.step1State,
       orderDetails: [...state.step1State.orderDetails, orderDetail],
       added: [...state.step1State.added, orderDetail],
-      isDirty: true
     }
   })),
 
@@ -1166,7 +1174,6 @@ export const stepperReducer = createReducer(
         added,
         orderDetails,
         modified,
-        isDirty,
       }
     };
   }),
@@ -1186,7 +1193,7 @@ export const stepperReducer = createReducer(
         added,
         modified,
         deleted,
-        isDirty: true
+        isOrderDetailsDirty: true
       }
     };
   }),

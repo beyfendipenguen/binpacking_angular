@@ -99,16 +99,7 @@ export class FileUploadManager {
     if (!this.fileState.tempFile) {
       throw new Error('No temp file available');
     }
-    return this.store.select(selectFileExists).pipe(
-      take(1),
-      switchMap(fileExists => {
-        if (fileExists && this.fileState.tempFile) {
-          this.store.dispatch(setFileExists());
-          return this.repositoryService.uploadFile(this.fileState.tempFile, orderId, "first_excel");
-        }
-        return EMPTY;
-      })
-    );
+    return this.repositoryService.uploadFile(this.fileState.tempFile, orderId, "first_excel");
   }
 
   resetFileInput(): void {

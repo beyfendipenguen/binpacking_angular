@@ -2,19 +2,19 @@
 // mat stepper current indexi gercek hayat ile uyumlu olmasi adina 1 den baslattik
 // mat stepper a verirken - 1 yapiyoruz. cunku ilk step 0 olarak tanimli api da
 
+import { OrderDetail } from "../../models/order-detail.interface";
+import { Order } from "../../models/order.interface";
+
 export interface StepperState {
   // Mevcut properties...
-  order: any | null;
+  order: Order | null;
+  originalOrder: Order | null;
   currentStep: number;
   completedStep: number;
   fileExists: boolean;
   orderResultId: string;
 
   isEditMode: boolean;
-
-  stepValidations: {
-    [stepNumber: number]: boolean;
-  };
 
   stepData: {
     step1?: any;
@@ -56,16 +56,14 @@ export interface StepperState {
   };
 
   step1State: {
-    orderDetails: any[];
-    originalOrderDetails: any[];
+    orderDetails: OrderDetail[];
+    originalOrderDetails: OrderDetail[];
     added: any[];
     modified: any[];
     deleted: any[];
     hasFile: boolean;
     fileName?: string;
-    isDirty: boolean;
-    isOnlyOrderDirty: boolean;
-    templateFile:any;
+    templateFile: any;
   };
 
   step2State: {
@@ -100,17 +98,13 @@ export interface StepperState {
 export const initialStepperState: StepperState = {
   // Mevcut initial values...
   order: null,
+  originalOrder: null,
   currentStep: 0,
   completedStep: 0,
   fileExists: false,
 
   isEditMode: false,
 
-  stepValidations: {
-    1: false,
-    2: false,
-    3: false
-  },
 
   stepData: {},
 
@@ -144,9 +138,7 @@ export const initialStepperState: StepperState = {
     modified: [],
     deleted: [],
     hasFile: false,
-    isDirty: false,
-    isOnlyOrderDirty: false,
-    templateFile:null
+    templateFile: null
   },
 
   step2State: {

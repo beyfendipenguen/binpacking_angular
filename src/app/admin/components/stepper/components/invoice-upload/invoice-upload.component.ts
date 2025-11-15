@@ -54,10 +54,10 @@ import { INVOICE_UPLOAD_CONSTANTS } from './constants/invoice-upload.constants';
 import { AppState, selectUser, setTemplateFile } from '../../../../../store';
 import { Store } from '@ngrx/store';
 import {
-  selectOrder, selectStep1OrderDetails, selectStep1IsDirty,
+  selectOrder, selectStep1OrderDetails, selectIsOrderDetailsDirty,
   selectStep1HasFile, selectStep1FileName,
   selectAverageOrderDetailHeight, selectIsStepLoading, selectIsEditMode,
-  selectIsOnlyOrderDirty,
+  selectIsOrderDirty,
   selectInvoiceTemplateFile,
 } from '../../../../../store/stepper/stepper.selectors';
 import { CompanyRelation } from '../../../../../models/company-relation.interface';
@@ -66,6 +66,8 @@ import { combineLatest } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { CompanyRelationService } from '../../../services/company-relation.service';
 import { FileService } from '../../../services/file.service';
+import { Order } from '../../../../../models/order.interface';
+import { stepperReducer } from '../../../../../store/stepper/stepper.reducer';
 
 @Component({
   selector: 'app-invoice-upload',
@@ -113,8 +115,8 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
   // NgRx Step1 Migration Observables
   public orderSignal = this.store.selectSignal(selectOrder);
   public orderDetailsSignal = this.store.selectSignal(selectStep1OrderDetails);
-  public isDirtySignal = this.store.selectSignal(selectStep1IsDirty);
-  public isOnlyOrderDirtySignal = this.store.selectSignal(selectIsOnlyOrderDirty);
+  public isOrderDetailsDirtySignal = this.store.selectSignal(selectIsOrderDetailsDirty);
+  public isOrderDirtySignal = this.store.selectSignal(selectIsOrderDirty);
 
   public hasUploadFileSignal = this.store.selectSignal(selectStep1HasFile);
   public fileNameSignal = this.store.selectSignal(selectStep1FileName);
@@ -361,9 +363,7 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
           });
 
           this.store.dispatch(StepperActions.setOrder({ order: updatedOrder }));
-          this.store.dispatch(StepperActions.updateOrCreateOrder({ context: 'companyRelationUpdated' }))
-          // Paletleri de güncelle (relation değişti)
-          // this.repositoryService.getPalletsByCompanyRelation(relationId);
+          this.store.dispatch(StepperActions.getPallets());
         }
       },
       error: (error) => {
@@ -442,17 +442,19 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
 
   createOrder(): void {
     const now = new Date();
-    const newOrder = {
+    const newOrder: Order = {
       id: crypto.randomUUID(),
       name: '',
       date: now.toISOString(),
-      company_relation: {},
-      truck: {},
+      company_relation: null,
+      truck: null,
       weight_type: '',
       created_at: now.toISOString(),
       updated_at: now.toISOString(),
       deleted_time: null,
       is_deleted: false,
+      max_pallet_height: 2400,
+      truck_weight_limit: 25000
     };
     this.store.dispatch(StepperActions.setOrder({ order: newOrder }))
     this.openOrderDetailAddDialog();
@@ -511,13 +513,8 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
     //  eger isonlyorderdiry ise
     //    update or create order
     //
-    if (!this.isDirtySignal()) {
-      if (this.isOnlyOrderDirtySignal()) {
-        this.store.dispatch(StepperActions.updateOrCreateOrder({ context: 'order' }))
-      }
-      this.store.dispatch(StepperActions.navigateToStep({ stepIndex: 1 }));
-      return;
-    } if (!this.isFormValid()) {
+
+    if (!this.isFormValid()) {
       this.toastService.warning(INVOICE_UPLOAD_CONSTANTS.MESSAGES.WARNING.FILL_REQUIRED_FIELDS);
       return;
     }
@@ -526,8 +523,12 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
       this.toastService.warning(INVOICE_UPLOAD_CONSTANTS.MESSAGES.WARNING.MISSING_ORDER_DETAILS);
       return;
     }
+    if (!this.isOrderDirtySignal() && !this.isOrderDetailsDirtySignal()) {
+      this.store.dispatch(StepperActions.navigateToStep({ stepIndex: 1 }))
+      return;
+    }
+    this.store.dispatch(StepperActions.syncInvoiceUploadStep())
 
-    this.store.dispatch(StepperActions.invoiceUploadSubmitFlow())
   }
 
   resetForm(): void {

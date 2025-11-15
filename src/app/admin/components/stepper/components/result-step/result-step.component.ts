@@ -444,7 +444,7 @@ export class ResultStepComponent implements OnInit, OnDestroy {
   /**
    * File tıklaması - Unsaved changes varsa önce kaydet
    */
-  onFileClick(event: Event, file: any):void {
+  onFileClick(event: Event, file: any): void {
     event.preventDefault(); // Link'in default davranışını engelle
 
     if (!file?.file) {
@@ -510,7 +510,7 @@ export class ResultStepComponent implements OnInit, OnDestroy {
 
   }
 
-  completeOrder(isFile:boolean=false){
+  completeOrder(isFile: boolean = false) {
     const orderResult = this.convertPiecesToJsonString();
 
     if (this.threeJSComponent.deletedPackages.length > 0) {
@@ -531,22 +531,24 @@ export class ResultStepComponent implements OnInit, OnDestroy {
         if (result === true) {
           this.store.dispatch(cleanUpInvalidPackagesFromOrder({ packageNames: this.threeJSComponent.deletedPackages.map(pckg => pckg.id) }));
           this.threeJSComponent.deletedPackages = []
-          if(isFile){
-            this.store.dispatch(completeShipment({orderResult}))
+          if (isFile) {
+            this.store.dispatch(completeShipment({ orderResult }))
             return
           }
-          this.store.dispatch(updateOrderResult({orderResult}))
+          this.store.dispatch(updateOrderResult({ orderResult }))
+          this.shipmentCompleted.emit();
         }
         else {
           return;
         }
       });
     } else {
-      if(isFile){
-        this.store.dispatch(completeShipment({orderResult}))
+      if (isFile) {
+        this.store.dispatch(completeShipment({ orderResult }))
         return
       }
-      this.store.dispatch(updateOrderResult({orderResult}))
+      this.store.dispatch(updateOrderResult({ orderResult }))
+      this.shipmentCompleted.emit();
     }
   }
 

@@ -1,7 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { ApiService } from '../../../../services/api.service';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { map, Observable } from 'rxjs';
+import { map, Observable, switchMap } from 'rxjs';
 import { FileResponse } from '../interfaces/file-response.interface';
 import { mapOrderDetailsToUiProductsSafe, mapToOrderDetailDtoList } from '../../../../models/mappers/order-detail.mapper';
 import { mapPackageDetailToPackage, mapPackageToPackageDetail } from '../../../../models/mappers/package-detail.mapper';
@@ -15,7 +15,7 @@ import { OrderDetailDiffCalculator } from '../../../../models/utils/order-detail
 
 import { Store } from '@ngrx/store';
 import { AppState, updateOrderDetailsChanges } from '../../../../store';
-import { selectOrderId, selectOrderResultId, selectOriginalOrderDetails, selectRemainingProducts } from '../../../../store/stepper/stepper.selectors';
+import { selectCompanyRelationId, selectOrderId, selectOrderResultId, selectOriginalOrderDetails, selectRemainingProducts } from '../../../../store/stepper/stepper.selectors';
 import { UiPackage } from '../components/ui-models/ui-package.model';
 
 @Injectable({
@@ -83,19 +83,23 @@ export class RepositoryService {
       );
   }
 
-  getPalletsByCompanyRelation(companyRelationId: string): Observable<any> {
-    return this.http
-      .get<any>(`${this.api.getApiUrl()}/logistics/pallets/`, {
-        params: new HttpParams()
-          .set('limit', 30)
-          .set('offset', 0)
-          .set('company_relation_id', companyRelationId)  // ← Relation ID ekle
+  getPalletsByCompanyRelation(): Observable<any> {
+    return this.store.select(selectCompanyRelationId).pipe(
+      switchMap((companyRelationId) => {
+        return this.http
+          .get<any>(`${this.api.getApiUrl()}/logistics/pallets/`, {
+            params: new HttpParams()
+              .set('limit', 30)
+              .set('offset', 0)
+              .set('company_relation_id', companyRelationId)  // ← Relation ID ekle
+          })
+          .pipe(
+            map((response) =>
+              response.results.map((item: any) => new UiPallet(item))
+            )
+          )
       })
-      .pipe(
-        map((response) =>
-          response.results.map((item: any) => new UiPallet(item))
-        )
-      );
+    )
   }
 
   getTrucks(): Observable<any> {

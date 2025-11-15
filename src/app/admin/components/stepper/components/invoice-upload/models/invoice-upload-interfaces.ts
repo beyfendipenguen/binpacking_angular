@@ -25,6 +25,7 @@ export interface FormData {
   weightType: string;
 }
 
+
 export interface OrderDetailUpdateEvent {
   item: OrderDetail;
   data: any;

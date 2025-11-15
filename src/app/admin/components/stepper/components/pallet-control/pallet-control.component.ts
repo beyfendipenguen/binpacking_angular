@@ -68,7 +68,7 @@ import {
   selectStep2Packages,
   selectRemainingProducts,
   selectStep2IsDirty,
-  selectStep1IsDirty,
+  selectIsOrderDetailsDirty,
   selectStep2Changes,
   selectUiPackages,
   allDropListIds,
@@ -152,7 +152,7 @@ export class PalletControlComponent
   remainingProducts = this.store.selectSignal(selectRemainingProducts);
 
   public orderDetailsIsDirtySignal =
-    this.store.selectSignal(selectStep1IsDirty);
+    this.store.selectSignal(selectIsOrderDetailsDirty);
 
   public isDirtySignal = this.store.selectSignal(selectStep2IsDirty);
   public orderSignal = this.store.selectSignal(selectOrder);
@@ -218,14 +218,15 @@ export class PalletControlComponent
 
 
   packageTotalWeight(pkg: UiPackage): number {
+    const order = this.orderSignal();
     const palletWeight = Math.floor(pkg.pallet?.weight ?? 0);
     const productsWeight = pkg.products.reduce((total, product) => {
-      if (!this.orderSignal()) {
+      if (!order) {
         return 0;
       }
-      if (this.orderSignal().weight_type == 'std') {
+      if (order.weight_type == 'std') {
         return total + Math.floor(product.weight_type.std * product.count);
-      } else if (this.orderSignal().weight_type == 'eco') {
+      } else if (order.weight_type == 'eco') {
         return total + Math.floor(product.weight_type.eco * product.count);
       } else {
         return total + Math.floor(product.weight_type.pre * product.count);
@@ -795,7 +796,7 @@ export class PalletControlComponent
 
   toggleAlignment(_package: any): void {
     _package.alignment = _package.alignment === 'v' ? 'h' : 'v';
-    this.store.dispatch(setVerticalSortInPackage({pkgId: _package.id,alignment:_package.alignment}))
+    this.store.dispatch(setVerticalSortInPackage({ pkgId: _package.id, alignment: _package.alignment }))
   }
 
   addUiProduct(productUiId: string) {

@@ -19,12 +19,16 @@ import {
   selectCompletedStep,
   selectOrder,
   selectStep1Changes,
-  selectStep1IsDirty,
+  selectIsOrderDetailsDirty,
   selectStep2IsDirty,
   selectOrderResult,
   selectStepperState,
   selectUiPackages,
   selectVerticalSort,
+  selectIsOrderDirty,
+  selectFileExists,
+  selectOriginalOrder,
+  selectCompanyRelationId,
 } from '../index';
 import { ToastService } from '../../services/toast.service';
 import { OrderService } from '../../admin/components/services/order.service';
@@ -34,6 +38,7 @@ import { LocalStorageService } from '../../admin/components/stepper/services/loc
 import { RepositoryService } from '../../admin/components/stepper/services/repository.service';
 import { UIStateManager } from '../../admin/components/stepper/components/invoice-upload/managers/ui-state.manager';
 import { HttpErrorResponse } from '@angular/common/http';
+import { stepperReducer } from './stepper.reducer';
 
 @Injectable()
 export class StepperEffects {
@@ -116,23 +121,28 @@ export class StepperEffects {
     )
   );
 
-  /// burada update or create actionindan gelen context degerini update or create order success actionina gecmeye calisiyorum hata var coz
   updateOrCreateOrder$ = createEffect(() =>
     this.actions$.pipe(
       ofType(StepperActions.updateOrCreateOrder),
-      withLatestFrom(this.store.select(selectOrder)),
-      switchMap(([action, order]) => {
-        return this.orderService.updateOrCreate(order).pipe(
-          map((result) =>
-            StepperActions.updateOrCreateOrderSuccess({
-              order: result.order,
-              context: action.context,
-            })
-          ),
-          catchError((error) =>
-            of(StepperActions.setStepperError({ error: error.message }))
-          )
-        );
+      withLatestFrom(
+        this.store.select(selectOrder),
+        this.store.select(selectIsOrderDirty)
+      ),
+      switchMap(([action, order, isDirty]) => {
+        if (isDirty) {
+          return this.orderService.updateOrCreate(order).pipe(
+            map((result) =>
+              StepperActions.updateOrCreateOrderSuccess({
+                order: result.order,
+                context: action.context,
+              })
+            ),
+            catchError((error) =>
+              of(StepperActions.setStepperError({ error: error.message }))
+            )
+          );
+        }
+        return of(StepperActions.updateOrderDetailsChanges({}));
       })
     )
   );
@@ -142,7 +152,7 @@ export class StepperEffects {
       ofType(StepperActions.updateOrderDetailsChanges),
       withLatestFrom(
         this.store.select(selectStep1Changes),
-        this.store.select(selectStep1IsDirty)
+        this.store.select(selectIsOrderDetailsDirty)
       ),
       filter(([_, changes, isDirty]) => isDirty),
       switchMap(([action, changes]) =>
@@ -192,25 +202,15 @@ export class StepperEffects {
     )
   );
 
-  invoiceUploadSubmitFlow$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(StepperActions.invoiceUploadSubmitFlow),
-      switchMap((action) =>
-        of(
-          StepperActions.updateOrCreateOrder({
-            context: 'invoiceUploadSubmitFlow',
-          })
-        )
-      )
-    )
-  );
 
-  updateOrCreateOrderInvoiceUploadSubmitFlow$ = createEffect(() => {
+
+  triggerCreateOrderDetails$ = createEffect(() => {
     return this.actions$.pipe(
       ofType(StepperActions.updateOrCreateOrderSuccess),
-      switchMap((action) => {
+      withLatestFrom(this.store.select(selectIsOrderDetailsDirty)),
+      switchMap(([action, isOrderDetailsDirty]) => {
         // Context kontrolü
-        if (action.context === 'invoiceUploadSubmitFlow') {
+        if (isOrderDetailsDirty) {
           return of(
             StepperActions.createOrderDetails({
               context: 'invoiceUploadSubmitFlow',
@@ -229,10 +229,10 @@ export class StepperEffects {
     );
   });
 
-  getPalletsFlow$ = createEffect(() => {
+
+  triggerGetPallets$ = createEffect(() => {
     return this.actions$.pipe(
-      ofType(StepperActions.updateOrCreateOrderSuccess),
-      filter((action) => ['invoiceUploadSubmitFlow', 'companyRelationUpdated'].includes(action.context)),
+      ofType(StepperActions.uploadInvoiceProcessFileSuccess),
       map(() => StepperActions.getPallets())
     )
   });
@@ -240,8 +240,10 @@ export class StepperEffects {
   getPallets$ = createEffect(() => {
     return this.actions$.pipe(
       ofType(StepperActions.getPallets),
+      withLatestFrom(this.store.select(selectCompanyRelationId)),
+      filter(([_, companyRelationId]) => !!companyRelationId),
       switchMap(() =>
-        this.repositoryService.getPalletsByOrder().pipe(
+        this.repositoryService.getPalletsByCompanyRelation().pipe(
           map((response) => StepperActions.getPalletsSuccess({ pallets: response })),
           catchError((error) =>
             of(StepperActions.setStepperError({ error: error.message }))
@@ -251,21 +253,14 @@ export class StepperEffects {
     )
   });
 
-  createOrderDetailsInvoiceUploadSubmitFlow$ = createEffect(() => {
-    return this.actions$.pipe(
-      ofType(StepperActions.createOrderDetailsSuccess),
-      switchMap((action) => {
-        if (action.context === "invoiceUploadSubmitFlow") {
-          return of(
-            StepperActions.uploadFileToOrder({
-              context: action.context
-            }))
-        }
-        else {
-          return EMPTY
-        }
-      }))
-  });
+  triggerUploadFileToOrder$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(StepperActions.updateOrCreateOrderSuccess),
+      withLatestFrom(this.store.select(selectFileExists)),
+      filter(([action, fileExists]) => fileExists),
+      map((action) => StepperActions.uploadFileToOrder({}))
+    )
+  );
 
   calculatePackageDetail$ = createEffect(() =>
     this.actions$.pipe(
@@ -289,24 +284,29 @@ export class StepperEffects {
       ofType(
         StepperActions.createOrderDetailsSuccess
       ),
-      withLatestFrom(this.store.select(selectCompletedStep)),
-      filter(([orderDetails, stepIndex]) => stepIndex <= 1),
       map(() => StepperActions.setStepCompleted({ stepIndex: 1 }))
     )
   );
 
-  uploadInvoiceFile$ = createEffect(() =>
+  uploadFileToOrder$ = createEffect(() =>
     this.actions$.pipe(
       ofType(StepperActions.uploadFileToOrder),
-      withLatestFrom(this.store.select(selectOrder)),
-      switchMap(([action, order]) =>
-        this.fileUploadManager.uploadFileToOrder(order.id).pipe(
-          map(() => StepperActions.invoiceUploadSubmitFlowSuccess()),
+      withLatestFrom(
+        this.store.select(selectOrder),
+        this.store.select(selectFileExists)
+      ),
+      filter(([_, order, fileExists]) => fileExists),
+      switchMap(([action, order]) => {
+        if (!order) {
+          return of(StepperActions.setGlobalError({ error: { message: 'Order not found' } }));
+        }
+        return this.fileUploadManager.uploadFileToOrder(order.id).pipe(
+          map(() => StepperActions.uploadFileToOrderSuccess()),
           catchError((error) =>
             of(StepperActions.setGlobalError({ error: error.message }))
           )
         )
-      )
+      })
     )
   );
 
@@ -408,8 +408,7 @@ export class StepperEffects {
   palletControlSubmitSuccess$ = createEffect(() =>
     this.actions$.pipe(
       ofType(StepperActions.palletControlSubmitSuccess),
-      withLatestFrom(this.store.select(selectStep1IsDirty)),
-      filter(([_, isDirty]) => isDirty),
+      withLatestFrom(this.store.select(selectIsOrderDetailsDirty)),
       map(() => StepperActions.calculateOrderDetailChanges())
     )
   );
@@ -417,18 +416,11 @@ export class StepperEffects {
   updateOrderDetailsChanges$ = createEffect(() =>
     this.actions$.pipe(
       ofType(StepperActions.calculateOrderDetailChanges),
-      withLatestFrom(this.store.select(selectStep1IsDirty)),
+      withLatestFrom(this.store.select(selectIsOrderDetailsDirty)),
       filter(([_, isDirty]) => isDirty),
       map(() => StepperActions.updateOrderDetailsChanges({}))
     )
   );
-
-  // pallet 2 de yapilan tum ekleme silme ve guncelleme islemleri icin
-  // tetiklenen actionlari dinleyip onlarin success durumlarda veya direk ilgili
-  // actionlarin bittigi durumda step1 changes hesaplayip guncelleme islemini yapmaliyim
-  // kullanici step2 de pallet control submit islemini devreye soktugu zaman
-  // step 1 changes durumuna bakip gerekiyorsa backende gitmeliyim
-  // eger gerekmiyorsa api istegi atamadan islemi bitirmeliyim
 
   orderDetailChanges$ = createEffect(() =>
     this.actions$.pipe(
@@ -493,5 +485,15 @@ export class StepperEffects {
       )
     )
   );
+
+
+  syncInvoiceUploadStep$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(StepperActions.syncInvoiceUploadStep),
+      map(() => StepperActions.updateOrCreateOrder({ context: 'syncInvoiceUploadStep' })),
+      catchError((error) =>
+        of(StepperActions.setGlobalError({ error: error.message }))
+      )
+    ));
 
 }

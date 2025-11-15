@@ -4,6 +4,7 @@ import { Order } from '../../models/order.interface';
 import { UiPackage } from '../../admin/components/stepper/components/ui-models/ui-package.model';
 import { toInteger } from 'lodash-es';
 import { UiPallet } from '../../admin/components/stepper/components/ui-models/ui-pallet.model';
+import { areOrderDetailsEqual, deepEqual } from '../../helpers/order-detail.helper';
 
 // Feature selector
 export const selectStepperState = createFeatureSelector<StepperState>('stepper');
@@ -89,11 +90,6 @@ export const selectCompletedStep = createSelector(
   (state) => state.completedStep
 );
 
-export const selectStepValidations = createSelector(
-  selectStepperState,
-  (state) => state.stepValidations
-);
-
 // Edit Mode selectors
 export const selectIsEditMode = createSelector(
   selectStepperState,
@@ -122,13 +118,6 @@ export const selectStepperError = createSelector(
   selectStepperState,
   (state) => state.error
 );
-
-
-export const selectIsStepValid = (stepIndex: number) => createSelector(
-  selectStepValidations,
-  (validations) => validations[stepIndex] || false
-);
-
 
 
 // Complex selectors
@@ -281,27 +270,26 @@ export const selectOrder = createSelector(selectStepperState, (stepper) => stepp
 
 export const selectTruck: MemoizedSelector<any, [number, number, number]> = createSelector(
   selectOrder,
-  (order) =>
-    order.truck
+  (order) => {
+    if (!order) return [0, 0, 0];
+    return order.truck
       ? [
         toInteger(order.truck.dimension.width),
         toInteger(order.truck.dimension.depth),
         toInteger(order.truck.dimension.height)
       ]
       : [0, 0, 0]
+
+  }
 );
 
-export const selectOrderId = createSelector(selectOrder, (order) => order?.id)
+export const selectOrderId = createSelector(selectOrder, (order) => order?.id || '')
 
 export const selectStep1OrderDetails = createSelector(
   selectStep1State,
   (step1State) => step1State.orderDetails
 );
 
-export const selectOriginalOrderDetails = createSelector(
-  selectStep1State,
-  (step1State) => step1State.originalOrderDetails
-);
 
 export const selectAverageOrderDetailHeight = createSelector(
   selectStep1OrderDetails,
@@ -323,10 +311,6 @@ export const selectAverageOrderDetailHeight = createSelector(
   }
 )
 
-export const selectStep1Original = createSelector(
-  selectStep1State,
-  (step1State) => step1State.originalOrderDetails
-);
 
 export const selectStep1Changes = createSelector(
   selectStep1State,
@@ -337,15 +321,6 @@ export const selectStep1Changes = createSelector(
   })
 );
 
-export const selectStep1IsDirty = createSelector(
-  selectStep1State,
-  (step1State) => step1State.isDirty
-);
-
-export const selectIsOnlyOrderDirty = createSelector(
-  selectStep1State,
-  (step1State) => step1State.isOnlyOrderDirty
-);
 
 export const selectStep1HasFile = createSelector(
   selectStep1State,
@@ -495,6 +470,7 @@ function packageTotalWeight(pkg: UiPackage, order: Order): number {
 
 export const selectActivePalletWeights = createSelector(selectUiPackages, selectOrder, (uiPackages, order) => {
   const packages = uiPackages;
+  if (!order) return [];
   return packages
     .filter(pkg => pkg.pallet && pkg.products?.length > 0)
     .map(pkg => packageTotalWeight(pkg, order));
@@ -570,6 +546,49 @@ export const selectStep3HasUnsavedChanges = createSelector(
   (step3State) => step3State.hasUnsavedChanges
 );
 
+export const selectIsOrderDirty = createSelector(selectStepperState, (state) => {
+  if (!state.originalOrder) return true;
+  if (!state.order) return true;
+  return !deepEqual(state.order, state.originalOrder);
+}
+);
+
+export const selectOrderDetails = createSelector(
+  selectStep1State,
+  (step1State) => step1State.orderDetails
+);
+
+export const selectOriginalOrderDetails = createSelector(
+  selectStep1State,
+  (step1State) => step1State.originalOrderDetails
+);
+
+export const selectOriginalOrder = createSelector(
+  selectStepperState,
+  (state) => state.originalOrder
+);
+
+
+
+export const selectIsOrderDetailsDirty = createSelector(
+  selectOrderDetails,
+  selectOriginalOrderDetails,
+  (orderDetails, originalOrderDetails) => {
+    if (!originalOrderDetails || originalOrderDetails.length === 0) {
+      return true;
+    }
+    return !areOrderDetailsEqual(orderDetails, originalOrderDetails);
+  }
+);
+
+export const selectCompanyRelationId = createSelector(
+  selectOrder,
+  (order) => {
+    const id = order?.company_relation?.id;
+    return id != null ? id.toString() : '';
+  }
+);
+
 export const selectStep3IsDirty = createSelector(
   selectStep3State,
   (step3State) => step3State.isDirty
@@ -596,18 +615,3 @@ export const selectStep3ProcessedPackages = createSelector(
   (step3State) => step3State.processedPackages
 );
 
-export const selectStep3Summary = createSelector(
-  selectStep3HasResults,
-  selectStep3ShowVisualization,
-  selectStep3HasUnsavedChanges,
-  selectStep3IsDirty,
-  selectStep3ProcessedPackages,
-  (hasResults, showVisualization, hasUnsavedChanges, isDirty, processedPackages) => ({
-    hasResults,
-    showVisualization,
-    hasUnsavedChanges,
-    isDirty,
-    totalPackages: processedPackages.length,
-    canSave: hasUnsavedChanges && hasResults
-  })
-);

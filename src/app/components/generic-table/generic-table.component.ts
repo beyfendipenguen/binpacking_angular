@@ -112,7 +112,7 @@ export class GenericTableComponent<T> implements OnInit, AfterViewInit {
   @Input() showDeleteButton: boolean = true; // Silme butonu gösterme ayarı
   @Input() excludeFields: string[] = [];
 
-  @Input() parentId: string | null = null; // Bağlı olduğu üst nesne ID'si
+  @Input() parentId: string | undefined = undefined; // Bağlı olduğu üst nesne ID'si
   @Input() useParentId: boolean = false; // Üst nesne ID kullanılacak mı belirteci
   @Input() parentIdFieldName: string = 'order_id'; // API'ye gönderilecek parametre adı
 
@@ -687,50 +687,50 @@ export class GenericTableComponent<T> implements OnInit, AfterViewInit {
    * @returns Formatted value
    */
   // generic-table.component.ts - formatValue metodunun içine ekle
-formatValue(value: any, column: string): any {
-  if (value === null || value === undefined || value === '') {
-    return '';
-  }
-
-  //  is_completed special format
-  if (column === 'is_completed') {
-    return value === true || value === 'true' ? 'Tamamlandı' : 'Eksik Sipariş';
-  }
-
-  // Date check
-  if (this.columnTypes[column] === 'date') {
-    return this.datePipe.transform(value, 'dd/MM/yyyy') || value;
-  }
-
-  // Number check
-  if (typeof value === 'number') {
-    if (value % 1 !== 0) {
-      return value.toFixed(2);
+  formatValue(value: any, column: string): any {
+    if (value === null || value === undefined || value === '') {
+      return '';
     }
-  }
 
-  return value;
-}
+    //  is_completed special format
+    if (column === 'is_completed') {
+      return value === true || value === 'true' ? 'Tamamlandı' : 'Eksik Sipariş';
+    }
+
+    // Date check
+    if (this.columnTypes[column] === 'date') {
+      return this.datePipe.transform(value, 'dd/MM/yyyy') || value;
+    }
+
+    // Number check
+    if (typeof value === 'number') {
+      if (value % 1 !== 0) {
+        return value.toFixed(2);
+      }
+    }
+
+    return value;
+  }
 
   /**
    * Status değerini boolean'a çevirir
    */
   isStatusCompleted(row: any, column: string): boolean {
-  const value = this.getNestedPropertyValue(row, column);
+    const value = this.getNestedPropertyValue(row, column);
 
-  // Boolean kontrolü
-  if (typeof value === 'boolean') {
-    return value;
+    // Boolean kontrolü
+    if (typeof value === 'boolean') {
+      return value;
+    }
+
+    // String kontrolü
+    if (typeof value === 'string') {
+      return value.toLowerCase() === 'true';
+    }
+
+    // Diğer truthy değerler
+    return !!value;
   }
-
-  // String kontrolü
-  if (typeof value === 'string') {
-    return value.toLowerCase() === 'true';
-  }
-
-  // Diğer truthy değerler
-  return !!value;
-}
   // Get the display name for a column
   getColumnDisplayName(column: string): string {
     // "rowNumber" sütunu için özel isim
