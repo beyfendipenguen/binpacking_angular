@@ -87,20 +87,17 @@ export class StepperEffects {
         }).pipe(
           mergeMap(({ order, orderDetails, packagesAndRemainingProducts }) => {
             return of(
-              StepperActions.setStepperData({ data: { order: order, completedStep: 2 } }),
-              StepperActions.setOrderDetails({ orderDetails: orderDetails }),
+              StepperActions.updateOrCreateOrderSuccess({
+                order: order,
+                context: "editmode"
+              }),
+              StepperActions.updateOrderDetailsChangesSuccess({ orderDetails: orderDetails }),
               StepperActions.setUiPackages({
                 packages: packagesAndRemainingProducts.packages,
-              }),
-              StepperActions.setRemainingProducts({
-                remainingProducts:
-                  packagesAndRemainingProducts.remainingProducts,
-              })
-            );
+              }));
           })
-        );
-      })
-    )
+        )
+      }))
   );
 
   autoSave$ = createEffect(
@@ -350,7 +347,6 @@ export class StepperEffects {
         StepperActions.createOrderDetailsSuccess,
         StepperActions.updateOrCreateOrderSuccess,
         StepperActions.calculatePackageDetailSuccess,
-        StepperActions.setUiPackages,
         StepperActions.palletControlSubmitSuccess,
         StepperActions.setTemplateFile
       ),

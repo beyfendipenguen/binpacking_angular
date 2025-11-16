@@ -195,10 +195,6 @@ export const setFileExists = createAction(
   '[Stepper] Set File Exists'
 )
 
-export const setOrderDetails = createAction(
-  '[Stepper] Set Order Details',
-  props<{ orderDetails: any[] }>()
-);
 
 // create setPackageDetails
 export const setUiPackages = createAction(

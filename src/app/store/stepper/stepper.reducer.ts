@@ -12,15 +12,6 @@ import { v4 as Guid } from 'uuid';
 
 export const stepperReducer = createReducer(
   initialStepperState,
-  on(StepperActions.setOrderDetails, (state, { orderDetails }) => ({
-    ...state,
-    step1State: {
-      ...state.step1State,
-      orderDetails: [...orderDetails],
-      originalOrderDetails: [...orderDetails],
-      isOrderDetailsDirty: false
-    }
-  })),
 
   on(StepperActions.calculateOrderDetailChanges, (state) => {
     let mergeOrderDetails;
@@ -386,9 +377,6 @@ export const stepperReducer = createReducer(
     return {
       ...state,
       order: { ...order },
-      step1State: {
-        ...state.step1State,
-      }
     }
   }),
 
@@ -396,9 +384,6 @@ export const stepperReducer = createReducer(
     ...state,
     order: order,
     originalOrder: order,
-    step1State: {
-      ...state.step1State,
-    }
   })),
 
   on(StepperActions.setUiPackages, (state, { packages }) => {
@@ -1009,13 +994,14 @@ export const stepperReducer = createReducer(
 
     if (existingRemainingProductIndex !== -1) {
       updatedRemainingProducts = updatedRemainingProducts.map((p, i) =>
-        i === existingRemainingProductIndex ? new UiProduct({ ...p, count: newCount }) : p
+        i === existingRemainingProductIndex ? { ...p, count: newCount } : { ...p }
       );
     } else {
-      const newUiProduct: UiProduct = new UiProduct({
+      const newUiProduct: any = {
         ...product,
+        ui_id: Guid(),
         count: newCount,
-      });
+      };
       updatedRemainingProducts = [...updatedRemainingProducts, newUiProduct];
     }
 
