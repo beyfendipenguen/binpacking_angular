@@ -9,17 +9,61 @@ import { areOrderDetailsEqual, deepEqual } from '../../helpers/order-detail.help
 // Feature selector
 export const selectStepperState = createFeatureSelector<StepperState>('stepper');
 
-// Step1 Migration Selectors
+
+// #region STEPPER STATE SELECTORS
+
+export const selectOrder = createSelector(selectStepperState, (stepper) => stepper.order)
+
+
+
+// #endregion
+
+// #region STEP1 SELECTORS
+
 export const selectStep1State = createSelector(
   selectStepperState,
   (state) => state.step1State
 );
 
+export const selectOrderDetails = createSelector(
+  selectStep1State,
+  (step1State) => step1State.orderDetails
+);
 
-// Step2 Migration Selectors
-export const selectStep2State = createSelector(
-  selectStepperState,
-  (state) => state.step2State
+export const selectOriginalOrderDetails = createSelector(
+  selectStep1State,
+  (step1State) => step1State.originalOrderDetails
+);
+
+export const selectStep1OrderDetails = createSelector(
+  selectStep1State,
+  (step1State) => step1State.orderDetails
+);
+
+
+export const selectOrderDetailsChanges = createSelector(
+  selectStep1State,
+  (step1State) => ({
+    added: step1State.added,
+    modified: step1State.modified,
+    deleted: step1State.deleted
+  })
+);
+
+
+export const selectStep1HasFile = createSelector(
+  selectStep1State,
+  (step1State) => step1State.hasFile
+);
+
+export const selectStep1FileName = createSelector(
+  selectStep1State,
+  (step1State) => step1State.fileName
+);
+
+export const selectInvoiceTemplateFile = createSelector(
+  selectStep1State,
+  (step1State) => step1State.templateFile
 );
 
 export const selectFileExists = createSelector(
@@ -27,14 +71,67 @@ export const selectFileExists = createSelector(
   (state) => state.fileExists
 )
 
+// #endregion
 
+
+// #region  STEP2 SELECTORS
+
+export const selectStep2State = createSelector(
+  selectStepperState,
+  (state) => state.step2State
+);
+
+/**
+ * Selects the plain object representation of remainingProducts
+ * from the Step2 state.
+ * 
+ *
+ * @returns {Array<Object>} Array of plain UiProduct objects
+ */
+export const selectRemainingProducts = createSelector(
+  selectStep2State,
+  (step2State) => step2State.remainingProducts
+);
+
+
+/**
+ * Selects the plain object representation of packages
+ * from the Step2 state.
+ * 
+ * Note:
+ * - The returned objects are plain, not instances of UiPackage.
+ * - They do not contain the `ui_id` field, because packages
+ *   are unique and `ui_id` is not needed.
+ *
+ * @returns {Array<Object>} Array of plain package objects
+ */
+export const selectPackages = createSelector(
+  selectStep2State,
+  (step2State) => step2State.packages
+);
+
+/**
+ * Returns an array of UiPackage instances
+ * mapped from the state.packages array.
+ * 
+ * Each UiPackage is a copy of the original
+ * package from the Step2 state.
+ */
 export const selectUiPackages = createSelector(selectStep2State, (state) =>
   state.packages.map((uiPackage: any) => new UiPackage({ ...uiPackage }))
 );
 
+/**
+ * Returns an array of UiPallet instances
+ * mapped from the state.pallets array.
+ */
 export const selectUiPallets = createSelector(selectStep2State, (state) =>
   state.pallets.map((uiPallet: any) => new UiPallet({ ...uiPallet }))
 )
+
+
+// #region STEP2 DERIVED SELECTORS
+// 
 
 export const hasRemainingProduct = createSelector(selectStep2State, (state) => state.remainingProducts.length > 0)
 export const uiPackageCount = createSelector(selectStep2State, (state) => state.packages.length)
@@ -77,6 +174,92 @@ export const palletDropListIds = createSelector(selectStep2State, (state) => {
     });
   return ids;
 });
+
+export const selectStep2Changes = createSelector(
+  selectStep2State,
+  (step2State) => ({
+    added: step2State.addedPackages,
+    modified: step2State.modifiedPackages,
+    deleted: step2State.deletedPackages
+  })
+);
+
+export const selectStep2IsDirty = createSelector(
+  selectStep2State,
+  (step2State) => step2State.isDirty
+);
+
+export const selectVerticalSort = createSelector(
+  selectStep2State,
+  (step2State) => step2State.verticalSort
+);
+
+export const selectStep2PackageCount = createSelector(
+  selectPackages,
+  (packages) => packages.length
+);
+
+export const selectStep2ProductCount = createSelector(
+  selectRemainingProducts,
+  (products) => products.length
+);
+
+export const selectTotalWeight = createSelector(
+  selectUiPackages,
+  selectOrder,
+  (packages, order) => {
+    if (packages.length === 0) return 0;
+
+    return packages.reduce((total, pkg) => {
+      const palletWeight = Math.floor(pkg.pallet?.weight ?? 0);
+      const productsWeight = pkg.products.reduce((pTotal: any, product: any) => {
+        let weight = 0;
+        if (order?.weight_type === 'eco') {
+          weight = product.weight_type.eco;
+        } else if (order?.weight_type === 'std') {
+          weight = product.weight_type.std;
+        } else if (order?.weight_type === 'pre') {
+          weight = product.weight_type.pre;
+        }
+        return pTotal + Math.floor(weight * product.count);
+      }, 0);
+      return total + palletWeight + productsWeight;
+    }, 0);
+  }
+);
+
+export const selectRemainingWeight = createSelector(
+  selectOrder,
+  selectTotalWeight,
+  (order, totalWeight) => {
+    if (order) {
+      const trailerWeightLimit = order.truck_weight_limit ?? 0;
+      return Math.floor(trailerWeightLimit - totalWeight);
+    }
+    return 0;
+  }
+);
+
+export const selectTotalMeter = createSelector(selectUiPackages, (uiPackages) => {
+  const packages = uiPackages
+  return packages.reduce((total, pkg) => {
+    if (pkg.products.length === 0) return total;
+
+    const packageMeter = pkg.products.reduce((pTotal: any, product: any) => {
+      const productDepth = product.dimension?.depth ?? 0;
+      return pTotal + Math.round(Math.floor(product.count * Math.floor(productDepth)));
+    }, 0);
+
+    return total + packageMeter;
+  }, 0) / 1000;
+});
+
+// #endregion
+
+// #endregion
+
+
+
 
 // Basic selectors
 export const selectCurrentStep = createSelector(
@@ -266,7 +449,6 @@ export const selectAnyStepLoading = createSelector(
 );
 
 
-export const selectOrder = createSelector(selectStepperState, (stepper) => stepper.order)
 
 export const selectTruck: MemoizedSelector<any, [number, number, number]> = createSelector(
   selectOrder,
@@ -285,10 +467,6 @@ export const selectTruck: MemoizedSelector<any, [number, number, number]> = crea
 
 export const selectOrderId = createSelector(selectOrder, (order) => order?.id || '')
 
-export const selectStep1OrderDetails = createSelector(
-  selectStep1State,
-  (step1State) => step1State.orderDetails
-);
 
 
 export const selectAverageOrderDetailHeight = createSelector(
@@ -312,124 +490,11 @@ export const selectAverageOrderDetailHeight = createSelector(
 )
 
 
-export const selectStep1Changes = createSelector(
-  selectStep1State,
-  (step1State) => ({
-    added: step1State.added,
-    modified: step1State.modified,
-    deleted: step1State.deleted
-  })
-);
-
-
-export const selectStep1HasFile = createSelector(
-  selectStep1State,
-  (step1State) => step1State.hasFile
-);
-
-export const selectStep1FileName = createSelector(
-  selectStep1State,
-  (step1State) => step1State.fileName
-);
-
-export const selectInvoiceTemplateFile = createSelector(
-  selectStep1State,
-  (step1State) => step1State.templateFile
-);
-
-export const selectStep2Packages = createSelector(
-  selectStep2State,
-  (step2State) => step2State.packages
-);
-
-export const selectRemainingProducts = createSelector(
-  selectStep2State,
-  (step2State) => step2State.remainingProducts
-);
 
 export const selectStep2OriginalPackages = createSelector(
   selectStep2State,
   (step2State) => step2State.originalPackages
 );
-
-export const selectStep2Changes = createSelector(
-  selectStep2State,
-  (step2State) => ({
-    added: step2State.addedPackages,
-    modified: step2State.modifiedPackages,
-    deleted: step2State.deletedPackages
-  })
-);
-
-export const selectStep2IsDirty = createSelector(
-  selectStep2State,
-  (step2State) => step2State.isDirty
-);
-
-export const selectVerticalSort = createSelector(
-  selectStep2State,
-  (step2State) => step2State.verticalSort
-);
-
-export const selectStep2PackageCount = createSelector(
-  selectStep2Packages,
-  (packages) => packages.length
-);
-
-export const selectStep2ProductCount = createSelector(
-  selectRemainingProducts,
-  (products) => products.length
-);
-
-export const selectTotalWeight = createSelector(
-  selectUiPackages,
-  selectOrder,
-  (packages, order) => {
-    if (packages.length === 0) return 0;
-
-    return packages.reduce((total, pkg) => {
-      const palletWeight = Math.floor(pkg.pallet?.weight ?? 0);
-      const productsWeight = pkg.products.reduce((pTotal: any, product: any) => {
-        let weight = 0;
-        if (order?.weight_type === 'eco') {
-          weight = product.weight_type.eco;
-        } else if (order?.weight_type === 'std') {
-          weight = product.weight_type.std;
-        } else if (order?.weight_type === 'pre') {
-          weight = product.weight_type.pre;
-        }
-        return pTotal + Math.floor(weight * product.count);
-      }, 0);
-      return total + palletWeight + productsWeight;
-    }, 0);
-  }
-);
-
-export const selectRemainingWeight = createSelector(
-  selectOrder,
-  selectTotalWeight,
-  (order, totalWeight) => {
-    if (order) {
-      const trailerWeightLimit = order.truck_weight_limit ?? 0;
-      return Math.floor(trailerWeightLimit - totalWeight);
-    }
-    return 0;
-  }
-);
-
-export const selectTotalMeter = createSelector(selectUiPackages, (uiPackages) => {
-  const packages = uiPackages
-  return packages.reduce((total, pkg) => {
-    if (pkg.products.length === 0) return total;
-
-    const packageMeter = pkg.products.reduce((pTotal: any, product: any) => {
-      const productDepth = product.dimension?.depth ?? 0;
-      return pTotal + Math.round(Math.floor(product.count * Math.floor(productDepth)));
-    }, 0);
-
-    return total + packageMeter;
-  }, 0) / 1000;
-});
 
 export const selectRemainingArea = createSelector(selectUiPackages, selectOrder, (uiPackages, order) => {
   const packages = uiPackages;
@@ -553,15 +618,6 @@ export const selectIsOrderDirty = createSelector(selectStepperState, (state) => 
 }
 );
 
-export const selectOrderDetails = createSelector(
-  selectStep1State,
-  (step1State) => step1State.orderDetails
-);
-
-export const selectOriginalOrderDetails = createSelector(
-  selectStep1State,
-  (step1State) => step1State.originalOrderDetails
-);
 
 export const selectOriginalOrder = createSelector(
   selectStepperState,

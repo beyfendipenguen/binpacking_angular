@@ -3,20 +3,19 @@ import { ApiService } from '../../../../services/api.service';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { map, Observable, switchMap } from 'rxjs';
 import { FileResponse } from '../interfaces/file-response.interface';
-import { mapOrderDetailsToUiProductsSafe, mapToOrderDetailDtoList } from '../../../../models/mappers/order-detail.mapper';
-import { mapPackageDetailToPackage, mapPackageToPackageDetail } from '../../../../models/mappers/package-detail.mapper';
-import { mapUiPackagesToOrderDetails } from '../../../../models/mappers/ui-package-to-order-detail.mapper';
-import { UiPallet } from '../components/ui-models/ui-pallet.model';
+import { mapPackageToPackageDetail } from '../../../../models/mappers/package-detail.mapper';
 import { OrderDetail } from '../../../../models/order-detail.interface';
 import { Order } from '../../../../models/order.interface';
 import { Truck } from '../../../../models/truck.interface';
 import { CompanyRelation } from '../../../../models/company-relation.interface';
-import { OrderDetailDiffCalculator } from '../../../../models/utils/order-detail-diff.util';
 
 import { Store } from '@ngrx/store';
-import { AppState, updateOrderDetailsChanges } from '../../../../store';
-import { selectCompanyRelationId, selectOrderId, selectOrderResultId, selectOriginalOrderDetails, selectRemainingProducts } from '../../../../store/stepper/stepper.selectors';
+import { AppState } from '../../../../store';
+import { selectCompanyRelationId, selectOrderId, selectOrderResultId } from '../../../../store/stepper/stepper.selectors';
 import { UiPackage } from '../components/ui-models/ui-package.model';
+import { PackageDetail } from '../../../../models/package-detail.interface';
+import { Pallet } from '../../../../models/pallet.interface';
+import { IUiPackage } from '../interfaces/ui-interfaces/ui-package.interface';
 
 @Injectable({
   providedIn: 'root',
@@ -37,7 +36,7 @@ export class RepositoryService {
     // get order detail by order id.
     return this.http
       .get<any>(`${this.api.getApiUrl()}/orders/order-details/?order_id=${id}&limit=100`)
-      .pipe(map((response) => { return mapToOrderDetailDtoList(response.results) }));
+      .pipe(map((response) => response.results));
   }
 
   orderDetailsOriginal(id: string): Observable<any> {
@@ -47,13 +46,10 @@ export class RepositoryService {
       .get<any>(`${this.api.getApiUrl()}/orders/order-details/?order_id=${id}`).pipe(map((response) => response.results));
   }
 
-  getPackageDetails(order_id: string = this.getOrderId()): Observable<{ packages: any[], remainingProducts: any[] }> {
+  getPackageDetails(order_id: string = this.getOrderId()): Observable<PackageDetail[]> {
     return this.http
       .get<any>(`${this.api.getApiUrl()}/logistics/package-details/?order_id=${order_id}&limit=100`)
-      .pipe(map((response) => ({
-        packages: mapPackageDetailToPackage(response.results),
-        remainingProducts: mapOrderDetailsToUiProductsSafe(response.remaining_order_details)
-      })));
+      .pipe(map(response => response.results));
   }
 
   pallets(): Observable<any> {
@@ -63,7 +59,7 @@ export class RepositoryService {
       })
       .pipe(
         map((response) =>
-          response.results.map((item: any) => new UiPallet(item))
+          response.results
         )
       );
   }
@@ -78,12 +74,12 @@ export class RepositoryService {
       })
       .pipe(
         map((response) =>
-          response.results.map((item: any) => new UiPallet(item))
+          response.results
         )
       );
   }
 
-  getPalletsByCompanyRelation(): Observable<any> {
+  getPalletsByCompanyRelation(): Observable<Pallet[]> {
     return this.store.select(selectCompanyRelationId).pipe(
       switchMap((companyRelationId) => {
         return this.http
@@ -95,7 +91,7 @@ export class RepositoryService {
           })
           .pipe(
             map((response) =>
-              response.results.map((item: any) => new UiPallet(item))
+              response.results
             )
           )
       })
@@ -148,19 +144,16 @@ export class RepositoryService {
     }>(`${this.api.getApiUrl()}/orders/process-file/`, formData);
   }
 
-  calculatePackageDetail(verticalSort: boolean, order_id: string = this.getOrderId()): Observable<{ packageDetails: any[], remainingOrderDetails: any[] }> {
+  calculatePackageDetails(verticalSort: boolean, order_id: string = this.getOrderId()): Observable<{ package_details: PackageDetail[] }> {
     const params = new HttpParams().set('vertical_sort', verticalSort.toString());
 
     return this.http
-      .get<any>(`${this.api.getApiUrl()}/logistics/calculate-box/${order_id}/`, { params })
-      .pipe(map((response) => ({
-        packageDetails: mapPackageDetailToPackage(response.data),
-        remainingOrderDetails: mapOrderDetailsToUiProductsSafe(response.remaining_order_details)
-      })));
+      .get<any>(`${this.api.getApiUrl()}/logistics/calculate-package-details/${order_id}/`, { params })
+      .pipe();
   }
 
   bulkCreatePackageDetail(
-    uiPackages: UiPackage[],
+    uiPackages: IUiPackage[],
     order_id: string = this.getOrderId()
   ) {
 
@@ -219,7 +212,7 @@ export class RepositoryService {
 
   calculatePacking(order_id: string = this.getOrderId()) {
     return this.http.get<any>(
-      `${this.api.getApiUrl()}/logistics/calculate-packing/${order_id}/`
+      `${this.api.getApiUrl()}/logistics/calculate-bin-packing/${order_id}/`
     );
   }
 

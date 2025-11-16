@@ -1,4 +1,6 @@
 import { createAction, props } from '@ngrx/store';
+import { IUiPallet } from '../../admin/components/stepper/interfaces/ui-interfaces/ui-pallet.interface';
+import { IUiPackage } from '../../admin/components/stepper/interfaces/ui-interfaces/ui-package.interface';
 
 
 export const calculateOrderDetailChanges = createAction(
@@ -87,7 +89,7 @@ export const updateProductCountAndCreateOrUpdateOrderDetail = createAction(
 
 export const calculatePackageDetailSuccess = createAction(
   '[Stepper] Calculate Package Detail Success',
-  props<{ packages: any[], remainingOrderDetails: any[] }>()
+  props<{ packages: IUiPackage[] }>()
 );
 
 export const remainingProductMoveProduct = createAction(
@@ -350,7 +352,7 @@ export const getPallets = createAction(
 
 export const getPalletsSuccess = createAction(
   '[pallet control] get pallets success',
-  props<{ pallets: any[] }>()
+  props<{ pallets: IUiPallet[] }>()
 );
 
 export const createReportFile = createAction(

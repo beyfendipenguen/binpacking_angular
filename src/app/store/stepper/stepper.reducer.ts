@@ -176,8 +176,8 @@ export const stepperReducer = createReducer(
 
     const filteredPackages = packages.filter((pkg) => {
       const palletVolume =
-        parseFloat(pkg.pallet.dimension.width) *
-        parseFloat(pkg.pallet.dimension.depth) *
+        parseFloat(pkg.pallet?.dimension.width.toString() ?? '0') *
+        parseFloat(pkg.pallet?.dimension.depth.toString() ?? '0') *
         parseFloat(order.max_pallet_height.toString() ?? '0');
 
       const productsVolume = pkg.products.reduce((sum: number, product: any) => {
@@ -214,7 +214,7 @@ export const stepperReducer = createReducer(
   on(StepperActions.removePalletFromPackage, (state, { pkgId }) => {
 
     const pkg = state.step2State.packages.find(p => p.id === pkgId)
-    if (!pkg.pallet) return state;
+    if (!pkg || !pkg.pallet) return state;
 
     let updatedRemainingProducts;
     if (pkg.products?.length > 0) {
@@ -361,7 +361,7 @@ export const stepperReducer = createReducer(
     }
   })),
 
-  on(StepperActions.updateOrderDetailsChangesSuccess, (state, { orderDetails, context }) => ({
+  on(StepperActions.updateOrderDetailsChangesSuccess, (state, { orderDetails }) => ({
     ...state,
     step1State: {
       ...state.step1State,
@@ -373,7 +373,7 @@ export const stepperReducer = createReducer(
     }
   })),
 
-  on(StepperActions.setOrder, (state, { order, context }) => {
+  on(StepperActions.setOrder, (state, { order }) => {
     return {
       ...state,
       order: { ...order },
@@ -403,6 +403,7 @@ export const stepperReducer = createReducer(
 
     const sourceProducts = [...state.step2State.remainingProducts];
     const targetPackage = state.step2State.packages.find(p => p.id === targetPackageId)
+    if (!targetPackage) return state;
     const targetProducts = [...targetPackage.products];
 
     const removedProduct = sourceProducts.splice(previousIndex, 1)[0];
@@ -885,6 +886,8 @@ export const stepperReducer = createReducer(
     }
     const sourcePackage = state.step2State.packages.find(p => p.id === sourcePackageId)
     const targetPackage = state.step2State.packages.find(p => p.id === targetPackageId)
+    if (!sourcePackage || !targetPackage) return state;
+
 
     const sourceProducts = [...sourcePackage.products];
     let targetProducts = [...targetPackage.products];

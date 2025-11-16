@@ -1,6 +1,7 @@
 import { UiPackage } from '../../admin/components/stepper/components/ui-models/ui-package.model';
 import { UiPallet } from '../../admin/components/stepper/components/ui-models/ui-pallet.model';
 import { UiProduct } from '../../admin/components/stepper/components/ui-models/ui-product.model';
+import { IUiPackage } from '../../admin/components/stepper/interfaces/ui-interfaces/ui-package.interface';
 import { PackageDetail } from '../package-detail.interface';
 import { v4 as Guid } from 'uuid';
 
@@ -60,7 +61,7 @@ export function mapPackageDetailToPackage(packageDetailList: PackageDetail[]): U
         pallet: pallet ? new UiPallet({ ...pallet }) : null,
         order: order,
         products: products,
-        alignment:packageData.alignment
+        alignment: packageData.alignment
       });
     }
   );
@@ -87,7 +88,7 @@ export function createTotalHeight(uiProducts: UiProduct[], pallet: UiPallet | nu
 
   return 2400
 }
-export function mapPackageToPackageDetail(uiPackageList: UiPackage[]): PackageDetail[] {
+export function mapPackageToPackageDetail(uiPackageList: IUiPackage[]): PackageDetail[] {
   const packageDetailList: PackageDetail[] = [];
 
   uiPackageList.forEach((uiPackage) => {

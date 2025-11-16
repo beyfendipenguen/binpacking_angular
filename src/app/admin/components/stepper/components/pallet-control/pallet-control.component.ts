@@ -65,7 +65,7 @@ import {
 } from '../../../../../store';
 
 import {
-  selectStep2Packages,
+  selectPackages,
   selectRemainingProducts,
   selectStep2IsDirty,
   selectIsOrderDetailsDirty,
