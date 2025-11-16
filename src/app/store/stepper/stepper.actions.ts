@@ -366,11 +366,13 @@ export const createReportFileSuccess = createAction(
   props<{ reportFiles: any[] }>()
 );
 
-export const cleanUpInvalidPackagesFromOrder = createAction(
-  '[Stepper] clean up packages',
-  props<{ packageNames: any[] }>()
-);
 
 export const syncInvoiceUploadStep = createAction(
   '[Invoice upload] sync invoice upload step'
+);
+
+
+export const resultStepSubmit = createAction(
+  '[stepper] result step submit',
+  props<{ orderResult: string, resetStepper: boolean, packageNames?: string[] }>()
 );

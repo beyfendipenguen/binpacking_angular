@@ -28,8 +28,8 @@ export const DEVTOOLS_CONFIG: StoreDevtoolsConfig = {
   traceLimit: 75,             // Stack trace derinliği
   connectInZone: false,       // Zone içinde bağlan
   // features: {
-      //   pause: true,                        // Manuel pause özelliği
-      //   lock: true,                         // State lock özelliği
-      //   // persist: true                       // State'i localStorage'da sakla
-      // }
+  //   pause: true,                        // Manuel pause özelliği
+  //   lock: true,                         // State lock özelliği
+  //   // persist: true                       // State'i localStorage'da sakla
+  // }
 };

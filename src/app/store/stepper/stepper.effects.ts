@@ -29,6 +29,7 @@ import {
   selectFileExists,
   selectOriginalOrder,
   selectCompanyRelationId,
+  selectStep2Packages,
 } from '../index';
 import { ToastService } from '../../services/toast.service';
 import { OrderService } from '../../admin/components/services/order.service';
@@ -39,6 +40,8 @@ import { RepositoryService } from '../../admin/components/stepper/services/repos
 import { UIStateManager } from '../../admin/components/stepper/components/invoice-upload/managers/ui-state.manager';
 import { HttpErrorResponse } from '@angular/common/http';
 import { stepperReducer } from './stepper.reducer';
+import { concat, create } from 'lodash';
+import { AuthService } from '../../auth/services/auth.service';
 
 @Injectable()
 export class StepperEffects {
@@ -50,6 +53,8 @@ export class StepperEffects {
   private fileUploadManager = inject(FileUploadManager);
   private orderService = inject(OrderService);
   private orderDetailService = inject(OrderDetailService);
+  private authService = inject(AuthService);
+
 
   // Private helper method
   // Global Error Effects
@@ -476,15 +481,74 @@ export class StepperEffects {
     )
   })
 
-  cleanUpInvalidPakcagesFromOrder$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(StepperActions.cleanUpInvalidPackagesFromOrder),
-      map(() => StepperActions.palletControlSubmit()),
+  resultStepSubmit$ = createEffect(() => {
+    return this.actions$.pipe(
+      ofType(StepperActions.resultStepSubmit),
+      withLatestFrom(
+        this.store.select(selectOrderResult),
+        this.store.select(selectStep2Packages),
+        this.store.select(selectStep1Changes),
+        this.store.select(selectIsOrderDetailsDirty),
+        this.store.select(selectStep2IsDirty)
+      ),
+      map(([action, orderResult, packages, changes, isOrderDetailsDirty, isPackagesDirty]) => ({
+        action,
+        orderResult,
+        packages,
+        changes,
+        isOrderDetailsDirty,
+        isPackagesDirty
+      })),
+      concatMap(payload => {
+        if (!payload.isOrderDetailsDirty) {
+          return of(payload)
+        }
+        return this.repositoryService.bulkUpdateOrderDetails(payload.changes).pipe(
+          tap((result) => this.store.dispatch(StepperActions.updateOrderDetailsChangesSuccess({ orderDetails: result.order_details }))),
+          catchError((error) =>
+            of(StepperActions.setGlobalError({ error: error.message }))
+          ),
+          map(() => payload),
+        )
+      }),
+      concatMap(payload => {
+        if (!payload.isPackagesDirty) {
+          return of(payload)
+        }
+        return this.repositoryService.bulkCreatePackageDetail(payload.packages).pipe(
+          tap((result) => this.store.dispatch(StepperActions.palletControlSubmitSuccess({ packageDetails: result.package_details }))),
+          catchError((error) =>
+            of(StepperActions.setGlobalError({ error: error.message }))
+          ),
+          map(() => payload)
+        )
+      }),
+      concatMap(payload => {
+        return this.repositoryService.partialUpdateOrderResult(payload.orderResult).pipe(
+          catchError((error) =>
+            of(StepperActions.setGlobalError({ error: error.message }))
+          ),
+          map(() => payload)
+        )
+      }),
+      concatMap(payload => {
+        return this.repositoryService.createReport().pipe(
+          tap((result) => this.store.dispatch(StepperActions.createReportFileSuccess({ reportFiles: result.files }))),
+          tap(() => {
+            if (payload.action.resetStepper) {
+              this.authService.clearLocalAndStore();
+            }
+          }),
+          catchError((error) =>
+            of(StepperActions.setGlobalError({ error: error.message }))
+          )
+        )
+      }),
       catchError((error) =>
         of(StepperActions.setGlobalError({ error: error.message }))
       )
     )
-  );
+  }, { dispatch: false });
 
 
   syncInvoiceUploadStep$ = createEffect(() =>

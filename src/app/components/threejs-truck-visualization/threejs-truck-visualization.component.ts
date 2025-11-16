@@ -18,7 +18,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import * as THREE from 'three';
-import { AppState, cleanUpInvalidPackagesFromOrder, selectStep3IsDirty, selectTruck, setStep3IsDirty } from '../../store';
+import { AppState, selectTruck, setStep3IsDirty } from '../../store';
 import { Store } from '@ngrx/store';
 import { MatDialog } from '@angular/material/dialog';
 import { CancelConfirmationDialogComponent } from '../cancel-confirmation-dialog/cancel-confirmation-dialog.component';
@@ -431,35 +431,6 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
   }
 
   clearDeletedPackages(): void {
-    if (this.deletedPackages.length === 0) return;
-
-    const dialogRef = this.dialog.open(CancelConfirmationDialogComponent, {
-      width: '400px',
-      maxWidth: '95vw',
-      disableClose: true,
-      panelClass: 'cancel-confirmation-dialog',
-      data: {
-        header: "Silinen paketleri kalıcı olarak kaldır!",
-        title: "Silinen paketler siparişten kaldırılacaklar!",
-        info: "Eğer bu şekide devam etmek isterseniz yerleştirilmeyen ürünler siparişten kaldırılacaktır.",
-        confirmButtonText: "Yine de devam et."
-      }
-    });
-
-    dialogRef.afterClosed().subscribe(result => {
-      if (result === true) {
-        this.store.dispatch(cleanUpInvalidPackagesFromOrder({
-          packageNames: this.deletedPackages.map((pckg) => pckg.id)
-        }));
-        this.deletedPackages.forEach(pkg => {
-          if (pkg.originalColor) {
-            this.releaseColor(pkg.originalColor);
-          }
-        });
-        this.deletedPackages = [];
-        this.cdr.detectChanges();
-      }
-    });
   }
 
   // ========================================

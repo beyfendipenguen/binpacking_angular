@@ -25,7 +25,7 @@ import { ThreeJSTruckVisualizationComponent } from '../../../../../components/th
 import { OrderResultService } from '../../../services/order-result.service';
 
 import { Store } from '@ngrx/store';
-import { AppState, cleanUpInvalidPackagesFromOrder, completeShipment, navigateToStep, resetStepper, selectAutoSaveStatusText, selectIsEditMode, selectOrderId, selectRemainingProducts, selectStep3IsDirty, selectStepAutoSaveStatus, selectStepHasPendingChanges, selectStepperSummary, setGlobalError, setStepCompleted, setStepLoading, setStepperData, setStepValidation, updateOrderResult } from '../../../../../store';
+import { AppState, completeShipment, navigateToStep, resetStepper, resultStepSubmit, selectAutoSaveStatusText, selectIsEditMode, selectOrderId, selectRemainingProducts, selectStep3IsDirty, selectStepAutoSaveStatus, selectStepHasPendingChanges, selectStepperSummary, setGlobalError, setStepCompleted, setStepLoading, setStepperData, setStepValidation, updateOrderResult } from '../../../../../store';
 import { selectTruck } from '../../../../../store';
 import { CancelConfirmationDialogComponent } from '../../../../../components/cancel-confirmation-dialog/cancel-confirmation-dialog.component';
 import { MatDialog } from '@angular/material/dialog';
@@ -61,8 +61,6 @@ export class ResultStepComponent implements OnInit, OnDestroy {
   @Output() shipmentCompleted = new EventEmitter<void>();
 
   private destroy$ = new Subject<void>();
-  private isDestroyed = false;
-  public processingLock = false;
   private readonly store = inject(Store<AppState>);
   private readonly dialog = inject(MatDialog);
   piecesData: any[] = [];
@@ -97,6 +95,8 @@ export class ResultStepComponent implements OnInit, OnDestroy {
   private pendingFile = signal<any>(null);
 
   // Effect ile isDirty değişimini dinle
+  // amac isdirty nin false olmasi.
+  // kullanici yanlis verilerle olusturulmus rapor gormemeli.
   private fileOpenEffect = effect(() => {
     const isDirty = this.isDirtySignal();
     const pending = this.pendingFile();
@@ -135,8 +135,6 @@ export class ResultStepComponent implements OnInit, OnDestroy {
 
 
   ngOnDestroy(): void {
-    this.isDestroyed = true;
-    this.processingLock = false;
     this.performCleanup();
   }
 
@@ -165,10 +163,6 @@ export class ResultStepComponent implements OnInit, OnDestroy {
   }
 
   calculateBinpacking(): void {
-    if (this.processingLock || this.isDestroyed) {
-      return;
-    }
-    this.processingLock = true;
     this.store.dispatch(setStepLoading({
       stepIndex: 2,
       loading: true,
@@ -181,9 +175,6 @@ export class ResultStepComponent implements OnInit, OnDestroy {
       .pipe(
         takeUntil(this.destroy$),
         switchMap((response) => {
-          if (this.isDestroyed) {
-            throw new Error('Component destroyed during processing');
-          }
           this.orderResultId = response.data.order_result_id
           this.store.dispatch(setStepperData({ data: { orderResultId: this.orderResultId } }));
           this.safeProcessOptimizationResult(response);
@@ -197,7 +188,6 @@ export class ResultStepComponent implements OnInit, OnDestroy {
           return EMPTY;
         }),
         finalize(() => {
-          this.processingLock = false;
           this.stopProgressSimulation();
           this.store.dispatch(setStepLoading({
             stepIndex: 2,
@@ -207,38 +197,33 @@ export class ResultStepComponent implements OnInit, OnDestroy {
       )
       .subscribe({
         next: (reportResponse) => {
-          if (this.isDestroyed) return;
+
           this.reportFiles = Array.isArray(reportResponse?.files)
             ? reportResponse.files
             : [];
           this.optimizationProgress = 100;
-          setTimeout(() => {
-            if (!this.isDestroyed) {
-              this.safeFinalize();
-            }
-          }, 500);
+          this.hasResults = true;
+
           this.cdr.markForCheck();
         },
         error: (error) => {
-          if (!this.isDestroyed) {
-            // Global error dispatch et
-            this.store.dispatch(setGlobalError({
-              error: {
-                message: 'Optimizasyon hesaplaması sırasında hata oluştu: ' + (error.message || error),
-                code: error.status?.toString(),
-                stepIndex: 2
-              }
-            }));
 
-            this.handleError(error);
-            this.cdr.markForCheck();
-          }
+          // Global error dispatch et
+          this.store.dispatch(setGlobalError({
+            error: {
+              message: 'Optimizasyon hesaplaması sırasında hata oluştu: ' + (error.message || error),
+              code: error.status?.toString(),
+              stepIndex: 2
+            }
+          }));
+
+
+          this.cdr.markForCheck();
         },
       });
   }
 
   private safeProcessOptimizationResult(response: any): void {
-    if (this.isDestroyed) return;
 
     try {
       let packingData = null;
@@ -290,7 +275,7 @@ export class ResultStepComponent implements OnInit, OnDestroy {
   }
 
   private safeProcessPackageData(): void {
-    if (this.isDestroyed || !Array.isArray(this.piecesData)) return;
+    if (!Array.isArray(this.piecesData)) return;
 
     try {
       this.processedPackages = this.piecesData.map(
@@ -313,7 +298,6 @@ export class ResultStepComponent implements OnInit, OnDestroy {
   }
 
   private safeFinalize(): void {
-    if (this.isDestroyed) return;
 
     this.isLoading = false;
     this.hasResults = true;
@@ -330,7 +314,6 @@ export class ResultStepComponent implements OnInit, OnDestroy {
   }
 
   private handleError(error: any): void {
-    if (this.isDestroyed) return;
 
     this.isLoading = false;
     this.hasResults = false;
@@ -345,7 +328,6 @@ export class ResultStepComponent implements OnInit, OnDestroy {
   }
 
   private safeUpdateUI(): void {
-    if (this.isDestroyed) return;
 
     try {
       this.cdr.detectChanges();
@@ -360,11 +342,6 @@ export class ResultStepComponent implements OnInit, OnDestroy {
     }
 
     this.progressInterval = setInterval(() => {
-      if (this.isDestroyed || !this.isLoading) {
-        this.stopProgressSimulation();
-        return;
-      }
-
       if (this.optimizationProgress < 70) {
         const increment = Math.random() * 8 + 2;
         this.optimizationProgress = Math.min(70, this.optimizationProgress + increment);
@@ -456,7 +433,7 @@ export class ResultStepComponent implements OnInit, OnDestroy {
     if (this.isDirtySignal()) {
       try {
         this.pendingFile.set(file);
-        this.completeOrder();
+        this.completeOrder(false);
 
       } catch (error) {
         this.toastService.error('Kayıt sırasında hata oluştu');
@@ -506,11 +483,11 @@ export class ResultStepComponent implements OnInit, OnDestroy {
       this.toastService.warning('Önce optimizasyonu tamamlayın');
       return;
     }
-    this.completeOrder();
+    this.completeOrder(true);
 
   }
 
-  completeOrder(isFile: boolean = false) {
+  completeOrder(resetStepper: boolean) {
     const orderResult = this.convertPiecesToJsonString();
 
     if (this.threeJSComponent.deletedPackages.length > 0) {
@@ -529,13 +506,8 @@ export class ResultStepComponent implements OnInit, OnDestroy {
 
       dialogRef.afterClosed().subscribe(result => {
         if (result === true) {
-          this.store.dispatch(cleanUpInvalidPackagesFromOrder({ packageNames: this.threeJSComponent.deletedPackages.map(pckg => pckg.id) }));
+          this.store.dispatch(resultStepSubmit({ orderResult, resetStepper, packageNames: this.threeJSComponent.deletedPackages.map(pckg => pckg.id.toString()), }))
           this.threeJSComponent.deletedPackages = []
-          if (isFile) {
-            this.store.dispatch(completeShipment({ orderResult }))
-            return
-          }
-          this.store.dispatch(updateOrderResult({ orderResult }))
           this.shipmentCompleted.emit();
         }
         else {
@@ -543,11 +515,7 @@ export class ResultStepComponent implements OnInit, OnDestroy {
         }
       });
     } else {
-      if (isFile) {
-        this.store.dispatch(completeShipment({ orderResult }))
-        return
-      }
-      this.store.dispatch(updateOrderResult({ orderResult }))
+      this.store.dispatch(resultStepSubmit({ orderResult, resetStepper, packageNames: this.threeJSComponent.deletedPackages.map(pckg => pckg.id.toString()), }))
       this.shipmentCompleted.emit();
     }
   }

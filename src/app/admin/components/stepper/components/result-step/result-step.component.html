@@ -2,8 +2,7 @@
   <!-- Enhanced Controls Container -->
   <div class="controls-container">
     <div class="action-buttons">
-      <button mat-raised-button class="calculate-button" [disabled]="isLoading || processingLock"
-        (click)="calculateBinpacking()">
+      <button mat-raised-button class="calculate-button" [disabled]="isLoading" (click)="calculateBinpacking()">
         <mat-icon>play_arrow</mat-icon>
         {{ isLoading ? "İşlem Devam Ediyor..." : "Optimizasyonu Çalıştır" }}
       </button>

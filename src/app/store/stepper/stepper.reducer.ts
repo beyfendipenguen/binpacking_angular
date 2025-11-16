@@ -178,7 +178,7 @@ export const stepperReducer = createReducer(
 
 
 
-  on(StepperActions.calculatePackageDetailSuccess, (state, { packages, remainingOrderDetails }) => {
+  on(StepperActions.calculatePackageDetailSuccess, (state, { packages }) => {
     const remainingProducts: any[] = [];
     const order = state.order;
     if (!order) return state;
@@ -317,23 +317,43 @@ export const stepperReducer = createReducer(
     }
   })),
 
-  on(StepperActions.cleanUpInvalidPackagesFromOrder, (state, { packageNames }) => {
-    console.log(packageNames);
+  on(StepperActions.resultStepSubmit, (state, { orderResult, resetStepper, packageNames }) => {
     const currentPackages = state.step2State.packages;
-    const packagesToKeep = currentPackages.filter(
-      (pkg) => !packageNames.some((packageName) => packageName == pkg.name)
-    );
+    let packagesToKeep = [...currentPackages];
+    if (!!packageNames && packageNames.length > 0) {
+      packagesToKeep = currentPackages.filter(
+        (pkg) => !packageNames.some((packageName) => packageName == pkg.name)
+      );
+    }
+    let mergeOrderDetails;
+    const mapperOrderDetails = mapUiPackagesToOrderDetails(packagesToKeep)
+    const changes = OrderDetailDiffCalculator.calculateDiff(
+      mapperOrderDetails,
+      state.step1State.originalOrderDetails,
+      []
+    )
+    mergeOrderDetails = [...mapperOrderDetails]
+
 
     return {
       ...state,
       step1State: {
         ...state.step1State,
+        orderDetails: mergeOrderDetails,
+        ...changes,
       },
       step2State: {
         ...state.step2State,
         packages: ensureEmptyPackageAdded(packagesToKeep, state.order),
         isDirty: true,
+      },
+      step3State: {
+        ...state.step3State,
+        orderResult: orderResult,
+        isDirty: false,
+        hasResults: true,
       }
+
     };
   }),
 
