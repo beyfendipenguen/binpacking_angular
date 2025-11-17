@@ -37,7 +37,31 @@ export const selectOriginalOrderDetails = createSelector(
 
 export const selectStep1OrderDetails = createSelector(
   selectStep1State,
-  (step1State) => step1State.orderDetails
+  (step1State) => {
+    return [...step1State.orderDetails].sort((a, b) => {
+      // 1. product.product_type.type
+      if (a.product?.product_type?.type !== b.product?.product_type?.type) {
+        return (a.product?.product_type?.type || '').localeCompare(
+          b.product?.product_type?.type || ''
+        );
+      }
+
+      // 2. product.product_type.code
+      if (a.product?.product_type?.code !== b.product?.product_type?.code) {
+        return (a.product?.product_type?.code || '').localeCompare(
+          b.product?.product_type?.code || ''
+        );
+      }
+
+      // 3. product.dimension.width
+      if (a.product?.dimension?.width !== b.product?.dimension?.width) {
+        return (a.product?.dimension?.width || 0) - (b.product?.dimension?.width || 0);
+      }
+
+      // 4. product.dimension.depth
+      return (a.product?.dimension?.depth || 0) - (b.product?.dimension?.depth || 0);
+    });
+  }
 );
 
 
@@ -84,7 +108,7 @@ export const selectStep2State = createSelector(
 /**
  * Selects the plain object representation of remainingProducts
  * from the Step2 state.
- * 
+ *
  *
  * @returns {Array<Object>} Array of plain UiProduct objects
  */
@@ -97,7 +121,7 @@ export const selectRemainingProducts = createSelector(
 /**
  * Selects the plain object representation of packages
  * from the Step2 state.
- * 
+ *
  * Note:
  * - The returned objects are plain, not instances of UiPackage.
  * - They do not contain the `ui_id` field, because packages
@@ -113,7 +137,7 @@ export const selectPackages = createSelector(
 /**
  * Returns an array of UiPackage instances
  * mapped from the state.packages array.
- * 
+ *
  * Each UiPackage is a copy of the original
  * package from the Step2 state.
  */
@@ -131,7 +155,7 @@ export const selectUiPallets = createSelector(selectStep2State, (state) =>
 
 
 // #region STEP2 DERIVED SELECTORS
-// 
+//
 
 export const hasRemainingProduct = createSelector(selectStep2State, (state) => state.remainingProducts.length > 0)
 export const uiPackageCount = createSelector(selectStep2State, (state) => state.packages.length)
@@ -210,48 +234,61 @@ export const selectTotalWeight = createSelector(
   (packages, order) => {
     if (packages.length === 0) return 0;
 
-    return packages.reduce((total, pkg) => {
-      const palletWeight = Math.floor(pkg.pallet?.weight ?? 0);
+    const total = packages.reduce((total, pkg) => {
+      const palletWeight = Number(pkg.pallet?.weight) || 0;
       const productsWeight = pkg.products.reduce((pTotal: any, product: any) => {
         let weight = 0;
         if (order?.weight_type === 'eco') {
-          weight = product.weight_type.eco;
+          weight = Number(product.weight_type?.eco) || 0;
         } else if (order?.weight_type === 'std') {
-          weight = product.weight_type.std;
+          weight = Number(product.weight_type?.std) || 0;
         } else if (order?.weight_type === 'pre') {
-          weight = product.weight_type.pre;
+          weight = Number(product.weight_type?.pre) || 0;
         }
-        return pTotal + Math.floor(weight * product.count);
+        const count = Number(product.count) || 0;
+        return pTotal + (weight * count);
       }, 0);
       return total + palletWeight + productsWeight;
     }, 0);
+
+    // Sonucu noktadan sonra 2 haneye yuvarla
+    return Math.round(total * 100) / 100;
   }
 );
-
 export const selectRemainingWeight = createSelector(
   selectOrder,
   selectTotalWeight,
   (order, totalWeight) => {
     if (order) {
-      const trailerWeightLimit = order.truck_weight_limit ?? 0;
-      return Math.floor(trailerWeightLimit - totalWeight);
+      const trailerWeightLimit = Number(order.truck_weight_limit) || 0;
+      const remaining = trailerWeightLimit - totalWeight;
+
+      // Sonucu noktadan sonra 2 haneye yuvarla
+      return Math.round(remaining * 100) / 100;
     }
     return 0;
   }
 );
 
 export const selectTotalMeter = createSelector(selectUiPackages, (uiPackages) => {
-  const packages = uiPackages
-  return packages.reduce((total, pkg) => {
+  const packages = uiPackages;
+
+  const totalMm = packages.reduce((total, pkg) => {
     if (pkg.products.length === 0) return total;
 
     const packageMeter = pkg.products.reduce((pTotal: any, product: any) => {
-      const productDepth = product.dimension?.depth ?? 0;
-      return pTotal + Math.round(Math.floor(product.count * Math.floor(productDepth)));
+      const productDepth = Number(product.dimension?.depth) || 0;
+      const count = Number(product.count) || 0;
+      return pTotal + (count * productDepth);
     }, 0);
 
     return total + packageMeter;
-  }, 0) / 1000;
+  }, 0);
+
+  const totalMeter = totalMm / 1000;
+
+  // Sonucu noktadan sonra 2 haneye yuvarla
+  return Math.round(totalMeter * 100) / 100;
 });
 
 // #endregion
@@ -541,22 +578,35 @@ export const selectActivePalletWeights = createSelector(selectUiPackages, select
     .map(pkg => packageTotalWeight(pkg, order));
 });
 
-export const selectHeaviestPalletWeight = createSelector(selectActivePalletWeights, (activePalletWeights) => {
-  const weights = activePalletWeights;
-  return weights.length > 0 ? Math.max(...weights) : 0;
-});
+export const selectHeaviestPalletWeight = createSelector(
+  selectActivePalletWeights,
+  (activePalletWeights) => {
+    const weights = activePalletWeights.map(w => Number(w) || 0);
+    if (weights.length === 0) return 0;
+    const maxWeight = Math.max(...weights);
+    return Math.round(maxWeight * 100) / 100;
+  }
+);
 
-export const selectLightestPalletWeight = createSelector(selectActivePalletWeights, (activePalletWeights) => {
-  const weights = activePalletWeights;
-  return weights.length > 0 ? Math.min(...weights) : 0;
-});
+export const selectLightestPalletWeight = createSelector(
+  selectActivePalletWeights,
+  (activePalletWeights) => {
+    const weights = activePalletWeights.map(w => Number(w) || 0);
+    if (weights.length === 0) return 0;
+    const minWeight = Math.min(...weights);
+    return Math.round(minWeight * 100) / 100;
+  }
+);
 
-export const selectAveragePalletWeight = createSelector(selectActivePalletWeights, (activePalletWeights) => {
-  const weights = activePalletWeights;
-  if (weights.length === 0) return 0;
-  const totalWeight = weights.reduce((sum, weight) => sum + weight, 0);
-  return Math.round((totalWeight / weights.length) * 100) / 100;
-});
+export const selectAveragePalletWeight = createSelector(
+  selectActivePalletWeights,
+  (activePalletWeights) => {
+    const weights = activePalletWeights.map(w => Number(w) || 0);
+    if (weights.length === 0) return 0;
+    const totalWeight = weights.reduce((sum, weight) => sum + weight, 0);
+    return Math.round((totalWeight / weights.length) * 100) / 100;
+  }
+);
 
 export const selectActivePalletCount = createSelector(selectActivePalletWeights, (activePalletWeights) =>
   activePalletWeights.length);

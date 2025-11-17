@@ -283,11 +283,9 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
           window.URL.revokeObjectURL(url);
         })
         .catch(error => {
-          console.error('Dosya indirme hatası:', error);
           // Hata bildirimi göster
         });
     } else {
-      console.warn('Template dosyası bulunamadı');
     }
   }
 
@@ -367,7 +365,6 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
         }
       },
       error: (error) => {
-        console.error('Settings yüklenirken hata:', error);
         // Hata durumunda default değerleri kullan (zaten order'da var)
       }
     });

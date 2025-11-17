@@ -72,7 +72,6 @@ export class FilesDialogComponent implements OnInit {
         this.isLoading = false;
       },
       error: (error) => {
-        console.error('Error loading files:', error);
         this.isLoading = false;
       }
     });

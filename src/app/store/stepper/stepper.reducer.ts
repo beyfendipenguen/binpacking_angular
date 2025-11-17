@@ -86,7 +86,6 @@ export const stepperReducer = createReducer(
   on(StepperActions.addUiProductToRemainingProducts, (state, { productUiId }) => {
     const product = state.step2State.packages.flatMap(p => p.products).find(p => p.ui_id === productUiId)
     if (!product) {
-      console.error('❌ Product bulunamadı');
       return state;
     }
 
@@ -341,7 +340,6 @@ export const stepperReducer = createReducer(
       step3State: {
         ...state.step3State,
         orderResult: orderResult,
-        isDirty: false,
         hasResults: true,
       }
 
@@ -496,7 +494,6 @@ export const stepperReducer = createReducer(
     const pkg = currentPackages.find(p => p.id === pkgId);
 
     if (!pkg) {
-      console.error('❌ Package bulunamadı', { pkgId });
       return state;
     }
 
@@ -504,7 +501,6 @@ export const stepperReducer = createReducer(
     const productToRemove = pkg.products[productIndex];
 
     if (!productToRemove) {
-      console.error('❌ Product bulunamadı', { productIndex });
       return state;
     }
 
@@ -631,7 +627,6 @@ export const stepperReducer = createReducer(
     const product = state.step2State.remainingProducts.find(p => p.ui_id === productUiId);
 
     if (!product) {
-      console.error('❌ Product bulunamadı', { productUiId });
       return state;
     }
 
@@ -708,7 +703,6 @@ export const stepperReducer = createReducer(
     const targetPackage = state.step2State.packages.find(p => p.id === targetPackageId);
 
     if (!targetPackage) {
-      console.error('❌ Target package bulunamadı', { targetPackageId });
       return state;
     }
 
@@ -716,7 +710,6 @@ export const stepperReducer = createReducer(
     const product = sourceProducts[previousIndex];
 
     if (!product) {
-      console.error('❌ Product bulunamadı', { previousIndex });
       return state;
     }
 
@@ -781,7 +774,6 @@ export const stepperReducer = createReducer(
 
     // ✅ KRITIK: Null check
     if (!sourcePackage || !targetPackage) {
-      console.error('❌ Package bulunamadı', { sourcePackageId, targetPackageId });
       return state;
     }
 
@@ -793,7 +785,6 @@ export const stepperReducer = createReducer(
 
     // ✅ KRITIK: Product check
     if (!product) {
-      console.error('❌ Product bulunamadı', { previousIndex });
       return state;
     }
 

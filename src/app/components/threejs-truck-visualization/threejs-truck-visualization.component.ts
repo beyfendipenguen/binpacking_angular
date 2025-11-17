@@ -42,6 +42,12 @@ interface PackageData {
   originalWidth?: number;
 }
 
+interface CachedModels {
+  truck: THREE.Group;
+  wheel: THREE.Group;
+  timestamp: number;
+}
+
 @Component({
   selector: 'app-threejs-truck-visualization',
   standalone: true,
@@ -60,6 +66,10 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
 
   private readonly store = inject(Store<AppState>);
   private readonly dialog = inject(MatDialog);
+
+  // 🔥 STATIC CACHE - Component destroy olsa bile kalır
+  private static modelCache: CachedModels | null = null;
+  private static isCacheValid = false;
 
   private readonly minCameraPhi = Math.PI / 6;
   private readonly maxCameraPhi = Math.PI / 2.2;
@@ -159,10 +169,44 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     private ngZone: NgZone
   ) { }
 
-  ngOnInit(): void {
-    this.gltfLoader = new GLTFLoader();
-    this.isLoadingModels = true;
+  // ngOnInit'ten ÖNCE ekle
+static clearCache(): void {
+  if (this.modelCache) {
+    // Dispose geometries/materials
+    this.modelCache.truck.traverse((child) => {
+      if ((child as THREE.Mesh).isMesh) {
+        const mesh = child as THREE.Mesh;
+        mesh.geometry?.dispose();
+        if (Array.isArray(mesh.material)) {
+          mesh.material.forEach(mat => mat?.dispose());
+        } else {
+          mesh.material?.dispose();
+        }
+      }
+    });
+
+    this.modelCache.wheel.traverse((child) => {
+      if ((child as THREE.Mesh).isMesh) {
+        const mesh = child as THREE.Mesh;
+        mesh.geometry?.dispose();
+        if (Array.isArray(mesh.material)) {
+          mesh.material.forEach(mat => mat?.dispose());
+        } else {
+          mesh.material?.dispose();
+        }
+      }
+    });
   }
+
+  this.modelCache = null;
+  this.isCacheValid = false;
+}
+
+ngOnInit(): void {
+  this.gltfLoader = new GLTFLoader();
+  this.isLoadingModels = true;  // ✅ true olmalı
+  this.isLoadingData = false;   // ✅ false olmalı
+}
 
   async ngAfterViewInit(): Promise<void> {
     // ✅ View hazır olduktan sonra Three.js'i başlat
@@ -170,35 +214,43 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
   }
 
   private async initializeThreeJS(): Promise<void> {
-    try {
-      // 1️⃣ Scene setup
-      this.setupThreeJS();
-      await this.delay(50);
+  try {
+    this.isLoadingModels = true;
+    this.cdr.detectChanges();
 
-      // 2️⃣ Render loop başlat
-      this.startRenderLoop();
-      await this.delay(50);
+    // 1️⃣ Scene setup
+    this.setupThreeJS();
+    await this.delay(50);
 
-      // 3️⃣ Modelleri yükle
-      await this.loadAllModels();
+    // 2️⃣ Platform oluştur (modeller yüklenmeden ÖNCE)
+    this.createPlatform();
+    this.createGroundPlane();
 
-      // 4️⃣ View ready
-      this.isViewReady = true;
+    // 3️⃣ Render loop başlat
+    this.startRenderLoop();
+    await this.delay(50);
 
-      // 5️⃣ Data varsa process et
-      if (this.piecesData && (Array.isArray(this.piecesData) ? this.piecesData.length > 0 : true)) {
-        await this.safeProcessData();
-      }
+    // 4️⃣ Modelleri yükle (CACHE İLE)
+    await this.loadAllModels();
 
-      // 6️⃣ Son render
-      this.forceRender();
+    // 5️⃣ Loading kapat
+    this.isLoadingModels = false;
+    this.isViewReady = true;
+    this.cdr.detectChanges();
 
-    } catch (error) {
-      console.error('❌ Three.js initialization error:', error);
-      this.isLoadingModels = false;
-      this.cdr.detectChanges();
+    // 6️⃣ Data varsa process et
+    if (this.piecesData && (Array.isArray(this.piecesData) ? this.piecesData.length > 0 : true)) {
+      await this.safeProcessData();
     }
+
+    // 7️⃣ Son render
+    this.forceRender();
+
+  } catch (error) {
+    this.isLoadingModels = false;
+    this.cdr.detectChanges();
   }
+}
 
   ngOnChanges(changes: SimpleChanges): void {
     if (this.isDestroyed || !this.isViewReady) return;
@@ -220,133 +272,177 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
   // ========================================
 
   private async loadAllModels(): Promise<void> {
-    try {
-      this.isLoadingModels = true;
+  try {
+    // 🔥 CACHE KONTROLÜ
+    if (ThreeJSTruckVisualizationComponent.isCacheValid &&
+        ThreeJSTruckVisualizationComponent.modelCache) {
 
-      await Promise.all([
-        this.loadTruckModel(),
-        this.loadTrailerWheelModel()
-      ]);
+      const cached = ThreeJSTruckVisualizationComponent.modelCache;
 
-      // ✅ Modeller yüklendi, birkaç kere render et
-      await this.delay(100);
-      for (let i = 0; i < 5; i++) {
+      // Clone ile kullan
+      this.truckModel = cached.truck.clone(true);
+      this.trailerWheelModel = cached.wheel.clone(true);
+
+      // Transform'ları uygula
+      this.applyTruckTransforms();
+      this.applyWheelTransforms();
+
+      // Scene'e ekle
+      this.truckGroup.add(this.truckModel);
+      this.truckGroup.add(this.trailerWheelModel);
+
+      this.modelsLoaded.truck = true;
+      this.modelsLoaded.trailerWheel = true;
+
+
+      // Birkaç render
+      for (let i = 0; i < 3; i++) {
         this.forceRender();
-        await this.delay(50);
+        await this.delay(30);
       }
 
-      this.isLoadingModels = false;
-
-      this.ngZone.run(() => {
-        this.cdr.detectChanges();
-      });
-
-    } catch (error) {
-      console.error('❌ Model loading error:', error);
-      this.isLoadingModels = false;
-      this.ngZone.run(() => {
-        this.cdr.detectChanges();
-      });
+      return;
     }
+
+    // 🔥 CACHE YOKSA NORMAL YÜKLE
+
+    await Promise.all([
+      this.loadTruckModel(),
+      this.loadTrailerWheelModel()
+    ]);
+
+    // 🔥 CACHE'E KAYDET (transform öncesi)
+    if (this.truckModel && this.trailerWheelModel) {
+
+      ThreeJSTruckVisualizationComponent.modelCache = {
+        truck: this.truckModel.clone(true),
+        wheel: this.trailerWheelModel.clone(true),
+        timestamp: Date.now()
+      };
+      ThreeJSTruckVisualizationComponent.isCacheValid = true;
+
+    }
+
+    // Render
+    for (let i = 0; i < 5; i++) {
+      this.forceRender();
+      await this.delay(50);
+    }
+
+  } catch (error) {
+    throw error;
   }
+}
 
   private loadTruckModel(): Promise<void> {
-    return new Promise((resolve, reject) => {
-      const baseUrl = window.location.origin;
-      const modelPath = `${baseUrl}/assets/models/truck/truck.gltf`;
+  return new Promise((resolve, reject) => {
+    const baseUrl = window.location.origin;
+    const modelPath = `${baseUrl}/assets/models/truck/truck.gltf`;
 
-      this.gltfLoader.load(
-        modelPath,
-        (gltf) => {
-          this.truckModel = gltf.scene;
 
-          const box = new THREE.Box3().setFromObject(this.truckModel);
-          const size = box.getSize(new THREE.Vector3());
+    this.gltfLoader.load(
+      modelPath,
+      (gltf) => {
+        this.truckModel = gltf.scene;
+        this.applyTruckTransforms();  // ✅ Ayrı metod
 
-          const scaleX = this.truckDimension()[0] / size.x;
-          const scaleY = this.truckDimension()[2] / size.y;
-          const scaleZ = this.truckDimension()[1] / size.z;
+        this.truckGroup.add(this.truckModel);
+        this.modelsLoaded.truck = true;
 
-          const scale = Math.min(scaleX, scaleY, scaleZ);
-          this.truckModel.scale.setScalar(scale * 2.5);
+        this.forceRender();
 
-          this.truckModel.rotation.y = -Math.PI / 2;
-          this.truckModel.position.set(0, 0, this.truckDimension()[1] / 2 + 100);
-
-          this.truckModel.traverse((child) => {
-            if ((child as THREE.Mesh).isMesh) {
-              child.castShadow = true;
-              child.receiveShadow = true;
-            }
-          });
-
-          this.truckGroup.add(this.truckModel);
-          this.modelsLoaded.truck = true;
-
-          // ✅ Model eklendi, render et
-          this.forceRender();
-
-          setTimeout(() => resolve(), 100);
-        },
-        undefined,
-        (error) => {
-          console.error('❌ Truck model error:', error);
-          reject(error);
-        }
-      );
-    });
-  }
+        setTimeout(() => resolve(), 100);
+      },
+      (progress) => {
+        const percent = (progress.loaded / progress.total) * 100;
+      },
+      (error) => {
+        reject(error);
+      }
+    );
+  });
+}
 
   private loadTrailerWheelModel(): Promise<void> {
-    return new Promise((resolve, reject) => {
-      const baseUrl = window.location.origin;
-      const modelPath = `${baseUrl}/assets/models/truck/truck-wheels.gltf`;
+  return new Promise((resolve, reject) => {
+    const baseUrl = window.location.origin;
+    const modelPath = `${baseUrl}/assets/models/truck/truck-wheels.gltf`;
 
-      this.gltfLoader.load(
-        modelPath,
-        (gltf) => {
-          this.trailerWheelModel = gltf.scene;
 
-          const box = new THREE.Box3().setFromObject(this.trailerWheelModel);
-          const size = box.getSize(new THREE.Vector3());
+    this.gltfLoader.load(
+      modelPath,
+      (gltf) => {
+        this.trailerWheelModel = gltf.scene;
+        this.applyWheelTransforms();  // ✅ Ayrı metod
 
-          const scaleX = this.truckDimension()[0] / size.x;
-          const scaleY = this.truckDimension()[2] / size.y;
-          const scaleZ = this.truckDimension()[1] / size.z;
+        this.truckGroup.add(this.trailerWheelModel);
+        this.modelsLoaded.trailerWheel = true;
 
-          const scale = Math.min(scaleX, scaleY, scaleZ);
-          this.trailerWheelModel.scale.setScalar(scale);
+        this.forceRender();
 
-          this.trailerWheelModel.rotation.y = Math.PI / 2;
-          this.trailerWheelModel.position.set(
-            this.truckDimension()[0] / 2,
-            0,
-            this.truckDimension()[1] / 2
-          );
+        setTimeout(() => resolve(), 100);
+      },
+      (progress) => {
+        const percent = (progress.loaded / progress.total) * 100;
+      },
+      (error) => {
+        reject(error);
+      }
+    );
+  });
+}
 
-          this.trailerWheelModel.traverse((child) => {
-            if ((child as THREE.Mesh).isMesh) {
-              child.castShadow = true;
-              child.receiveShadow = true;
-            }
-          });
+private applyTruckTransforms(): void {
+  if (!this.truckModel) return;
 
-          this.truckGroup.add(this.trailerWheelModel);
-          this.modelsLoaded.trailerWheel = true;
+  const box = new THREE.Box3().setFromObject(this.truckModel);
+  const size = box.getSize(new THREE.Vector3());
 
-          // ✅ Model eklendi, render et
-          this.forceRender();
+  const scaleX = this.truckDimension()[0] / size.x;
+  const scaleY = this.truckDimension()[2] / size.y;
+  const scaleZ = this.truckDimension()[1] / size.z;
 
-          setTimeout(() => resolve(), 100);
-        },
-        undefined,
-        (error) => {
-          console.error('❌ Wheel model error:', error);
-          reject(error);
-        }
-      );
-    });
-  }
+  const scale = Math.min(scaleX, scaleY, scaleZ);
+  this.truckModel.scale.setScalar(scale * 2.5);
+
+  this.truckModel.rotation.y = -Math.PI / 2;
+  this.truckModel.position.set(0, 0, this.truckDimension()[1] / 2 + 100);
+
+  this.truckModel.traverse((child) => {
+    if ((child as THREE.Mesh).isMesh) {
+      child.castShadow = true;
+      child.receiveShadow = true;
+    }
+  });
+}
+
+private applyWheelTransforms(): void {
+  if (!this.trailerWheelModel) return;
+
+  const box = new THREE.Box3().setFromObject(this.trailerWheelModel);
+  const size = box.getSize(new THREE.Vector3());
+
+  const scaleX = this.truckDimension()[0] / size.x;
+  const scaleY = this.truckDimension()[2] / size.y;
+  const scaleZ = this.truckDimension()[1] / size.z;
+
+  const scale = Math.min(scaleX, scaleY, scaleZ);
+  this.trailerWheelModel.scale.setScalar(scale);
+
+  this.trailerWheelModel.rotation.y = Math.PI / 2;
+  this.trailerWheelModel.position.set(
+    this.truckDimension()[0] / 2,
+    0,
+    this.truckDimension()[1] / 2
+  );
+
+  this.trailerWheelModel.traverse((child) => {
+    if ((child as THREE.Mesh).isMesh) {
+      child.castShadow = true;
+      child.receiveShadow = true;
+    }
+  });
+}
 
   // ========================================
   // KEYBOARD SHORTCUTS
@@ -427,7 +523,6 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
       }
     });
 
-    console.log(`✅ ${restoredCount}/${totalDeleted} paket geri yüklendi (${rotatedCount} döndürüldü)`);
   }
 
   clearDeletedPackages(): void {
@@ -492,8 +587,6 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     this.scene.add(this.truckGroup);
     this.scene.add(this.packagesGroup);
 
-    this.createPlatform();
-    this.createGroundPlane();
 
     this.dragPlane.setFromNormalAndCoplanarPoint(
       new THREE.Vector3(0, 1, 0),

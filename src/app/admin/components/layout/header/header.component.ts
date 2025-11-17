@@ -97,7 +97,6 @@ export class HeaderComponent implements OnInit {
   }
 
   private handleCancellation(): void {
-    console.log('İşlem iptal edildi');
     this.orderService.delete(this.orderId()).subscribe({
       next: () => {
         this.authService.clearLocalAndStore()

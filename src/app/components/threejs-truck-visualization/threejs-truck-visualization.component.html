@@ -4,6 +4,7 @@
     <div #threeContainer
         class="threejs-canvas-container"
         [class.drag-mode]="dragModeEnabled"
+        [class.loading]="isLoadingModels"
         (contextmenu)="$event.preventDefault()">
     </div>
 

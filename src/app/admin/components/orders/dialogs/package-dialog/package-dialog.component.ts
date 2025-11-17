@@ -95,7 +95,6 @@ export class PackageDialogComponent implements OnInit {
         this.isLoading = false;
       },
       error: (error) => {
-        console.error('Error loading package details:', error);
         this.isLoading = false;
       }
     });

@@ -9,7 +9,8 @@ import {
   Output,
   ChangeDetectionStrategy,
   signal,
-  effect
+  effect,
+  untracked
 } from '@angular/core';
 import { MatButton } from '@angular/material/button';
 import { MatStepperPrevious } from '@angular/material/stepper';
@@ -86,7 +87,6 @@ export class ResultStepComponent implements OnInit, OnDestroy {
   private popupWindow: Window | null = null;
   private progressInterval: any = null;
 
-  private readonly localStorageService = inject(LocalStorageService);
   repositoryService = inject(RepositoryService);
   sanitizer = inject(DomSanitizer);
   toastService = inject(ToastService);
@@ -99,12 +99,16 @@ export class ResultStepComponent implements OnInit, OnDestroy {
   // kullanici yanlis verilerle olusturulmus rapor gormemeli.
   private fileOpenEffect = effect(() => {
     const isDirty = this.isDirtySignal();
-    const pending = this.pendingFile();
 
-    // isDirty false oldu VE bekleyen dosya var
-    if (!isDirty && pending) {
-      this.openFile(pending);
-      this.pendingFile.set(null); // Temizle
+    // ✅ isDirty değişimini izle, ama pending'i untracked oku
+    if (!isDirty) {
+      untracked(() => {
+        const pending = this.pendingFile();
+        if (pending) {
+          this.openFile(pending);
+          this.pendingFile.set(null);
+        }
+      });
     }
   });
   // NgRx Observables
@@ -115,7 +119,6 @@ export class ResultStepComponent implements OnInit, OnDestroy {
   public autoSaveStatusText$ = this.store.select(selectAutoSaveStatusText(2));
   public hasPendingChanges$ = this.store.select(selectStepHasPendingChanges(2));
 
-  private lastResultState: string = '';
   private resultAutoSaveTimeout: any;
   public currentViewType: string = 'isometric';
 
@@ -505,6 +508,10 @@ export class ResultStepComponent implements OnInit, OnDestroy {
       });
 
       dialogRef.afterClosed().subscribe(result => {
+        if(resetStepper){
+          this.hasResults = false;
+          this.reportFiles = [];
+        }
         if (result === true) {
           this.store.dispatch(resultStepSubmit({ orderResult, resetStepper, packageNames: this.threeJSComponent.deletedPackages.map(pckg => pckg.id.toString()), }))
           this.threeJSComponent.deletedPackages = []
@@ -515,7 +522,12 @@ export class ResultStepComponent implements OnInit, OnDestroy {
         }
       });
     } else {
+        if(resetStepper){
+          this.hasResults = false;
+          this.reportFiles = [];
+        }
       this.store.dispatch(resultStepSubmit({ orderResult, resetStepper, packageNames: this.threeJSComponent.deletedPackages.map(pckg => pckg.id.toString()), }))
+
       this.shipmentCompleted.emit();
     }
   }

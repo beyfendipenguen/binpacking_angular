@@ -60,31 +60,38 @@ export class UiPackage implements IUiPackage {
   // Products getter/setter for compatibility
 
   // Optimized calculation - single loop for all totals
-  private _calculateTotals(products: IUiProduct[]): PackageTotals {
-    if (!products?.length) {
-      return { meter: 0, volume: 0, weight: 0 };
-    }
-
-    let meter = 0;
-    let volume = 0;
-    let weight = 0;
-
-    // Single pass through products array
-    for (const product of products) {
-      const count = product.count;
-
-      // Meter calculation
-      meter += Math.floor(count * Math.floor(product.dimension.depth)) / 1000;
-
-      // Volume calculation
-      volume += Math.floor(count * product.dimension.volume) / 1000;
-
-      // Weight calculation
-      weight += Math.floor(count * product.weight_type.std);
-    }
-
-    return { meter, volume, weight };
+private _calculateTotals(products: IUiProduct[]): PackageTotals {
+  if (!products?.length) {
+    return { meter: 0, volume: 0, weight: 0 };
   }
+
+  let meter = 0;
+  let volume = 0;
+  let weight = 0;
+
+  // Single pass through products array
+  for (const product of products) {
+    const count = Number(product.count) || 0;
+
+    // Meter calculation
+    const depth = Number(product.dimension?.depth) || 0;
+    meter += (count * depth) / 1000;
+
+    // Volume calculation
+    const productVolume = Number(product.dimension?.volume) || 0;
+    volume += (count * productVolume) / 1000;
+
+    // Weight calculation
+    const std = Number(product.weight_type?.std) || 0;
+    weight += count * std;
+  }
+
+  return {
+    meter: Math.round(meter * 100) / 100,
+    volume: Math.round(volume * 100) / 100,
+    weight: Math.round(weight * 100) / 100
+  };
+}
 
   // Product manipulation methods
   addProduct(product: IUiProduct): void {
