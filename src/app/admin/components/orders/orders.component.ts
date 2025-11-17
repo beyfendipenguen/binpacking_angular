@@ -42,7 +42,6 @@ export class OrdersComponent implements OnInit {
     'name',
     'date',
     'created_at',
-    'updated_at',
     'company_relation.target_company_name',
     'company_relation.target_company_country_name',
     'order_details',
@@ -53,7 +52,6 @@ export class OrdersComponent implements OnInit {
 
   columnTypes: { [key: string]: string } = {
     'date': 'date',
-    'updated_at':'date',
     'created_at': 'date',
     'is_completed': 'status'
   };
@@ -74,12 +72,6 @@ export class OrdersComponent implements OnInit {
     {
       key: 'created_at',
       label: 'Oluşturma Tarihi',
-      type: 'text',
-      required: true
-    },
-    {
-      key: 'updated_at',
-      label: 'Güncelleme Tarihi',
       type: 'text',
       required: true
     },
@@ -147,7 +139,6 @@ export class OrdersComponent implements OnInit {
     'files': 'Dosyalar',
     'date': 'Sipariş Tarihi',
     'created_at': 'Oluşturma Tarihi',
-    'updated_at': 'Güncelleme Tarihi',
     'name': 'Sipariş Adı',
     'is_completed': 'Durum',
   };
@@ -155,6 +146,7 @@ export class OrdersComponent implements OnInit {
   filterableColumns: string[] = [
     'name',
     'date',
+    'created_at',
     'company_relation.target_company_name',
     'company_relation.target_company_country_name',
   ];
