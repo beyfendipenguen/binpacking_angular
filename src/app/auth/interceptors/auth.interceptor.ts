@@ -1,7 +1,11 @@
 import { inject } from '@angular/core';
-import { HttpRequest, HttpHandlerFn, HttpErrorResponse } from '@angular/common/http';
+import {
+  HttpRequest,
+  HttpHandlerFn,
+  HttpErrorResponse,
+} from '@angular/common/http';
 import { AuthService } from '../services/auth.service';
-import { throwError, switchMap, catchError, from } from 'rxjs';
+import { throwError, switchMap, catchError } from 'rxjs';
 
 export const AuthInterceptor = (req: HttpRequest<any>, next: HttpHandlerFn) => {
   const authService = inject(AuthService);
@@ -17,14 +21,35 @@ export const AuthInterceptor = (req: HttpRequest<any>, next: HttpHandlerFn) => {
   return next(authReq).pipe(
     catchError((err) => {
       if (err instanceof HttpErrorResponse && err.status === 401) {
-        // 401 → access token süresi dolmuş
+        if (req.url.includes('/token/refresh/')) {
+          authService.doLogout();
+          return throwError(() => err);
+        }
+
+        const refreshToken = localStorage.getItem('refresh_token');
+        if (!refreshToken) {
+          authService.doLogout();
+          return throwError(() => err);
+        }
+
+        try {
+          const payload = refreshToken.split('.')[1];
+          const decoded = JSON.parse(atob(payload));
+
+          if (decoded.exp * 1000 < Date.now()) {
+            authService.doLogout();
+            return throwError(() => err);
+          }
+        } catch (error) {
+          authService.doLogout();
+          return throwError(() => err);
+        }
+
         return authService.refreshAccessToken$().pipe(
           switchMap((res) => {
-            // Yeni token'ları sakla
             localStorage.setItem('access_token', res.access);
             localStorage.setItem('refresh_token', res.refresh);
 
-            // Orijinal isteği yeni token ile tekrar gönder
             const retryReq = req.clone({
               setHeaders: {
                 Authorization: 'Bearer ' + res.access,
@@ -33,7 +58,6 @@ export const AuthInterceptor = (req: HttpRequest<any>, next: HttpHandlerFn) => {
             return next(retryReq);
           }),
           catchError((refreshErr) => {
-            // Refresh token geçersiz ise logout yap
             authService.doLogout();
             return throwError(() => refreshErr);
           })

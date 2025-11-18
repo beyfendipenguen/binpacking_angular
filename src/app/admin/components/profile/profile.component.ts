@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnDestroy, OnInit } from '@angular/core';
 import {
   ReactiveFormsModule,
   FormBuilder,
@@ -22,6 +22,7 @@ import { ForgotPasswordDialogComponent } from './forgot-password-dialog/forgot-p
 import { MatSelectModule } from '@angular/material/select';
 import { Store } from '@ngrx/store';
 import { AppState, loadUser, selectUser } from '../../../store';
+import { Subject, takeUntil } from 'rxjs';
 
 @Component({
   selector: 'app-profile',
@@ -43,13 +44,14 @@ import { AppState, loadUser, selectUser } from '../../../store';
   templateUrl: './profile.component.html',
   styleUrl: './profile.component.scss',
 })
-export class ProfileComponent implements OnInit {
+export class ProfileComponent implements OnInit, OnDestroy {
   private userService = inject(UserService);
   private fb = inject(FormBuilder);
   private snackBar = inject(MatSnackBar);
   private dialog = inject(MatDialog); // Dialog servisini inject edin
   private readonly store = inject(Store<AppState>);
   user$ = this.store.select(selectUser);
+  private destroy$ = new Subject<void>();
 
   formChanged = false; // Form değişti mi?
   changedFields: Partial<User> = {}; // Değişen alanlar
@@ -80,6 +82,11 @@ export class ProfileComponent implements OnInit {
   ngOnInit() {
     this.initializeForms();
     this.loadProfile();
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   private trackFormChanges() {
@@ -163,15 +170,14 @@ export class ProfileComponent implements OnInit {
       disableClose: true,
     });
 
-    dialogRef.afterClosed().subscribe((result) => {
-
-    });
+    dialogRef.afterClosed().subscribe((result) => {});
   }
 
   loadProfile() {
     this.isLoading = true;
-    this.store.dispatch(loadUser());
-    this.user$.subscribe({
+    this.store.dispatch(loadUser({}));
+
+    this.user$.pipe(takeUntil(this.destroy$)).subscribe({
       next: (user) => {
         this.userProfile = user;
         if (user) {
@@ -181,14 +187,12 @@ export class ProfileComponent implements OnInit {
           }
         }
         this.isLoading = false;
-
-        // Profil yüklendikten sonra form değişikliklerini izlemeye başla
         this.trackFormChanges();
       },
       error: (error) => {
         this.isLoading = false;
         this.showError('Error loading profile');
-      }
+      },
     });
   }
 
@@ -240,7 +244,6 @@ export class ProfileComponent implements OnInit {
         error: (error) => {
           this.isLoading = false;
 
-
           let errorMessage = 'Error updating profile';
 
           if (error.error) {
@@ -291,8 +294,6 @@ export class ProfileComponent implements OnInit {
     this.isLoading = true;
     const passwords = this.passwordForm.value;
 
-
-
     this.userService.changePassword(passwords).subscribe({
       next: () => {
         this.isLoading = false;
@@ -301,9 +302,6 @@ export class ProfileComponent implements OnInit {
       },
       error: (error) => {
         this.isLoading = false;
-
-
-
 
         let errorMessage = 'Error changing password';
 

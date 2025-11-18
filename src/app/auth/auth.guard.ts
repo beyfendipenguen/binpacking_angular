@@ -1,24 +1,43 @@
 import { Injectable } from '@angular/core';
-import { ActivatedRouteSnapshot, CanActivate, Router, RouterStateSnapshot } from '@angular/router';
+import {
+  ActivatedRouteSnapshot,
+  CanActivate,
+  Router,
+  RouterStateSnapshot,
+} from '@angular/router';
 import { Observable, of } from 'rxjs';
 import { AuthService } from './services/auth.service';
 import { map, catchError } from 'rxjs/operators';
 
 @Injectable({ providedIn: 'root' })
 export class AuthGuard implements CanActivate {
-  constructor(private authService: AuthService, private router: Router) { }
+  constructor(private authService: AuthService, private router: Router) {}
 
-  canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<boolean> {
-    const token = this.authService.getAccessToken();
+  canActivate(
+    route: ActivatedRouteSnapshot,
+    state: RouterStateSnapshot
+  ): Observable<boolean> {
+    const accessToken = this.authService.getAccessToken();
+    const refreshToken = localStorage.getItem('refresh_token');
 
-    if (!token) {
+    if (!accessToken || !refreshToken) {
       return this.redirectToLogin(state.url);
     }
 
-    const decodedToken = this.decodeToken(token);
+    const decodedAccessToken = this.decodeToken(accessToken);
 
-    if (!decodedToken || this.isTokenExpired(decodedToken.exp)) {
-      // Token expired or invalid, try to refresh
+    if (!decodedAccessToken || this.isTokenExpired(decodedAccessToken.exp)) {
+      const decodedRefreshToken = this.decodeToken(refreshToken);
+
+      if (
+        !decodedRefreshToken ||
+        this.isTokenExpired(decodedRefreshToken.exp)
+      ) {
+        localStorage.removeItem('refresh_token');
+        localStorage.removeItem('access_token');
+        return this.redirectToLogin(state.url);
+      }
+
       return this.authService.refreshAccessToken$().pipe(
         map((res) => {
           localStorage.setItem('access_token', res.access);
@@ -44,7 +63,7 @@ export class AuthGuard implements CanActivate {
   }
 
   private isTokenExpired(exp: number): boolean {
-    return (exp * 1000) < Date.now();
+    return exp * 1000 < Date.now() + 30000;
   }
 
   private decodeToken(token: string): any {
