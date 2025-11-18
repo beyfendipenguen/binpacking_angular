@@ -238,6 +238,26 @@ export const stepperReducer = createReducer(
     }
   }),
 
+  on(StepperActions.palletControlSubmit, (state) => {
+    let mergeOrderDetails;
+    const mapperOrderDetails = mapUiPackagesToOrderDetails(state.step2State.packages)
+    const changes = OrderDetailDiffCalculator.calculateDiff(
+      mapperOrderDetails,
+      state.step1State.originalOrderDetails,
+      []
+    )
+    mergeOrderDetails = [...mapperOrderDetails]
+
+    return {
+      ...state,
+      step1State: {
+        ...state.step1State,
+        orderDetails: mergeOrderDetails,
+        ...changes
+      }
+    };
+  }),
+
   on(StepperActions.palletControlSubmitSuccess, (state, { packageDetails }) => {
     const uiPackages = mapPackageDetailToPackage(packageDetails);
     return {

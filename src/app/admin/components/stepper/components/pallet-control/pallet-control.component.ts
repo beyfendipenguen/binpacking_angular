@@ -65,11 +65,9 @@ import {
 } from '../../../../../store';
 
 import {
-  selectPackages,
   selectRemainingProducts,
   selectStep2IsDirty,
   selectIsOrderDetailsDirty,
-  selectStep2Changes,
   selectUiPackages,
   allDropListIds,
   hasPackage,
@@ -79,13 +77,13 @@ import {
   remainingProductCount,
   selectOrder,
   uiPackageCount,
-  selectAveragePalletWeight,
-  selectHeaviestPalletWeight,
-  selectLightestPalletWeight,
+  selectAveragePackageWeight,
+  selectHeaviestPackageWeight,
+  selectLightestPackageWeight,
   selectRemainingArea,
   selectRemainingWeight,
   selectTotalMeter,
-  selectTotalWeight,
+  selectTotalPackageWeight,
   selectVerticalSort,
   selectUiPallets,
 } from '../../../../../store/stepper/stepper.selectors';
@@ -179,20 +177,20 @@ export class PalletControlComponent
   sortAscending = signal<boolean>(false);
 
   // Weight and dimension calculations
-  public totalWeight = this.store.selectSignal(selectTotalWeight);
+  public totalWeight = this.store.selectSignal(selectTotalPackageWeight);
 
   public remainingWeight = this.store.selectSignal(selectRemainingWeight);
   public totalMeter = this.store.selectSignal(selectTotalMeter);
   public remainingArea = this.store.selectSignal(selectRemainingArea);
 
   public heaviestPalletWeight = this.store.selectSignal(
-    selectHeaviestPalletWeight
+    selectHeaviestPackageWeight
   );
   public lightestPalletWeight = this.store.selectSignal(
-    selectLightestPalletWeight
+    selectLightestPackageWeight
   );
   public averagePalletWeight = this.store.selectSignal(
-    selectAveragePalletWeight
+    selectAveragePackageWeight
   );
 
   // Pallet weight analytics
@@ -217,30 +215,30 @@ export class PalletControlComponent
   }
 
 
-packageTotalWeight(pkg: UiPackage): number {
-  const order = this.orderSignal();
-  const palletWeight = Number(pkg.pallet?.weight) || 0;
-  const productsWeight = pkg.products.reduce((total, product) => {
-    if (!order) {
-      return 0;
-    }
-    let weight = 0;
-    if (order.weight_type == 'std') {
-      weight = Number(product.weight_type?.std) || 0;
-    } else if (order.weight_type == 'eco') {
-      weight = Number(product.weight_type?.eco) || 0;
-    } else {
-      weight = Number(product.weight_type?.pre) || 0;
-    }
-    const count = Number(product.count) || 0;
-    return total + (weight * count);
-  }, 0);
+  packageTotalWeight(pkg: UiPackage): number {
+    const order = this.orderSignal();
+    const palletWeight = Number(pkg.pallet?.weight) || 0;
+    const productsWeight = pkg.products.reduce((total, product) => {
+      if (!order) {
+        return 0;
+      }
+      let weight = 0;
+      if (order.weight_type == 'std') {
+        weight = Number(product.weight_type?.std) || 0;
+      } else if (order.weight_type == 'eco') {
+        weight = Number(product.weight_type?.eco) || 0;
+      } else {
+        weight = Number(product.weight_type?.pre) || 0;
+      }
+      const count = Number(product.count) || 0;
+      return total + (weight * count);
+    }, 0);
 
-  const totalWeight = palletWeight + productsWeight;
+    const totalWeight = palletWeight + productsWeight;
 
-  // Sonucu noktadan sonra 2 haneye yuvarla
-  return Math.round(totalWeight * 100) / 100;
-}
+    // Sonucu noktadan sonra 2 haneye yuvarla
+    return Math.round(totalWeight * 100) / 100;
+  }
 
   // Dimension and fit checking methods
   canFitProductToPallet(

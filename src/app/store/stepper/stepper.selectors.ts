@@ -1,6 +1,5 @@
 import { createFeatureSelector, createSelector, MemoizedSelector, State } from '@ngrx/store';
 import { StepperState } from './stepper.state';
-import { Order } from '../../models/order.interface';
 import { UiPackage } from '../../admin/components/stepper/components/ui-models/ui-package.model';
 import { toInteger } from 'lodash-es';
 import { UiPallet } from '../../admin/components/stepper/components/ui-models/ui-pallet.model';
@@ -27,16 +26,6 @@ export const selectStep1State = createSelector(
 
 export const selectOrderDetails = createSelector(
   selectStep1State,
-  (step1State) => step1State.orderDetails
-);
-
-export const selectOriginalOrderDetails = createSelector(
-  selectStep1State,
-  (step1State) => step1State.originalOrderDetails
-);
-
-export const selectStep1OrderDetails = createSelector(
-  selectStep1State,
   (step1State) => {
     return [...step1State.orderDetails].sort((a, b) => {
       // 1. product.product_type.type
@@ -62,6 +51,11 @@ export const selectStep1OrderDetails = createSelector(
       return (a.product?.dimension?.depth || 0) - (b.product?.dimension?.depth || 0);
     });
   }
+);
+
+export const selectOriginalOrderDetails = createSelector(
+  selectStep1State,
+  (step1State) => step1State.originalOrderDetails
 );
 
 
@@ -134,6 +128,7 @@ export const selectPackages = createSelector(
   (step2State) => step2State.packages
 );
 
+
 /**
  * Returns an array of UiPackage instances
  * mapped from the state.packages array.
@@ -143,6 +138,17 @@ export const selectPackages = createSelector(
  */
 export const selectUiPackages = createSelector(selectStep2State, (state) =>
   state.packages.map((uiPackage: any) => new UiPackage({ ...uiPackage }))
+);
+
+/**
+ * Selects packages that have a pallet assigned and contain at least one product.
+ *
+ * @selector
+ * @returns {UiPackage[]} Filtered list of valid packages.
+ */
+export const selectValidPackages = createSelector(
+  selectUiPackages,
+  (packages) => packages.filter(pkg => pkg.pallet && pkg.products?.length > 0)
 );
 
 /**
@@ -228,36 +234,41 @@ export const selectStep2ProductCount = createSelector(
   (products) => products.length
 );
 
-export const selectTotalWeight = createSelector(
-  selectUiPackages,
+/**
+ * Calculates the weight of each valid package according to the order's weight type.
+ *
+ * @selector
+ * @returns {number[]} List of individual package weights.
+ */
+export const selectPackageWeightList = createSelector(
+  selectValidPackages,
   selectOrder,
   (packages, order) => {
-    if (packages.length === 0) return 0;
+    if (!order?.weight_type) return [];
+    return packages.map(pkg => packageTotalWeight(pkg, order.weight_type));
+  }
+);
 
-    const total = packages.reduce((total, pkg) => {
-      const palletWeight = Number(pkg.pallet?.weight) || 0;
-      const productsWeight = pkg.products.reduce((pTotal: any, product: any) => {
-        let weight = 0;
-        if (order?.weight_type === 'eco') {
-          weight = Number(product.weight_type?.eco) || 0;
-        } else if (order?.weight_type === 'std') {
-          weight = Number(product.weight_type?.std) || 0;
-        } else if (order?.weight_type === 'pre') {
-          weight = Number(product.weight_type?.pre) || 0;
-        }
-        const count = Number(product.count) || 0;
-        return pTotal + (weight * count);
-      }, 0);
-      return total + palletWeight + productsWeight;
-    }, 0);
 
-    // Sonucu noktadan sonra 2 haneye yuvarla
+
+/**
+ * Computes the total weight of all valid packages.
+ *
+ * @selector
+ * @returns {number} Total weight of all packages.
+ */
+export const selectTotalPackageWeight = createSelector(
+  selectPackageWeightList,
+  (weights) => {
+    const total = weights.reduce((sum, w) => sum + w, 0);
     return Math.round(total * 100) / 100;
   }
 );
+
+
 export const selectRemainingWeight = createSelector(
   selectOrder,
-  selectTotalWeight,
+  selectTotalPackageWeight,
   (order, totalWeight) => {
     if (order) {
       const trailerWeightLimit = Number(order.truck_weight_limit) || 0;
@@ -507,7 +518,7 @@ export const selectOrderId = createSelector(selectOrder, (order) => order?.id ||
 
 
 export const selectAverageOrderDetailHeight = createSelector(
-  selectStep1OrderDetails,
+  selectOrderDetails,
   (orderDetails) => {
     if (!orderDetails || orderDetails.length === 0) {
       return 0;
@@ -550,15 +561,14 @@ export const selectRemainingArea = createSelector(selectUiPackages, selectOrder,
   return Math.floor((trailerArea - totalArea) / 1000000);
 });
 
-function packageTotalWeight(pkg: UiPackage, order: Order): number {
+function packageTotalWeight(pkg: UiPackage, weightType: string): number {
   const palletWeight = Math.floor(pkg.pallet?.weight ?? 0);
   const productsWeight = pkg.products.reduce(
     (total, product) => {
-      if (!order) { return 0; }
-      if (order.weight_type == 'std') {
+      if (weightType == 'std') {
         return total + Math.floor(product.weight_type.std * product.count);
       }
-      else if (order.weight_type == 'eco') {
+      else if (weightType == 'eco') {
         return total + Math.floor(product.weight_type.eco * product.count);
       }
       else {
@@ -568,18 +578,15 @@ function packageTotalWeight(pkg: UiPackage, order: Order): number {
   );
 
   return palletWeight + productsWeight;
+  // NOTE:
+  // fucntion icerisinde yuvarlama yapilmamali selectorlarin icinde nihai sonuc uretilince
+  // yuvarlama yapilmali cunku birden fazla package icin bu method kullanilir ise
+  // yuvarlama yuzunden hatali sonuc uretilir.
 }
 
-export const selectActivePalletWeights = createSelector(selectUiPackages, selectOrder, (uiPackages, order) => {
-  const packages = uiPackages;
-  if (!order) return [];
-  return packages
-    .filter(pkg => pkg.pallet && pkg.products?.length > 0)
-    .map(pkg => packageTotalWeight(pkg, order));
-});
 
-export const selectHeaviestPalletWeight = createSelector(
-  selectActivePalletWeights,
+export const selectHeaviestPackageWeight = createSelector(
+  selectPackageWeightList,
   (activePalletWeights) => {
     const weights = activePalletWeights.map(w => Number(w) || 0);
     if (weights.length === 0) return 0;
@@ -588,8 +595,8 @@ export const selectHeaviestPalletWeight = createSelector(
   }
 );
 
-export const selectLightestPalletWeight = createSelector(
-  selectActivePalletWeights,
+export const selectLightestPackageWeight = createSelector(
+  selectPackageWeightList,
   (activePalletWeights) => {
     const weights = activePalletWeights.map(w => Number(w) || 0);
     if (weights.length === 0) return 0;
@@ -598,8 +605,8 @@ export const selectLightestPalletWeight = createSelector(
   }
 );
 
-export const selectAveragePalletWeight = createSelector(
-  selectActivePalletWeights,
+export const selectAveragePackageWeight = createSelector(
+  selectPackageWeightList,
   (activePalletWeights) => {
     const weights = activePalletWeights.map(w => Number(w) || 0);
     if (weights.length === 0) return 0;
@@ -608,11 +615,8 @@ export const selectAveragePalletWeight = createSelector(
   }
 );
 
-export const selectActivePalletCount = createSelector(selectActivePalletWeights, (activePalletWeights) =>
-  activePalletWeights.length);
-
-export const selectTotalPalletWeight = createSelector(selectActivePalletWeights, (activePalletWeights) =>
-  activePalletWeights.reduce((sum, weight) => sum + weight, 0)
+export const selectNonEmptyPackageCount = createSelector(selectPackageWeightList, (packageWeights) =>
+  packageWeights.length
 );
 
 

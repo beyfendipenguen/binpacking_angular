@@ -54,20 +54,17 @@ import { INVOICE_UPLOAD_CONSTANTS } from './constants/invoice-upload.constants';
 import { AppState, selectUser, setTemplateFile } from '../../../../../store';
 import { Store } from '@ngrx/store';
 import {
-  selectOrder, selectStep1OrderDetails, selectIsOrderDetailsDirty,
+  selectOrder, selectOrderDetails, selectIsOrderDetailsDirty,
   selectStep1HasFile, selectStep1FileName,
   selectAverageOrderDetailHeight, selectIsStepLoading, selectIsEditMode,
   selectIsOrderDirty,
   selectInvoiceTemplateFile,
 } from '../../../../../store/stepper/stepper.selectors';
-import { CompanyRelation } from '../../../../../models/company-relation.interface';
-import { Truck } from '../../../../../models/truck.interface';
 import { combineLatest } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { CompanyRelationService } from '../../../services/company-relation.service';
 import { FileService } from '../../../services/file.service';
 import { Order } from '../../../../../models/order.interface';
-import { stepperReducer } from '../../../../../store/stepper/stepper.reducer';
 
 @Component({
   selector: 'app-invoice-upload',
@@ -114,7 +111,7 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
   private readonly store = inject(Store<AppState>);
   // NgRx Step1 Migration Observables
   public orderSignal = this.store.selectSignal(selectOrder);
-  public orderDetailsSignal = this.store.selectSignal(selectStep1OrderDetails);
+  public orderDetailsSignal = this.store.selectSignal(selectOrderDetails);
   public isOrderDetailsDirtySignal = this.store.selectSignal(selectIsOrderDetailsDirty);
   public isOrderDirtySignal = this.store.selectSignal(selectIsOrderDirty);
 
@@ -129,7 +126,7 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
   unitsControl = new FormControl(20);
   private destroy$ = new Subject<void>();
 
-  public step1OrderDetails$ = this.store.select(selectStep1OrderDetails);
+  public orderDetails$ = this.store.select(selectOrderDetails);
   public step1HasFile$ = this.store.select(selectStep1HasFile);
 
   // NgRx Observables

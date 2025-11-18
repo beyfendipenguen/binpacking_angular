@@ -5,7 +5,7 @@ import { GenericCrudService } from '../../../services/generic-crud.service';
 import { Product } from '../../../models/product.interface';
 import { SKIP_LOADING } from '../../../components/loading/skip-loading.token';
 import { Store } from '@ngrx/store';
-import { AppState, selectStep1OrderDetails } from '../../../store';
+import { AppState, selectOrderDetails } from '../../../store';
 
 @Injectable({
   providedIn: 'root',
@@ -61,7 +61,7 @@ export class ProductService extends GenericCrudService<Product> {
     }
 
     // 1️⃣ İlk önce store'daki orderDetails'lerde ara
-    return this.store.select(selectStep1OrderDetails).pipe(
+    return this.store.select(selectOrderDetails).pipe(
       take(1), // Sadece bir kez oku
       switchMap((orderDetails) => {
         const localResults = this.searchInLocalProducts(query, orderDetails);

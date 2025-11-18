@@ -13,21 +13,18 @@ import {
   untracked
 } from '@angular/core';
 import { MatButton } from '@angular/material/button';
-import { MatStepperPrevious } from '@angular/material/stepper';
 import { RepositoryService } from '../../services/repository.service';
 import { DomSanitizer } from '@angular/platform-browser';
 import { MatIconModule } from '@angular/material/icon';
 import { CommonModule } from '@angular/common';
 import { ToastService } from '../../../../../services/toast.service';
 import { switchMap, takeUntil, catchError, finalize, tap } from 'rxjs/operators';
-import { Subject, EMPTY, of } from 'rxjs';
-import { LocalStorageService } from '../../services/local-storage.service';
+import { Subject, EMPTY } from 'rxjs';
 import { ThreeJSTruckVisualizationComponent } from '../../../../../components/threejs-truck-visualization/threejs-truck-visualization.component';
 import { OrderResultService } from '../../../services/order-result.service';
 
 import { Store } from '@ngrx/store';
-import { AppState, completeShipment, navigateToStep, resetStepper, resultStepSubmit, selectAutoSaveStatusText, selectIsEditMode, selectOrderId, selectRemainingProducts, selectStep3IsDirty, selectStepAutoSaveStatus, selectStepHasPendingChanges, selectStepperSummary, setGlobalError, setStepCompleted, setStepLoading, setStepperData, setStepValidation, updateOrderResult } from '../../../../../store';
-import { selectTruck } from '../../../../../store';
+import { AppState, navigateToStep, resultStepSubmit, selectAutoSaveStatusText, selectIsEditMode, selectOrderId, selectRemainingProducts, selectStep3IsDirty, selectStepAutoSaveStatus, selectStepHasPendingChanges, selectStepperSummary, setGlobalError, setStepCompleted, setStepLoading, setStepperData, setStepValidation } from '../../../../../store';
 import { CancelConfirmationDialogComponent } from '../../../../../components/cancel-confirmation-dialog/cancel-confirmation-dialog.component';
 import { MatDialog } from '@angular/material/dialog';
 
@@ -508,7 +505,7 @@ export class ResultStepComponent implements OnInit, OnDestroy {
       });
 
       dialogRef.afterClosed().subscribe(result => {
-        if(resetStepper){
+        if (resetStepper) {
           this.hasResults = false;
           this.reportFiles = [];
         }
@@ -522,10 +519,10 @@ export class ResultStepComponent implements OnInit, OnDestroy {
         }
       });
     } else {
-        if(resetStepper){
-          this.hasResults = false;
-          this.reportFiles = [];
-        }
+      if (resetStepper) {
+        this.hasResults = false;
+        this.reportFiles = [];
+      }
       this.store.dispatch(resultStepSubmit({ orderResult, resetStepper, packageNames: this.threeJSComponent.deletedPackages.map(pckg => pckg.id.toString()), }))
 
       this.shipmentCompleted.emit();

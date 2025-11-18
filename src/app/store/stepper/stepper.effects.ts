@@ -386,22 +386,6 @@ export class StepperEffects {
   );
 
 
-  palletControlSubmitSuccess$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(StepperActions.palletControlSubmitSuccess),
-      withLatestFrom(this.store.select(selectIsOrderDetailsDirty)),
-      map(() => StepperActions.calculateOrderDetailChanges())
-    )
-  );
-
-  updateOrderDetailsChanges$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(StepperActions.calculateOrderDetailChanges),
-      withLatestFrom(this.store.select(selectIsOrderDetailsDirty)),
-      filter(([_, isDirty]) => isDirty),
-      map(() => StepperActions.updateOrderDetailsChanges({}))
-    )
-  );
 
   orderDetailChanges$ = createEffect(() =>
     this.actions$.pipe(
@@ -473,23 +457,39 @@ export class StepperEffects {
       ofType(StepperActions.palletControlSubmit),
       withLatestFrom(
         this.store.select(selectUiPackages),
+        this.store.select(selectOrderDetailsChanges),
+        this.store.select(selectIsOrderDetailsDirty),
         this.store.select(selectStep2IsDirty),
-        this.store.select(selectOrderDetailsChanges)
       ),
-      filter(([action, uiPackages, isDirty]) => isDirty),
-      exhaustMap(([action, uiPackages]) => {
-        return this.repositoryService.bulkCreatePackageDetail(uiPackages).pipe(
-          map((response) =>
-            StepperActions.palletControlSubmitSuccess({
-              packageDetails: response.package_details,
-            })
+      filter(([action, uiPackages, changes, isOrderDetailsDirty, isPackageDetailsDirty]) => isPackageDetailsDirty),
+      map(([action, uiPackages, changes, isOrderDetailsDirty, isPackageDetailsDirty]) => ({
+        uiPackages, changes, isOrderDetailsDirty, isPackageDetailsDirty
+      })),
+      concatMap(payload => {
+        if (!payload.isOrderDetailsDirty) {
+          return of(payload)
+        }
+        return this.repositoryService.bulkUpdateOrderDetails(payload.changes).pipe(
+          tap((result) => this.store.dispatch(StepperActions.updateOrderDetailsChangesSuccess({ orderDetails: result.order_details }))),
+          catchError((error) =>
+            of(StepperActions.setGlobalError({ error: error.message }))
           ),
-          catchError((error: HttpErrorResponse) =>
-            of(StepperActions.setGlobalError({ error: { message: error.message, code: error.error.code } }))
-          )
-        );
+          map(() => payload),
+        )
+      }),
+      concatMap(payload => {
+        if (!payload.isPackageDetailsDirty) {
+          return of(payload)
+        }
+        return this.repositoryService.bulkCreatePackageDetail(payload.uiPackages).pipe(
+          tap((result) => this.store.dispatch(StepperActions.palletControlSubmitSuccess({ packageDetails: result.package_details }))),
+          catchError((error) =>
+            of(StepperActions.setGlobalError({ error: error.message }))
+          ),
+          map(() => payload)
+        )
       })
-    )
+    ), { dispatch: false }
   );
 
   resultStepSubmit$ = createEffect(() => {
