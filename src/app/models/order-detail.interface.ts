@@ -2,12 +2,20 @@ import { Product } from "./product.interface";
 import { Order } from "./order.interface";
 import { ZeroModel } from "./zero-model.interface";
 
-export interface OrderDetail extends ZeroModel{
-  order: Order;
+export interface OrderDetailRead extends ZeroModel {
+  order_id: string,
   product: Product;
-  product_id: string | null;
   count: number;
-  unit_price: number;
+  unit_price: string;
   total_price?: number | null;
   remaining_count: number;
+}
+
+export interface OrderDetailWrite {
+  id: string,
+  order_id: string,
+  product_id: string,
+  count: number,
+  unit_price: string,
+  remaining_count: number
 }

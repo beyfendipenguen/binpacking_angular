@@ -4,7 +4,7 @@
 
 import { IUiPackage } from "../../admin/components/stepper/interfaces/ui-interfaces/ui-package.interface";
 import { IUiPallet } from "../../admin/components/stepper/interfaces/ui-interfaces/ui-pallet.interface";
-import { OrderDetail } from "../../models/order-detail.interface";
+import { OrderDetailRead, OrderDetailWrite } from "../../models/order-detail.interface";
 import { Order } from "../../models/order.interface";
 
 export interface StepperState {
@@ -58,11 +58,11 @@ export interface StepperState {
   };
 
   step1State: {
-    orderDetails: OrderDetail[];
-    originalOrderDetails: OrderDetail[];
-    added: any[];
-    modified: any[];
-    deleted: any[];
+    orderDetails: OrderDetailRead[];
+    originalOrderDetails: OrderDetailRead[];
+    added: OrderDetailWrite[];
+    modified: OrderDetailWrite[];
+    deletedIds: string[];
     hasFile: boolean;
     fileName?: string;
     templateFile: any;
@@ -138,7 +138,7 @@ export const initialStepperState: StepperState = {
     originalOrderDetails: [],
     added: [],
     modified: [],
-    deleted: [],
+    deletedIds: [],
     hasFile: false,
     templateFile: null
   },

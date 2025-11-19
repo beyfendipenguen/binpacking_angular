@@ -59,6 +59,9 @@ import {
   selectAverageOrderDetailHeight, selectIsStepLoading, selectIsEditMode,
   selectIsOrderDirty,
   selectInvoiceTemplateFile,
+  selectTotalMeter,
+  selectStep2ProductCount,
+  selectTotalProductCount,
 } from '../../../../../store/stepper/stepper.selectors';
 import { combineLatest } from 'rxjs';
 import { map } from 'rxjs/operators';
@@ -114,6 +117,8 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
   public orderDetailsSignal = this.store.selectSignal(selectOrderDetails);
   public isOrderDetailsDirtySignal = this.store.selectSignal(selectIsOrderDetailsDirty);
   public isOrderDirtySignal = this.store.selectSignal(selectIsOrderDirty);
+  public totalMeter = this.store.selectSignal(selectTotalMeter);
+  public totalCount = this.store.selectSignal(selectTotalProductCount);
 
   public hasUploadFileSignal = this.store.selectSignal(selectStep1HasFile);
   public fileNameSignal = this.store.selectSignal(selectStep1FileName);
@@ -530,16 +535,6 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
     this.orderFormManager.resetForm();
   }
 
-  resetComponentState(): void {
-    try {
-      this.store.dispatch(StepperActions.resetStep1State());
-      this.fileUploadManager.resetAllFiles();
-
-      this.uiStateManager.resetAllStates();
-    } catch (error) {
-
-    }
-  }
 
 
   updateTableData1 = computed(() => {
@@ -567,26 +562,5 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
     return this.orderFormManager.compareWeightTypes(a, b);
   }
 
-  getTotalCount(): number {
-    if (!this.orderDetailsSignal() || !this.orderDetailsSignal().length) {
-      return 0;
-    }
 
-    return this.orderDetailsSignal().reduce((total: number, detail: any) => {
-      const count = detail.count || 0;
-      return (total + count)
-    }, 0);
-  }
-
-  getTotalMeter(): number {
-    if (!this.orderDetailsSignal() || !this.orderDetailsSignal().length) {
-      return 0;
-    }
-
-    return this.orderDetailsSignal().reduce((total: number, detail: any) => {
-      const depth = detail.product?.dimension?.depth || 0;
-      const count = detail.count || 0;
-      return (total + (depth * count) / 1000)
-    }, 0);
-  }
 }

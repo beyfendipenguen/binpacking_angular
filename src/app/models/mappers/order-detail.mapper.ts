@@ -1,8 +1,8 @@
 import { UiProduct } from "../../admin/components/stepper/components/ui-models/ui-product.model";
 import { IInvoiceOrderDetail } from "../component-models/invoice-order-detail.interface";
-import { OrderDetail } from "../order-detail.interface";
+import { OrderDetailRead } from "../order-detail.interface";
 
-export const mapToOrderDetailDto = (orderDetail: OrderDetail): IInvoiceOrderDetail => {
+export const mapToOrderDetailDto = (orderDetail: OrderDetailRead): IInvoiceOrderDetail => {
   const width = Number(orderDetail.product.dimension.width);
   const depth = Number(orderDetail.product.dimension.depth);
   const count = Number(orderDetail.count);
@@ -21,7 +21,7 @@ export const mapToOrderDetailDto = (orderDetail: OrderDetail): IInvoiceOrderDeta
   };
 };
 
-export const mapToOrderDetailDtoList = (orderDetails: OrderDetail[]): IInvoiceOrderDetail[] =>
+export const mapToOrderDetailDtoList = (orderDetails: OrderDetailRead[]): IInvoiceOrderDetail[] =>
   orderDetails.map(mapToOrderDetailDto);
 
 
@@ -30,7 +30,7 @@ export const mapToOrderDetailDtoList = (orderDetails: OrderDetail[]): IInvoiceOr
  * @param orderDetail - Map edilecek OrderDetail objesi
  * @returns UiProduct instance'ı
  */
-export function mapOrderDetailToUiProduct(orderDetail: OrderDetail): UiProduct {
+export function mapOrderDetailToUiProduct(orderDetail: OrderDetailRead): UiProduct {
   return new UiProduct({
     id: orderDetail.id,
     name: orderDetail.product.name,
@@ -47,7 +47,7 @@ export function mapOrderDetailToUiProduct(orderDetail: OrderDetail): UiProduct {
  * @param orderDetails - Map edilecek OrderDetail array'i
  * @returns UiProduct array'i
  */
-export function mapOrderDetailsToUiProducts(orderDetails: OrderDetail[]): UiProduct[] {
+export function mapOrderDetailsToUiProducts(orderDetails: OrderDetailRead[]): UiProduct[] {
   if (!orderDetails || !Array.isArray(orderDetails)) {
     return [];
   }
@@ -60,7 +60,7 @@ export function mapOrderDetailsToUiProducts(orderDetails: OrderDetail[]): UiProd
  * @param orderDetails - Map edilecek OrderDetail array'i
  * @returns UiProduct array'i (hatalı olanlar filtrelenir)
  */
-export function mapOrderDetailsToUiProductsSafe(orderDetails: OrderDetail[]): UiProduct[] {
+export function mapOrderDetailsToUiProductsSafe(orderDetails: OrderDetailRead[]): UiProduct[] {
   if (!orderDetails || !Array.isArray(orderDetails)) {
     return [];
   }
@@ -69,12 +69,12 @@ export function mapOrderDetailsToUiProductsSafe(orderDetails: OrderDetail[]): Ui
     .filter(orderDetail => {
       // Gerekli alanların kontrolü
       return orderDetail &&
-             orderDetail.id &&
-             orderDetail.product &&
-             orderDetail.product.product_type &&
-             orderDetail.product.dimension &&
-             orderDetail.product.weight_type &&
-             typeof orderDetail.count === 'number';
+        orderDetail.id &&
+        orderDetail.product &&
+        orderDetail.product.product_type &&
+        orderDetail.product.dimension &&
+        orderDetail.product.weight_type &&
+        typeof orderDetail.count === 'number';
     })
     .map(orderDetail => {
       try {

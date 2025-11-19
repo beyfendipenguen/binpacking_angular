@@ -4,6 +4,7 @@ import { UiPackage } from '../../admin/components/stepper/components/ui-models/u
 import { toInteger } from 'lodash-es';
 import { UiPallet } from '../../admin/components/stepper/components/ui-models/ui-pallet.model';
 import { areOrderDetailsEqual, deepEqual } from '../../helpers/order-detail.helper';
+import { stat } from 'fs';
 
 // Feature selector
 export const selectStepperState = createFeatureSelector<StepperState>('stepper');
@@ -64,7 +65,7 @@ export const selectOrderDetailsChanges = createSelector(
   (step1State) => ({
     added: step1State.added,
     modified: step1State.modified,
-    deleted: step1State.deleted
+    deletedIds: step1State.deletedIds
   })
 );
 
@@ -583,6 +584,11 @@ function packageTotalWeight(pkg: UiPackage, weightType: string): number {
   // yuvarlama yapilmali cunku birden fazla package icin bu method kullanilir ise
   // yuvarlama yuzunden hatali sonuc uretilir.
 }
+
+export const selectTotalProductCount = createSelector(
+  selectStep1State,
+  (state) => state.orderDetails.reduce((sum, od) => sum + od.count, 0)
+);
 
 
 export const selectHeaviestPackageWeight = createSelector(

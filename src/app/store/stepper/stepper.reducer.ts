@@ -7,34 +7,28 @@ import { UiPallet } from '../../admin/components/stepper/components/ui-models/ui
 import { UiProduct } from '../../admin/components/stepper/components/ui-models/ui-product.model';
 import { isEqual } from 'lodash-es';
 import { OrderDetailDiffCalculator } from '../../models/utils/order-detail-diff.util';
-import { mapUiPackagesToOrderDetails, mapUiProductsToOrderDetails } from '../../models/mappers/ui-package-to-order-detail.mapper';
+import { mapUiPackagesToOrderDetails } from '../../models/mappers/ui-package-to-order-detail.mapper';
 import { v4 as Guid } from 'uuid';
 
 export const stepperReducer = createReducer(
   initialStepperState,
 
   on(StepperActions.calculateOrderDetailChanges, (state) => {
-    let mergeOrderDetails;
     const mapperOrderDetails = mapUiPackagesToOrderDetails(state.step2State.packages)
     const changes = OrderDetailDiffCalculator.calculateDiff(
       mapperOrderDetails,
       state.step1State.originalOrderDetails,
       state.step2State.remainingProducts
     )
-    if (state.step2State.remainingProducts.length > 0) {
-      const remainingOrderDetails = mapUiProductsToOrderDetails(state.step2State.remainingProducts, state.order)
-      mergeOrderDetails = [...mapperOrderDetails, ...remainingOrderDetails]
-    }
-    else {
-      mergeOrderDetails = [...mapperOrderDetails]
-    }
 
     return {
       ...state,
       step1State: {
         ...state.step1State,
-        orderDetails: mergeOrderDetails,
-        ...changes
+        orderDetails: [...mapperOrderDetails],
+        added: changes.added.map(od => ({ ...od })),
+        modified: changes.modified.map(od => ({ ...od })),
+        deletedIds: [...changes.deletedIds],
       }
     }
   }),
@@ -63,15 +57,6 @@ export const stepperReducer = createReducer(
     }
   )),
 
-  on(StepperActions.updateOrderResult, (state, { orderResult }) => (
-    {
-      ...state,
-      step3State: {
-        ...state.step3State,
-        orderResult: orderResult
-      }
-    }
-  )),
 
   on(StepperActions.completeShipment, (state, { orderResult }) => (
     {
@@ -253,7 +238,13 @@ export const stepperReducer = createReducer(
       step1State: {
         ...state.step1State,
         orderDetails: mergeOrderDetails,
-        ...changes
+        added: changes.added.map(od => ({ ...od })),
+        modified: changes.modified.map(od => ({ ...od })),
+        deletedIds: [...changes.deletedIds],
+      },
+      step2State: {
+        ...state.step2State,
+        remainingProducts: []
       }
     };
   }),
@@ -350,7 +341,9 @@ export const stepperReducer = createReducer(
       step1State: {
         ...state.step1State,
         orderDetails: mergeOrderDetails,
-        ...changes,
+        added: changes.added.map(od => ({ ...od })),
+        modified: changes.modified.map(od => ({ ...od })),
+        deletedIds: [...changes.deletedIds],
       },
       step2State: {
         ...state.step2State,
@@ -1023,7 +1016,6 @@ export const stepperReducer = createReducer(
       ...state,
       step1State: {
         ...state.step1State,
-        isOrderDetailsDirty: true
       },
       step2State: {
         ...state.step2State,
@@ -1124,32 +1116,16 @@ export const stepperReducer = createReducer(
     }
   })),
 
-  on(StepperActions.resetStep1State, (state) => ({
-    ...state,
-    step1State: {
-      orderDetails: [],
-      originalOrderDetails: [],
-      added: [],
-      modified: [],
-      deleted: [],
-      hasFile: false,
-      fileName: undefined,
-      templateFile: []
-    }
-  })),
-
   on(StepperActions.initializeStep1StateFromUpload, (state, { order, orderDetails, hasFile, fileName }) => ({
     ...state,
     order,
     step1State: {
+      ...state.step1State,
       orderDetails: [...orderDetails],
       originalOrderDetails: [], // File upload'da original yok
-      added: [...orderDetails], // File'dan gelen tüm data added
-      modified: [],
-      deleted: [],
+      added: orderDetails.map(od => OrderDetailDiffCalculator.orderDetailReadToWrite(od)),
       hasFile,
       fileName,
-      templateFile: []
     }
   })),
 
@@ -1158,7 +1134,6 @@ export const stepperReducer = createReducer(
     step1State: {
       ...state.step1State,
       orderDetails: [...state.step1State.orderDetails, orderDetail],
-      added: [...state.step1State.added, orderDetail],
     }
   })),
 
@@ -1182,7 +1157,7 @@ export const stepperReducer = createReducer(
       modified = modified.map(item => item.id === orderDetail.id ? orderDetail : item);
     }
 
-    const isDirty = modified.length > 0 || state.step1State.added.length > 0 || state.step1State.deleted.length > 0 ? true : false
+    const isDirty = modified.length > 0 || state.step1State.added.length > 0 || state.step1State.deletedIds.length > 0 ? true : false
     if (!isDirty) {
       return state;
     }
@@ -1199,21 +1174,12 @@ export const stepperReducer = createReducer(
   }),
 
   on(StepperActions.deleteOrderDetail, (state, { orderDetailId }) => {
-    const itemToDelete = state.step1State.orderDetails.find(item => item.id === orderDetailId);
     const orderDetails = state.step1State.orderDetails.filter(item => item.id !== orderDetailId);
-    const isOriginal = state.step1State.originalOrderDetails.some(item => item.id === orderDetailId);
-    const deleted = isOriginal && itemToDelete ? [...state.step1State.deleted, itemToDelete] : state.step1State.deleted;
-    const added = state.step1State.added.filter(item => item.id !== orderDetailId);
-    const modified = state.step1State.modified.filter(item => item.id !== orderDetailId);
     return {
       ...state,
       step1State: {
         ...state.step1State,
         orderDetails,
-        added,
-        modified,
-        deleted,
-        isOrderDetailsDirty: true
       }
     };
   }),

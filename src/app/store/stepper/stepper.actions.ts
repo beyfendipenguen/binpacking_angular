@@ -3,6 +3,10 @@ import { IUiPallet } from '../../admin/components/stepper/interfaces/ui-interfac
 import { IUiPackage } from '../../admin/components/stepper/interfaces/ui-interfaces/ui-package.interface';
 
 
+export const createPackageDetail = createAction(
+  '[Stepper] Create Package Detail'
+)
+
 export const calculateOrderDetailChanges = createAction(
   '[Stepper] Calculate Order Detail Changes'
 );
@@ -307,12 +311,6 @@ export const setStepLoading = createAction(
   props<{ stepIndex: number; loading: boolean; operation?: string }>()
 );
 
-// StateManager Migration Actions
-export const resetStep1State = createAction(
-  '[Migration] Initialize Step1 State'
-);
-
-
 export const initializeStep1StateFromUpload = createAction(
   '[Migration] Initialize Step1 State From Upload',
   props<{ order: any; orderDetails: any[]; hasFile: boolean; fileName?: string }>()
@@ -335,9 +333,7 @@ export const deleteOrderDetail = createAction(
 );
 
 export const updateOrderResult = createAction(
-  '[Migration] Update Order Result',
-  props<{ orderResult: string }>()
-
+  '[Migration] Update Order Result'
 );
 
 export const completeShipment = createAction(

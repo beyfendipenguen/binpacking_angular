@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { OrderDetail } from '../../../models/order-detail.interface';
+import { OrderDetailRead } from '../../../models/order-detail.interface';
 import { GenericCrudService } from '../../../services/generic-crud.service';
 import { HttpClient } from '@angular/common/http';
 import { Observable, map, forkJoin, switchMap } from 'rxjs';
@@ -7,15 +7,15 @@ import { Observable, map, forkJoin, switchMap } from 'rxjs';
 @Injectable({
   providedIn: 'root'
 })
-export class OrderDetailService extends GenericCrudService<OrderDetail> {
+export class OrderDetailService extends GenericCrudService<OrderDetailRead> {
   constructor(http: HttpClient) {
     super(http, 'orders/order-details');
   }
   /**
    * Belirli bir order'a ait tüm OrderDetail'leri getir
    */
-  getByOrderId(orderId: string): Observable<OrderDetail[]> {
-    return this.getAll({ order_id: orderId, limit:100 }).pipe(
+  getByOrderId(orderId: string): Observable<OrderDetailRead[]> {
+    return this.getAll({ order_id: orderId, limit: 100 }).pipe(
       map((response: any) => response.results || [])
     );
   }
@@ -23,7 +23,7 @@ export class OrderDetailService extends GenericCrudService<OrderDetail> {
   /**
    * OrderDetail'i order_id ile birlikte oluştur
    */
-  createWithOrderId(orderDetail: Partial<OrderDetail>, orderId: string): Observable<OrderDetail> {
+  createWithOrderId(orderDetail: Partial<OrderDetailRead>, orderId: string): Observable<OrderDetailRead> {
     const data = {
       ...orderDetail,
       order_id: orderId
@@ -47,7 +47,7 @@ export class OrderDetailService extends GenericCrudService<OrderDetail> {
    */
   deleteByOrderId(orderId: string): Observable<any> {
     return this.getByOrderId(orderId).pipe(
-      switchMap((orderDetails: OrderDetail[]) => {
+      switchMap((orderDetails: OrderDetailRead[]) => {
         const deleteOperations = orderDetails.map(detail => this.delete(detail.id));
         return forkJoin(deleteOperations);
       })

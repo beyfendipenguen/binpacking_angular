@@ -3,14 +3,14 @@ import {
   WeightType,
   CalculationResult,
 } from '../models/invoice-upload-interfaces';
-import { OrderDetail } from '../../../../../../models/order-detail.interface';
+import { OrderDetailRead } from '../../../../../../models/order-detail.interface';
 
 @Injectable({
   providedIn: 'root',
 })
 export class InvoiceCalculatorService {
   calculateTotalWeight(
-    orderDetails: OrderDetail[],
+    orderDetails: OrderDetailRead[],
     weightType: WeightType
   ): CalculationResult {
     try {
@@ -28,7 +28,7 @@ export class InvoiceCalculatorService {
     }
   }
 
-  calculateDetailWeight(detail: OrderDetail, weightType: WeightType): number {
+  calculateDetailWeight(detail: OrderDetailRead, weightType: WeightType): number {
     try {
       const productWeight = detail.product?.weight_type?.[weightType] || 0;
       // Fix: Use 0 for undefined/null count instead of defaulting to 1

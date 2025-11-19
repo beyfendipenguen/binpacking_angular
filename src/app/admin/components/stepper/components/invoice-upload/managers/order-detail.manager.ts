@@ -6,7 +6,7 @@ import { RepositoryService } from '../../../services/repository.service';
 import { OrderDetailAddDialogComponent } from '../order-detail-add-dialog/order-detail-add-dialog.component';
 import { INVOICE_UPLOAD_CONSTANTS } from '../constants/invoice-upload.constants';
 import { ToastService } from '../../../../../../services/toast.service';
-import { OrderDetail } from '../../../../../../models/order-detail.interface';
+import { OrderDetailRead } from '../../../../../../models/order-detail.interface';
 
 @Injectable({
   providedIn: 'root'
@@ -16,18 +16,18 @@ export class OrderDetailManager {
   private readonly toastService = inject(ToastService);
   private readonly repositoryService = inject(RepositoryService);
 
-  private orderDetails: OrderDetail[] = [];
+  private orderDetails: OrderDetailRead[] = [];
 
-  setOrderDetails(orderDetails: OrderDetail[]): void {
+  setOrderDetails(orderDetails: OrderDetailRead[]): void {
     this.orderDetails = [...orderDetails];
   }
 
-  addOrderDetail(orderDetail: OrderDetail): void {
+  addOrderDetail(orderDetail: OrderDetailRead): void {
     this.orderDetails.unshift(orderDetail);
   }
 
 
-  openOrderDetailDialog(): Observable<OrderDetail | null> {
+  openOrderDetailDialog(): Observable<OrderDetailRead | null> {
     const dialogRef = this.dialog.open(OrderDetailAddDialogComponent, {
       width: '600px',
       disableClose: true,
@@ -51,25 +51,8 @@ export class OrderDetailManager {
     });
   }
 
-  processOrderDetailChanges(changes: OrderDetailChanges, orderId: string): Observable<any> {
-    const totalOperations =
-      changes.added.length + changes.modified.length + changes.deleted.length;
-    if (totalOperations === 0) {
-      return of(null);
-    }
 
-    // Convert deleted IDs to OrderDetail objects for compatibility
-    const deletedOrderDetails: OrderDetail[] = changes.deleted.map(id => {
-      const detail = this.getOrderDetailById(id);
-      return detail ? detail : { id } as OrderDetail;
-    });
-    return this.repositoryService.bulkUpdateOrderDetails(
-      { ...changes, deleted: deletedOrderDetails },
-      orderId
-    );
-  }
-
-  getOrderDetailById(id: string): OrderDetail | undefined {
+  getOrderDetailById(id: string): OrderDetailRead | undefined {
     return this.orderDetails.find(detail => detail.id === id);
   }
 

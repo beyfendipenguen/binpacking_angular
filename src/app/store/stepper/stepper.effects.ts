@@ -4,6 +4,7 @@ import { Store } from '@ngrx/store';
 import {
   map,
   tap,
+  take,
   switchMap,
   catchError,
   withLatestFrom,
@@ -27,7 +28,6 @@ import {
   selectIsOrderDirty,
   selectFileExists,
   selectCompanyRelationId,
-  selectPackages,
 } from '../index';
 import { ToastService } from '../../services/toast.service';
 import { OrderService } from '../../admin/components/services/order.service';
@@ -35,7 +35,6 @@ import { OrderDetailService } from '../../admin/components/services/order-detail
 import { FileUploadManager } from '../../admin/components/stepper/components/invoice-upload/managers/file-upload.manager';
 import { LocalStorageService } from '../../admin/components/stepper/services/local-storage.service';
 import { RepositoryService } from '../../admin/components/stepper/services/repository.service';
-import { HttpErrorResponse } from '@angular/common/http';
 import { AuthService } from '../../auth/services/auth.service';
 import { mapPackageDetailToPackage } from '../../models/mappers/package-detail.mapper';
 import { UiPallet } from '../../admin/components/stepper/components/ui-models/ui-pallet.model';
@@ -143,9 +142,9 @@ export class StepperEffects {
             )
           );
         }
-        return of(StepperActions.updateOrderDetailsChanges({}));
+        return EMPTY;
       })
-    )
+    ),
   );
 
   updateOrderDetailChanges$ = createEffect(() =>
@@ -374,7 +373,7 @@ export class StepperEffects {
                 loading: false,
                 operation: 'file upload completed',
               }),
-              StepperActions.uploadInvoiceProcessFileSuccess()
+              StepperActions.uploadInvoiceProcessFileSuccess(),
             );
           }),
           catchError((error) =>
@@ -392,7 +391,8 @@ export class StepperEffects {
       ofType(
         StepperActions.deleteRemainingProduct,
         StepperActions.addUiProductToRemainingProducts,
-        StepperActions.updateProductCountAndCreateOrUpdateOrderDetail
+        StepperActions.updateProductCountAndCreateOrUpdateOrderDetail,
+        StepperActions.deleteOrderDetail,
       ),
       map(() => StepperActions.calculateOrderDetailChanges()),
       catchError((error) =>
@@ -486,79 +486,56 @@ export class StepperEffects {
           catchError((error) =>
             of(StepperActions.setGlobalError({ error: error.message }))
           ),
-          map(() => payload)
+        )
+      }),
+    ),
+  );
+
+
+  bulkCreatPackageDetails$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(StepperActions.createPackageDetail),
+      withLatestFrom(this.store.select(selectUiPackages)),
+      switchMap(([action, uiPackages]) => {
+        return this.repositoryService.bulkCreatePackageDetail(uiPackages).pipe(
+          map((result) =>
+            StepperActions.palletControlSubmitSuccess({
+              packageDetails: result.package_details,
+            })
+          )
         )
       })
-    ), { dispatch: false }
+    )
   );
+
 
   resultStepSubmit$ = createEffect(() => {
     return this.actions$.pipe(
       ofType(StepperActions.resultStepSubmit),
-      withLatestFrom(
-        this.store.select(selectOrderResult),
-        this.store.select(selectPackages),
-        this.store.select(selectOrderDetailsChanges),
-        this.store.select(selectIsOrderDetailsDirty),
-        this.store.select(selectStep2IsDirty)
-      ),
-      map(([action, orderResult, packages, changes, isOrderDetailsDirty, isPackagesDirty]) => ({
-        action,
-        orderResult,
-        packages,
-        changes,
-        isOrderDetailsDirty,
-        isPackagesDirty
-      })),
-      concatMap(payload => {
-        if (!payload.isOrderDetailsDirty) {
-          return of(payload)
-        }
-        return this.repositoryService.bulkUpdateOrderDetails(payload.changes).pipe(
-          tap((result) => this.store.dispatch(StepperActions.updateOrderDetailsChangesSuccess({ orderDetails: result.order_details }))),
-          catchError((error) =>
-            of(StepperActions.setGlobalError({ error: error.message }))
-          ),
-          map(() => payload),
-        )
-      }),
-      concatMap(payload => {
-        if (!payload.isPackagesDirty) {
-          return of(payload)
-        }
-        return this.repositoryService.bulkCreatePackageDetail(payload.packages).pipe(
-          tap((result) => this.store.dispatch(StepperActions.palletControlSubmitSuccess({ packageDetails: result.package_details }))),
-          catchError((error) =>
-            of(StepperActions.setGlobalError({ error: error.message }))
-          ),
-          map(() => payload)
-        )
-      }),
-      concatMap(payload => {
-        return this.repositoryService.partialUpdateOrderResult(payload.orderResult).pipe(
-          catchError((error) =>
-            of(StepperActions.setGlobalError({ error: error.message }))
-          ),
-          map(() => payload)
-        )
-      }),
-      concatMap(payload => {
-        return this.repositoryService.createReport().pipe(
-          tap((result) => this.store.dispatch(StepperActions.createReportFileSuccess({ reportFiles: result.files }))),
+      switchMap((action) =>
+        of(StepperActions.updateOrderDetailsChanges({})).pipe(
+          concatMap(() => this.actions$.pipe(
+            ofType(StepperActions.updateOrderDetailsChangesSuccess),
+            take(1),
+            map(() => StepperActions.createPackageDetail())
+          )),
+          concatMap(() => this.actions$.pipe(
+            ofType(StepperActions.palletControlSubmitSuccess),
+            take(1),
+            map(() => StepperActions.updateOrderResult())
+          )),
           tap(() => {
-            if (payload.action.resetStepper) {
-              this.authService.clearLocalAndStore();
+            if (action.resetStepper) {
+              this.authService.doLogout();
             }
           }),
           catchError((error) =>
             of(StepperActions.setGlobalError({ error: error.message }))
           )
         )
-      }),
-      catchError((error) =>
-        of(StepperActions.setGlobalError({ error: error.message }))
-      )
+      ),
     )
-  }, { dispatch: false });
+  }
+  );
 
 }

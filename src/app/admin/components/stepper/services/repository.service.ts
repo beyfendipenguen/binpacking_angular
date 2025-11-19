@@ -4,7 +4,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { map, Observable, switchMap } from 'rxjs';
 import { FileResponse } from '../interfaces/file-response.interface';
 import { mapPackageToPackageDetail } from '../../../../models/mappers/package-detail.mapper';
-import { OrderDetail } from '../../../../models/order-detail.interface';
+import { OrderDetailRead } from '../../../../models/order-detail.interface';
 import { Order } from '../../../../models/order.interface';
 import { Truck } from '../../../../models/truck.interface';
 import { CompanyRelation } from '../../../../models/company-relation.interface';
@@ -16,6 +16,7 @@ import { UiPackage } from '../components/ui-models/ui-package.model';
 import { PackageDetail } from '../../../../models/package-detail.interface';
 import { Pallet } from '../../../../models/pallet.interface';
 import { IUiPackage } from '../interfaces/ui-interfaces/ui-package.interface';
+import { OrderDetailChanges } from '../components/invoice-upload/models/invoice-upload-interfaces';
 
 @Injectable({
   providedIn: 'root',
@@ -133,14 +134,14 @@ export class RepositoryService {
 
   processFile(
     file: File
-  ): Observable<{ message: string; order: Order; orderDetail: OrderDetail[] }> {
+  ): Observable<{ message: string; order: Order; orderDetail: OrderDetailRead[] }> {
     const formData = new FormData();
     formData.append('file', file);
 
     return this.http.post<{
       message: string;
       order: Order;
-      orderDetail: OrderDetail[];
+      orderDetail: OrderDetailRead[];
     }>(`${this.api.getApiUrl()}/orders/process-file/`, formData);
   }
 
@@ -171,36 +172,15 @@ export class RepositoryService {
    * Tek bir API çağrısı ile tüm OrderDetail değişikliklerini yap
    */
   bulkUpdateOrderDetails(
-    changes: {
-      added: OrderDetail[];
-      modified: OrderDetail[];
-      deleted: OrderDetail[];
-    },
+    changes: OrderDetailChanges,
     order_id: string = this.getOrderId()
   ): Observable<any> {
     // Deleted array'indeki object'lerin ID'lerini al
-    const deletedIds = changes.deleted
-      .filter((detail) => detail && detail.id)
-      .map((detail) => detail.id);
 
-    const payload = {
-      added: changes.added.map((detail) => ({
-        product_id: (detail.product && detail.product.id) || detail.product_id,
-        count: detail.count,
-        unit_price: detail.unit_price || 1,
-      })),
-      modified: changes.modified.map((detail) => ({
-        id: detail.id,
-        product_id: (detail.product && detail.product.id) || detail.product_id,
-        count: detail.count,
-        unit_price: detail.unit_price || 1,
-      })),
-      deleted: deletedIds,
-    };
 
     return this.http.post<any>(
       `${this.api.getApiUrl()}/orders/${order_id}/bulk-update-order-details/`,
-      payload
+      changes
     );
   }
 

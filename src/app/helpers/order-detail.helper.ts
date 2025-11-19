@@ -1,9 +1,9 @@
-import { OrderDetail } from "../models/order-detail.interface";
+import { OrderDetailRead } from "../models/order-detail.interface";
 
-export function areOrderDetailsEqual(a: OrderDetail[], b: OrderDetail[]): boolean {
+export function areOrderDetailsEqual(a: OrderDetailRead[], b: OrderDetailRead[]): boolean {
     if (a.length !== b.length) return false;
 
-    const sortById = (list: OrderDetail[]) =>
+    const sortById = (list: OrderDetailRead[]) =>
         [...list].sort((x, y) => x.id.localeCompare(y.id));
 
     const sa = sortById(a);

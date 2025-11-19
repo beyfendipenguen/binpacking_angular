@@ -1,12 +1,12 @@
 import { CompanyRelation } from "../../../../../../models/company-relation.interface";
-import { OrderDetail } from "../../../../../../models/order-detail.interface";
+import { OrderDetailRead, OrderDetailWrite } from "../../../../../../models/order-detail.interface";
 import { Order } from "../../../../../../models/order.interface";
 import { Truck } from "../../../../../../models/truck.interface";
 
 
 export interface InvoiceUploadState {
   order: Order | null;
-  orderDetails: OrderDetail[];
+  orderDetails: OrderDetailRead[];
   hasFile: boolean;
   fileName?: string;
 }
@@ -27,14 +27,14 @@ export interface FormData {
 
 
 export interface OrderDetailUpdateEvent {
-  item: OrderDetail;
+  item: OrderDetailRead;
   data: any;
 }
 
 export interface OrderDetailChanges {
-  added: OrderDetail[];
-  modified: OrderDetail[];
-  deleted: string[];
+  added: OrderDetailWrite[];
+  modified: OrderDetailWrite[];
+  deletedIds: string[];
 }
 
 export interface ReferenceData {
@@ -63,7 +63,7 @@ export type AutoSaveChangeType = 'form' | 'user-action' | 'api-response';
 
 export interface AutoSaveData {
   order: Order;
-  orderDetails: OrderDetail[];
+  orderDetails: OrderDetailRead[];
   hasFile: boolean;
   fileName?: string;
 }
