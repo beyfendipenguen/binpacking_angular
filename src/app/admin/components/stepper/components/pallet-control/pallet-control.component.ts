@@ -82,7 +82,7 @@ import {
   selectLightestPackageWeight,
   selectRemainingArea,
   selectRemainingWeight,
-  selectTotalMeter,
+  selectTotalPackagesMeter,
   selectTotalPackageWeight,
   selectVerticalSort,
   selectUiPallets,
@@ -180,7 +180,7 @@ export class PalletControlComponent
   public totalWeight = this.store.selectSignal(selectTotalPackageWeight);
 
   public remainingWeight = this.store.selectSignal(selectRemainingWeight);
-  public totalMeter = this.store.selectSignal(selectTotalMeter);
+  public totalMeter = this.store.selectSignal(selectTotalPackagesMeter);
   public remainingArea = this.store.selectSignal(selectRemainingArea);
 
   public heaviestPalletWeight = this.store.selectSignal(

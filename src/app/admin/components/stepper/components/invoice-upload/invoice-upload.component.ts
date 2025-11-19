@@ -59,9 +59,8 @@ import {
   selectAverageOrderDetailHeight, selectIsStepLoading, selectIsEditMode,
   selectIsOrderDirty,
   selectInvoiceTemplateFile,
-  selectTotalMeter,
-  selectStep2ProductCount,
   selectTotalProductCount,
+  selectTotalProductsMeter,
 } from '../../../../../store/stepper/stepper.selectors';
 import { combineLatest } from 'rxjs';
 import { map } from 'rxjs/operators';
@@ -117,7 +116,7 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
   public orderDetailsSignal = this.store.selectSignal(selectOrderDetails);
   public isOrderDetailsDirtySignal = this.store.selectSignal(selectIsOrderDetailsDirty);
   public isOrderDirtySignal = this.store.selectSignal(selectIsOrderDirty);
-  public totalMeter = this.store.selectSignal(selectTotalMeter);
+  public totalMeter = this.store.selectSignal(selectTotalProductsMeter);
   public totalCount = this.store.selectSignal(selectTotalProductCount);
 
   public hasUploadFileSignal = this.store.selectSignal(selectStep1HasFile);

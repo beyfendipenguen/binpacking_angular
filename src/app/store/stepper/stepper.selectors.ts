@@ -4,7 +4,6 @@ import { UiPackage } from '../../admin/components/stepper/components/ui-models/u
 import { toInteger } from 'lodash-es';
 import { UiPallet } from '../../admin/components/stepper/components/ui-models/ui-pallet.model';
 import { areOrderDetailsEqual, deepEqual } from '../../helpers/order-detail.helper';
-import { stat } from 'fs';
 
 // Feature selector
 export const selectStepperState = createFeatureSelector<StepperState>('stepper');
@@ -230,10 +229,6 @@ export const selectStep2PackageCount = createSelector(
   (packages) => packages.length
 );
 
-export const selectStep2ProductCount = createSelector(
-  selectRemainingProducts,
-  (products) => products.length
-);
 
 /**
  * Calculates the weight of each valid package according to the order's weight type.
@@ -282,7 +277,15 @@ export const selectRemainingWeight = createSelector(
   }
 );
 
-export const selectTotalMeter = createSelector(selectUiPackages, (uiPackages) => {
+export const selectTotalProductsMeter = createSelector(selectOrderDetails, (orderDetails) => {
+  return orderDetails.reduce((total: number, detail: any) => {
+    const depth = detail.product?.dimension?.depth || 0;
+    const count = detail.count || 0;
+    return (total + (depth * count) / 1000)
+  }, 0);
+})
+
+export const selectTotalPackagesMeter = createSelector(selectUiPackages, (uiPackages) => {
   const packages = uiPackages;
 
   const totalMm = packages.reduce((total, pkg) => {
@@ -586,8 +589,8 @@ function packageTotalWeight(pkg: UiPackage, weightType: string): number {
 }
 
 export const selectTotalProductCount = createSelector(
-  selectStep1State,
-  (state) => state.orderDetails.reduce((sum, od) => sum + od.count, 0)
+  selectOrderDetails,
+  (orderDetails) => orderDetails.reduce((sum, od) => sum + od.count, 0)
 );
 
 
