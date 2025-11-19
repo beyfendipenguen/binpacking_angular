@@ -1,5 +1,5 @@
-import { isDevMode } from '@angular/core';
-import { StoreConfig } from '@ngrx/store';
+import { ErrorHandler, Injectable, isDevMode } from '@angular/core';
+import { ActionReducer, MetaReducer, StoreConfig } from '@ngrx/store';
 import { StoreDevtoolsConfig } from '@ngrx/store-devtools';
 
 export const STORE_CONFIG: StoreConfig<any> & { runtimeChecks?: any } = {
@@ -33,3 +33,33 @@ export const DEVTOOLS_CONFIG: StoreDevtoolsConfig = {
   //   // persist: true                       // State'i localStorage'da sakla
   // }
 };
+
+export function logger(reducer: ActionReducer<any>): ActionReducer<any> {
+  return (state, action) => {
+    const result = reducer(state, action);
+    console.groupCollapsed(action.type);
+    console.log('prev state', state);
+    console.log('action', action);
+    console.log('next state', result);
+    console.groupEnd();
+    return result;
+  };
+}
+export const metaReducers: MetaReducer<any>[] = isDevMode()
+  ? [logger]
+  : [];
+
+@Injectable()
+export class GlobalErrorHandler implements ErrorHandler {
+  handleError(error: any): void {
+    console.error('🔴 Global Error:', error);
+
+    // NgRx hatalarını özellikle logla
+    if (error?.message?.includes('ngrx')) {
+      console.error('🔴 NgRx Runtime Error:', {
+        message: error.message,
+        stack: error.stack
+      });
+    }
+  }
+}

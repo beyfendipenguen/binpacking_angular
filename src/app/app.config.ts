@@ -20,7 +20,7 @@ import { provideStoreDevtools } from '@ngrx/store-devtools';
 import { reducers } from './store';
 import { StepperEffects } from './store/stepper/stepper.effects';
 import { UserEffects } from './store/user/user.effects';
-import { STORE_CONFIG, DEVTOOLS_CONFIG } from './ngrx.config';
+import { STORE_CONFIG, DEVTOOLS_CONFIG,metaReducers  } from './ngrx.config';
 
 export function appInitialization() {
   const configService = inject(ConfigService);
@@ -54,7 +54,7 @@ export const appConfig: ApplicationConfig = {
     },
 
     // ✅ NgRx Store - Runtime Checks ile
-    provideStore(reducers, STORE_CONFIG),
+    provideStore(reducers, { ...STORE_CONFIG, metaReducers }),
 
     // ✅ NgRx Effects
     provideEffects([StepperEffects, UserEffects]),
