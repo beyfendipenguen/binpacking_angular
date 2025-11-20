@@ -81,7 +81,7 @@ export const palletControlSubmit = createAction(
   '[Stepper] Pallet Control Submit'
 );
 
-export const palletControlSubmitSuccess = createAction(
+export const createPackageDetailsSuccess = createAction(
   '[Stepper] Pallet Control Submit Success',
   props<{ packageDetails: any }>()
 );
@@ -122,35 +122,37 @@ export const setStepperData = createAction(
   props<{ data: any }>()
 );
 
-// create updateOrcreateOrder
-export const updateOrCreateOrder = createAction(
-  '[Invoice Upload] update or create order',
-  props<{ context: string }>()
+/*
+* single create order
+* or
+* single update order 
+*/
+export const saveOrder = createAction(
+  '[Invoice Upload] update or create order'
 );
 
-export const updateOrCreateOrderSuccess = createAction(
+
+export const saveOrderSuccess = createAction(
   '[Invoice Upload] update or create order success',
-  props<{ order: any, context: string }>()
+  props<{ order: any }>()
 );
 
 export const createOrderDetails = createAction(
-  '[Invoice Upload] Create Order Details',
-  props<{ context: string }>()
+  '[Invoice Upload] Create Order Details'
 );
 
 export const createOrderDetailsSuccess = createAction(
   '[Invoice Upload] Create Order Details Success',
-  props<{ orderDetails: any[], context: string }>()
+  props<{ orderDetails: any[] }>()
 );
 
-export const updateOrderDetailsChanges = createAction(
+export const updateOrderDetails = createAction(
   '[Invoice Upload] Update Order Detail Changes',
-  props<{ context?: string }>()
 )
 
-export const updateOrderDetailsChangesSuccess = createAction(
+export const updateOrderDetailsSuccess = createAction(
   '[Invoice Upload] update order detail changes success',
-  props<{ orderDetails: any[], context?: string }>()
+  props<{ orderDetails: any[] }>()
 );
 
 export const setVerticalSort = createAction(
@@ -164,8 +166,7 @@ export const setVerticalSortInPackage = createAction(
 )
 
 export const uploadFileToOrder = createAction(
-  '[Invoice Upload] Upload file to Order',
-  props<{ context?: string }>()
+  '[Invoice Upload] Upload file to Order'
 )
 
 export const uploadInvoiceProcessFile = createAction(
