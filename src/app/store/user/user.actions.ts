@@ -1,5 +1,5 @@
 import { createAction, props } from '@ngrx/store';
-import { User, ChangePasswordRequest } from '../../models/user.interface';
+import { ChangePasswordRequest, User } from '../../core/interfaces/user.interface';
 
 // Load User
 export const loadUser = createAction(
