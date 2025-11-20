@@ -1,9 +1,9 @@
-import { IUiPackage } from "../../admin/components/stepper/interfaces/ui-interfaces/ui-package.interface";
-import { IUiPallet } from "../../admin/components/stepper/interfaces/ui-interfaces/ui-pallet.interface";
-import { IUiProduct } from "../../admin/components/stepper/interfaces/ui-interfaces/ui-product.interface";
-import { Document } from "../../models/file.interface";
-import { OrderDetailRead, OrderDetailWrite } from "../../models/order-detail.interface";
-import { Order } from "../../models/order.interface";
+import { OrderDetailRead, OrderDetailWrite } from "@app/features/interfaces/order-detail.interface";
+import { Order } from "@app/features/interfaces/order.interface";
+import { IUiPackage } from "@app/features/stepper/interfaces/ui-interfaces/ui-package.interface";
+import { IUiPallet } from "@app/features/stepper/interfaces/ui-interfaces/ui-pallet.interface";
+import { IUiProduct } from "@app/features/stepper/interfaces/ui-interfaces/ui-product.interface";
+import { Document } from "@app/features/interfaces/file.interface";
 
 export interface StepperState {
   // Mevcut properties...

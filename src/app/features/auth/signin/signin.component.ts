@@ -8,12 +8,12 @@ import { MatLabel } from '@angular/material/form-field';
 import { AuthService } from '../../../core/auth/services/auth.service';
 import { MatCardModule } from '@angular/material/card';
 import { MatDialog } from '@angular/material/dialog';
-import { ForgotPasswordDialogComponent } from '../../../admin/components/profile/forgot-password-dialog/forgot-password-dialog.component';
 import { environment } from '../../../../environments/environment';
+import { ForgotPasswordDialogComponent } from '@features/profile/forgot-password-dialog/forgot-password-dialog.component';
 
 @Component({
   selector: 'app-signin',
-  imports: [MatButton, MatFormField, MatInput, MatIcon, MatLabel, ReactiveFormsModule,MatCardModule],
+  imports: [MatButton, MatFormField, MatInput, MatIcon, MatLabel, ReactiveFormsModule, MatCardModule],
   templateUrl: './signin.component.html',
   styleUrl: './signin.component.scss'
 })
@@ -28,9 +28,9 @@ export class SigninComponent {
     public authService: AuthService
   ) {
     this.signinForm = this.fb.group({
-      username: [environment.production ? '' : 'muhammed',[Validators.required]],
-      password: [environment.production ? '' : '1911Ahmet.',[Validators.required]]
-  });
+      username: [environment.production ? '' : 'muhammed', [Validators.required]],
+      password: [environment.production ? '' : '1911Ahmet.', [Validators.required]]
+    });
   }
 
   loginUser() {
@@ -39,13 +39,13 @@ export class SigninComponent {
   }
 
   openForgotPasswordDialog() {
-      const dialogRef = this.dialog.open(ForgotPasswordDialogComponent, {
-        width: '400px',
-        disableClose: true,
-      });
+    const dialogRef = this.dialog.open(ForgotPasswordDialogComponent, {
+      width: '400px',
+      disableClose: true,
+    });
 
-      dialogRef.afterClosed().subscribe((result) => {
+    dialogRef.afterClosed().subscribe((result) => {
 
-      });
-    }
+    });
+  }
 }

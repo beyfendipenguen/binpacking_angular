@@ -1,10 +1,11 @@
 import { createFeatureSelector, createSelector, MemoizedSelector, State } from '@ngrx/store';
 import { StepperState } from './stepper.state';
-import { UiPackage } from '../../admin/components/stepper/components/ui-models/ui-package.model';
-import { toInteger } from 'lodash-es';
-import { UiPallet } from '../../admin/components/stepper/components/ui-models/ui-pallet.model';
-import { areOrderDetailsEqual, deepEqual } from '../../helpers/order-detail.helper';
-import { arePackageListsEqual, calculatePackageChanges } from '../../helpers/package-changes.helper';
+import { UiPackage } from '../../features/stepper/components/ui-models/ui-package.model';
+import { toInteger } from 'lodash';
+import { deepEqual, areOrderDetailsEqual } from '../../features/stepper/components/invoice-upload/order-detail.helper';
+import { arePackageListsEqual, calculatePackageChanges } from '../../features/stepper/components/pallet-control/package-changes.helper';
+import { UiPallet } from '../../features/stepper/components/ui-models/ui-pallet.model';
+
 
 // Feature selector
 export const selectStepperState = createFeatureSelector<StepperState>('stepper');

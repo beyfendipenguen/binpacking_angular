@@ -1,15 +1,15 @@
 import { createReducer, on } from '@ngrx/store';
 import { initialStepperState } from './stepper.state';
 import * as StepperActions from './stepper.actions';
-import { mapPackageDetailToPackage } from '../../models/mappers/package-detail.mapper';
-import { UiPackage } from '../../admin/components/stepper/components/ui-models/ui-package.model';
-import { UiPallet } from '../../admin/components/stepper/components/ui-models/ui-pallet.model';
-import { UiProduct } from '../../admin/components/stepper/components/ui-models/ui-product.model';
 import { isEqual } from 'lodash-es';
-import { OrderDetailDiffCalculator } from '../../models/utils/order-detail-diff.util';
-import { mapUiPackagesToOrderDetails } from '../../models/mappers/ui-package-to-order-detail.mapper';
 import { v4 as Guid } from 'uuid';
-import { calculatePackageChanges } from '../../helpers/package-changes.helper';
+import { mapPackageDetailToPackage } from '@features/mappers/package-detail.mapper';
+import { mapUiPackagesToOrderDetails } from '@features/mappers/ui-package-to-order-detail.mapper';
+import { UiPackage } from '@features/stepper/components/ui-models/ui-package.model';
+import { UiPallet } from '@features/stepper/components/ui-models/ui-pallet.model';
+import { UiProduct } from '@features/stepper/components/ui-models/ui-product.model';
+import { OrderDetailDiffCalculator } from '@features/utils/order-detail-diff.util';
+import { calculatePackageChanges } from '@app/features/stepper/components/pallet-control/package-changes.helper';
 
 export const stepperReducer = createReducer(
   initialStepperState,

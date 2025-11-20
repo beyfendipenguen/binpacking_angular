@@ -1,6 +1,6 @@
+import { IUiPackage } from '@app/features/stepper/interfaces/ui-interfaces/ui-package.interface';
+import { IUiPallet } from '@app/features/stepper/interfaces/ui-interfaces/ui-pallet.interface';
 import { createAction, props } from '@ngrx/store';
-import { IUiPallet } from '../../admin/components/stepper/interfaces/ui-interfaces/ui-pallet.interface';
-import { IUiPackage } from '../../admin/components/stepper/interfaces/ui-interfaces/ui-package.interface';
 
 
 export const calculateOrderDetailChanges = createAction(

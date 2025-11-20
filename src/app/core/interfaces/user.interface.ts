@@ -1,6 +1,6 @@
-import { Company } from "../../models/company.interface";
+import { Company } from "@app/features/interfaces/company.interface";
 
-export interface User{
+export interface User {
   password: string;
   last_login: Date | null;
   is_superuser: boolean;

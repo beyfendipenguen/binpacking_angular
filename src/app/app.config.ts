@@ -6,13 +6,10 @@ import { routes } from './app.routes';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
-import { CsrfTokenInterceptor } from './core/auth/interceptors/csrftoken.interceptor';
 import { ConfigService } from './core/services/config.service';
 import { AuthInterceptor } from './core/auth/interceptors/auth.interceptor';
 import { GlobalErrorHandler } from './core/services/global-error-handler';
-import { loadingInterceptor } from './components/loading/loading.interceptor';
 import { ToastrModule } from 'ngx-toastr';
-import { PermissionService } from './core/services/permission.service';
 
 import { provideStore } from '@ngrx/store';
 import { provideEffects } from '@ngrx/effects';
@@ -20,8 +17,9 @@ import { provideStoreDevtools } from '@ngrx/store-devtools';
 import { reducers } from './store';
 import { StepperEffects } from './store/stepper/stepper.effects';
 import { UserEffects } from './store/user/user.effects';
-import { STORE_CONFIG, DEVTOOLS_CONFIG,metaReducers  } from './ngrx.config';
+import { STORE_CONFIG, DEVTOOLS_CONFIG, metaReducers } from './ngrx.config';
 import { ResultStepFacade } from './store/stepper/facade/result-step.facade';
+import { loadingInterceptor } from './shared/loading/loading.interceptor';
 
 export function appInitialization() {
   const configService = inject(ConfigService);

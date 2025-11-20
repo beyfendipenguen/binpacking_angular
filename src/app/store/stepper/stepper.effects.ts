@@ -4,16 +4,14 @@ import { Store } from '@ngrx/store';
 import {
   map,
   tap,
-  take,
   switchMap,
   catchError,
   withLatestFrom,
   mergeMap,
   filter,
   concatMap,
-  exhaustMap,
 } from 'rxjs/operators';
-import { EMPTY, forkJoin, of, timer } from 'rxjs';
+import { EMPTY, forkJoin, of } from 'rxjs';
 import * as StepperActions from './stepper.actions';
 import {
   AppState,
@@ -22,23 +20,21 @@ import {
   selectIsOrderDetailsDirty,
   selectOrderResult,
   selectStepperState,
-  selectUiPackages,
   selectVerticalSort,
   selectIsOrderDirty,
   selectFileExists,
   selectCompanyRelationId,
   selectPackageChanges,
 } from '../index';
-import { ToastService } from '../../core/services/toast.service';
-import { OrderService } from '../../admin/components/services/order.service';
-import { OrderDetailService } from '../../admin/components/services/order-detail.service';
-import { FileUploadManager } from '../../admin/components/stepper/components/invoice-upload/managers/file-upload.manager';
-import { LocalStorageService } from '../../admin/components/stepper/services/local-storage.service';
-import { RepositoryService } from '../../admin/components/stepper/services/repository.service';
-import { AuthService } from '../../core/auth/services/auth.service';
-import { mapPackageDetailToPackage } from '../../models/mappers/package-detail.mapper';
-import { UiPallet } from '../../admin/components/stepper/components/ui-models/ui-pallet.model';
 import { ResultStepFacade } from './facade/result-step.facade';
+import { mapPackageDetailToPackage } from '@features/mappers/package-detail.mapper';
+import { OrderDetailService } from '@features/services/order-detail.service';
+import { OrderService } from '@features/services/order.service';
+import { FileUploadManager } from '@features/stepper/components/invoice-upload/managers/file-upload.manager';
+import { UiPallet } from '@features/stepper/components/ui-models/ui-pallet.model';
+import { LocalStorageService } from '@features/stepper/services/local-storage.service';
+import { RepositoryService } from '@features/stepper/services/repository.service';
+import { ToastService } from '@core/services/toast.service';
 
 @Injectable()
 export class StepperEffects {
@@ -50,7 +46,6 @@ export class StepperEffects {
   private fileUploadManager = inject(FileUploadManager);
   private orderService = inject(OrderService);
   private orderDetailService = inject(OrderDetailService);
-  private authService = inject(AuthService);
   private resultStepFacade = inject(ResultStepFacade);
 
 

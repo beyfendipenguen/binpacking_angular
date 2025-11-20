@@ -1,11 +1,11 @@
-import { Injectable, effect, inject } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { Observable, of } from 'rxjs';
 import { concatMap, switchMap, tap, take, map } from 'rxjs/operators';
-import { RepositoryService } from '../../../admin/components/stepper/services/repository.service';
-import { AppState, createPackageDetailsSuccess, createReportFile, updateOrderDetailsSuccess, updateOrderResult } from '../..';
+import { AppState, createPackageDetailsSuccess, createReportFile, updateOrderDetailsSuccess } from '../..';
 import { AuthService } from '../../../core/auth/services/auth.service';
-import { selectIsOrderDetailsDirty, selectOrderDetailsChanges, selectUiPackages, selectOrderResult, selectPackageChanges } from '../stepper.selectors';
+import { selectIsOrderDetailsDirty, selectOrderDetailsChanges, selectOrderResult, selectPackageChanges } from '../stepper.selectors';
+import { RepositoryService } from '@features/stepper/services/repository.service';
 
 /**
  * ResultStepFacade

@@ -1,9 +1,9 @@
 import { Routes } from '@angular/router';
 import AUTH_ROUTES from './core/auth/auth.routes';
-import ADMIN_ROUTES from './admin/admin.routes';
-import { LayoutComponent } from './admin/components/layout/layout.component';
-import { ErrorComponent } from './components/error/error.component';
 import { AuthGuard } from './core/auth/guards/auth.guard'; // ← BU SATIRI EKLEYİN
+import ADMIN_ROUTES from './features/admin.routes';
+import { LayoutComponent } from './features/layout/layout.component';
+import { ErrorComponent } from './shared/error/error.component';
 
 export const routes: Routes = [
     {

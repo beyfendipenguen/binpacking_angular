@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
 import { ApiService } from './api.service';
 import { HttpClient } from '@angular/common/http';
-import { IRequiredPermission, IPermission } from '../../interfaces/permission.interface';
-import { isEquelPermissions } from '../../helpers/service-utils';
+import { IRequiredPermission, IPermission } from '@core/interfaces/permission.interface';
+import { isEquelPermissions } from '../utils/pagination.utils';
 import { firstValueFrom } from 'rxjs';
 
 

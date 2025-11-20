@@ -4,13 +4,13 @@ import {
   HttpHeaders,
 } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { User } from '../models/user.model';
 import { catchError, Observable, throwError } from 'rxjs';
 import { Router } from '@angular/router';
-import { ApiService } from '../../services/api.service';
-import { ToastService } from '../../services/toast.service';
+import { ApiService } from '@core/services/api.service';
+import { ToastService } from '@core/services/toast.service';
 import { Store } from '@ngrx/store';
 import { AppState, loadUser, resetStepper } from '../../../store';
+import { User } from '@app/core/interfaces/user.interface';
 
 @Injectable({
   providedIn: 'root',
@@ -22,7 +22,7 @@ export class AuthService {
   private toastService = inject(ToastService);
   private store = inject(Store<AppState>);
 
-  constructor(private http: HttpClient, private router: Router) {}
+  constructor(private http: HttpClient, private router: Router) { }
 
   // Sign-up
   signUp(user: User): Observable<any> {

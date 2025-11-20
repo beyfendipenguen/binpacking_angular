@@ -4,9 +4,9 @@ import { AppState } from './store';
 import { Store } from '@ngrx/store';
 import * as UserActions from './store/user/user.actions';
 import * as StepperActions from './store/stepper/stepper.actions';
-import { LoadingComponent } from "./components/loading/loading.component";
 import { filter } from 'rxjs';
-import { LoadingService } from './components/loading/loading.service';
+import { LoadingComponent } from './shared/loading/loading.component';
+import { LoadingService } from './shared/loading/loading.service';
 
 
 
@@ -21,7 +21,7 @@ export class AppComponent implements OnInit {
   showLoading = false;
   store = inject(Store<AppState>);
   loadingService = inject(LoadingService)
-  constructor(public router: Router) {}
+  constructor(public router: Router) { }
 
   ngOnInit(): void {
     this.store.dispatch(UserActions.loadUserFromStorage())
@@ -47,6 +47,6 @@ export class AppComponent implements OnInit {
       this.loadingService.loadingOff();
     });
   }
-  }
+}
 
 

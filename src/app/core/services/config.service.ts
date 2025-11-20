@@ -1,8 +1,8 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { firstValueFrom, Observable } from 'rxjs';
-import { AppConfig } from '../../interfaces/app-config';
 import { environment } from '../../../environments/environment';
+import { AppConfig } from '@core/interfaces/app-config';
 
 
 @Injectable({

@@ -4,8 +4,8 @@ import {
   HttpHandlerFn,
   HttpErrorResponse,
 } from '@angular/common/http';
-import { AuthService } from '../services/auth.service';
 import { throwError, switchMap, catchError } from 'rxjs';
+import { AuthService } from '../services/auth.service';
 
 export const AuthInterceptor = (req: HttpRequest<any>, next: HttpHandlerFn) => {
   const authService = inject(AuthService);
