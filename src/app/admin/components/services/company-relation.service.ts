@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { GenericCrudService } from '../../../services/generic-crud.service';
+import { GenericCrudService } from '../../../core/services/generic-crud.service';
 import { CompanyRelation } from '../../../models/company-relation.interface';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { map, Observable } from 'rxjs';

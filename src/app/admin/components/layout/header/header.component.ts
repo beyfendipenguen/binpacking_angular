@@ -8,7 +8,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatDividerModule } from '@angular/material/divider';
 import { Store } from '@ngrx/store';
 import { AppState, resetStepper, selectOrderId, selectUser } from '../../../../store';
-import { AuthService } from '../../../../auth/services/auth.service';
+import { AuthService } from '../../../../core/auth/services/auth.service';
 import { CancelConfirmationDialogComponent } from '../../../../components/cancel-confirmation-dialog/cancel-confirmation-dialog.component';
 import { MatDialog } from '@angular/material/dialog';
 import { filter } from 'rxjs';

@@ -1,5 +1,5 @@
 import { inject, Injectable } from '@angular/core';
-import { ApiService } from '../../../../services/api.service';
+import { ApiService } from '../../../../core/services/api.service';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { catchError, map, Observable, switchMap, tap } from 'rxjs';
 import { FileResponse } from '../interfaces/file-response.interface';

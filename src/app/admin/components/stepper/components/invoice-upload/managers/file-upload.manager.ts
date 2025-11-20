@@ -4,7 +4,7 @@ import { Observable, tap, finalize, EMPTY, take, switchMap } from 'rxjs';
 import { RepositoryService } from '../../../services/repository.service';
 import { FileState, FileValidationResult } from '../models/invoice-upload-interfaces';
 import { INVOICE_UPLOAD_CONSTANTS } from '../constants/invoice-upload.constants';
-import { ToastService } from '../../../../../../services/toast.service';
+import { ToastService } from '../../../../../../core/services/toast.service';
 import { Store } from '@ngrx/store';
 import { AppState } from '../../../../../../store';
 import { setFileExists } from '../../../../../../store/stepper/stepper.actions';

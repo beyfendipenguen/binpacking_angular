@@ -1,8 +1,8 @@
 import { Product } from "./product.interface";
 import { Order } from "./order.interface";
-import { ZeroModel } from "./zero-model.interface";
+import { Base } from "../core/interfaces/base.interface";
 
-export interface OrderDetailRead extends ZeroModel {
+export interface OrderDetailRead extends Base {
   order_id: string,
   product: Product;
   count: number;

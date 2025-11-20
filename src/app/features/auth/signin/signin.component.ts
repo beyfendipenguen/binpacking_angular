@@ -5,7 +5,7 @@ import { MatInput } from '@angular/material/input';
 import { MatIcon } from '@angular/material/icon';
 import { MatButton } from '@angular/material/button';
 import { MatLabel } from '@angular/material/form-field';
-import { AuthService } from '../../services/auth.service';
+import { AuthService } from '../../../core/auth/services/auth.service';
 import { MatCardModule } from '@angular/material/card';
 import { MatDialog } from '@angular/material/dialog';
 import { ForgotPasswordDialogComponent } from '../../../admin/components/profile/forgot-password-dialog/forgot-password-dialog.component';

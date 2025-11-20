@@ -5,7 +5,7 @@ import { OrderDetailChanges } from '../models/invoice-upload-interfaces';
 import { RepositoryService } from '../../../services/repository.service';
 import { OrderDetailAddDialogComponent } from '../order-detail-add-dialog/order-detail-add-dialog.component';
 import { INVOICE_UPLOAD_CONSTANTS } from '../constants/invoice-upload.constants';
-import { ToastService } from '../../../../../../services/toast.service';
+import { ToastService } from '../../../../../../core/services/toast.service';
 import { OrderDetailRead } from '../../../../../../models/order-detail.interface';
 
 @Injectable({

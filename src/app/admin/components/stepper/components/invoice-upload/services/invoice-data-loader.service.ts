@@ -3,7 +3,7 @@ import { Observable, switchMap, of, tap, map } from 'rxjs';
 import { RepositoryService } from '../../../services/repository.service';
 import { ReferenceData } from '../models/invoice-upload-interfaces';
 import { INVOICE_UPLOAD_CONSTANTS } from '../constants/invoice-upload.constants';
-import { ToastService } from '../../../../../../services/toast.service';
+import { ToastService } from '../../../../../../core/services/toast.service';
 import { Truck } from '../../../../../../models/truck.interface';
 import { AppState, selectUser } from '../../../../../../store';
 import { Store } from '@ngrx/store';

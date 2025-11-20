@@ -6,13 +6,13 @@ import { routes } from './app.routes';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
-import { CsrfTokenInterceptor } from './auth/interceptors/csrftoken.interceptor';
-import { ConfigService } from './services/config.service';
-import { AuthInterceptor } from './auth/interceptors/auth.interceptor';
-import { GlobalErrorHandler } from './services/global-error-handler';
+import { CsrfTokenInterceptor } from './core/auth/interceptors/csrftoken.interceptor';
+import { ConfigService } from './core/services/config.service';
+import { AuthInterceptor } from './core/auth/interceptors/auth.interceptor';
+import { GlobalErrorHandler } from './core/services/global-error-handler';
 import { loadingInterceptor } from './components/loading/loading.interceptor';
 import { ToastrModule } from 'ngx-toastr';
-import { PermissionService } from './services/permission.service';
+import { PermissionService } from './core/services/permission.service';
 
 import { provideStore } from '@ngrx/store';
 import { provideEffects } from '@ngrx/effects';

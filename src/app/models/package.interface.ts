@@ -1,8 +1,8 @@
-import { BaseModel } from './base-model.interface';
+import { Base } from '../core/interfaces/base.interface';
 import { Order } from './order.interface';
 import { Pallet } from './pallet.interface';
 
-export interface Package extends BaseModel {
+export interface Package extends Base {
   // Ya pallet nesnesi ya da pallet_id olabilir
   pallet?: Pallet | null;
   pallet_id?: string;

@@ -1,8 +1,8 @@
 import { CompanyRelation } from "./company-relation.interface";
 import { Truck } from "./truck.interface";
-import { ZeroModel } from "./zero-model.interface";
+import { Base } from "../core/interfaces/base.interface";
 
-export interface Order extends ZeroModel {
+export interface Order extends Base {
   date: string; // ISO 8601 tarih formatı: "2025-04-11T14:30:00"
   company_relation: CompanyRelation | null;
   weight_type: string;

@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
-import { GenericCrudService } from '../../../services/generic-crud.service';
+import { GenericCrudService } from '../../../core/services/generic-crud.service';
 import { HttpClient } from '@angular/common/http';
 import { Order } from '../../../models/order.interface';
-import { ApiService } from '../../../services/api.service';
+import { ApiService } from '../../../core/services/api.service';
 
 @Injectable({
   providedIn: 'root'

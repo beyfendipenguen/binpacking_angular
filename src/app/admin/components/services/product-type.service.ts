@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { ProductType } from '../../../models/product-type.interface';
-import { GenericCrudService } from '../../../services/generic-crud.service';
+import { GenericCrudService } from '../../../core/services/generic-crud.service';
 import { HttpClient } from '@angular/common/http';
 
 @Injectable({

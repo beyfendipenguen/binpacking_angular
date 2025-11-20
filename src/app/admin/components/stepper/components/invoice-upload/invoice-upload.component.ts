@@ -30,7 +30,7 @@ import {
   Subject,
   Subscription,
 } from 'rxjs';
-import { ToastService } from '../../../../../services/toast.service';
+import { ToastService } from '../../../../../core/services/toast.service';
 
 import { GenericTableComponent } from '../../../../../components/generic-table/generic-table.component';
 

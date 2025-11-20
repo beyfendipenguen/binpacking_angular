@@ -34,7 +34,7 @@ import { RepositoryService } from '../../services/repository.service';
 import { UiProduct } from '../ui-models/ui-product.model';
 import { UiPallet } from '../ui-models/ui-pallet.model';
 import { UiPackage } from '../ui-models/ui-package.model';
-import { ToastService } from '../../../../../services/toast.service';
+import { ToastService } from '../../../../../core/services/toast.service';
 import { Store } from '@ngrx/store';
 import {
   addUiProductToRemainingProducts,

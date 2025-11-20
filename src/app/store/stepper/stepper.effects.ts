@@ -29,13 +29,13 @@ import {
   selectCompanyRelationId,
   selectPackageChanges,
 } from '../index';
-import { ToastService } from '../../services/toast.service';
+import { ToastService } from '../../core/services/toast.service';
 import { OrderService } from '../../admin/components/services/order.service';
 import { OrderDetailService } from '../../admin/components/services/order-detail.service';
 import { FileUploadManager } from '../../admin/components/stepper/components/invoice-upload/managers/file-upload.manager';
 import { LocalStorageService } from '../../admin/components/stepper/services/local-storage.service';
 import { RepositoryService } from '../../admin/components/stepper/services/repository.service';
-import { AuthService } from '../../auth/services/auth.service';
+import { AuthService } from '../../core/auth/services/auth.service';
 import { mapPackageDetailToPackage } from '../../models/mappers/package-detail.mapper';
 import { UiPallet } from '../../admin/components/stepper/components/ui-models/ui-pallet.model';
 import { ResultStepFacade } from './facade/result-step.facade';

@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
-import { SigninComponent } from './components/signin/signin.component';
-import { LoginGuard } from './login.guard';
+import { SigninComponent } from '../../features/auth/signin/signin.component';
+import { LoginGuard } from './guards/login.guard';
 
 const AUTH_ROUTES: Routes = [
   {
@@ -11,7 +11,7 @@ const AUTH_ROUTES: Routes = [
   {
     path: 'reset-password/:uidb64/:token',
     loadComponent: () =>
-      import('./components/reset-password/reset-password.component').then(
+      import('../../features/auth/reset-password/reset-password.component').then(
         (c) => c.ResetPasswordComponent
       ),
   },

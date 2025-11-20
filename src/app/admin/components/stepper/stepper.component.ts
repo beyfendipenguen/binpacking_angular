@@ -25,7 +25,7 @@ import { Store } from '@ngrx/store';
 import { LocalStorageService } from './services/local-storage.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { LoadingComponent } from '../../../components/loading/loading.component';
-import { ToastService } from '../../../services/toast.service';
+import { ToastService } from '../../../core/services/toast.service';
 import { AppState } from '../../../store';
 import * as StepperActions from '../../../store/stepper/stepper.actions';
 import * as StepperSelectors from '../../../store/stepper/stepper.selectors';

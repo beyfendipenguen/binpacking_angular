@@ -8,7 +8,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
-import { UserService } from '../../../../services/user.service';
+import { UserService } from '../../../../features/auth/user.service';
 
 @Component({
   selector: 'app-forgot-password-dialog',

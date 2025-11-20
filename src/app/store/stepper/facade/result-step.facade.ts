@@ -4,7 +4,7 @@ import { Observable, of } from 'rxjs';
 import { concatMap, switchMap, tap, take, map } from 'rxjs/operators';
 import { RepositoryService } from '../../../admin/components/stepper/services/repository.service';
 import { AppState, createPackageDetailsSuccess, createReportFile, updateOrderDetailsSuccess, updateOrderResult } from '../..';
-import { AuthService } from '../../../auth/services/auth.service';
+import { AuthService } from '../../../core/auth/services/auth.service';
 import { selectIsOrderDetailsDirty, selectOrderDetailsChanges, selectUiPackages, selectOrderResult, selectPackageChanges } from '../stepper.selectors';
 
 /**

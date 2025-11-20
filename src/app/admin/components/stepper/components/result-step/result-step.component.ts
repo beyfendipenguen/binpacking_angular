@@ -17,7 +17,7 @@ import { RepositoryService } from '../../services/repository.service';
 import { DomSanitizer } from '@angular/platform-browser';
 import { MatIconModule } from '@angular/material/icon';
 import { CommonModule } from '@angular/common';
-import { ToastService } from '../../../../../services/toast.service';
+import { ToastService } from '../../../../../core/services/toast.service';
 import { switchMap, takeUntil, catchError, finalize, tap } from 'rxjs/operators';
 import { Subject, EMPTY } from 'rxjs';
 import { ThreeJSTruckVisualizationComponent } from '../../../../../components/threejs-truck-visualization/threejs-truck-visualization.component';

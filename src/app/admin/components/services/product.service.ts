@@ -1,7 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient, HttpContext, HttpParams } from '@angular/common/http';
 import { catchError, map, Observable, of, switchMap, take } from 'rxjs';
-import { GenericCrudService } from '../../../services/generic-crud.service';
+import { GenericCrudService } from '../../../core/services/generic-crud.service';
 import { Product } from '../../../models/product.interface';
 import { SKIP_LOADING } from '../../../components/loading/skip-loading.token';
 import { Store } from '@ngrx/store';

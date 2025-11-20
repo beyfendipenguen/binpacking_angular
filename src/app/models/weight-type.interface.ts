@@ -1,6 +1,6 @@
-import { BaseModel } from "./base-model.interface";
+import { Base } from "../core/interfaces/base.interface";
 
-export interface WeightType extends BaseModel {
+export interface WeightType extends Base {
   std: number;
   eco: number;
   pre: number;

@@ -1,4 +1,4 @@
-import { ZeroModel } from "./zero-model.interface";
+import { Base } from "../core/interfaces/base.interface";
 
 export type Status =
   | 'pending'
@@ -7,7 +7,7 @@ export type Status =
   | 'failed'
   | 'cancelled';
 
-  export interface Job extends ZeroModel{
+  export interface Job extends Base{
     process_id?: string | null;
     job_type: string;
     status: Status;

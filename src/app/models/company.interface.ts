@@ -1,4 +1,4 @@
-import { ZeroModel } from "./zero-model.interface";
+import { Base } from "../core/interfaces/base.interface";
 
 export interface Company {
   id: string; //UUID

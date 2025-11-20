@@ -27,12 +27,12 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatChipsModule } from '@angular/material/chips';
-import { GenericCrudService, Page } from '../../services/generic-crud.service';
+import { GenericCrudService, Page } from '../../core/services/generic-crud.service';
 import { FilterDialogComponent } from './filter-dialog/filter-dialog.component';
 import { ConfirmDialogComponent } from './confirm-dialog/confirm-dialog.component';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { AddOrUpdateDialogComponent } from './add-or-update-dialog/add-or-update-dialog-component';
-import { ToastService } from '../../services/toast.service';
+import { ToastService } from '../../core/services/toast.service';
 import { Observable, of } from 'rxjs';
 
 // Interface for external data source

@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { GenericCrudService } from '../../../services/generic-crud.service';
+import { GenericCrudService } from '../../../core/services/generic-crud.service';
 import { HttpClient } from '@angular/common/http';
 import { PackageDetail } from '../../../models/package-detail.interface';
 

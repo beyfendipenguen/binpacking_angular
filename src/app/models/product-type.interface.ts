@@ -1,6 +1,6 @@
-import { BaseModel } from "./base-model.interface";
+import { Base } from "../core/interfaces/base.interface";
 
-export interface ProductType extends BaseModel {
+export interface ProductType extends Base {
   code: string;
   type: string;
 }

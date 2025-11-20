@@ -1,5 +1,5 @@
 import { Directive, Input, OnInit, TemplateRef, ViewContainerRef } from '@angular/core';
-import { PermissionService } from '../services/permission.service';
+import { PermissionService } from '../core/services/permission.service';
 import { IRequiredPermission } from '../interfaces/permission.interface';
 
 @Directive({

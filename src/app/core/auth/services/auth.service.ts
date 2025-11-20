@@ -10,7 +10,7 @@ import { Router } from '@angular/router';
 import { ApiService } from '../../services/api.service';
 import { ToastService } from '../../services/toast.service';
 import { Store } from '@ngrx/store';
-import { AppState, loadUser, resetStepper } from '../../store';
+import { AppState, loadUser, resetStepper } from '../../../store';
 
 @Injectable({
   providedIn: 'root',

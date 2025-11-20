@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { OrderDetailRead } from '../../../models/order-detail.interface';
-import { GenericCrudService } from '../../../services/generic-crud.service';
+import { GenericCrudService } from '../../../core/services/generic-crud.service';
 import { HttpClient } from '@angular/common/http';
 import { Observable, map, forkJoin, switchMap } from 'rxjs';
 

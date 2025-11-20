@@ -1,7 +1,8 @@
-import { BaseModel } from "./base-model.interface";
+
+import { Base } from "../core/interfaces/base.interface";
 import { Pallet } from "./pallet.interface";
 
-export interface PalletGroup extends BaseModel {
+export interface PalletGroup extends Base {
   name: string;
   description?: string | null;
   is_global: boolean;
