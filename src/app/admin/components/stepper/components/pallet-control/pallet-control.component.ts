@@ -66,7 +66,6 @@ import {
 
 import {
   selectRemainingProducts,
-  selectStep2IsDirty,
   selectIsOrderDetailsDirty,
   selectUiPackages,
   allDropListIds,
@@ -86,6 +85,7 @@ import {
   selectTotalPackageWeight,
   selectVerticalSort,
   selectUiPallets,
+  selectIsPackagesDirty,
 } from '../../../../../store/stepper/stepper.selectors';
 import {
   catchError,
@@ -152,7 +152,7 @@ export class PalletControlComponent
   public orderDetailsIsDirtySignal =
     this.store.selectSignal(selectIsOrderDetailsDirty);
 
-  public isDirtySignal = this.store.selectSignal(selectStep2IsDirty);
+  public isDirtySignal = this.store.selectSignal(selectIsPackagesDirty);
   public orderSignal = this.store.selectSignal(selectOrder);
   public verticalSortSignal = this.store.selectSignal(selectVerticalSort);
 

@@ -4,6 +4,7 @@ import { UiPackage } from '../../admin/components/stepper/components/ui-models/u
 import { toInteger } from 'lodash-es';
 import { UiPallet } from '../../admin/components/stepper/components/ui-models/ui-pallet.model';
 import { areOrderDetailsEqual, deepEqual } from '../../helpers/order-detail.helper';
+import { arePackageListsEqual, calculatePackageChanges } from '../../helpers/package-changes.helper';
 
 // Feature selector
 export const selectStepperState = createFeatureSelector<StepperState>('stepper');
@@ -210,14 +211,98 @@ export const selectStep2Changes = createSelector(
   (step2State) => ({
     added: step2State.addedPackages,
     modified: step2State.modifiedPackages,
-    deleted: step2State.deletedPackages
+    deleted: step2State.deletedPackageIds
   })
 );
 
-export const selectStep2IsDirty = createSelector(
+export const selectStep2OriginalPackages = createSelector(
   selectStep2State,
-  (step2State) => step2State.isDirty
+  (step2State) => step2State.originalPackages
 );
+
+// #region STEP2 PACKAGE CHANGES SELECTORS (YENİ BÖLÜM)
+
+/**
+ * Step2 için isDirty hesaplar
+ *
+ * Mantık:
+ * - originalPackages boş ise → false (henüz hiç kaydedilmemiş, dirty değil temiz)
+ * - originalPackages dolu ise → packages ile karşılaştır
+ *
+ * NOT: İlk calculate'ten sonra packages dolu ama originalPackages boş
+ * Bu durumda false döner çünkü henüz DB'ye kaydedilmemiş (added durumu)
+ *
+ * @returns boolean - Step2 dirty mi?
+ */
+export const selectIsPackagesDirty = createSelector(
+  selectPackages,
+  selectStep2OriginalPackages,
+  (packages, originalPackages) => {
+    // Orijinal paketler yoksa dirty değil (henüz kaydedilmemiş)
+    if (!originalPackages || originalPackages.length === 0) {
+      console.log('[selectIsStep2PackagesDirty] Original packages yok, dirty=true');
+      return true;
+    }
+
+    // Paketleri karşılaştır
+    const isEqual = arePackageListsEqual(packages, originalPackages);
+
+    console.log('[selectIsStep2PackagesDirty] Karşılaştırma:', {
+      packagesCount: packages.length,
+      originalCount: originalPackages.length,
+      isEqual,
+      isDirty: !isEqual
+    });
+
+    return !isEqual;
+  }
+);
+
+/**
+ * Paket değişikliklerini hesaplar (added, modified, deleted)
+ *
+ * Bu selector her çağrıldığında değişiklikleri yeniden hesaplar.
+ * State'te tutmak yerine on-demand hesaplama yapar.
+ *
+ * NOT: Selector memoization sayesinde packages veya originalPackages
+ * değişmedikçe yeniden hesaplama yapmaz (performans optimizasyonu)
+ *
+ * @returns PackageChanges - { added, modified, deleted }
+ */
+export const selectPackageChanges = createSelector(
+  selectUiPackages, // UiPackage instance'ları döner
+  selectStep2OriginalPackages,
+  (packages, originalPackages) => {
+    console.log('[selectPackageChanges] Hesaplanıyor...');
+
+    // Original packages yoksa tümü added
+    if (!originalPackages || originalPackages.length === 0) {
+      console.log('[selectPackageChanges] Original yok, tümü added');
+      return {
+        added: packages,
+        modified: [],
+        deletedIds: []
+      };
+    }
+
+    // Helper ile değişiklikleri hesapla
+    const changes = calculatePackageChanges(packages, originalPackages);
+
+    return changes;
+  }
+);
+
+/**
+ * Added packages selector
+ *
+ * Sadece eklenen paketleri döndürür
+ */
+export const selectAddedPackages = createSelector(
+  selectPackageChanges,
+  (changes) => changes.added
+);
+
+// #endregion
 
 export const selectVerticalSort = createSelector(
   selectStep2State,
@@ -540,13 +625,6 @@ export const selectAverageOrderDetailHeight = createSelector(
     return toInteger(totalHeight / orderDetails.length);
   }
 )
-
-
-
-export const selectStep2OriginalPackages = createSelector(
-  selectStep2State,
-  (step2State) => step2State.originalPackages
-);
 
 export const selectRemainingArea = createSelector(selectUiPackages, selectOrder, (uiPackages, order) => {
   const packages = uiPackages;

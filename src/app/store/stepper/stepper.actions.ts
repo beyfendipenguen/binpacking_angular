@@ -3,14 +3,34 @@ import { IUiPallet } from '../../admin/components/stepper/interfaces/ui-interfac
 import { IUiPackage } from '../../admin/components/stepper/interfaces/ui-interfaces/ui-package.interface';
 
 
-export const createPackageDetail = createAction(
-  '[Stepper] Create Package Detail'
-)
-
 export const calculateOrderDetailChanges = createAction(
   '[Stepper] Calculate Order Detail Changes'
 );
-
+/**
+ * Package değişikliklerini hesaplama action'ı
+ *
+ * Bu action trigger edildiğinde reducer:
+ * - packages ile originalPackages'ı karşılaştırır
+ * - added, modified, deleted listelerini hesaplar
+ * - State'teki step2State.addedPackages, modifiedPackages, deletedPackages'ı günceller
+ *
+ * Kullanım Senaryoları:
+ * - Drag-drop işlemlerinden sonra
+ * - Package ekleme/silme işlemlerinden sonra
+ * - Pallet değişikliklerinden sonra
+ *
+ * NOT: OrderDetails'teki calculateOrderDetailChanges benzeri çalışır
+ *
+ * @example
+ * // Effect'te tetikleme
+ * this.actions$.pipe(
+ *   ofType(StepperActions.movePalletToPackage),
+ *   map(() => StepperActions.calculatePackageChanges())
+ * )
+ */
+export const calculatePackageChanges = createAction(
+  '[Stepper Step2] Calculate Package Changes'
+);
 
 export const deleteRemainingProduct = createAction(
   '[Stepper] Delete Remaining Product',
@@ -369,4 +389,24 @@ export const syncInvoiceUploadStep = createAction(
 export const resultStepSubmit = createAction(
   '[stepper] result step submit',
   props<{ orderResult: string, resetStepper: boolean, packageNames?: string[] }>()
+);
+
+/**
+ * Result Step Submit işlemi başarıyla tamamlandı
+ *
+ * Bu action sadece UI feedback için kullanılır.
+ * Facade tüm işlemleri tamamladıktan sonra bu action dispatch edilir.
+ */
+export const resultStepSubmitSuccess = createAction(
+  '[stepper] result step submit success'
+);
+
+/**
+ * Result Step Submit işlemi sırasında hata oluştu
+ *
+ * @param error - Hata mesajı
+ */
+export const resultStepSubmitError = createAction(
+  '[stepper] result step submit error',
+  props<{ error: string }>()
 );

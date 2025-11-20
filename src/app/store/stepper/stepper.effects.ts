@@ -20,7 +20,6 @@ import {
   selectOrder,
   selectOrderDetailsChanges,
   selectIsOrderDetailsDirty,
-  selectStep2IsDirty,
   selectOrderResult,
   selectStepperState,
   selectUiPackages,
@@ -28,6 +27,7 @@ import {
   selectIsOrderDirty,
   selectFileExists,
   selectCompanyRelationId,
+  selectPackageChanges,
 } from '../index';
 import { ToastService } from '../../services/toast.service';
 import { OrderService } from '../../admin/components/services/order.service';
@@ -38,6 +38,7 @@ import { RepositoryService } from '../../admin/components/stepper/services/repos
 import { AuthService } from '../../auth/services/auth.service';
 import { mapPackageDetailToPackage } from '../../models/mappers/package-detail.mapper';
 import { UiPallet } from '../../admin/components/stepper/components/ui-models/ui-pallet.model';
+import { ResultStepFacade } from './facade/result-step.facade';
 
 @Injectable()
 export class StepperEffects {
@@ -50,7 +51,7 @@ export class StepperEffects {
   private orderService = inject(OrderService);
   private orderDetailService = inject(OrderDetailService);
   private authService = inject(AuthService);
-
+  private resultStepFacade = inject(ResultStepFacade);
 
   // Private helper method
   // Global Error Effects
@@ -452,90 +453,248 @@ export class StepperEffects {
   );
 
 
-  palletControlSubmit$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(StepperActions.palletControlSubmit),
-      withLatestFrom(
-        this.store.select(selectUiPackages),
-        this.store.select(selectOrderDetailsChanges),
-        this.store.select(selectIsOrderDetailsDirty),
-        this.store.select(selectStep2IsDirty),
-      ),
-      filter(([action, uiPackages, changes, isOrderDetailsDirty, isPackageDetailsDirty]) => isPackageDetailsDirty),
-      map(([action, uiPackages, changes, isOrderDetailsDirty, isPackageDetailsDirty]) => ({
-        uiPackages, changes, isOrderDetailsDirty, isPackageDetailsDirty
-      })),
-      concatMap(payload => {
-        if (!payload.isOrderDetailsDirty) {
-          return of(payload)
-        }
-        return this.repositoryService.bulkUpdateOrderDetails(payload.changes).pipe(
-          tap((result) => this.store.dispatch(StepperActions.updateOrderDetailsChangesSuccess({ orderDetails: result.order_details }))),
-          catchError((error) =>
-            of(StepperActions.setGlobalError({ error: error.message }))
-          ),
-          map(() => payload),
-        )
-      }),
-      concatMap(payload => {
-        if (!payload.isPackageDetailsDirty) {
-          return of(payload)
-        }
-        return this.repositoryService.bulkCreatePackageDetail(payload.uiPackages).pipe(
-          tap((result) => this.store.dispatch(StepperActions.palletControlSubmitSuccess({ packageDetails: result.package_details }))),
-          catchError((error) =>
-            of(StepperActions.setGlobalError({ error: error.message }))
-          ),
-        )
-      }),
+/**
+ * Pallet Control Submit Effect
+ *
+ * İş Akışı:
+ * 1. OrderDetails dirty ise → Kaydet
+ * 2. Package changes'leri → Kaydet
+ * 3. Her iki adımda da error handling
+ *
+ * NOT: bulkCreatePackageDetails$ effect'i SİLİNDİ, artık bu tek effect var
+ */
+palletControlSubmit$ = createEffect(() =>
+  this.actions$.pipe(
+    ofType(StepperActions.palletControlSubmit),
+    withLatestFrom(
+      this.store.select(selectPackageChanges),
+      this.store.select(selectIsOrderDetailsDirty),
+      this.store.select(selectOrderDetailsChanges),
     ),
+
+    // Step 1: OrderDetails varsa kaydet
+    concatMap(([action, packageChanges, isOrderDetailsDirty, orderDetailChanges]) => {
+      console.log('[Effect] palletControlSubmit - Başlatılıyor:', {
+        hasPackageChanges: packageChanges.added.length > 0 ||
+                          packageChanges.modified.length > 0 ||
+                          packageChanges.deletedIds.length > 0,
+        isOrderDetailsDirty
+      });
+
+      // OrderDetails dirty değilse direkt package changes'e geç
+      if (!isOrderDetailsDirty) {
+        return of(packageChanges);
+      }
+
+      // OrderDetails dirty ise kaydet
+      return this.repositoryService.bulkUpdateOrderDetails(orderDetailChanges).pipe(
+        tap((result) => {
+          console.log('[Effect] OrderDetails kaydedildi');
+          this.store.dispatch(
+            StepperActions.updateOrderDetailsChangesSuccess({
+              orderDetails: result.order_details
+            })
+          );
+        }),
+        map(() => packageChanges), // ✅ PackageChanges'i döndür
+        catchError((error) => {
+          console.error('[Effect] OrderDetails kayıt hatası:', error);
+          this.store.dispatch(
+            StepperActions.setGlobalError({
+              error: { message: error.message, stepIndex: 2 }
+            })
+          );
+          return EMPTY; // ✅ Flow'u durdur (error durumunda devam etme)
+        })
+      );
+    }),
+
+    // Step 2: Package changes'leri kaydet
+    concatMap((packageChanges) => { // ✅ Artık type güvenli
+      console.log('[Effect] Package changes kaydediliyor:', {
+        added: packageChanges.added.length,
+        modified: packageChanges.modified.length,
+        deleted: packageChanges.deletedIds.length
+      });
+
+      return this.repositoryService.bulkUpdatePackageDetails(packageChanges).pipe(
+        map((result) => {
+          console.log('[Effect] Package changes kaydedildi:', result);
+
+          return StepperActions.palletControlSubmitSuccess({
+            packageDetails: result.package_details
+          });
+        }),
+        catchError((error) => {
+          console.error('[Effect] Package changes kayıt hatası:', error);
+          return of(
+            StepperActions.setGlobalError({
+              error: { message: error.message, stepIndex: 2 }
+            })
+          );
+        })
+      );
+    })
+  )
+);
+
+  /**
+   * Result Step Submit Effect
+   *
+   * Karmaşık iş mantığını ResultStepFacade'e delege eder.
+   * Effect sadece action'ları dinler ve facade'i çağırır.
+   *
+   * İş Akışı:
+   * 1. resultStepSubmit action'ını dinle
+   * 2. Facade'in submitResultStep metodunu çağır
+   * 3. Başarı durumunda: resultStepSubmitSuccess dispatch et
+   * 4. Hata durumunda: setGlobalError dispatch et
+   *
+   * NOT: concatMap kullanarak aynı anda birden fazla submit işleminin
+   * çalışmasını engelliyor ve sıralı işlem garantisi sağlıyoruz.
+   */
+  resultStepSubmit$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(StepperActions.resultStepSubmit),
+
+      // Loading state'ini aktif et
+      tap(action => {
+        console.log('[Effect] Result Step Submit başlatıldı', {
+          resetStepper: action.resetStepper
+        });
+
+        this.store.dispatch(
+          StepperActions.setStepLoading({
+            stepIndex: 3,
+            loading: true,
+            operation: 'result-step-submit'
+          })
+        );
+      }),
+
+      // Facade'i çağır (concatMap ile sıralı işlemi garanti et)
+      concatMap(action =>
+        this.resultStepFacade.submitResultStep(action.resetStepper).pipe(
+          // Başarı durumu
+          map(() => {
+            console.log('[Effect] Result Step Submit başarıyla tamamlandı');
+
+            // Loading state'ini kapat
+            this.store.dispatch(
+              StepperActions.setStepLoading({
+                stepIndex: 3,
+                loading: false,
+                operation: 'result-step-submit'
+              })
+            );
+
+            return StepperActions.resultStepSubmitSuccess();
+          }),
+
+          // Hata durumu
+          catchError(error => {
+            console.error('[Effect] Result Step Submit hatası:', error);
+
+            // Loading state'ini kapat
+            this.store.dispatch(
+              StepperActions.setStepLoading({
+                stepIndex: 3,
+                loading: false,
+                operation: 'result-step-submit'
+              })
+            );
+
+            return of(
+              StepperActions.setGlobalError({
+                error: {
+                  message: error.message || 'Result step submit sırasında hata oluştu',
+                  stepIndex: 3
+                }
+              })
+            );
+          })
+        )
+      )
+    )
   );
 
 
-  bulkCreatPackageDetails$ = createEffect(() =>
+  /**
+   * Package Changes Effect
+   *
+   * Package'larla ilgili her türlü değişiklikten sonra
+   * calculatePackageChanges action'ını tetikler.
+   *
+   * Bu effect OrderDetails'teki orderDetailChanges$ effect'i ile aynı mantıkta çalışır.
+   *
+   * Tetikleme Senaryoları:
+   * - Drag-drop işlemleri (pallet, product hareketleri)
+   * - Package ekleme/silme işlemleri
+   * - Product ekleme/silme işlemleri
+   * - Alignment değişiklikleri
+   * - Split işlemleri
+   *
+   * İş Akışı:
+   * 1. Aşağıdaki action'lardan biri tetiklenir
+   * 2. Effect bu action'ı yakalar
+   * 3. calculatePackageChanges action'ını dispatch eder
+   * 4. Reducer bu action'ı alıp changes'leri hesaplar ve state'e yazar
+   *
+   * NOT: Burada catchError kullanıyoruz çünkü selector hesaplama sırasında
+   * beklenmedik bir hata olursa sistemi çökertmemek istiyoruz.
+   */
+  packageChanges$ = createEffect(() =>
     this.actions$.pipe(
-      ofType(StepperActions.createPackageDetail),
-      withLatestFrom(this.store.select(selectUiPackages)),
-      switchMap(([action, uiPackages]) => {
-        return this.repositoryService.bulkCreatePackageDetail(uiPackages).pipe(
-          map((result) =>
-            StepperActions.palletControlSubmitSuccess({
-              packageDetails: result.package_details,
-            })
-          )
-        )
+      ofType(
+        // Drag-Drop: Pallet İşlemleri
+        StepperActions.movePalletToPackage,
+        StepperActions.removePalletFromPackage,
+
+        // Drag-Drop: Product İşlemleri (Paketler Arası)
+        StepperActions.moveUiProductInPackageToPackage,
+        StepperActions.movePartialProductBetweenPackages,
+
+        // Drag-Drop: Product İşlemleri (Paket İçi)
+        StepperActions.moveUiProductInSamePackage,
+
+        // Drag-Drop: Remaining Products İşlemleri
+        StepperActions.moveRemainingProductToPackage,
+        StepperActions.movePartialRemainingProductToPackage,
+        StepperActions.moveProductToRemainingProducts,
+        StepperActions.remainingProductMoveProduct,
+
+        // Package İşlemleri
+        StepperActions.removePackage,
+        StepperActions.removeAllPackage,
+        StepperActions.removeProductFromPackage,
+
+        // Product İşlemleri
+        StepperActions.splitProduct,
+        StepperActions.addUiProductToRemainingProducts,
+        StepperActions.deleteRemainingProduct,
+
+        // Alignment Değişiklikleri
+        StepperActions.setVerticalSortInPackage,
+
+        // Product Count Güncellemeleri
+        StepperActions.updateProductCountAndCreateOrUpdateOrderDetail,
+      ),
+      tap(() => {
+        console.log('[packageChanges$ Effect] Package değişikliği tespit edildi, changes hesaplanacak');
+      }),
+      map(() => StepperActions.calculatePackageChanges()),
+      catchError((error) => {
+        console.error('[packageChanges$ Effect] Hata:', error);
+        return of(
+          StepperActions.setGlobalError({
+            error: {
+              message: error.message || 'Package changes hesaplanırken hata oluştu',
+              stepIndex: 2
+            }
+          })
+        );
       })
     )
-  );
-
-
-  resultStepSubmit$ = createEffect(() => {
-    return this.actions$.pipe(
-      ofType(StepperActions.resultStepSubmit),
-      switchMap((action) =>
-        of(StepperActions.updateOrderDetailsChanges({})).pipe(
-          concatMap(() => this.actions$.pipe(
-            ofType(StepperActions.updateOrderDetailsChangesSuccess),
-            take(1),
-            map(() => StepperActions.createPackageDetail())
-          )),
-          concatMap(() => this.actions$.pipe(
-            ofType(StepperActions.palletControlSubmitSuccess),
-            take(1),
-            map(() => StepperActions.updateOrderResult())
-          )),
-          tap(() => {
-            if (action.resetStepper) {
-              this.authService.doLogout();
-            }
-          }),
-          catchError((error) =>
-            of(StepperActions.setGlobalError({ error: error.message }))
-          )
-        )
-      ),
-    )
-  }
   );
 
 }

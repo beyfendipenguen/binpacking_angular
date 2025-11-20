@@ -1,16 +1,23 @@
 import { OrderDetailRead } from "../models/order-detail.interface";
 
-export function areOrderDetailsEqual(a: OrderDetailRead[], b: OrderDetailRead[]): boolean {
-    if (a.length !== b.length) return false;
+export function areOrderDetailsEqual(
+  a: OrderDetailRead[],
+  b: OrderDetailRead[]
+): boolean {
+  if (a.length !== b.length) {
+    return false;
+  }
 
-    const sortById = (list: OrderDetailRead[]) =>
-        [...list].sort((x, y) => x.id.localeCompare(y.id));
+  // Signature oluştur: "product_id:count"
+  const createSignature = (detail: OrderDetailRead): string => {
+    const productId = detail.product?.id;
+    return `${productId}:${detail.count}`;
+  };
 
-    const sa = sortById(a);
-    const sb = sortById(b);
+  const signaturesA = a.map(createSignature).sort();
+  const signaturesB = b.map(createSignature).sort();
 
-    return sa.every((x, i) => deepEqual(x, sb[i]));
-
+  return signaturesA.every((sig, index) => sig === signaturesB[index]);
 }
 
 

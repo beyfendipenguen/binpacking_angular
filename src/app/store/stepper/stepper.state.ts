@@ -76,7 +76,7 @@ export interface StepperState {
     originalRemainingProducts: any[];
     addedPackages: any[];
     modifiedPackages: any[];
-    deletedPackages: any[];
+    deletedPackageIds: any[];
     isDirty: boolean;
     verticalSort: boolean
   };
@@ -151,7 +151,7 @@ export const initialStepperState: StepperState = {
     originalRemainingProducts: [],
     addedPackages: [],
     modifiedPackages: [],
-    deletedPackages: [],
+    deletedPackageIds: [],
     isDirty: false,
     verticalSort: false
   },

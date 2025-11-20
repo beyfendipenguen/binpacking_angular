@@ -1,7 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { ApiService } from '../../../../services/api.service';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { map, Observable, switchMap } from 'rxjs';
+import { catchError, map, Observable, switchMap, tap } from 'rxjs';
 import { FileResponse } from '../interfaces/file-response.interface';
 import { mapPackageToPackageDetail } from '../../../../models/mappers/package-detail.mapper';
 import { OrderDetailRead } from '../../../../models/order-detail.interface';
@@ -153,19 +153,65 @@ export class RepositoryService {
       .pipe();
   }
 
-  bulkCreatePackageDetail(
-    uiPackages: IUiPackage[],
-    order_id: string = this.getOrderId()
-  ) {
+/**
+ * Package değişikliklerini backend'e gönderir ve günceller
+ *
+ * İş Akışı:
+ * 1. UiPackage[] → PackageDetail[] mapping (mevcut mapper kullanılır)
+ * 2. Backend'e added, modified, deletedPackageIds gönderilir
+ * 3. Backend nested PackageDetailRead response döner
+ *
+ * @param changes - selectPackageChanges selector'ından gelen değişiklikler
+ * @param orderId - Order ID (default: store'daki order)
+ * @returns Observable<{ package_details: PackageDetailRead[] }>
+ */
+bulkUpdatePackageDetails(
+  changes: {
+    added: IUiPackage[],
+    modified: IUiPackage[],
+    deletedIds: string[]
+  },
+  orderId: string = this.getOrderId()
+): Observable<{ package_details: any[] }> {
+  console.log('[RepositoryService] bulkUpdatePackageDetails - Başlatılıyor:', {
+    addedCount: changes.added.length,
+    modifiedCount: changes.modified.length,
+    deletedCount: changes.deletedIds.length,
+    orderId
+  });
 
-    const payload = {
-      packageDetails: mapPackageToPackageDetail(uiPackages),
-    };
-    return this.http.post<any>(
-      `${this.api.getApiUrl()}/logistics/create-package-detail/${order_id}/`,
-      payload
-    );
-  }
+  // UiPackage[] → PackageDetail[] mapping
+  const addedPackageDetails = mapPackageToPackageDetail(changes.added);
+  const modifiedPackageDetails = mapPackageToPackageDetail(changes.modified);
+
+
+  const payload = {
+    added: addedPackageDetails,
+    modified: modifiedPackageDetails,
+    deletedPackageIds: changes.deletedIds
+  };
+
+  console.log('[RepositoryService] bulkUpdatePackageDetails - Payload:', {
+    addedDetails: payload.added.length,
+    modifiedDetails: payload.modified.length,
+    deletedIds: payload.deletedPackageIds.length
+  });
+
+  return this.http.post<{ package_details: any[] }>(
+    `${this.api.getApiUrl()}/logistics/create-package-detail/${orderId}/`,
+    payload
+  ).pipe(
+    tap(response => {
+      console.log('[RepositoryService] bulkUpdatePackageDetails - Response:', {
+        packageDetailsCount: response.package_details?.length
+      });
+    }),
+    catchError(error => {
+      console.error('[RepositoryService] bulkUpdatePackageDetails - Error:', error);
+      throw error;
+    })
+  );
+}
 
   /**
    * Bulk Update OrderDetails**

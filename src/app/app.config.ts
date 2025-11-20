@@ -21,6 +21,7 @@ import { reducers } from './store';
 import { StepperEffects } from './store/stepper/stepper.effects';
 import { UserEffects } from './store/user/user.effects';
 import { STORE_CONFIG, DEVTOOLS_CONFIG,metaReducers  } from './ngrx.config';
+import { ResultStepFacade } from './store/stepper/facade/result-step.facade';
 
 export function appInitialization() {
   const configService = inject(ConfigService);
@@ -61,5 +62,7 @@ export const appConfig: ApplicationConfig = {
 
     // ✅ NgRx DevTools - Geliştirilmiş Ayarlar
     ...(isDevMode() ? [provideStoreDevtools(DEVTOOLS_CONFIG)] : []),
+
+    ResultStepFacade
   ]
 };
