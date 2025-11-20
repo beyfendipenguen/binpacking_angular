@@ -1,4 +1,4 @@
-import { Company } from "./company.interface";
+import { Company } from "../../models/company.interface";
 
 export interface User{
   password: string;
@@ -14,7 +14,7 @@ export interface User{
   id: string;
   company: Company;
   is_admin: boolean;
-  phone: string|null;
+  phone: string | null;
   address: string;
   profile_picture: string;
 }

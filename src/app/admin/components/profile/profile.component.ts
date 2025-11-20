@@ -15,7 +15,6 @@ import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
 import { MatTabsModule } from '@angular/material/tabs';
-import { User } from '../../../models/user.interface';
 import { UserService } from '../../../features/auth/user.service';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { ForgotPasswordDialogComponent } from './forgot-password-dialog/forgot-password-dialog.component';
@@ -23,6 +22,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { Store } from '@ngrx/store';
 import { AppState, loadUser, selectUser } from '../../../store';
 import { Subject, takeUntil } from 'rxjs';
+import { User } from '../../../core/interfaces/user.interface';
 
 @Component({
   selector: 'app-profile',
