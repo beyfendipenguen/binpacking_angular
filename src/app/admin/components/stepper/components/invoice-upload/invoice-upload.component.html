@@ -13,7 +13,7 @@
   </div>
 
   <!-- Empty State Card -->
-  @if(!orderSignal() && !isLoadingSignal() ){
+  @if(!orderSignal() ){
   <div class="logistics-card">
     <!-- Template Info Button - Sağ üst köşe -->
     <button mat-icon-button class="template-info-floating" (click)="downloadTemplate()"
@@ -53,7 +53,7 @@
   </div>
   }
   <!-- Order Details Dashboard -->
-  @if (orderSignal() && !isLoadingSignal()) {
+  @if (orderSignal()) {
   <div class="details-section">
     <!-- Order Summary -->
     <div class="dashboard-panel">

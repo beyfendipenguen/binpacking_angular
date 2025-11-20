@@ -145,7 +145,7 @@ export const setStepperData = createAction(
 /*
 * single create order
 * or
-* single update order 
+* single update order
 */
 export const saveOrder = createAction(
   '[Invoice Upload] update or create order'
@@ -303,34 +303,13 @@ export const initializeStepper = createAction(
 
 // Auto-Save Actions (dosyanın sonuna ekleyin)
 
-// Auto-save trigger actions
-export const triggerAutoSave = createAction(
-  '[Auto-Save] Trigger Auto Save',
-  props<{ stepNumber: number; data: any; changeType: 'emergency' | 'data-change' | 'drag-drop' | 'form' | 'user-action' | 'api-response' | 'form-change' }>()
-);
 
-
-// Force save action (manuel kaydetme için)
-export const forceSave = createAction(
-  '[Auto-Save] Force Save',
-  props<{ stepNumber: number; data: any }>()
-);
 
 export const setGlobalError = createAction(
   '[Error] Set Global Error',
   props<{ error: { message: string; code?: string; stepIndex?: number } }>()
 );
 
-export const retryOperation = createAction(
-  '[Error] Retry Operation',
-  props<{ stepIndex: number; operation: string }>()
-);
-
-// Step-specific Loading Actions
-export const setStepLoading = createAction(
-  '[Loading] Set Step Loading',
-  props<{ stepIndex: number; loading: boolean; operation?: string }>()
-);
 
 export const initializeStep1StateFromUpload = createAction(
   '[Migration] Initialize Step1 State From Upload',

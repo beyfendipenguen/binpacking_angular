@@ -6,6 +6,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { FileService } from '../../../services/file.service';
+import { Document } from '../../../../../models/file.interface';
 
 interface FileItem {
   id: string;
@@ -61,8 +62,8 @@ export class FilesDialogComponent implements OnInit {
     };
 
     this.fileService.getAll(params).subscribe({
-      next: (response) => {
-        this.files = response.results.map((file: any) => ({
+      next: (response : any) => {
+        this.files = response.results.map((file: Document) => ({
           id: file.id,
           name: file.name,
           type: file.type,

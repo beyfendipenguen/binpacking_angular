@@ -112,24 +112,4 @@ export class OrderDetailsDialogComponent implements OnInit {
   close(): void {
     this.dialogRef.close();
   }
-
-  /**
-   * Calculate total count
-   */
-  getTotalCount(data: any[]): number {
-    if (!data || !data.length) return 0;
-    return data.reduce((total, detail) => total + (Number(detail.count) || 0), 0);
-  }
-
-  /**
-   * Calculate total meters (depth * count)
-   */
-  getTotalMeter(data: any[]): number {
-    if (!data || !data.length) return 0;
-    return data.reduce((total, detail) => {
-      const depth = detail.product?.dimension?.depth || 0;
-      const count = detail.count || 0;
-      return total + (depth * count / 1000);
-    }, 0);
-  }
 }

@@ -1,4 +1,5 @@
 import { CompanyRelation } from "../../../../../../models/company-relation.interface";
+import { Document } from "../../../../../../models/file.interface";
 import { OrderDetailRead, OrderDetailWrite } from "../../../../../../models/order-detail.interface";
 import { Order } from "../../../../../../models/order.interface";
 import { Truck } from "../../../../../../models/truck.interface";

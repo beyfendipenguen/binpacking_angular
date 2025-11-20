@@ -9,6 +9,7 @@ import { Store } from '@ngrx/store';
 import { AppState } from '../../../../../../store';
 import { setFileExists } from '../../../../../../store/stepper/stepper.actions';
 import { selectFileExists } from '../../../../../../store/stepper/stepper.selectors';
+import { Document } from '../../../../../../models/file.interface';
 @Injectable({
   providedIn: 'root'
 })

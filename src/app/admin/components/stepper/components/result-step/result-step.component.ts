@@ -24,7 +24,7 @@ import { ThreeJSTruckVisualizationComponent } from '../../../../../components/th
 import { OrderResultService } from '../../../services/order-result.service';
 
 import { Store } from '@ngrx/store';
-import { AppState, navigateToStep, resultStepSubmit, selectAutoSaveStatusText, selectIsEditMode, selectOrderId, selectRemainingProducts, selectStep3IsDirty, selectStepAutoSaveStatus, selectStepHasPendingChanges, selectStepperSummary, setGlobalError, setStepCompleted, setStepLoading, setStepperData, setStepValidation } from '../../../../../store';
+import { AppState, navigateToStep, resultStepSubmit, selectIsEditMode, selectOrderId, selectRemainingProducts, selectStep3IsDirty, selectStepperSummary, setGlobalError, setStepCompleted, setStepperData, setStepValidation } from '../../../../../store';
 import { CancelConfirmationDialogComponent } from '../../../../../components/cancel-confirmation-dialog/cancel-confirmation-dialog.component';
 import { MatDialog } from '@angular/material/dialog';
 
@@ -111,10 +111,6 @@ export class ResultStepComponent implements OnInit, OnDestroy {
   // NgRx Observables
   public isEditMode$ = this.store.select(selectIsEditMode);
   public editOrderId$ = this.store.select(selectOrderId);
-  public stepperSummary$ = this.store.select(selectStepperSummary);
-  public autoSaveStatus$ = this.store.select(selectStepAutoSaveStatus(2));
-  public autoSaveStatusText$ = this.store.select(selectAutoSaveStatusText(2));
-  public hasPendingChanges$ = this.store.select(selectStepHasPendingChanges(2));
 
   private resultAutoSaveTimeout: any;
   public currentViewType: string = 'isometric';
@@ -163,11 +159,6 @@ export class ResultStepComponent implements OnInit, OnDestroy {
   }
 
   calculateBinpacking(): void {
-    this.store.dispatch(setStepLoading({
-      stepIndex: 2,
-      loading: true,
-      operation: 'Calculating bin packing optimization'
-    }));
     this.startProgressSimulation();
 
     this.repositoryService
@@ -189,10 +180,6 @@ export class ResultStepComponent implements OnInit, OnDestroy {
         }),
         finalize(() => {
           this.stopProgressSimulation();
-          this.store.dispatch(setStepLoading({
-            stepIndex: 2,
-            loading: false
-          }));
         })
       )
       .subscribe({

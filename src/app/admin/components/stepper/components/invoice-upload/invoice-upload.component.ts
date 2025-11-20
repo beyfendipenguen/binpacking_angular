@@ -56,7 +56,7 @@ import { Store } from '@ngrx/store';
 import {
   selectOrder, selectOrderDetails, selectIsOrderDetailsDirty,
   selectStep1HasFile, selectStep1FileName,
-  selectAverageOrderDetailHeight, selectIsStepLoading, selectIsEditMode,
+  selectAverageOrderDetailHeight, selectIsEditMode,
   selectIsOrderDirty,
   selectInvoiceTemplateFile,
   selectTotalProductCount,
@@ -67,6 +67,8 @@ import { map } from 'rxjs/operators';
 import { CompanyRelationService } from '../../../services/company-relation.service';
 import { FileService } from '../../../services/file.service';
 import { Order } from '../../../../../models/order.interface';
+import { Document } from '../../../../../models/file.interface';
+import { string } from 'three/src/nodes/TSL.js';
 
 @Component({
   selector: 'app-invoice-upload',
@@ -121,7 +123,6 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
 
   public hasUploadFileSignal = this.store.selectSignal(selectStep1HasFile);
   public fileNameSignal = this.store.selectSignal(selectStep1FileName);
-  public isLoadingSignal = this.store.selectSignal(selectIsStepLoading(1));
   public isEditModeSignal = this.store.selectSignal(selectIsEditMode);
   public userSignal = this.store.selectSignal(selectUser);
   public templateFileSignal = this.store.selectSignal(selectInvoiceTemplateFile);
@@ -155,13 +156,6 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
     return this.uiStateManager.uiState$;
   }
 
-  // UI State getters
-  isLoading$ = combineLatest([
-    this.store.select(selectIsStepLoading(0)),
-    this.uiState$
-  ]).pipe(
-    map(([ngrxLoading, uiLoading]) => ngrxLoading || uiLoading)
-  );
 
   get file(): File | null {
     return this.fileUploadManager.getCurrentFile();
@@ -266,32 +260,36 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
   downloadTemplate() {
     const templateFile = this.templateFileSignal();
     if (templateFile) {
-      const file = templateFile;
+      const download = (blob: Blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `${templateFile.name}.xlsx`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+      };
 
-      // HTTP ile dosyayı blob olarak indir
-      fetch(file.file)
-        .then(response => response.blob())
-        .then(blob => {
-          const url = window.URL.createObjectURL(blob);
-          const link = document.createElement('a');
-          link.href = url;
-          link.download = `${file.name}.xlsx`;
-          document.body.appendChild(link);
-          link.click();
-
-          // Temizlik
-          document.body.removeChild(link);
-          window.URL.revokeObjectURL(url);
-        })
-        .catch(error => {
-          // Hata bildirimi göster
-        });
-    } else {
+      if (typeof templateFile.file === 'string') {
+        // If it's a URL string, fetch it
+        fetch(templateFile.file)
+          .then(response => response.blob())
+          .then(download)
+          .catch(error => {
+            this.toastService.error('Template download failed.');
+            console.error('Error downloading template file:', error);
+          });
+      } else if (templateFile.file instanceof File) {
+        // If it's a File object, use it directly
+        download(templateFile.file);
+      }
     }
   }
 
   getTemplateFile() {
-    if (!this.templateFileSignal() || this.templateFileSignal().length === 0) {
+    const templateFile = this.templateFileSignal();
+    if (!templateFile) {
       const company_id = this.userSignal()?.company.id
       this.fileService.getAll({
         company_id: company_id,
@@ -308,11 +306,6 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
   }
 
   uploadFile(): void {
-    this.store.dispatch(StepperActions.setStepLoading({
-      stepIndex: 0,
-      loading: true,
-      operation: 'File upload'
-    }));
     this.store.dispatch(StepperActions.uploadInvoiceProcessFile());
     this.resetForm();
 

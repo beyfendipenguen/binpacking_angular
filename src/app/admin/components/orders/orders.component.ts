@@ -12,6 +12,7 @@ import { GenericTableComponent, ColumnDefinition, CellButtonClickEvent } from '.
 import { OrderDetailsDialogComponent } from './dialogs/order-details-dialog/order-details-dialog.component';
 import { PackageDialogComponent } from './dialogs/package-dialog/package-dialog.component';
 import { FilesDialogComponent } from './dialogs/files-dialog/files-dialog.component';
+import { Order } from '../../../models/order.interface';
 
 @Component({
   selector: 'app-orders',
@@ -177,7 +178,7 @@ export class OrdersComponent implements OnInit {
   /**
    * Open Order Details Dialog
    */
-  openOrderDetailsDialog(order: any): void {
+  openOrderDetailsDialog(order: Order): void {
     this.dialog.open(OrderDetailsDialogComponent, {
       width: '90%',
       maxWidth: '1200px',
@@ -193,7 +194,7 @@ export class OrdersComponent implements OnInit {
   /**
    * Open Package Dialog
    */
-  openPackageDialog(order: any): void {
+  openPackageDialog(order: Order): void {
     this.dialog.open(PackageDialogComponent, {
       width: '90%',
       maxWidth: '1200px',
@@ -209,7 +210,7 @@ export class OrdersComponent implements OnInit {
   /**
    * Open Files Dialog
    */
-  openFilesDialog(order: any): void {
+  openFilesDialog(order: Order): void {
     this.dialog.open(FilesDialogComponent, {
       width: '800px',
       maxHeight: '80vh',
@@ -224,7 +225,7 @@ export class OrdersComponent implements OnInit {
   /**
    * Handle row click - Navigate to edit page
    */
-  onRowClick(order: any): void {
+  onRowClick(order: Order): void {
     this.editOrder(order);
   }
 
@@ -232,7 +233,7 @@ export class OrdersComponent implements OnInit {
    * Navigate to order edit page
    * ÖNEMLİ: Bu metod olduğu gibi kalacak, değiştirilmeyecek!
    */
-  editOrder(order: any): void {
+  editOrder(order: Order): void {
     if (!order) {
       return;
     }

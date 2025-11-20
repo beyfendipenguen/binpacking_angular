@@ -8,9 +8,6 @@
       <ng-template matStepLabel>
         (ISB) İhracat Sipariş Bildirimi Yükleme @if (isEditModeSignal()) {<span
           class="edit-mode-badge">DÜZENLEME</span>}
-        @if (invoiceUploadLoadingSignal()) {
-        <mat-spinner diameter="16" class="step-spinner"></mat-spinner>
-        }
       </ng-template>
       <app-invoice-upload #invoiceUploadComponent>
       </app-invoice-upload>
@@ -19,9 +16,6 @@
     <mat-step [completed]="(completedStepsSignal() >= 2)" [editable]="(completedStepsSignal() >= 1)">
       <ng-template matStepLabel>
         Palet Kontrolü @if (isEditModeSignal()) {<span class="edit-mode-badge">DÜZENLEME</span>}
-        @if(palletControlLoadingSignal()){
-        <mat-spinner diameter="16" class="step-spinner"></mat-spinner>
-        }
       </ng-template>
       <app-pallet-control #palletControlComponent> </app-pallet-control>
     </mat-step>
@@ -29,9 +23,6 @@
     <mat-step [completed]="completedStepsSignal() >= 3" [editable]="completedStepsSignal() >= 2">
       <ng-template matStepLabel>
         Sonuç Ekranı @if (isEditModeSignal()) {<span class="edit-mode-badge">DÜZENLEME</span>}
-        @if(resultControlLoadingSignal()){
-        <mat-spinner diameter="16" class="step-spinner"></mat-spinner>
-        }
       </ng-template>
       <app-result-step #resultStepComponent (shipmentCompleted)="onShipmentCompleted()">
       </app-result-step>

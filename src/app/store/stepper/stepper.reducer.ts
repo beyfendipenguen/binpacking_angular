@@ -1032,31 +1032,6 @@ export const stepperReducer = createReducer(
     loading: false
   })),
 
-  on(StepperActions.triggerAutoSave, (state, { stepNumber }) => ({
-    ...state,
-    autoSave: {
-      ...state.autoSave,
-      [stepNumber]: {
-        ...state.autoSave[stepNumber],
-        status: 'saving' as const,
-        pendingChanges: true,
-        error: null
-      }
-    }
-  })),
-
-  on(StepperActions.forceSave, (state, { stepNumber }) => ({
-    ...state,
-    autoSave: {
-      ...state.autoSave,
-      [stepNumber]: {
-        ...state.autoSave[stepNumber],
-        status: 'saving' as const,
-        pendingChanges: true
-      }
-    }
-  })),
-
   on(StepperActions.setGlobalError, (state, { error }) => ({
     ...state,
     globalError: {
@@ -1065,19 +1040,6 @@ export const stepperReducer = createReducer(
     }
   })),
 
-  on(StepperActions.setStepLoading, (state, { stepIndex, loading, operation }) => ({
-    ...state,
-    stepLoading: {
-      ...state.stepLoading,
-      [stepIndex]: {
-        ...state.stepLoading[stepIndex],
-        isLoading: loading,
-        operation: loading ? operation : undefined,
-        progress: loading ? state.stepLoading[stepIndex]?.progress : undefined,
-        message: loading ? state.stepLoading[stepIndex]?.message : undefined
-      }
-    }
-  })),
 
   on(StepperActions.setTemplateFile, (state, { templateFile }) => ({
     ...state,

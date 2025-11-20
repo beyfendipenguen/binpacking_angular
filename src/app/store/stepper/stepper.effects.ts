@@ -352,11 +352,6 @@ export class StepperEffects {
                 hasFile: true,
                 fileName: 'File Upload Result',
               }),
-              StepperActions.setStepLoading({
-                stepIndex: 0,
-                loading: false,
-                operation: 'file upload completed',
-              }),
               StepperActions.uploadInvoiceProcessFileSuccess(),
             );
           }),
@@ -545,14 +540,6 @@ export class StepperEffects {
         console.log('[Effect] Result Step Submit başlatıldı', {
           resetStepper: action.resetStepper
         });
-
-        this.store.dispatch(
-          StepperActions.setStepLoading({
-            stepIndex: 3,
-            loading: true,
-            operation: 'result-step-submit'
-          })
-        );
       }),
 
       // Facade'i çağır (concatMap ile sıralı işlemi garanti et)
@@ -562,30 +549,12 @@ export class StepperEffects {
           map(() => {
             console.log('[Effect] Result Step Submit başarıyla tamamlandı');
 
-            // Loading state'ini kapat
-            this.store.dispatch(
-              StepperActions.setStepLoading({
-                stepIndex: 3,
-                loading: false,
-                operation: 'result-step-submit'
-              })
-            );
-
             return StepperActions.resultStepSubmitSuccess();
           }),
 
           // Hata durumu
           catchError(error => {
             console.error('[Effect] Result Step Submit hatası:', error);
-
-            // Loading state'ini kapat
-            this.store.dispatch(
-              StepperActions.setStepLoading({
-                stepIndex: 3,
-                loading: false,
-                operation: 'result-step-submit'
-              })
-            );
 
             return of(
               StepperActions.setGlobalError({

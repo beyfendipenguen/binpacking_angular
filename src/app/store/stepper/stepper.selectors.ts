@@ -416,24 +416,6 @@ export const selectIsEditMode = createSelector(
   (state) => state.isEditMode
 );
 
-
-// Step Data selectors
-export const selectStepData = createSelector(
-  selectStepperState,
-  (state) => state.stepData
-);
-
-export const selectStepDataByNumber = (stepNumber: number) => createSelector(
-  selectStepData,
-  (stepData) => stepData[`step${stepNumber + 1}` as keyof typeof stepData]
-);
-
-// UI State selectors
-export const selectStepperLoading = createSelector(
-  selectStepperState,
-  (state) => state.loading
-);
-
 export const selectStepperError = createSelector(
   selectStepperState,
   (state) => state.error
@@ -454,80 +436,6 @@ export const selectStepperSummary = createSelector(
   })
 );
 
-// Auto-Save Selectors
-export const selectAutoSaveState = createSelector(
-  selectStepperState,
-  (state) => state.autoSave
-);
-
-export const selectStepAutoSave = (stepNumber: number) => createSelector(
-  selectAutoSaveState,
-  (autoSave) => autoSave[stepNumber]
-);
-
-export const selectStepAutoSaveStatus = (stepNumber: number) => createSelector(
-  selectStepAutoSave(stepNumber),
-  (stepAutoSave) => stepAutoSave?.status || 'idle'
-);
-
-export const selectStepLastSaved = (stepNumber: number) => createSelector(
-  selectStepAutoSave(stepNumber),
-  (stepAutoSave) => stepAutoSave?.lastSaved
-);
-
-export const selectStepAutoSaveError = (stepNumber: number) => createSelector(
-  selectStepAutoSave(stepNumber),
-  (stepAutoSave) => stepAutoSave?.error
-);
-
-export const selectStepHasPendingChanges = (stepNumber: number) => createSelector(
-  selectStepAutoSave(stepNumber),
-  (stepAutoSave) => stepAutoSave?.pendingChanges || false
-);
-
-// Combined Auto-Save Selectors
-export const selectIsAnySaving = createSelector(
-  selectAutoSaveState,
-  (autoSave) => Object.values(autoSave).some(step => step.status === 'saving')
-);
-
-export const selectAnyAutoSaveErrors = createSelector(
-  selectAutoSaveState,
-  (autoSave) => Object.values(autoSave).some(step => step.status === 'error')
-);
-
-export const selectAutoSaveSummary = createSelector(
-  selectAutoSaveState,
-  (autoSave) => ({
-    step0: autoSave[0],
-    step1: autoSave[1],
-    step2: autoSave[2],
-    isAnySaving: Object.values(autoSave).some(step => step.status === 'saving'),
-    hasErrors: Object.values(autoSave).some(step => step.status === 'error'),
-    totalPendingChanges: Object.values(autoSave).filter(step => step.pendingChanges).length
-  })
-);
-
-// Helper selector for UI display
-export const selectAutoSaveStatusText = (stepNumber: number) => createSelector(
-  selectStepAutoSaveStatus(stepNumber),
-  selectStepLastSaved(stepNumber),
-  selectStepAutoSaveError(stepNumber),
-  (status, lastSaved, error) => {
-    switch (status) {
-      case 'saving':
-        return 'Kaydediliyor...';
-      case 'saved':
-        return lastSaved ? `Kaydedildi: ${new Date(lastSaved).toLocaleTimeString()}` : 'Kaydedildi';
-      case 'error':
-        return `Hata: ${error || 'Bilinmeyen hata'}`;
-      case 'idle':
-      default:
-        return '';
-    }
-  }
-);
-
 // Global Error Management Selectors
 export const selectGlobalError = createSelector(
   selectStepperState,
@@ -538,53 +446,6 @@ export const selectHasGlobalError = createSelector(
   selectGlobalError,
   (error) => error !== null
 );
-
-export const selectRetryAttempts = createSelector(
-  selectStepperState,
-  (state) => state.retryAttempts
-);
-
-export const selectStepRetryCount = (stepIndex: number) => createSelector(
-  selectRetryAttempts,
-  (retryAttempts) => retryAttempts[stepIndex] || 0
-);
-
-export const selectCanRetry = (stepIndex: number) => createSelector(
-  selectStepRetryCount(stepIndex),
-  (retryCount) => retryCount < 3 // Max 3 retry
-);
-
-// Step Loading Selectors
-export const selectStepLoading = createSelector(
-  selectStepperState,
-  (state) => state.stepLoading
-);
-
-export const selectStepLoadingState = (stepIndex: number) => createSelector(
-  selectStepLoading,
-  (stepLoading) => stepLoading[stepIndex]
-);
-
-export const selectIsStepLoading = (stepIndex: number) => createSelector(
-  selectStepLoadingState(stepIndex),
-  (loadingState) => loadingState?.isLoading || false
-);
-
-export const selectStepProgress = (stepIndex: number) => createSelector(
-  selectStepLoadingState(stepIndex),
-  (loadingState) => loadingState?.progress
-);
-
-export const selectStepLoadingMessage = (stepIndex: number) => createSelector(
-  selectStepLoadingState(stepIndex),
-  (loadingState) => loadingState?.message
-);
-
-export const selectAnyStepLoading = createSelector(
-  selectStepLoading,
-  (stepLoading) => Object.values(stepLoading).some(step => step.isLoading)
-);
-
 
 
 export const selectTruck: MemoizedSelector<any, [number, number, number]> = createSelector(
@@ -727,31 +588,6 @@ export const selectStep3ReportFiles = createSelector(
   (step3State) => step3State.reportFiles
 );
 
-export const selectStep3LoadingStats = createSelector(
-  selectStep3State,
-  (step3State) => step3State.loadingStats
-);
-
-export const selectStep3AlgorithmStats = createSelector(
-  selectStep3State,
-  (step3State) => step3State.algorithmStats
-);
-
-export const selectStep3HasResults = createSelector(
-  selectStep3State,
-  (step3State) => step3State.hasResults
-);
-
-export const selectStep3ShowVisualization = createSelector(
-  selectStep3State,
-  (step3State) => step3State.showVisualization
-);
-
-export const selectStep3HasUnsavedChanges = createSelector(
-  selectStep3State,
-  (step3State) => step3State.hasUnsavedChanges
-);
-
 export const selectIsOrderDirty = createSelector(selectStepperState, (state) => {
   if (!state.originalOrder) return true;
   if (!state.order) return true;
@@ -791,10 +627,6 @@ export const selectStep3IsDirty = createSelector(
   (step3State) => step3State.isDirty
 );
 
-export const selectStep3DataChangeHistory = createSelector(
-  selectStep3State,
-  (step3State) => step3State.dataChangeHistory
-);
 
 // Step3 Enhanced Selectors (mevcut Step3 selector'larından sonra ekle)
 export const selectStep3CurrentViewType = createSelector(

@@ -36,7 +36,7 @@ import * as StepperSelectors from '../../../store/stepper/stepper.selectors';
     MatStepperModule, FormsModule, LoadingComponent, ReactiveFormsModule,
     MatFormFieldModule, MatInputModule, MatButtonModule, AsyncPipe,
     InvoiceUploadComponent, PalletControlComponent, LoadingComponent,
-    ResultStepComponent, CommonModule, MatProgressSpinner
+    ResultStepComponent, CommonModule
   ],
   providers: [
   ],
@@ -57,9 +57,6 @@ export class StepperComponent implements OnInit {
 
   private readonly destroy$ = new Subject<void>();
 
-  public invoiceUploadLoadingSignal = this.store.selectSignal(StepperSelectors.selectIsStepLoading(0));
-  public palletControlLoadingSignal = this.store.selectSignal(StepperSelectors.selectIsStepLoading(1));
-  public resultControlLoadingSignal = this.store.selectSignal(StepperSelectors.selectIsStepLoading(2));
   public completedStepsSignal = this.store.selectSignal(StepperSelectors.selectCompletedStep);
   public isEditModeSignal = this.store.selectSignal(StepperSelectors.selectIsEditMode);
 
