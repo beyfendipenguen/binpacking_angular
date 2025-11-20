@@ -53,8 +53,7 @@ export class StepperEffects {
   private authService = inject(AuthService);
   private resultStepFacade = inject(ResultStepFacade);
 
-  // Private helper method
-  // Global Error Effects
+
   globalErrorLogging$ = createEffect(
     () =>
       this.actions$.pipe(
@@ -67,36 +66,10 @@ export class StepperEffects {
               ? `Step ${error.stepIndex + 1} Hatası`
               : 'Sistem Hatası'
           );
+          console.error(error.message);
         })
       ),
     { dispatch: false }
-  );
-
-  enableEditMode$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(StepperActions.enableEditMode),
-      mergeMap((action) => {
-        return forkJoin({
-          order: this.orderService.getById(action.orderId),
-          orderDetails: this.orderDetailService.getByOrderId(action.orderId),
-          packages:
-            this.repositoryService.getPackageDetails(action.orderId).pipe(
-              map((packageDetails) => mapPackageDetailToPackage(packageDetails))
-            ),
-        }).pipe(
-          mergeMap(({ order, orderDetails, packages }) => {
-            return of(
-              StepperActions.updateOrCreateOrderSuccess({
-                order: order,
-                context: "editmode"
-              }),
-              StepperActions.updateOrderDetailsChangesSuccess({ orderDetails: orderDetails }),
-              StepperActions.setUiPackages({
-                packages: packages,
-              }));
-          })
-        )
-      }))
   );
 
   autoSave$ = createEffect(
@@ -122,46 +95,70 @@ export class StepperEffects {
     )
   );
 
+  enableEditMode$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(StepperActions.enableEditMode),
+      mergeMap((action) => {
+        return forkJoin({
+          order: this.orderService.getById(action.orderId),
+          orderDetails: this.orderDetailService.getByOrderId(action.orderId),
+          packages:
+            this.repositoryService.getPackageDetails(action.orderId).pipe(
+              map((packageDetails) => mapPackageDetailToPackage(packageDetails))
+            ),
+        }).pipe(
+          mergeMap(({ order, orderDetails, packages }) => {
+            return of(
+              StepperActions.saveOrderSuccess({
+                order: order,
+              }),
+              StepperActions.updateOrderDetailsSuccess({ orderDetails: orderDetails }),
+              StepperActions.setUiPackages({
+                packages: packages,
+              }));
+          })
+        )
+      }))
+  );
+
+
   updateOrCreateOrder$ = createEffect(() =>
     this.actions$.pipe(
-      ofType(StepperActions.updateOrCreateOrder),
+      ofType(StepperActions.saveOrder),
       withLatestFrom(
         this.store.select(selectOrder),
         this.store.select(selectIsOrderDirty)
       ),
-      switchMap(([action, order, isDirty]) => {
-        if (isDirty) {
-          return this.orderService.updateOrCreate(order).pipe(
-            map((result) =>
-              StepperActions.updateOrCreateOrderSuccess({
-                order: result.order,
-                context: action.context,
-              })
-            ),
-            catchError((error) =>
-              of(StepperActions.setStepperError({ error: error.message }))
-            )
-          );
-        }
-        return EMPTY;
-      })
+      filter(([, , isDirty]) => isDirty),
+      switchMap(([action, order]) => {
+        return this.orderService.updateOrCreate(order).pipe(
+          map((result) =>
+            StepperActions.saveOrderSuccess({
+              order: result.order
+            })
+          ),
+          catchError((error) =>
+            of(StepperActions.setStepperError({ error: error.message }))
+          )
+        );
+      }
+      )
     ),
   );
 
-  updateOrderDetailChanges$ = createEffect(() =>
+  updateOrderDetails$ = createEffect(() =>
     this.actions$.pipe(
-      ofType(StepperActions.updateOrderDetailsChanges),
+      ofType(StepperActions.updateOrderDetails),
       withLatestFrom(
         this.store.select(selectOrderDetailsChanges),
         this.store.select(selectIsOrderDetailsDirty)
       ),
-      filter(([_, changes, isDirty]) => isDirty),
+      filter(([, , isDirty]) => isDirty),
       switchMap(([action, changes]) =>
         this.repositoryService.bulkUpdateOrderDetails(changes).pipe(
           map((result) =>
-            StepperActions.updateOrderDetailsChangesSuccess({
-              orderDetails: result.order_details,
-              context: action.context,
+            StepperActions.updateOrderDetailsSuccess({
+              orderDetails: result.order_details
             })
           ),
           catchError((error) =>
@@ -172,16 +169,6 @@ export class StepperEffects {
     )
   );
 
-  updateOrderDetailsSuccess$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(StepperActions.updateOrderDetailsChangesSuccess),
-      switchMap((action) => {
-        if (action.context === 'calculatePackageDetails')
-          return of(StepperActions.calculatePackageDetail());
-        return EMPTY;
-      })
-    )
-  );
 
   createOrderDetails$ = createEffect(() =>
     this.actions$.pipe(
@@ -191,8 +178,7 @@ export class StepperEffects {
         this.repositoryService.bulkUpdateOrderDetails(changes).pipe(
           map((result) =>
             StepperActions.createOrderDetailsSuccess({
-              orderDetails: result.order_details,
-              context: action.context,
+              orderDetails: result.order_details
             })
           ),
           catchError((error) =>
@@ -207,18 +193,15 @@ export class StepperEffects {
 
   triggerCreateOrderDetails$ = createEffect(() => {
     return this.actions$.pipe(
-      ofType(StepperActions.updateOrCreateOrderSuccess),
+      ofType(StepperActions.saveOrderSuccess),
       withLatestFrom(this.store.select(selectIsOrderDetailsDirty)),
       switchMap(([action, isOrderDetailsDirty]) => {
-        // Context kontrolü
         if (isOrderDetailsDirty) {
           return of(
-            StepperActions.createOrderDetails({
-              context: 'invoiceUploadSubmitFlow',
-            })
+            StepperActions.createOrderDetails()
           );
         }
-        return EMPTY; // Context uygun değilse hiçbir şey yapma
+        return EMPTY;
       }),
       catchError((error) => {
         return of(
@@ -257,7 +240,7 @@ export class StepperEffects {
 
   triggerUploadFileToOrder$ = createEffect(() =>
     this.actions$.pipe(
-      ofType(StepperActions.updateOrCreateOrderSuccess),
+      ofType(StepperActions.saveOrderSuccess),
       withLatestFrom(this.store.select(selectFileExists)),
       filter(([action, fileExists]) => fileExists),
       map((action) => StepperActions.uploadFileToOrder({}))
@@ -347,9 +330,9 @@ export class StepperEffects {
         StepperActions.deleteOrderDetail,
         StepperActions.uploadFileToOrderSuccess,
         StepperActions.createOrderDetailsSuccess,
-        StepperActions.updateOrCreateOrderSuccess,
+        StepperActions.saveOrderSuccess,
         StepperActions.calculatePackageDetailSuccess,
-        StepperActions.palletControlSubmitSuccess,
+        StepperActions.createPackageDetailsSuccess,
         StepperActions.setTemplateFile
       ),
       map(() => StepperActions.stepperStepUpdated())
@@ -445,7 +428,7 @@ export class StepperEffects {
   syncInvoiceUploadStep$ = createEffect(() =>
     this.actions$.pipe(
       ofType(StepperActions.syncInvoiceUploadStep),
-      map(() => StepperActions.updateOrCreateOrder({ context: 'syncInvoiceUploadStep' })),
+      map(() => StepperActions.saveOrder()),
       catchError((error) =>
         of(StepperActions.setGlobalError({ error: error.message }))
       )

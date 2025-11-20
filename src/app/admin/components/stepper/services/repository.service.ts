@@ -221,7 +221,6 @@ bulkUpdatePackageDetails(
     changes: OrderDetailChanges,
     order_id: string = this.getOrderId()
   ): Observable<any> {
-    // Deleted array'indeki object'lerin ID'lerini al
 
 
     return this.http.post<any>(

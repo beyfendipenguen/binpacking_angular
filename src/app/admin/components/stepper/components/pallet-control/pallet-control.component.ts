@@ -53,7 +53,7 @@ import {
   splitProduct,
   updateProductCountAndCreateOrUpdateOrderDetail,
   deleteRemainingProduct,
-  updateOrderDetailsChanges,
+  updateOrderDetails,
   calculatePackageDetail,
   setRemainingProducts,
   mergeRemainingProducts,
@@ -791,7 +791,7 @@ export class PalletControlComponent
   calculatePackageDetail() {
     if (this.orderDetailsIsDirtySignal())
       this.store.dispatch(
-        updateOrderDetailsChanges({ context: 'calculatePackageDetails' })
+        updateOrderDetails()
       );
     else {
       this.store.dispatch(calculatePackageDetail());

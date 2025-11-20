@@ -248,7 +248,7 @@ export const stepperReducer = createReducer(
     };
   }),
 
-  on(StepperActions.palletControlSubmitSuccess, (state, { packageDetails }) => {
+  on(StepperActions.createPackageDetailsSuccess, (state, { packageDetails }) => {
     const uiPackages = mapPackageDetailToPackage(packageDetails);
     return {
       ...state,
@@ -427,7 +427,7 @@ export const stepperReducer = createReducer(
     }
   })),
 
-  on(StepperActions.updateOrderDetailsChangesSuccess, (state, { orderDetails }) => ({
+  on(StepperActions.updateOrderDetailsSuccess, (state, { orderDetails }) => ({
     ...state,
     step1State: {
       ...state.step1State,
@@ -446,7 +446,7 @@ export const stepperReducer = createReducer(
     }
   }),
 
-  on(StepperActions.updateOrCreateOrderSuccess, (state, { order }) => ({
+  on(StepperActions.saveOrderSuccess, (state, { order }) => ({
     ...state,
     order: order,
     originalOrder: order,
