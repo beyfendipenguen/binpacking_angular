@@ -243,7 +243,7 @@ export class StepperEffects {
       ofType(StepperActions.saveOrderSuccess),
       withLatestFrom(this.store.select(selectFileExists)),
       filter(([action, fileExists]) => fileExists),
-      map((action) => StepperActions.uploadFileToOrder({}))
+      map((action) => StepperActions.uploadFileToOrder())
     )
   );
 
@@ -436,90 +436,90 @@ export class StepperEffects {
   );
 
 
-/**
- * Pallet Control Submit Effect
- *
- * İş Akışı:
- * 1. OrderDetails dirty ise → Kaydet
- * 2. Package changes'leri → Kaydet
- * 3. Her iki adımda da error handling
- *
- * NOT: bulkCreatePackageDetails$ effect'i SİLİNDİ, artık bu tek effect var
- */
-palletControlSubmit$ = createEffect(() =>
-  this.actions$.pipe(
-    ofType(StepperActions.palletControlSubmit),
-    withLatestFrom(
-      this.store.select(selectPackageChanges),
-      this.store.select(selectIsOrderDetailsDirty),
-      this.store.select(selectOrderDetailsChanges),
-    ),
+  /**
+   * Pallet Control Submit Effect
+   *
+   * İş Akışı:
+   * 1. OrderDetails dirty ise → Kaydet
+   * 2. Package changes'leri → Kaydet
+   * 3. Her iki adımda da error handling
+   *
+   * NOT: bulkCreatePackageDetails$ effect'i SİLİNDİ, artık bu tek effect var
+   */
+  palletControlSubmit$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(StepperActions.palletControlSubmit),
+      withLatestFrom(
+        this.store.select(selectPackageChanges),
+        this.store.select(selectIsOrderDetailsDirty),
+        this.store.select(selectOrderDetailsChanges),
+      ),
 
-    // Step 1: OrderDetails varsa kaydet
-    concatMap(([action, packageChanges, isOrderDetailsDirty, orderDetailChanges]) => {
-      console.log('[Effect] palletControlSubmit - Başlatılıyor:', {
-        hasPackageChanges: packageChanges.added.length > 0 ||
-                          packageChanges.modified.length > 0 ||
-                          packageChanges.deletedIds.length > 0,
-        isOrderDetailsDirty
-      });
+      // Step 1: OrderDetails varsa kaydet
+      concatMap(([action, packageChanges, isOrderDetailsDirty, orderDetailChanges]) => {
+        console.log('[Effect] palletControlSubmit - Başlatılıyor:', {
+          hasPackageChanges: packageChanges.added.length > 0 ||
+            packageChanges.modified.length > 0 ||
+            packageChanges.deletedIds.length > 0,
+          isOrderDetailsDirty
+        });
 
-      // OrderDetails dirty değilse direkt package changes'e geç
-      if (!isOrderDetailsDirty) {
-        return of(packageChanges);
-      }
+        // OrderDetails dirty değilse direkt package changes'e geç
+        if (!isOrderDetailsDirty) {
+          return of(packageChanges);
+        }
 
-      // OrderDetails dirty ise kaydet
-      return this.repositoryService.bulkUpdateOrderDetails(orderDetailChanges).pipe(
-        tap((result) => {
-          console.log('[Effect] OrderDetails kaydedildi');
-          this.store.dispatch(
-            StepperActions.updateOrderDetailsChangesSuccess({
-              orderDetails: result.order_details
-            })
-          );
-        }),
-        map(() => packageChanges), // ✅ PackageChanges'i döndür
-        catchError((error) => {
-          console.error('[Effect] OrderDetails kayıt hatası:', error);
-          this.store.dispatch(
-            StepperActions.setGlobalError({
-              error: { message: error.message, stepIndex: 2 }
-            })
-          );
-          return EMPTY; // ✅ Flow'u durdur (error durumunda devam etme)
-        })
-      );
-    }),
+        // OrderDetails dirty ise kaydet
+        return this.repositoryService.bulkUpdateOrderDetails(orderDetailChanges).pipe(
+          tap((result) => {
+            console.log('[Effect] OrderDetails kaydedildi');
+            this.store.dispatch(
+              StepperActions.updateOrderDetailsSuccess({
+                orderDetails: result.order_details
+              })
+            );
+          }),
+          map(() => packageChanges), // ✅ PackageChanges'i döndür
+          catchError((error) => {
+            console.error('[Effect] OrderDetails kayıt hatası:', error);
+            this.store.dispatch(
+              StepperActions.setGlobalError({
+                error: { message: error.message, stepIndex: 2 }
+              })
+            );
+            return EMPTY; // ✅ Flow'u durdur (error durumunda devam etme)
+          })
+        );
+      }),
 
-    // Step 2: Package changes'leri kaydet
-    concatMap((packageChanges) => { // ✅ Artık type güvenli
-      console.log('[Effect] Package changes kaydediliyor:', {
-        added: packageChanges.added.length,
-        modified: packageChanges.modified.length,
-        deleted: packageChanges.deletedIds.length
-      });
+      // Step 2: Package changes'leri kaydet
+      concatMap((packageChanges) => { // ✅ Artık type güvenli
+        console.log('[Effect] Package changes kaydediliyor:', {
+          added: packageChanges.added.length,
+          modified: packageChanges.modified.length,
+          deleted: packageChanges.deletedIds.length
+        });
 
-      return this.repositoryService.bulkUpdatePackageDetails(packageChanges).pipe(
-        map((result) => {
-          console.log('[Effect] Package changes kaydedildi:', result);
+        return this.repositoryService.bulkUpdatePackageDetails(packageChanges).pipe(
+          map((result) => {
+            console.log('[Effect] Package changes kaydedildi:', result);
 
-          return StepperActions.palletControlSubmitSuccess({
-            packageDetails: result.package_details
-          });
-        }),
-        catchError((error) => {
-          console.error('[Effect] Package changes kayıt hatası:', error);
-          return of(
-            StepperActions.setGlobalError({
-              error: { message: error.message, stepIndex: 2 }
-            })
-          );
-        })
-      );
-    })
-  )
-);
+            return StepperActions.createPackageDetailsSuccess({
+              packageDetails: result.package_details
+            });
+          }),
+          catchError((error) => {
+            console.error('[Effect] Package changes kayıt hatası:', error);
+            return of(
+              StepperActions.setGlobalError({
+                error: { message: error.message, stepIndex: 2 }
+              })
+            );
+          })
+        );
+      })
+    )
+  );
 
   /**
    * Result Step Submit Effect

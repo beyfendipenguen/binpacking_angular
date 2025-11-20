@@ -3,7 +3,7 @@ import { Store } from '@ngrx/store';
 import { Observable, of } from 'rxjs';
 import { concatMap, switchMap, tap, take, map } from 'rxjs/operators';
 import { RepositoryService } from '../../../admin/components/stepper/services/repository.service';
-import { AppState, createReportFile, palletControlSubmitSuccess, updateOrderDetailsChangesSuccess } from '../..';
+import { AppState, createPackageDetailsSuccess, createReportFile, updateOrderDetailsSuccess, updateOrderResult } from '../..';
 import { AuthService } from '../../../auth/services/auth.service';
 import { selectIsOrderDetailsDirty, selectOrderDetailsChanges, selectUiPackages, selectOrderResult, selectPackageChanges } from '../stepper.selectors';
 
@@ -106,9 +106,8 @@ export class ResultStepFacade {
 
             // Success action'ını dispatch et
             this.store.dispatch(
-              updateOrderDetailsChangesSuccess({
-                orderDetails: result.order_details,
-                context: 'resultStepSubmit'
+              updateOrderDetailsSuccess({
+                orderDetails: result.order_details
               })
             );
           }),
@@ -129,38 +128,38 @@ export class ResultStepFacade {
    * @private
    * @returns Observable<void>
    */
-/**
- * Package Details oluşturma işlemini handle eder
- *
- * GÜNCELLEME: Artık changes bazlı çalışıyor
- */
-private handlePackageDetailsCreation(): Observable<void> {
-  return this.store.select(selectPackageChanges).pipe( // ✅ Changes'leri al
-    take(1),
-    switchMap(packageChanges => {
-      console.log('[ResultStepFacade] Package Details kaydediliyor...', {
-        added: packageChanges.added.length,
-        modified: packageChanges.modified.length,
-        deletedIds: packageChanges.deletedIds.length
-      });
+  /**
+   * Package Details oluşturma işlemini handle eder
+   *
+   * GÜNCELLEME: Artık changes bazlı çalışıyor
+   */
+  private handlePackageDetailsCreation(): Observable<void> {
+    return this.store.select(selectPackageChanges).pipe( // ✅ Changes'leri al
+      take(1),
+      switchMap(packageChanges => {
+        console.log('[ResultStepFacade] Package Details kaydediliyor...', {
+          added: packageChanges.added.length,
+          modified: packageChanges.modified.length,
+          deletedIds: packageChanges.deletedIds.length
+        });
 
-      // ✅ Yeni method: bulkUpdatePackageDetails
-      return this.repositoryService.bulkUpdatePackageDetails(packageChanges).pipe(
-        tap(result => {
-          console.log('[ResultStepFacade] Package Details başarıyla kaydedildi', result);
+        // ✅ Yeni method: bulkUpdatePackageDetails
+        return this.repositoryService.bulkUpdatePackageDetails(packageChanges).pipe(
+          tap(result => {
+            console.log('[ResultStepFacade] Package Details başarıyla kaydedildi', result);
 
-          // Success action'ını dispatch et
-          this.store.dispatch(
-            palletControlSubmitSuccess({
-              packageDetails: result.package_details
-            })
-          );
-        }),
-        map(() => void 0)
-      );
-    })
-  );
-}
+            // Success action'ını dispatch et
+            this.store.dispatch(
+              createPackageDetailsSuccess({
+                packageDetails: result.package_details
+              })
+            );
+          }),
+          map(() => void 0)
+        );
+      })
+    );
+  }
 
   /**
    * Order Result güncellemesini handle eder
