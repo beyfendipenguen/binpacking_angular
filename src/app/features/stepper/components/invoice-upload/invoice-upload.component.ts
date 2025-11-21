@@ -481,7 +481,7 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
 
   isFormValid(): boolean {
     let hasValidOrderDetails = this.orderDetailsSignal().length > 0;
-    let hasValidOrder = !!(this.orderSignal()?.date && this.orderSignal()?.company_relation && this.orderSignal()?.truck && this.orderSignal()?.weight_type);
+    let hasValidOrder = !!(this.orderSignal()?.date && this.orderSignal()?.company_relation && this.orderSignal()?.truck && this.orderSignal()?.weight_type && this.orderSignal()?.max_pallet_height && this.orderSignal()?.truck_weight_limit && this.orderSignal()?.truck_weight_limit != 0);
     return hasValidOrder && hasValidOrderDetails;
   }
 

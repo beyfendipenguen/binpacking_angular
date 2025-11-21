@@ -2,10 +2,9 @@ import { createFeatureSelector, createSelector, MemoizedSelector, State } from '
 import { StepperState } from './stepper.state';
 import { UiPackage } from '../../features/stepper/components/ui-models/ui-package.model';
 import { toInteger } from 'lodash';
-import { deepEqual, areOrderDetailsEqual } from '../../features/stepper/components/invoice-upload/order-detail.helper';
+import { deepEqual, areOrderDetailsEqual } from '../../features/stepper/components/invoice-upload/helpers/order-detail.helper';
 import { arePackageListsEqual, calculatePackageChanges } from '../../features/stepper/components/pallet-control/package-changes.helper';
 import { UiPallet } from '../../features/stepper/components/ui-models/ui-pallet.model';
-
 
 // Feature selector
 export const selectStepperState = createFeatureSelector<StepperState>('stepper');
@@ -14,7 +13,10 @@ export const selectStepperState = createFeatureSelector<StepperState>('stepper')
 // #region STEPPER STATE SELECTORS
 
 export const selectOrder = createSelector(selectStepperState, (stepper) => stepper.order)
-
+export const selectOriginalOrder = createSelector(
+  selectStepperState,
+  (state) => state.originalOrder
+);
 
 
 // #endregion
@@ -595,14 +597,6 @@ export const selectIsOrderDirty = createSelector(selectStepperState, (state) => 
   return !deepEqual(state.order, state.originalOrder);
 }
 );
-
-
-export const selectOriginalOrder = createSelector(
-  selectStepperState,
-  (state) => state.originalOrder
-);
-
-
 
 export const selectIsOrderDetailsDirty = createSelector(
   selectOrderDetails,

@@ -40,6 +40,7 @@ interface PackageData {
   rotation?: number;
   originalLength?: number;
   originalWidth?: number;
+  pkgId:string;
 }
 
 interface CachedModels {
@@ -1356,7 +1357,8 @@ private applyWheelTransforms(): void {
         originalLength,
         originalWidth,
         dimensions: `${length}×${width}×${piece[5] || 0}mm`,
-        isBeingDragged: false
+        isBeingDragged: false,
+        pkgId: piece[8]
       };
 
       if (piece[0] === -1 && piece[1] === -1 && piece[2] === -1) {

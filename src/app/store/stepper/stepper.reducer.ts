@@ -188,7 +188,7 @@ export const stepperReducer = createReducer(
         packages: ensureEmptyPackageAdded(filteredPackages, state.order),
         addedPackages: ensureEmptyPackageAdded(filteredPackages, state.order),
         modifiedPackages: [],
-        deletedPackages: [],
+        deletedPackageIds: [],
         remainingProducts: remainingProducts,
       }
     };
@@ -259,7 +259,7 @@ export const stepperReducer = createReducer(
         originalPackages: uiPackages,
         addedPackages: [],
         modifiedPackages: [],
-        deletedPackages: [],
+        deletedPackageIds: [],
         isDirty: false
       }
     }
@@ -317,7 +317,7 @@ export const stepperReducer = createReducer(
         ...state.step2State,
         addedPackages: changes.added,
         modifiedPackages: changes.modified,
-        deletedPackages: changes.deletedIds,
+        deletedPackageIds: changes.deletedIds,
         isDirty: isDirty
       }
     };
@@ -462,7 +462,7 @@ export const stepperReducer = createReducer(
         originalPackages: isEditMode ? ensureEmptyPackageAdded(packages, state.order) : state.step2State.originalPackages,
         addedPackages: [],
         modifiedPackages: [],
-        deletedPackages: []
+        deletedPackageIds: []
       }
     }
   }),
@@ -662,7 +662,6 @@ export const stepperReducer = createReducer(
       step2State: {
         ...state.step2State,
         remainingProducts: mergedProducts,
-        // isDirty: true //TODO: burada isdirty yapilir mi bilemedim.
       }
     };
   }),

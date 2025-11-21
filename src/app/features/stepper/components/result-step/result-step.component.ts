@@ -25,7 +25,7 @@ import { ToastService } from '@core/services/toast.service';
 import { OrderResultService } from '@features/services/order-result.service';
 import { CancelConfirmationDialogComponent } from '@shared/cancel-confirmation-dialog/cancel-confirmation-dialog.component';
 import { ThreeJSTruckVisualizationComponent } from '@shared/threejs-truck-visualization/threejs-truck-visualization.component';
-import { AppState, selectRemainingProducts, selectStep3IsDirty, selectIsEditMode, selectOrderId, setStepperData, setGlobalError, setStepCompleted, setStepValidation, navigateToStep, resultStepSubmit } from '@app/store';
+import { AppState, selectRemainingProducts, selectStep3IsDirty, selectIsEditMode, selectOrderId, setStepperData, setGlobalError, setStepCompleted, setStepValidation, navigateToStep, resultStepSubmit, selectPackages } from '@app/store';
 import { RepositoryService } from '../../services/repository.service';
 
 
@@ -40,6 +40,7 @@ interface PackageData {
   weight: number;
   color?: string;
   dimensions?: string;
+  pkgId:string;
 }
 
 @Component({
@@ -278,6 +279,7 @@ export class ResultStepComponent implements OnInit, OnDestroy {
           weight: piece[7] || 0,
           color: '',
           dimensions: `${piece[3] || 0}×${piece[4] || 0}×${piece[5] || 0}mm`,
+          pkgId: piece[8]
         })
       );
     } catch (error) {
@@ -517,21 +519,28 @@ export class ResultStepComponent implements OnInit, OnDestroy {
     }
   }
 
-  convertPiecesToJsonString(): string {
-    const piecesData = this.threeJSComponent.processedPackages;
+convertPiecesToJsonString(): string {
+  const piecesData = this.threeJSComponent.processedPackages;
+  const packages = this.store.selectSignal(selectPackages);
 
-    const formattedData = piecesData.map(piece => [
+  const formattedData = piecesData.map(piece => {
+    const matchingPackage = packages().find(pkg => pkg.id === piece.pkgId);
+    const pieceId = matchingPackage ? matchingPackage.name : piece.id;
+
+    return [
       piece.x,
       piece.y,
       piece.z,
       piece.length,
       piece.width,
       piece.height,
-      piece.id,
-      piece.weight
-    ]);
+      pieceId,
+      piece.weight,
+      piece.pkgId
+    ];
+  });
 
-    return JSON.stringify(formattedData);
-  }
+  return JSON.stringify(formattedData);
+}
 
 }

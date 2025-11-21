@@ -45,7 +45,7 @@ export interface StepperState {
     originalRemainingProducts: IUiProduct[];
     addedPackages: IUiPackage[];
     modifiedPackages: IUiPackage[];
-    deletedPackageIds: IUiPackage[];
+    deletedPackageIds: string[];
     isDirty: boolean;
     verticalSort: boolean
   };

@@ -94,7 +94,12 @@ export function arePackagesEqual(pkg1: IUiPackage, pkg2: IUiPackage): boolean {
     return false;
   }
 
-  // 3. Products karşılaştırması (sıra önemli)
+  // 3. Name karsilastirmasi
+  if(pkg1.name !== pkg2.name){
+    return false;
+  }
+
+  // 4. Products karşılaştırması (sıra önemli)
   if (!areProductListsEqual(pkg1.products, pkg2.products)) {
     return false;
   }
@@ -130,7 +135,7 @@ function findMatchingPackage(
   }
 
   const match = candidates.find(
-    candidate => candidate.pallet?.id === pkg.pallet?.id
+    candidate => candidate.id === pkg.id && candidate.pallet?.id === pkg.pallet?.id
   );
 
   return match || null;
@@ -197,7 +202,9 @@ export function calculatePackageChanges(
     if (!originalMatch) {
       // Orijinalde yok → ADDED
       console.log('[calculatePackageChanges] Added:', pkg.pallet?.id);
-      added.push(pkg);
+      if(pkg.pallet?.id !== undefined){
+        added.push(pkg);
+      }
     } else {
       // Orijinalde var → İçerik karşılaştır
       if (!arePackagesEqual(pkg, originalMatch)) {
@@ -218,7 +225,9 @@ export function calculatePackageChanges(
     if (!currentMatch) {
       // Güncel listede yok → DELETED
       console.log('[calculatePackageChanges] Deleted:', originalPkg.pallet?.id);
-      deletedIds.push(originalPkg.id); // Orijinal halini döndür
+      if(originalPkg.pallet?.id !== undefined){
+        deletedIds.push(originalPkg.id); // Orijinal halini döndür
+      }
     }
   });
 
