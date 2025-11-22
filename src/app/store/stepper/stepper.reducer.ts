@@ -12,6 +12,8 @@ import { OrderDetailDiffCalculator } from '@features/utils/order-detail-diff.uti
 import { calculatePackageChanges } from '@app/features/stepper/components/pallet-control/package-changes.helper';
 import { OrderActions } from './actions/order.actions';
 import { Order } from '@app/features/interfaces/order.interface';
+import { OrderDetailActions } from './actions/order-detail.actions';
+import { PackageDetailActions } from './actions/package-detail.actions';
 
 // TODO:
 // ngrx-immer paketini yukle.
@@ -266,7 +268,7 @@ export const stepperReducer = createReducer(
     };
   }),
 
-  on(StepperActions.createPackageDetailsSuccess, (state, { packageDetails }) => {
+  on(PackageDetailActions.upsertManySuccess, (state, { packageDetails }) => {
     const uiPackages = mapPackageDetailToPackage(packageDetails);
     return {
       ...state,
@@ -445,7 +447,7 @@ export const stepperReducer = createReducer(
     }
   })),
 
-  on(StepperActions.updateOrderDetailsSuccess, (state, { orderDetails }) => ({
+  on(OrderDetailActions.upsertManySuccess, (state, { orderDetails }) => ({
     ...state,
     step1State: {
       ...state.step1State,

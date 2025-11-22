@@ -10,6 +10,7 @@ import {
   mergeMap,
   filter,
   concatMap,
+  take,
 } from 'rxjs/operators';
 import { EMPTY, forkJoin, of } from 'rxjs';
 import * as StepperActions from './stepper.actions';
@@ -25,6 +26,7 @@ import {
   selectFileExists,
   selectCompanyRelationId,
   selectPackageChanges,
+  selectIsPackagesDirty,
 } from '../index';
 import { ResultStepFacade } from './facade/result-step.facade';
 import { mapPackageDetailToPackage } from '@features/mappers/package-detail.mapper';
@@ -36,6 +38,9 @@ import { LocalStorageService } from '@features/stepper/services/local-storage.se
 import { RepositoryService } from '@features/stepper/services/repository.service';
 import { ToastService } from '@core/services/toast.service';
 import { OrderActions } from './actions/order.actions';
+import { PackageDetailActions } from './actions/package-detail.actions';
+import { OrderDetailActions } from './actions/order-detail.actions';
+import { concat } from 'lodash';
 
 @Injectable()
 export class StepperEffects {
@@ -94,31 +99,33 @@ export class StepperEffects {
   enableEditMode$ = createEffect(() =>
     this.actions$.pipe(
       ofType(StepperActions.enableEditMode),
-      mergeMap((action) => {
+      // 1. Düzeltme: mergeMap yerine switchMap (Race condition engellemek için)
+      switchMap((action) => {
         return forkJoin({
           order: this.orderService.getById(action.orderId),
           orderDetails: this.orderDetailService.getByOrderId(action.orderId),
-          packages:
-            this.repositoryService.getPackageDetails(action.orderId).pipe(
-              map((packageDetails) => mapPackageDetailToPackage(packageDetails))
-            ),
+          packages: this.repositoryService.getPackageDetails(action.orderId).pipe(
+            map((packageDetails) => mapPackageDetailToPackage(packageDetails))
+          ),
         }).pipe(
-          mergeMap(({ order, orderDetails, packages }) => {
-            return of(
-              OrderActions.saveSuccess({
-                order: order,
-              }),
-              StepperActions.updateOrderDetailsSuccess({ orderDetails: orderDetails }),
-              StepperActions.setUiPackages({
-                packages: packages,
-              }));
-          })
-        )
-      }))
+          // Başarılı durum: 3 action'ı peş peşe fırlatır
+          switchMap(({ order, orderDetails, packages }) => [ // 'of' yerine array dönüp switchMap ile yakalamak daha okunabilir (veya sizin yaptığınız gibi 'of' da olur)
+            OrderActions.saveSuccess({ order }),
+            StepperActions.updateOrderDetailsSuccess({ orderDetails }),
+            StepperActions.setUiPackages({ packages })
+          ]),
+
+          // 2. Düzeltme: Hata yakalama (Effect'in ölmemesi için KRİTİK)
+          catchError((error) =>
+            of(StepperActions.setGlobalError({ error }))
+          )
+        );
+      })
+    )
   );
 
 
-  updateOrCreateOrder$ = createEffect(() =>
+  saveOrderSuccess$ = createEffect(() =>
     this.actions$.pipe(
       ofType(OrderActions.save),
       withLatestFrom(
@@ -142,9 +149,9 @@ export class StepperEffects {
     ),
   );
 
-  updateOrderDetails$ = createEffect(() =>
+  orderDetailsUpsertMany$ = createEffect(() =>
     this.actions$.pipe(
-      ofType(StepperActions.updateOrderDetails),
+      ofType(OrderDetailActions.upsertMany),
       withLatestFrom(
         this.store.select(selectOrderDetailsChanges),
         this.store.select(selectIsOrderDetailsDirty)
@@ -153,32 +160,35 @@ export class StepperEffects {
       switchMap(([action, changes]) =>
         this.repositoryService.bulkUpdateOrderDetails(changes).pipe(
           map((result) =>
-            StepperActions.updateOrderDetailsSuccess({
+            OrderDetailActions.upsertManySuccess({
               orderDetails: result.order_details
             })
           ),
           catchError((error) =>
-            of(StepperActions.setStepperError({ error: error.message }))
+            of(OrderDetailActions.upsertManyFailure({ error: error.message }))
           )
         )
       )
     )
   );
 
-
-  createOrderDetails$ = createEffect(() =>
+  packageDetailsUpsertMany$ = createEffect(() =>
     this.actions$.pipe(
-      ofType(StepperActions.createOrderDetails),
-      withLatestFrom(this.store.select(selectOrderDetailsChanges)),
+      ofType(PackageDetailActions.upsertMany),
+      withLatestFrom(
+        this.store.select(selectPackageChanges),
+        this.store.select(selectIsPackagesDirty)
+      ),
+      filter(([, , isDirty]) => isDirty),
       switchMap(([action, changes]) =>
-        this.repositoryService.bulkUpdateOrderDetails(changes).pipe(
+        this.repositoryService.bulkUpdatePackageDetails(changes).pipe(
           map((result) =>
-            StepperActions.createOrderDetailsSuccess({
-              orderDetails: result.order_details
+            PackageDetailActions.upsertManySuccess({
+              packageDetails: result.package_details
             })
           ),
           catchError((error) =>
-            of(StepperActions.setStepperError({ error: error.message }))
+            of(OrderDetailActions.upsertManyFailure({ error: error.message }))
           )
         )
       )
@@ -187,35 +197,20 @@ export class StepperEffects {
 
 
 
-  triggerCreateOrderDetails$ = createEffect(() => {
-    return this.actions$.pipe(
+  triggerCreateOrderDetails$ = createEffect(() =>
+    this.actions$.pipe(
       ofType(OrderActions.saveSuccess),
-      withLatestFrom(this.store.select(selectIsOrderDetailsDirty)),
-      switchMap(([action, isOrderDetailsDirty]) => {
-        if (isOrderDetailsDirty) {
-          return of(
-            StepperActions.createOrderDetails()
-          );
-        }
-        return EMPTY;
-      }),
-      catchError((error) => {
-        return of(
-          StepperActions.setStepperError({
-            error: error.message || 'Unknown error',
-          })
-        );
-      })
-    );
-  });
+      map(() => OrderDetailActions.upsertMany()),
+    )
+  );
 
 
-  triggerGetPallets$ = createEffect(() => {
-    return this.actions$.pipe(
+  triggerGetPallets$ = createEffect(() =>
+    this.actions$.pipe(
       ofType(StepperActions.uploadInvoiceProcessFileSuccess),
       map(() => StepperActions.getPallets())
     )
-  });
+  );
 
   getPallets$ = createEffect(() => {
     return this.actions$.pipe(
@@ -427,88 +422,27 @@ export class StepperEffects {
   );
 
 
-  /**
-   * Pallet Control Submit Effect
-   *
-   * İş Akışı:
-   * 1. OrderDetails dirty ise → Kaydet
-   * 2. Package changes'leri → Kaydet
-   * 3. Her iki adımda da error handling
-   *
-   * NOT: bulkCreatePackageDetails$ effect'i SİLİNDİ, artık bu tek effect var
-   */
   palletControlSubmit$ = createEffect(() =>
     this.actions$.pipe(
       ofType(StepperActions.palletControlSubmit),
-      withLatestFrom(
-        this.store.select(selectPackageChanges),
-        this.store.select(selectIsOrderDetailsDirty),
-        this.store.select(selectOrderDetailsChanges),
-      ),
-
-      // Step 1: OrderDetails varsa kaydet
-      concatMap(([action, packageChanges, isOrderDetailsDirty, orderDetailChanges]) => {
-        console.log('[Effect] palletControlSubmit - Başlatılıyor:', {
-          hasPackageChanges: packageChanges.added.length > 0 ||
-            packageChanges.modified.length > 0 ||
-            packageChanges.deletedIds.length > 0,
-          isOrderDetailsDirty
-        });
-
-        // OrderDetails dirty değilse direkt package changes'e geç
-        if (!isOrderDetailsDirty) {
-          return of(packageChanges);
-        }
-
-        // OrderDetails dirty ise kaydet
-        return this.repositoryService.bulkUpdateOrderDetails(orderDetailChanges).pipe(
-          tap((result) => {
-            console.log('[Effect] OrderDetails kaydedildi');
-            this.store.dispatch(
-              StepperActions.updateOrderDetailsSuccess({
-                orderDetails: result.order_details
-              })
-            );
-          }),
-          map(() => packageChanges), // ✅ PackageChanges'i döndür
-          catchError((error) => {
-            console.error('[Effect] OrderDetails kayıt hatası:', error);
-            this.store.dispatch(
-              StepperActions.setGlobalError({
-                error: { message: error.message, stepIndex: 2 }
-              })
-            );
-            return EMPTY; // ✅ Flow'u durdur (error durumunda devam etme)
-          })
-        );
-      }),
-
-      // Step 2: Package changes'leri kaydet
-      concatMap((packageChanges) => { // ✅ Artık type güvenli
-        console.log('[Effect] Package changes kaydediliyor:', {
-          added: packageChanges.added.length,
-          modified: packageChanges.modified.length,
-          deleted: packageChanges.deletedIds.length
-        });
-
-        return this.repositoryService.bulkUpdatePackageDetails(packageChanges).pipe(
-          map((result) => {
-            console.log('[Effect] Package changes kaydedildi:', result);
-
-            return StepperActions.createPackageDetailsSuccess({
-              packageDetails: result.package_details
-            });
-          }),
-          catchError((error) => {
-            console.error('[Effect] Package changes kayıt hatası:', error);
-            return of(
-              StepperActions.setGlobalError({
-                error: { message: error.message, stepIndex: 2 }
-              })
-            );
-          })
-        );
-      })
+      switchMap((action) =>
+        of(PackageDetailActions.upsertMany()).pipe(
+          concatMap(() =>
+            this.actions$.pipe(
+              ofType(PackageDetailActions.upsertManySuccess),
+              take(1),
+              map(() => OrderDetailActions.upsertMany())
+            )
+          ),
+          concatMap(() =>
+            this.actions$.pipe(
+              ofType(OrderDetailActions.upsertManySuccess),
+              take(1),
+              map(() => StepperActions.setStepCompleted({ stepIndex: 2 }))
+            )
+          )
+        )
+      )
     )
   );
 
@@ -565,7 +499,6 @@ export class StepperEffects {
       )
     )
   );
-
 
   /**
    * Package Changes Effect
