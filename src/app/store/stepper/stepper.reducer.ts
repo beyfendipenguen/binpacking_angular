@@ -1,6 +1,5 @@
 import { createReducer, on } from '@ngrx/store';
 import { initialStepperState } from './stepper.state';
-import * as StepperActions from './stepper.actions';
 import { isEqual } from 'lodash-es';
 import { v4 as Guid } from 'uuid';
 import { mapPackageDetailToPackage } from '@features/mappers/package-detail.mapper';
@@ -13,7 +12,7 @@ import { calculatePackageChanges } from '@app/features/stepper/components/pallet
 import { OrderActions } from './actions/order.actions';
 import { Order } from '@app/features/interfaces/order.interface';
 import { OrderDetailActions } from './actions/order-detail.actions';
-import { PackageDetailActions } from './actions/package-detail.actions';
+import { PackageActions } from './actions/package-detail.actions';
 
 // TODO:
 // ngrx-immer paketini yukle.

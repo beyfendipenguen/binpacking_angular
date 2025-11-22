@@ -1,46 +1,33 @@
 import { Order } from '@app/features/interfaces/order.interface';
-import { ThreeJSTruckVisualizationComponent } from '@app/shared/threejs-truck-visualization/threejs-truck-visualization.component';
-import { createAction, props } from '@ngrx/store';
-
+import { createActionGroup, emptyProps, props } from '@ngrx/store';
 // note: eger bir action store da islem yapiyor ve backend islemi yapmiyorsa domain/store
 // eger backend e gidiyor isie domain/api yapalim
 // TODO:
 //
+export const OrderActions = createActionGroup({
+  source: 'Order API',
+  events: {
+    // Edit Modu
+    'Enable Edit Mode': props<{ orderId: string }>(),
 
-export const OrderActions = {
-    set: createAction(
-        '[Order] set Order',
-        props<{ order: Order }>()
-    ),
+    // CRUD İşlemleri
+    'Set': props<{ order: Order }>(),
+    'Patch': props<{ changes: Partial<Order> }>(),
+    'Save': emptyProps(),
+    'Save Success': props<{ order: Order }>(),
+    'Save Failure': props<{ error: string }>(),
 
-    patch: createAction(
-        '[Order] patch Order',
-        props<{ changes: Partial<Order> }>()
-    ),
+    // Dosya Yükleme (Fatura/Excel)
+    'Upload Invoice Process File': emptyProps(),
+    'Upload Invoice Process File Success': emptyProps(),
+    'Upload Invoice Process File Failure': props<{ error: string }>(),
 
-    save: createAction(
-        '[Order/API] update or create order'
-    ),
+    // Sipariş Dosyası (Görsel vb.)
+    'Upload File To Order': emptyProps(),
+    'Upload File To Order Success': emptyProps(),
+    'Upload File To Order Failure': props<{ error: string }>(),
 
-    saveSuccess: createAction(
-        '[Order/API] update or create order success',
-        props<{ order: Order }>()
-    ),
-
-    saveFailure: createAction(
-        '[Order/API] update or create order failure',
-        props<{ error: any }>()
-    ),
-
-    uploadFileToOrder: createAction(
-        '[Order/API] Upload file to Order'
-    ),
-
-    uploadFileToOrderSuccess: createAction(
-        '[Order/API] Upload file to Order Success',
-    ),
-
-    uploadFileToOrderFailure: createAction(
-        '[Order/API] Upload file to Order Failure',
-    )
-}
+    // Sync
+    'Sync Invoice Upload Step': emptyProps(),
+  }
+});
