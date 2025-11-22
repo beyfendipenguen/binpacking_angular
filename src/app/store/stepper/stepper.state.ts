@@ -6,7 +6,6 @@ import { IUiProduct } from "@app/features/stepper/interfaces/ui-interfaces/ui-pr
 import { Document } from "@app/features/interfaces/file.interface";
 
 export interface StepperState {
-  // Mevcut properties...
   order: Order | null;
   originalOrder: Order | null;
   currentStep: number;
@@ -59,6 +58,7 @@ export interface StepperState {
     isDirty: boolean;
   };
 }
+
 
 export const initialStepperState: StepperState = {
 

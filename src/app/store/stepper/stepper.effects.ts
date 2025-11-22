@@ -35,6 +35,7 @@ import { UiPallet } from '@features/stepper/components/ui-models/ui-pallet.model
 import { LocalStorageService } from '@features/stepper/services/local-storage.service';
 import { RepositoryService } from '@features/stepper/services/repository.service';
 import { ToastService } from '@core/services/toast.service';
+import { OrderActions } from './actions/order.actions';
 
 @Injectable()
 export class StepperEffects {
@@ -104,7 +105,7 @@ export class StepperEffects {
         }).pipe(
           mergeMap(({ order, orderDetails, packages }) => {
             return of(
-              StepperActions.saveOrderSuccess({
+              OrderActions.saveSuccess({
                 order: order,
               }),
               StepperActions.updateOrderDetailsSuccess({ orderDetails: orderDetails }),
@@ -119,7 +120,7 @@ export class StepperEffects {
 
   updateOrCreateOrder$ = createEffect(() =>
     this.actions$.pipe(
-      ofType(StepperActions.saveOrder),
+      ofType(OrderActions.save),
       withLatestFrom(
         this.store.select(selectOrder),
         this.store.select(selectIsOrderDirty)
@@ -128,7 +129,7 @@ export class StepperEffects {
       switchMap(([action, order]) => {
         return this.orderService.updateOrCreate(order).pipe(
           map((result) =>
-            StepperActions.saveOrderSuccess({
+            OrderActions.saveSuccess({
               order: result.order
             })
           ),
@@ -188,7 +189,7 @@ export class StepperEffects {
 
   triggerCreateOrderDetails$ = createEffect(() => {
     return this.actions$.pipe(
-      ofType(StepperActions.saveOrderSuccess),
+      ofType(OrderActions.saveSuccess),
       withLatestFrom(this.store.select(selectIsOrderDetailsDirty)),
       switchMap(([action, isOrderDetailsDirty]) => {
         if (isOrderDetailsDirty) {
@@ -235,10 +236,10 @@ export class StepperEffects {
 
   triggerUploadFileToOrder$ = createEffect(() =>
     this.actions$.pipe(
-      ofType(StepperActions.saveOrderSuccess),
+      ofType(OrderActions.saveSuccess),
       withLatestFrom(this.store.select(selectFileExists)),
       filter(([action, fileExists]) => fileExists),
-      map((action) => StepperActions.uploadFileToOrder())
+      map((action) => OrderActions.uploadFileToOrder())
     )
   );
 
@@ -272,7 +273,7 @@ export class StepperEffects {
 
   uploadFileToOrder$ = createEffect(() =>
     this.actions$.pipe(
-      ofType(StepperActions.uploadFileToOrder),
+      ofType(OrderActions.uploadFileToOrder),
       withLatestFrom(
         this.store.select(selectOrder),
         this.store.select(selectFileExists)
@@ -283,7 +284,7 @@ export class StepperEffects {
           return of(StepperActions.setGlobalError({ error: { message: 'Order not found' } }));
         }
         return this.fileUploadManager.uploadFileToOrder(order.id).pipe(
-          map(() => StepperActions.uploadFileToOrderSuccess()),
+          map(() => OrderActions.uploadFileToOrderSuccess()),
           catchError((error) =>
             of(StepperActions.setGlobalError({ error: error.message }))
           )
@@ -318,14 +319,14 @@ export class StepperEffects {
   triggerStepperStepUploaded$ = createEffect(() =>
     this.actions$.pipe(
       ofType(
-        StepperActions.setOrder,
+        OrderActions.set,
         StepperActions.uploadInvoiceProcessFileSuccess,
         StepperActions.addOrderDetail,
         StepperActions.updateOrderDetail,
         StepperActions.deleteOrderDetail,
-        StepperActions.uploadFileToOrderSuccess,
+        OrderActions.uploadFileToOrderSuccess,
         StepperActions.createOrderDetailsSuccess,
-        StepperActions.saveOrderSuccess,
+        OrderActions.saveSuccess,
         StepperActions.calculatePackageDetailSuccess,
         StepperActions.createPackageDetailsSuccess,
         StepperActions.setTemplateFile
@@ -418,7 +419,7 @@ export class StepperEffects {
   syncInvoiceUploadStep$ = createEffect(() =>
     this.actions$.pipe(
       ofType(StepperActions.syncInvoiceUploadStep),
-      map(() => StepperActions.saveOrder()),
+      map(() => OrderActions.save()),
       catchError((error) =>
         of(StepperActions.setGlobalError({ error: error.message }))
       )

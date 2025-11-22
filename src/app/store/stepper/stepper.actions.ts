@@ -142,20 +142,6 @@ export const setStepperData = createAction(
   props<{ data: any }>()
 );
 
-/*
-* single create order
-* or
-* single update order
-*/
-export const saveOrder = createAction(
-  '[Invoice Upload] update or create order'
-);
-
-
-export const saveOrderSuccess = createAction(
-  '[Invoice Upload] update or create order success',
-  props<{ order: any }>()
-);
 
 export const createOrderDetails = createAction(
   '[Invoice Upload] Create Order Details'
@@ -185,23 +171,15 @@ export const setVerticalSortInPackage = createAction(
   props<{ pkgId: string, alignment: string }>()
 )
 
-export const uploadFileToOrder = createAction(
-  '[Invoice Upload] Upload file to Order'
-)
 
 export const uploadInvoiceProcessFile = createAction(
   '[Invoice Upload] Upload Invoice Process File',
 );
 
-export const uploadFileToOrderSuccess = createAction(
-  '[Invoice Upload] Upload file to Order Success',
-)
 
 export const uploadInvoiceProcessFileSuccess = createAction(
   '[Invoice Upload] Upload Invoice Process File Success',
 );
-
-
 
 // create getLocalStorageData
 export const restoreLocalStorageData = createAction(
@@ -212,11 +190,6 @@ export const setTemplateFile = createAction(
   '[Invoice Upload] Set Template File',
   props<{ templateFile: any }>()
 )
-
-export const setOrder = createAction(
-  '[Stepper] Set Order',
-  props<{ order: any, context?: string }>()
-);
 
 export const setFileExists = createAction(
   '[Stepper] Set File Exists'
