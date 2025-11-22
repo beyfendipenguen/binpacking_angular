@@ -1,54 +1,183 @@
 import { on } from '@ngrx/store';
 import { StepperState } from '../stepper.state';
-import { StepperOrderActions } from '../actions/stepper-order.actions'; // Yeni oluşturduğumuz action
-import { OrderActions } from '../actions/order.actions'; // Eski CRUD actionları
+import { StepperOrderActions } from '../actions/stepper-order.actions';
+import { OrderActions } from '../actions/order.actions';
+import { OrderDetailActions } from '../actions/order-detail.actions';
+import { Order } from '@app/features/interfaces/order.interface';
+import { OrderDetailDiffCalculator } from '@features/utils/order-detail-diff.util';
+import { mapUiPackagesToOrderDetails } from '@features/mappers/ui-package-to-order-detail.mapper';
+import { isEqual } from 'lodash-es';
 
 export const stepperOrderHandlers = [
   // Order Setleme
-  on(OrderActions.set, (state: StepperState, { order }) => ({
+  on(OrderActions.set, StepperOrderActions.set, (state: StepperState, { order }) => ({
     ...state,
-    order: order,
-    isOrderDirty: false
+    order: { ...order },
+  })),
+
+  // Order Patch
+  on(OrderActions.patch, (state: StepperState, { changes }) => ({
+    ...state,
+    order: {
+      ...state.order,
+      ...changes
+    } as Order
   })),
 
   // Edit Mode
   on(StepperOrderActions.enableEditMode, (state: StepperState) => ({
     ...state,
+    isEditMode: true,
     loading: true
   })),
 
-  // Fatura Yükleme Başlangıcı (State'i sıfırlayıp yükleme moduna geçiyorsa)
+  // Order Save Success
+  on(OrderActions.saveSuccess, StepperOrderActions.saveSuccess, (state: StepperState, { order }) => ({
+    ...state,
+    order: order,
+    originalOrder: order,
+  })),
+
+  // Fatura Yükleme Başlangıcı
   on(StepperOrderActions.initializeStep1StateFromUpload, (state: StepperState, { order, orderDetails, hasFile, fileName }) => ({
     ...state,
     order,
-    orderDetails,
-    hasFile,
-    fileName,
-    // ... diğer fieldlar
+    step1State: {
+      ...state.step1State,
+      orderDetails: [...orderDetails],
+      originalOrderDetails: [], // File upload'da original yok
+      added: orderDetails.map(od => OrderDetailDiffCalculator.orderDetailReadToWrite(od)),
+      hasFile,
+      fileName,
+    }
   })),
 
   // Dosya Yükleme Durumları
-  on(StepperOrderActions.uploadFileToOrderSuccess, (state: StepperState) => ({
+  on(StepperOrderActions.setFileExists, (state: StepperState) => ({
     ...state,
     fileExists: true
   })),
 
-  // Order Details Güncellemeleri
-  on(StepperOrderActions.updateOrderDetailsSuccess, (state: StepperState, { orderDetails }) => ({
+  on(OrderActions.uploadFileToOrderSuccess, StepperOrderActions.uploadFileToOrderSuccess, (state: StepperState) => ({
     ...state,
-    orderDetails: orderDetails,
-    isOrderDetailsDirty: false
+    fileExists: false
+  })),
+
+  // Template File
+  on(StepperOrderActions.setTemplateFile, (state: StepperState, { file }) => ({
+    ...state,
+    step1State: {
+      ...state.step1State,
+      templateFile: file
+    }
+  })),
+
+  // Order Details Success
+  on(StepperOrderActions.createOrderDetailsSuccess, (state: StepperState, { orderDetails }) => ({
+    ...state,
+    step1State: {
+      ...state.step1State,
+      orderDetails: [...orderDetails],
+      originalOrderDetails: [...orderDetails],
+      added: [],
+      deletedIds: [],
+      modified: [],
+    }
+  })),
+
+  on(OrderDetailActions.upsertManySuccess, StepperOrderActions.updateOrderDetailsSuccess, (state: StepperState, { orderDetails }) => ({
+    ...state,
+    step1State: {
+      ...state.step1State,
+      orderDetails: [...orderDetails],
+      originalOrderDetails: [...orderDetails],
+      added: [],
+      deletedIds: [],
+      modified: [],
+    }
   })),
 
   // Manuel Ekleme/Silme (Order Detail)
   on(StepperOrderActions.addOrderDetail, (state: StepperState, { orderDetail }) => ({
     ...state,
-    orderDetails: [...state.orderDetails, orderDetail],
-    isOrderDetailsDirty: true
+    step1State: {
+      ...state.step1State,
+      orderDetails: [...state.step1State.orderDetails, orderDetail],
+    }
   })),
-  on(StepperOrderActions.deleteOrderDetail, (state: StepperState, { id }) => ({
-    ...state,
-    orderDetails: state.orderDetails.filter(od => od.id !== id),
-    isOrderDetailsDirty: true
-  }))
+
+  on(StepperOrderActions.updateOrderDetail, (state: StepperState, { orderDetail }) => {
+    const originalDetail = state.step1State.originalOrderDetails.find(item => item.id === orderDetail.id);
+
+    // OrderDetails array'ini güncelle (OrderDetailRead tipi)
+    const orderDetails = state.step1State.orderDetails.map(detail =>
+      detail.id === orderDetail.id ? orderDetail : detail
+    );
+
+    // OrderDetailRead'i OrderDetailWrite'a dönüştür
+    const orderDetailWrite = OrderDetailDiffCalculator.orderDetailReadToWrite(orderDetail);
+
+    // Added array'ini güncelle (OrderDetailWrite tipi)
+    const added = state.step1State.added.map(detail =>
+      detail.id === orderDetail.id ? orderDetailWrite : detail
+    );
+
+    const isOriginal = !!originalDetail;
+    const isAlreadyModified = state.step1State.modified.some(item => item.id === orderDetail.id);
+
+    let modified = [...state.step1State.modified];
+    if (isOriginal && !isAlreadyModified && !isEqual(originalDetail, orderDetail)) {
+      modified.push(orderDetailWrite);
+    } else if (isAlreadyModified) {
+      modified = modified.map(item => item.id === orderDetail.id ? orderDetailWrite : item);
+    }
+
+    const isDirty = modified.length > 0 || state.step1State.added.length > 0 || state.step1State.deletedIds.length > 0;
+
+    if (!isDirty) {
+      return state;
+    }
+
+    return {
+      ...state,
+      step1State: {
+        ...state.step1State,
+        added,
+        orderDetails,
+        modified,
+      }
+    };
+  }),
+
+  on(StepperOrderActions.deleteOrderDetail, (state: StepperState, { id }) => {
+    const orderDetails = state.step1State.orderDetails.filter(item => item.id !== id);
+    return {
+      ...state,
+      step1State: {
+        ...state.step1State,
+        orderDetails,
+      }
+    };
+  }),
+
+  // Calculate Order Detail Changes
+  on(StepperOrderActions.calculateOrderDetailChanges, (state: StepperState) => {
+    const mapperOrderDetails = mapUiPackagesToOrderDetails(state.step2State.packages);
+    const changes = OrderDetailDiffCalculator.calculateDiff(
+      mapperOrderDetails,
+      state.step1State.originalOrderDetails,
+      state.step2State.remainingProducts
+    );
+
+    return {
+      ...state,
+      step1State: {
+        ...state.step1State,
+        orderDetails: [...mapperOrderDetails],
+        added: changes.added.map(od => ({ ...od })),
+        modified: changes.modified.map(od => ({ ...od })),
+        deletedIds: [...changes.deletedIds],
+      }
+    };
+  }),
 ];

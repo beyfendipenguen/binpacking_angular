@@ -3,7 +3,13 @@ import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
 import { map, switchMap, catchError, withLatestFrom, filter, concatMap, take, tap } from 'rxjs/operators';
 import { of } from 'rxjs';
+
 import { OrderDetailActions } from '../actions/order-detail.actions';
+import { PackageActions } from '../actions/package-detail.actions';
+import { StepperOrderActions } from '../actions/stepper-order.actions';
+import { StepperPackageActions } from '../actions/stepper-package.actions';
+import { StepperUiActions } from '../actions/stepper-ui.actions';
+
 import {
   AppState,
   selectVerticalSort,
@@ -15,10 +21,6 @@ import {
 import { RepositoryService } from '@features/stepper/services/repository.service';
 import { UiPallet } from '@features/stepper/components/ui-models/ui-pallet.model';
 import { mapPackageDetailToPackage } from '@features/mappers/package-detail.mapper';
-import { StepperOrderActions } from '../actions/stepper-order.actions';
-import { StepperPackageActions } from '../actions/stepper-package.actions';
-import { StepperUiActions } from '../actions/stepper-ui.actions';
-import { PackageActions } from '../actions/package-detail.actions';
 
 @Injectable()
 export class StepperPackageEffects {
@@ -60,7 +62,12 @@ export class StepperPackageEffects {
           map(response => ({
             uiPackages: mapPackageDetailToPackage(response.package_details),
           })),
-          map((response) => StepperPackageActions.calculatePackageDetailSuccess({ packages: response.uiPackages }))
+          map((response) => StepperPackageActions.calculatePackageDetailSuccess({ packages: response.uiPackages })),
+          catchError((error) =>
+            of(StepperUiActions.setGlobalError({
+              error: { message: error.message, stepIndex: 2 }
+            }))
+          )
         )
       )
     )
@@ -78,7 +85,7 @@ export class StepperPackageEffects {
       switchMap(([_, changes]) =>
         this.repositoryService.bulkUpdatePackageDetails(changes).pipe(
           map((result) => PackageActions.upsertManySuccess({ packageDetails: result.package_details })),
-          catchError((error) => of(OrderDetailActions.upsertManyFailure({ error: error.message })))
+          catchError((error) => of(PackageActions.upsertManyFailure()))
         )
       )
     )
@@ -113,22 +120,37 @@ export class StepperPackageEffects {
   packageChanges$ = createEffect(() =>
     this.actions$.pipe(
       ofType(
+        // Drag-Drop: Pallet İşlemleri
         StepperPackageActions.movePalletToPackage,
         StepperPackageActions.removePalletFromPackage,
+
+        // Drag-Drop: Product İşlemleri (Paketler Arası)
         StepperPackageActions.moveUiProductInPackageToPackage,
         StepperPackageActions.movePartialProductBetweenPackages,
+
+        // Drag-Drop: Product İşlemleri (Paket İçi)
         StepperPackageActions.moveUiProductInSamePackage,
+
+        // Drag-Drop: Remaining Products İşlemleri
         StepperPackageActions.moveRemainingProductToPackage,
         StepperPackageActions.movePartialRemainingProductToPackage,
         StepperPackageActions.moveProductToRemainingProducts,
         StepperPackageActions.remainingProductMoveProduct,
+
+        // Package İşlemleri
         StepperPackageActions.removePackage,
         StepperPackageActions.removeAllPackage,
         StepperPackageActions.removeProductFromPackage,
+
+        // Product İşlemleri
         StepperPackageActions.splitProduct,
         StepperPackageActions.addUiProductToRemainingProducts,
         StepperPackageActions.deleteRemainingProduct,
+
+        // Alignment Değişiklikleri
         StepperPackageActions.setVerticalSortInPackage,
+
+        // Product Count Güncellemeleri
         StepperPackageActions.updateProductCountAndCreateOrUpdateOrderDetail,
       ),
       tap(() => console.log('[packageChanges$] Değişiklik tespit edildi, hesaplanıyor...')),
@@ -139,20 +161,6 @@ export class StepperPackageEffects {
           error: { message: 'Package changes calculation error', stepIndex: 2 }
         }));
       })
-    )
-  );
-
-  // Sipariş Detayı Değişikliklerini Hesapla
-  orderDetailChanges$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(
-        StepperPackageActions.deleteRemainingProduct,
-        StepperPackageActions.addUiProductToRemainingProducts,
-        StepperPackageActions.updateProductCountAndCreateOrUpdateOrderDetail,
-        StepperOrderActions.deleteOrderDetail,
-      ),
-      map(() => StepperOrderActions.calculateOrderDetailChanges()),
-      catchError((error) => of(StepperUiActions.setGlobalError({ error: error.message })))
     )
   );
 }

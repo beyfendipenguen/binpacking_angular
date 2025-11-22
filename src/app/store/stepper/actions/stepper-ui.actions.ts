@@ -1,27 +1,31 @@
 import { createActionGroup, emptyProps, props } from '@ngrx/store';
-import { StepperState } from '../stepper.state'; // State importunu kontrol et
 
 export const StepperUiActions = createActionGroup({
   source: 'Stepper UI',
   events: {
     // Genel
     'Init': emptyProps(),
+    'Initialize Stepper': props<{ editMode?: boolean; editOrderId?: string }>(),
     'Reset Stepper': emptyProps(),
 
     // Step Yönetimi
+    'Navigate To Step': props<{ stepIndex: number }>(),
     'Set Step Completed': props<{ stepIndex: number }>(),
+    'Set Step Validation': props<{ stepIndex: number; isValid: boolean }>(),
     'Set Active Step': props<{ stepIndex: number }>(),
     'Stepper Step Updated': emptyProps(), // Auto-save tetikleyici
 
     // Hata Yönetimi
-    'Set Global Error': props<{ error: { message: string; stepIndex?: number } }>(),
-    'Set Stepper Error': props<{ error: string }>(),
+    'Set Global Error': props<{ error: { message: string; code?: string; stepIndex?: number } }>(),
+    'Set Stepper Error': props<{ error: string | null }>(),
 
     // Local Storage / State
     'Restore Local Storage Data': emptyProps(),
-    'Set Stepper Data': props<{ data: any }>(), // Şimdilik any, sonra StepperState yaparız
+    'Set Stepper Data': props<{ data: any }>(),
 
-    // Diğer UI
-    'Set Template File': props<{ file: any }>()
+    // Dirty Flags
+    'Set Step1 Is Dirty': emptyProps(),
+    'Set Step2 Is Dirty': emptyProps(),
+    'Set Step3 Is Dirty': emptyProps()
   }
 });

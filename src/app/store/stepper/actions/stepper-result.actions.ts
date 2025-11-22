@@ -4,8 +4,9 @@ export const StepperResultActions = createActionGroup({
   source: 'Stepper Result',
   events: {
     // Submit
-    'Result Step Submit': props<{ resetStepper: boolean }>(),
+    'Result Step Submit': props<{ orderResult: string, resetStepper: boolean, packageNames?: string[] }>(),
     'Result Step Submit Success': emptyProps(),
+    'Result Step Submit Error': props<{ error: string }>(),
 
     // Güncelleme
     'Update Order Result': emptyProps(),
@@ -15,6 +16,6 @@ export const StepperResultActions = createActionGroup({
     'Create Report File Success': props<{ reportFiles: any[] }>(),
 
     // Tamamlama
-    'Complete Shipment': emptyProps()
+    'Complete Shipment': props<{ orderResult: string }>()
   }
 });

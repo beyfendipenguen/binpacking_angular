@@ -5,8 +5,9 @@ import { INVOICE_UPLOAD_CONSTANTS } from '../constants/invoice-upload.constants'
 import { Store } from '@ngrx/store';
 import { ToastService } from '@app/core/services/toast.service';
 import { RepositoryService } from '@app/features/stepper/services/repository.service';
-import { AppState, setFileExists } from '@app/store';
 import { FileState, FileValidationResult } from '../models/invoice-upload-interfaces';
+import { AppState } from '@app/store';
+import { StepperOrderActions } from '@app/store/stepper/actions/stepper-order.actions';
 @Injectable({
   providedIn: 'root'
 })
@@ -63,7 +64,7 @@ export class FileUploadManager {
 
       if (validation.isValid) {
         this.fileState.file = file;
-        this.store.dispatch(setFileExists());
+        this.store.dispatch(StepperOrderActions.setFileExists());
         this.toastService.success(INVOICE_UPLOAD_CONSTANTS.MESSAGES.SUCCESS.FILE_SELECTED);
         return true;
       } else {

@@ -5,6 +5,11 @@ import { map, switchMap, catchError, withLatestFrom, mergeMap, filter } from 'rx
 import { forkJoin, of } from 'rxjs';
 
 import { OrderDetailActions } from '../actions/order-detail.actions';
+import { OrderActions } from '../actions/order.actions';
+import { StepperOrderActions } from '../actions/stepper-order.actions';
+import { StepperUiActions } from '../actions/stepper-ui.actions';
+import { StepperPackageActions } from '../actions/stepper-package.actions';
+
 import {
   AppState,
   selectOrder,
@@ -19,9 +24,6 @@ import { OrderDetailService } from '@features/services/order-detail.service';
 import { RepositoryService } from '@features/stepper/services/repository.service';
 import { FileUploadManager } from '@features/stepper/components/invoice-upload/managers/file-upload.manager';
 import { mapPackageDetailToPackage } from '@features/mappers/package-detail.mapper';
-import { StepperOrderActions } from '../actions/stepper-order.actions';
-import { StepperUiActions } from '../actions/stepper-ui.actions';
-import { StepperPackageActions } from '../actions/stepper-package.actions';
 
 @Injectable()
 export class StepperOrderEffects {
@@ -70,7 +72,7 @@ export class StepperOrderEffects {
             }),
             StepperOrderActions.uploadInvoiceProcessFileSuccess(),
           )),
-          catchError((error) => of(StepperUiActions.setGlobalError({ error: error.message })))
+          catchError((error) => of(StepperUiActions.setGlobalError({ error: { message: error.message } })))
         )
       )
     )
@@ -80,15 +82,15 @@ export class StepperOrderEffects {
   syncInvoiceUploadStep$ = createEffect(() =>
     this.actions$.pipe(
       ofType(StepperOrderActions.syncInvoiceUploadStep),
-      map(() => StepperOrderActions.save()),
-      catchError((error) => of(StepperUiActions.setGlobalError({ error: error.message })))
+      map(() => OrderActions.save()),
+      catchError((error) => of(StepperUiActions.setGlobalError({ error: { message: error.message } })))
     )
   );
 
   // Sipariş Kaydetme (Dirty Check ile)
-  saveOrderSuccess$ = createEffect(() =>
+  saveOrder$ = createEffect(() =>
     this.actions$.pipe(
-      ofType(StepperOrderActions.save),
+      ofType(OrderActions.save),
       withLatestFrom(
         this.store.select(selectOrder),
         this.store.select(selectIsOrderDirty)
@@ -96,7 +98,7 @@ export class StepperOrderEffects {
       filter(([, , isDirty]) => isDirty),
       switchMap(([_, order]) =>
         this.orderService.updateOrCreate(order).pipe(
-          map((result) => StepperOrderActions.saveSuccess({ order: result.order })),
+          map((result) => OrderActions.saveSuccess({ order: result.order })),
           catchError((error) => of(StepperUiActions.setStepperError({ error: error.message })))
         )
       )
@@ -106,7 +108,7 @@ export class StepperOrderEffects {
   // Sipariş kaydedildikten sonra detayları kaydetmeyi tetikle
   triggerCreateOrderDetails$ = createEffect(() =>
     this.actions$.pipe(
-      ofType(StepperOrderActions.saveSuccess),
+      ofType(OrderActions.saveSuccess, StepperOrderActions.saveSuccess),
       map(() => OrderDetailActions.upsertMany())
     )
   );
@@ -140,7 +142,7 @@ export class StepperOrderEffects {
   // Dosya Yükleme Trigger
   triggerUploadFileToOrder$ = createEffect(() =>
     this.actions$.pipe(
-      ofType(StepperOrderActions.saveSuccess),
+      ofType(OrderActions.saveSuccess, StepperOrderActions.saveSuccess),
       withLatestFrom(this.store.select(selectFileExists)),
       filter(([_, fileExists]) => fileExists),
       map(() => StepperOrderActions.uploadFileToOrder())
@@ -157,9 +159,25 @@ export class StepperOrderEffects {
         if (!order) return of(StepperUiActions.setGlobalError({ error: { message: 'Order not found' } }));
         return this.fileUploadManager.uploadFileToOrder(order.id).pipe(
           map(() => StepperOrderActions.uploadFileToOrderSuccess()),
-          catchError((error) => of(StepperUiActions.setGlobalError({ error: error.message })))
+          catchError((error) => of(StepperUiActions.setGlobalError({ error: { message: error.message } })))
         );
       })
+    )
+  );
+
+  // Order Detail Değişikliklerini Hesapla
+  orderDetailChanges$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(
+        StepperPackageActions.deleteRemainingProduct,
+        StepperPackageActions.addUiProductToRemainingProducts,
+        StepperPackageActions.updateProductCountAndCreateOrUpdateOrderDetail,
+        StepperOrderActions.deleteOrderDetail,
+      ),
+      map(() => StepperOrderActions.calculateOrderDetailChanges()),
+      catchError((error) =>
+        of(StepperUiActions.setGlobalError({ error: { message: error.message } }))
+      )
     )
   );
 }

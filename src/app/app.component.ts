@@ -3,10 +3,10 @@ import { NavigationCancel, NavigationEnd, NavigationError, NavigationStart, Rout
 import { AppState } from './store';
 import { Store } from '@ngrx/store';
 import * as UserActions from './store/user/user.actions';
-import * as StepperActions from './store/stepper/stepper.actions';
 import { filter } from 'rxjs';
 import { LoadingComponent } from './shared/loading/loading.component';
 import { LoadingService } from './shared/loading/loading.service';
+import { StepperUiActions } from './store/stepper/actions/stepper-ui.actions';
 
 
 
@@ -25,7 +25,7 @@ export class AppComponent implements OnInit {
 
   ngOnInit(): void {
     this.store.dispatch(UserActions.loadUserFromStorage())
-    this.store.dispatch(StepperActions.restoreLocalStorageData())
+    this.store.dispatch(StepperUiActions.restoreLocalStorageData())
 
     this.router.events.pipe(
       filter(event => event instanceof NavigationStart)

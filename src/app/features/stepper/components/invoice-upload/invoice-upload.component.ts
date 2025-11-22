@@ -40,13 +40,6 @@ import { ToastService } from '@core/services/toast.service';
 import { Order } from '@features/interfaces/order.interface';
 import { CompanyRelationService } from '@features/services/company-relation.service';
 import { GenericTableComponent } from '@shared/generic-table/generic-table.component';
-import {
-  AppState, selectOrder, selectOrderDetails, selectIsOrderDetailsDirty, selectIsOrderDirty,
-  selectTotalProductsMeter, selectTotalProductCount, selectStep1HasFile, selectStep1FileName,
-  selectIsEditMode, selectUser, selectInvoiceTemplateFile, selectAverageOrderDetailHeight,
-  setTemplateFile, addOrderDetail, deleteOrderDetail, getPallets, navigateToStep,
-  syncInvoiceUploadStep, updateOrderDetail, uploadInvoiceProcessFile
-} from '@app/store';
 import { OrderActions } from '@app/store/stepper/actions/order.actions';
 import { INVOICE_UPLOAD_CONSTANTS } from './constants/invoice-upload.constants';
 import { FileUploadManager } from './managers/file-upload.manager';
@@ -56,6 +49,10 @@ import { UIStateManager } from './managers/ui-state.manager';
 import { ReferenceData, UIState, OrderDetailUpdateEvent, WeightType } from './models/invoice-upload-interfaces';
 import { InvoiceCalculatorService } from './services/invoice-calculator.service';
 import { InvoiceDataLoaderService } from './services/invoice-data-loader.service';
+import { AppState, selectOrder, selectOrderDetails, selectIsOrderDetailsDirty, selectIsOrderDirty, selectTotalProductsMeter, selectTotalProductCount, selectStep1HasFile, selectStep1FileName, selectIsEditMode, selectUser, selectInvoiceTemplateFile, selectAverageOrderDetailHeight } from '@app/store';
+import { StepperOrderActions } from '@app/store/stepper/actions/stepper-order.actions';
+import { StepperPackageActions } from '@app/store/stepper/actions/stepper-package.actions';
+import { StepperUiActions } from '@app/store/stepper/actions/stepper-ui.actions';
 
 @Component({
   selector: 'app-invoice-upload',
@@ -282,7 +279,7 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
         company_id: company_id,
         type: 'isb_template'
       }).subscribe(response => {
-        this.store.dispatch(setTemplateFile({ templateFile: response.results[0] }))
+        this.store.dispatch(StepperOrderActions.setTemplateFile({ file: response.results[0] }))
       })
     }
   }
@@ -293,7 +290,7 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
   }
 
   uploadFile(): void {
-    this.store.dispatch(uploadInvoiceProcessFile());
+    this.store.dispatch(StepperOrderActions.uploadInvoiceProcessFile());
     this.resetForm();
 
   }
@@ -356,7 +353,7 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
           });
 
           this.store.dispatch(OrderActions.set({ order: updatedOrder }));
-          this.store.dispatch(getPallets());
+          this.store.dispatch(StepperPackageActions.getPallets());
         }
       },
       error: (error) => {
@@ -457,7 +454,7 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (orderDetail: any) => {
           if (orderDetail) {
-            this.store.dispatch(addOrderDetail({
+            this.store.dispatch(StepperOrderActions.addOrderDetail({
               orderDetail: orderDetail
             }));
 
@@ -470,14 +467,14 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
 
   updateOrderDetail(event: OrderDetailUpdateEvent): void {
     const updatedDetail = { ...event.item, ...event.data };
-    this.store.dispatch(updateOrderDetail({
+    this.store.dispatch(StepperOrderActions.updateOrderDetail({
       orderDetail: updatedDetail
     }));
   }
 
   deleteOrderDetail(id: string): void {
-    this.store.dispatch(deleteOrderDetail({
-      orderDetailId: id
+    this.store.dispatch(StepperOrderActions.deleteOrderDetail({
+      id: id
     }));
 
   }
@@ -518,10 +515,10 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
       return;
     }
     if (!this.isOrderDirtySignal() && !this.isOrderDetailsDirtySignal()) {
-      this.store.dispatch(navigateToStep({ stepIndex: 1 }))
+      this.store.dispatch(StepperUiActions.navigateToStep({ stepIndex: 1 }))
       return;
     }
-    this.store.dispatch(syncInvoiceUploadStep())
+    this.store.dispatch(StepperOrderActions.syncInvoiceUploadStep())
 
   }
 

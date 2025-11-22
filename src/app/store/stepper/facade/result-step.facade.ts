@@ -2,10 +2,13 @@ import { Injectable, inject } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { Observable, of } from 'rxjs';
 import { concatMap, switchMap, tap, take, map } from 'rxjs/operators';
-import { AppState, createPackageDetailsSuccess, createReportFile, updateOrderDetailsSuccess } from '../..';
+import { AppState} from '../..';
 import { AuthService } from '../../../core/auth/services/auth.service';
 import { selectIsOrderDetailsDirty, selectOrderDetailsChanges, selectOrderResult, selectPackageChanges } from '../stepper.selectors';
 import { RepositoryService } from '@features/stepper/services/repository.service';
+import { StepperResultActions } from '../actions/stepper-result.actions';
+import { StepperPackageActions } from '../actions/stepper-package.actions';
+import { StepperOrderActions } from '../actions/stepper-order.actions';
 
 /**
  * ResultStepFacade
@@ -57,7 +60,7 @@ export class ResultStepFacade {
       // 5. Adım: Report file oluşturma sinyalini gönder
       tap(() => {
         console.log('[ResultStepFacade] Report file oluşturma başlatılıyor...');
-        this.store.dispatch(createReportFile());
+        this.store.dispatch(StepperResultActions.createReportFile());
       })
     );
   }
@@ -106,7 +109,7 @@ export class ResultStepFacade {
 
             // Success action'ını dispatch et
             this.store.dispatch(
-              updateOrderDetailsSuccess({
+              StepperOrderActions.updateOrderDetailsSuccess({
                 orderDetails: result.order_details
               })
             );
@@ -150,7 +153,7 @@ export class ResultStepFacade {
 
             // Success action'ını dispatch et
             this.store.dispatch(
-              createPackageDetailsSuccess({
+              StepperPackageActions.createPackageDetailsSuccess({
                 packageDetails: result.package_details
               })
             );

@@ -9,7 +9,6 @@ import { RepositoryService } from '@features/stepper/services/repository.service
 import { ResultStepFacade } from '../facade/result-step.facade';
 import { StepperUiActions } from '../actions/stepper-ui.actions';
 import { StepperResultActions } from '../actions/stepper-result.actions';
-import { StepperOrderActions } from '../actions/stepper-order.actions';
 
 @Injectable()
 export class StepperResultEffects {
@@ -28,8 +27,8 @@ export class StepperResultEffects {
           map(() => StepperResultActions.resultStepSubmitSuccess()),
           catchError((error) => {
             console.error('[Result Step] Hata:', error);
-            return of(StepperUiActions.setGlobalError({
-              error: { message: error.message || 'Submit hatası', stepIndex: 3 }
+            return of(StepperResultActions.resultStepSubmitError({
+              error: error.message || 'Submit hatası'
             }));
           })
         )
@@ -37,36 +36,54 @@ export class StepperResultEffects {
     )
   );
 
+  // Update Order Result
   updateOrderResult$ = createEffect(() =>
     this.actions$.pipe(
       ofType(StepperResultActions.updateOrderResult),
       withLatestFrom(this.store.select(selectOrderResult)),
       switchMap(([_, orderResult]) =>
         this.repositoryService.partialUpdateOrderResult(orderResult).pipe(
-          map(() => StepperResultActions.createReportFile())
+          map(() => StepperResultActions.createReportFile()),
+          catchError((error) =>
+            of(StepperUiActions.setGlobalError({
+              error: { message: error.message, stepIndex: 3 }
+            }))
+          )
         )
       )
     )
   );
 
+  // Complete Shipment
   completeShipment$ = createEffect(() =>
     this.actions$.pipe(
       ofType(StepperResultActions.completeShipment),
       withLatestFrom(this.store.select(selectOrderResult)),
-      switchMap(([_, orderResult]) =>
-        this.repositoryService.partialUpdateOrderResult(orderResult).pipe(
-          map(() => StepperUiActions.resetStepper())
+      switchMap(([action, orderResult]) =>
+        this.repositoryService.partialUpdateOrderResult(action.orderResult).pipe(
+          map(() => StepperUiActions.resetStepper()),
+          catchError((error) =>
+            of(StepperUiActions.setGlobalError({
+              error: { message: error.message, stepIndex: 3 }
+            }))
+          )
         )
       )
     )
   );
 
+  // Create Report File
   createReportFile$ = createEffect(() =>
     this.actions$.pipe(
       ofType(StepperResultActions.createReportFile),
       switchMap(() =>
         this.repositoryService.createReport().pipe(
-          map((response) => StepperResultActions.createReportFileSuccess({ reportFiles: response.files }))
+          map((response) => StepperResultActions.createReportFileSuccess({ reportFiles: response.files })),
+          catchError((error) =>
+            of(StepperUiActions.setGlobalError({
+              error: { message: error.message, stepIndex: 3 }
+            }))
+          )
         )
       )
     )

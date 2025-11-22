@@ -25,8 +25,10 @@ import { ToastService } from '@core/services/toast.service';
 import { OrderResultService } from '@features/services/order-result.service';
 import { CancelConfirmationDialogComponent } from '@shared/cancel-confirmation-dialog/cancel-confirmation-dialog.component';
 import { ThreeJSTruckVisualizationComponent } from '@shared/threejs-truck-visualization/threejs-truck-visualization.component';
-import { AppState, selectRemainingProducts, selectStep3IsDirty, selectIsEditMode, selectOrderId, setStepperData, setGlobalError, setStepCompleted, setStepValidation, navigateToStep, resultStepSubmit, selectPackages } from '@app/store';
 import { RepositoryService } from '../../services/repository.service';
+import { AppState, selectRemainingProducts, selectStep3IsDirty, selectIsEditMode, selectOrderId, selectPackages } from '@app/store';
+import { StepperUiActions } from '@app/store/stepper/actions/stepper-ui.actions';
+import { StepperResultActions } from '@app/store/stepper/actions/stepper-result.actions';
 
 
 interface PackageData {
@@ -169,7 +171,7 @@ export class ResultStepComponent implements OnInit, OnDestroy {
         takeUntil(this.destroy$),
         switchMap((response) => {
           this.orderResultId = response.data.order_result_id
-          this.store.dispatch(setStepperData({ data: { orderResultId: this.orderResultId } }));
+          this.store.dispatch(StepperUiActions.setStepperData({ data: { orderResultId: this.orderResultId } }));
           this.safeProcessOptimizationResult(response);
           this.originalPiecesData = JSON.parse(JSON.stringify(this.piecesData));
           this.optimizationProgress = Math.min(80, this.optimizationProgress);
@@ -198,7 +200,7 @@ export class ResultStepComponent implements OnInit, OnDestroy {
         error: (error) => {
 
           // Global error dispatch et
-          this.store.dispatch(setGlobalError({
+          this.store.dispatch(StepperUiActions.setGlobalError({
             error: {
               message: 'Optimizasyon hesaplaması sırasında hata oluştu: ' + (error.message || error),
               code: error.status?.toString(),
@@ -294,8 +296,8 @@ export class ResultStepComponent implements OnInit, OnDestroy {
     this.showVisualization = true;
     this.hasThreeJSError = false;
 
-    this.store.dispatch(setStepCompleted({ stepIndex: 2 }));
-    this.store.dispatch(setStepValidation({ stepIndex: 2, isValid: true }));
+    this.store.dispatch(StepperUiActions.setStepCompleted({ stepIndex: 2 }));
+    this.store.dispatch(StepperUiActions.setStepValidation({ stepIndex: 2, isValid: true }));
 
     this.safeUpdateUI();
     this.toastService.success(' paketleme ve rapor başarıyla oluşturuldu.');
@@ -463,7 +465,7 @@ export class ResultStepComponent implements OnInit, OnDestroy {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
   }
   goPreviousStep() {
-    this.store.dispatch(navigateToStep({ stepIndex: 1 }));
+    this.store.dispatch(StepperUiActions.navigateToStep({ stepIndex: 1 }));
   }
 
   completeShipment(): void {
@@ -500,7 +502,7 @@ export class ResultStepComponent implements OnInit, OnDestroy {
           this.reportFiles = [];
         }
         if (result === true) {
-          this.store.dispatch(resultStepSubmit({ orderResult, resetStepper, packageNames: this.threeJSComponent.deletedPackages.map(pckg => pckg.id.toString()), }))
+          this.store.dispatch(StepperResultActions.resultStepSubmit({ orderResult, resetStepper, packageNames: this.threeJSComponent.deletedPackages.map(pckg => pckg.id.toString()), }))
           this.threeJSComponent.deletedPackages = []
           this.shipmentCompleted.emit();
         }
@@ -513,7 +515,7 @@ export class ResultStepComponent implements OnInit, OnDestroy {
         this.hasResults = false;
         this.reportFiles = [];
       }
-      this.store.dispatch(resultStepSubmit({ orderResult, resetStepper, packageNames: this.threeJSComponent.deletedPackages.map(pckg => pckg.id.toString()), }))
+      this.store.dispatch(StepperResultActions.resultStepSubmit({ orderResult, resetStepper, packageNames: this.threeJSComponent.deletedPackages.map(pckg => pckg.id.toString()), }))
 
       this.shipmentCompleted.emit();
     }

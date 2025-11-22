@@ -1,30 +1,47 @@
 import { on } from '@ngrx/store';
-import { StepperState } from '../stepper.state';
+import { StepperState, initialStepperState } from '../stepper.state';
 import { StepperUiActions } from '../actions/stepper-ui.actions';
 
 export const stepperUiHandlers = [
-
   // Init
   on(StepperUiActions.init, (state: StepperState) => ({
     ...state,
-    // ...MEVCUT LOGIC'İ BURAYA YAPIŞTIR
+    // Init mantığı gerekirse buraya eklenir
+  })),
+
+  // Initialize Stepper
+  on(StepperUiActions.initializeStepper, (state: StepperState, { editMode, editOrderId }) => ({
+    ...state,
+    isEditMode: editMode || false,
+    editOrderId: editOrderId || null,
+    error: null
   })),
 
   // Reset
-  on(StepperUiActions.resetStepper, (state: StepperState) => ({
-    ...state
+  on(StepperUiActions.resetStepper, () => ({
+    ...initialStepperState
   })),
 
   // Step Navigation
+  on(StepperUiActions.navigateToStep, (state: StepperState, { stepIndex }) => ({
+    ...state,
+    currentStep: stepIndex,
+    error: null
+  })),
+
   on(StepperUiActions.setStepCompleted, (state: StepperState, { stepIndex }) => ({
     ...state,
     completedStep: Math.max(state.completedStep, stepIndex)
-    // ...MEVCUT LOGIC'İ BURAYA YAPIŞTIR
   })),
 
   on(StepperUiActions.setActiveStep, (state: StepperState, { stepIndex }) => ({
     ...state,
     currentStep: stepIndex
+  })),
+
+  on(StepperUiActions.setStepValidation, (state: StepperState, { stepIndex, isValid }) => ({
+    ...state,
+    // Step validation mantığı gerekirse buraya eklenir
   })),
 
   // Error & Loading
@@ -37,10 +54,16 @@ export const stepperUiHandlers = [
     loading: false
   })),
 
+  on(StepperUiActions.setStepperError, (state: StepperState, { error }) => ({
+    ...state,
+    error,
+    loading: false
+  })),
+
   // LocalStorage Restore
   on(StepperUiActions.restoreLocalStorageData, (state: StepperState) => ({
-      ...state
-      // ...Logic
+    ...state
+    // LocalStorage restore mantığı effect'te handle edilir
   })),
 
   on(StepperUiActions.setStepperData, (state: StepperState, { data }) => ({
@@ -48,11 +71,41 @@ export const stepperUiHandlers = [
     ...data
   })),
 
-  on(StepperUiActions.setTemplateFile, (state: StepperState, { file }) => ({
-    ...state,
-    step1State: {
-        ...state.step1State,
-        templateFile: file
+  // Dirty Flags
+  on(StepperUiActions.setStep1IsDirty, (state: StepperState) => {
+    // Step1 için dirty flag mantığı gerekirse buraya eklenir
+    return state;
+  }),
+
+  on(StepperUiActions.setStep2IsDirty, (state: StepperState) => {
+    if (state.step2State.isDirty) {
+      return state;
     }
-  }))
+    return {
+      ...state,
+      step2State: {
+        ...state.step2State,
+        isDirty: true
+      }
+    };
+  }),
+
+  on(StepperUiActions.setStep3IsDirty, (state: StepperState) => {
+    if (state.step3State.isDirty) {
+      return state;
+    }
+    return {
+      ...state,
+      step3State: {
+        ...state.step3State,
+        isDirty: true
+      }
+    };
+  }),
+
+  // Stepper Step Updated (AutoSave trigger)
+  on(StepperUiActions.stepperStepUpdated, (state: StepperState) => ({
+    ...state
+    // Bu action genelde effect'te handle edilir (localStorage save için)
+  })),
 ];

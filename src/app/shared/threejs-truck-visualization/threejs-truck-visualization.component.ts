@@ -18,10 +18,10 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import * as THREE from 'three';
-import { AppState, selectTruck, setStep3IsDirty } from '../../store';
+import { AppState, selectTruck } from '../../store';
 import { Store } from '@ngrx/store';
 import { MatDialog } from '@angular/material/dialog';
-import { CancelConfirmationDialogComponent } from '../cancel-confirmation-dialog/cancel-confirmation-dialog.component';
+import { StepperUiActions } from '@app/store/stepper/actions/stepper-ui.actions';
 
 interface PackageData {
   id: number;
@@ -1631,7 +1631,7 @@ private applyWheelTransforms(): void {
   }
 
   private orderResultChange(): void {
-    this.store.dispatch(setStep3IsDirty());
+    this.store.dispatch(StepperUiActions.setStep3IsDirty());
   }
 
   private findValidPosition(packageData: PackageData): { x: number, y: number, z: number } | null {

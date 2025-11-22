@@ -15,8 +15,14 @@ import { provideStore } from '@ngrx/store';
 import { provideEffects } from '@ngrx/effects';
 import { provideStoreDevtools } from '@ngrx/store-devtools';
 import { reducers } from './store';
-import { StepperEffects } from './store/stepper/stepper.effects';
 import { UserEffects } from './store/user/user.effects';
+
+// ✅ Stepper Effects - 4 gruba ayrıldı
+import { StepperOrderEffects } from './store/stepper/effects/stepper-order.effects';
+import { StepperPackageEffects } from './store/stepper/effects/stepper-package.effects';
+import { StepperResultEffects } from './store/stepper/effects/stepper-result.effects';
+import { StepperGeneralEffects } from './store/stepper/effects/stepper-general.effects';
+
 import { STORE_CONFIG, DEVTOOLS_CONFIG, metaReducers } from './ngrx.config';
 import { ResultStepFacade } from './store/stepper/facade/result-step.facade';
 import { loadingInterceptor } from './shared/loading/loading.interceptor';
@@ -55,8 +61,17 @@ export const appConfig: ApplicationConfig = {
     // ✅ NgRx Store - Runtime Checks ile
     provideStore(reducers, { ...STORE_CONFIG, metaReducers }),
 
-    // ✅ NgRx Effects
-    provideEffects([StepperEffects, UserEffects]),
+    // ✅ NgRx Effects - Refactored: 4 Stepper Effect + 1 User Effect
+    provideEffects([
+      // Stepper Effects (4 grup)
+      StepperOrderEffects,
+      StepperPackageEffects,
+      StepperResultEffects,
+      StepperGeneralEffects,
+
+      // User Effects
+      UserEffects
+    ]),
 
     // ✅ NgRx DevTools - Geliştirilmiş Ayarlar
     ...(isDevMode() ? [provideStoreDevtools(DEVTOOLS_CONFIG)] : []),

@@ -25,7 +25,9 @@ import { LocalStorageService } from './services/local-storage.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ToastService } from '@core/services/toast.service';
 import { LoadingComponent } from '@shared/loading/loading.component';
-import { AppState, enableEditMode, navigateToStep, selectCompletedStep, selectCurrentStep, selectIsEditMode } from '@app/store';
+import { AppState, selectCompletedStep, selectIsEditMode, selectCurrentStep } from '@app/store';
+import { StepperUiActions } from '@app/store/stepper/actions/stepper-ui.actions';
+import { StepperOrderActions } from '@app/store/stepper/actions/stepper-order.actions';
 
 @Component({
   selector: 'app-stepper',
@@ -87,7 +89,7 @@ export class StepperComponent implements OnInit {
   };
 
   onStepChange(event: StepperSelectionEvent): void {
-    this.store.dispatch(navigateToStep({ stepIndex: event.selectedIndex }))
+    this.store.dispatch(StepperUiActions.navigateToStep({ stepIndex: event.selectedIndex }))
   }
 
 
@@ -116,7 +118,7 @@ export class StepperComponent implements OnInit {
       this.legacyToastService.info("duzenlemek istediginiz siparis yarim kalan siparisinizdi", "edit mode ve local ayni")
       return;
     } else if (editModeOrderId) {
-      this.store.dispatch(enableEditMode({ orderId: editModeOrderId }));
+      this.store.dispatch(StepperOrderActions.enableEditMode({ orderId: editModeOrderId }));
     }
 
   }

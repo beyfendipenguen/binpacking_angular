@@ -7,8 +7,8 @@ import { LocalStorageService } from '@features/stepper/services/local-storage.se
 import { ToastService } from '@core/services/toast.service';
 import { StepperUiActions } from '../actions/stepper-ui.actions';
 import { StepperOrderActions } from '../actions/stepper-order.actions';
-import { OrderActions } from '../actions/order.actions';
 import { StepperPackageActions } from '../actions/stepper-package.actions';
+import { OrderActions } from '../actions/order.actions';
 
 @Injectable()
 export class StepperGeneralEffects {
@@ -61,9 +61,11 @@ export class StepperGeneralEffects {
   );
 
   // Veri değiştiren action'ları dinleyip "updated" sinyali üretir (AutoSave'i tetikler)
-  triggerStepperStepUploaded$ = createEffect(() =>
+  triggerStepperStepUpdated$ = createEffect(() =>
     this.actions$.pipe(
       ofType(
+        // Order Actions
+        OrderActions.set,
         StepperOrderActions.set,
         StepperOrderActions.uploadInvoiceProcessFileSuccess,
         StepperOrderActions.addOrderDetail,
@@ -72,10 +74,12 @@ export class StepperGeneralEffects {
         StepperOrderActions.uploadFileToOrderSuccess,
         StepperOrderActions.createOrderDetailsSuccess,
         StepperOrderActions.saveSuccess,
+        OrderActions.saveSuccess,
+        StepperOrderActions.setTemplateFile,
+
+        // Package Actions
         StepperPackageActions.calculatePackageDetailSuccess,
         StepperPackageActions.createPackageDetailsSuccess,
-        StepperUiActions.setTemplateFile,
-        // Paket/Ürün hareketleri için:
         StepperPackageActions.moveUiProductInSamePackage,
         StepperPackageActions.remainingProductMoveProduct,
         StepperPackageActions.moveProductToRemainingProducts,
@@ -90,7 +94,7 @@ export class StepperGeneralEffects {
         StepperPackageActions.addUiProductToRemainingProducts,
         StepperPackageActions.updateProductCountAndCreateOrUpdateOrderDetail,
         StepperPackageActions.movePartialRemainingProductToPackage,
-        StepperPackageActions.movePartialProductBetweenPackages
+        StepperPackageActions.movePartialProductBetweenPackages,
       ),
       map(() => StepperUiActions.stepperStepUpdated())
     )

@@ -9,7 +9,7 @@ import { Router } from '@angular/router';
 import { ApiService } from '@core/services/api.service';
 import { ToastService } from '@core/services/toast.service';
 import { Store } from '@ngrx/store';
-import { AppState, loadUser, resetStepper } from '../../../store';
+import { AppState, loadUser, StepperUiActions } from '../../../store';
 import { User } from '@app/core/interfaces/user.interface';
 
 @Injectable({
@@ -81,14 +81,14 @@ export class AuthService {
     localStorage.removeItem('invoice_reference_data');
     localStorage.removeItem('enhanced_stepper_draft_data');
     localStorage.removeItem('user');
-    this.store.dispatch(resetStepper());
+    this.store.dispatch(StepperUiActions.resetStepper());
     this.router.navigate(['/auth/login']);
   }
 
   clearLocalAndStore(): void {
     localStorage.removeItem('invoice_reference_data');
     localStorage.removeItem('enhanced_stepper_draft_data');
-    this.store.dispatch(resetStepper());
+    this.store.dispatch(StepperUiActions.resetStepper());
     this.router.navigate(['/']);
   }
 

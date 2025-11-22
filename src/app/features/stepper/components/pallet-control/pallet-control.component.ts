@@ -34,33 +34,6 @@ import { UiProduct } from '../ui-models/ui-product.model';
 import { UiPallet } from '../ui-models/ui-pallet.model';
 import { UiPackage } from '../ui-models/ui-package.model';
 import { Store } from '@ngrx/store';
-import {
-  addUiProductToRemainingProducts,
-  AppState,
-  movePalletToPackage,
-  moveProductToRemainingProducts,
-  moveRemainingProductToPackage,
-  moveUiProductInPackageToPackage,
-  moveUiProductInSamePackage,
-  palletControlSubmit,
-  remainingProductMoveProduct,
-  removeAllPackage,
-  removePackage,
-  removePalletFromPackage,
-  removeProductFromPackage,
-  splitProduct,
-  updateProductCountAndCreateOrUpdateOrderDetail,
-  deleteRemainingProduct,
-  updateOrderDetails,
-  calculatePackageDetail,
-  setRemainingProducts,
-  mergeRemainingProducts,
-  movePartialProductBetweenPackages,
-  movePartialRemainingProductToPackage,
-  setVerticalSort,
-  navigateToStep,
-  setVerticalSortInPackage,
-} from '@app/store';
 
 import {
   selectRemainingProducts,
@@ -84,6 +57,7 @@ import {
   selectVerticalSort,
   selectUiPallets,
   selectIsPackagesDirty,
+  AppState,
 } from '@app/store';
 import {
   catchError,
@@ -107,6 +81,9 @@ import { ToastService } from '@app/core/services/toast.service';
 import { ProductService } from '@app/features/services/product.service';
 import { CancelConfirmationDialogComponent } from '@app/shared/cancel-confirmation-dialog/cancel-confirmation-dialog.component';
 import { RepositoryService } from '../../services/repository.service';
+import { StepperPackageActions } from '@app/store/stepper/actions/stepper-package.actions';
+import { StepperOrderActions } from '@app/store/stepper/actions/stepper-order.actions';
+import { StepperUiActions } from '@app/store/stepper/actions/stepper-ui.actions';
 
 @Component({
   selector: 'app-pallet-control',
@@ -266,12 +243,12 @@ export class PalletControlComponent
       );
     });
 
-    this.store.dispatch(setRemainingProducts({ remainingProducts }));
+    this.store.dispatch(StepperPackageActions.setRemainingProducts({ remainingProducts }));
   }
 
   //merge remaining products process
   merge() {
-    this.store.dispatch(mergeRemainingProducts())
+    this.store.dispatch(StepperPackageActions.mergeRemainingProducts())
   }
 
   private checkDimensionsFit(product: UiProduct, pallet: UiPallet): boolean {
@@ -425,15 +402,15 @@ export class PalletControlComponent
       return;
     }
     this.store.dispatch(
-      updateProductCountAndCreateOrUpdateOrderDetail({ product, newCount })
+      StepperPackageActions.updateProductCountAndCreateOrUpdateOrderDetail({ product, count: newCount})
     );
   }
 
   selectProduct(product: any) {
     this.store.dispatch(
-      updateProductCountAndCreateOrUpdateOrderDetail({
+      StepperPackageActions.updateProductCountAndCreateOrUpdateOrderDetail({
         product: product,
-        newCount: 0,
+        count: 0,
       })
     );
     // Seçimden sonra aramayı temizle (opsiyonel)
@@ -485,17 +462,17 @@ export class PalletControlComponent
     if (event.previousContainer === event.container) {
       if (event.container.id === 'productsList') {
         this.store.dispatch(
-          remainingProductMoveProduct({
+          StepperPackageActions.remainingProductMoveProduct({
             previousIndex: event.previousIndex,
             currentIndex: event.currentIndex,
           })
         );
       } else {
         this.store.dispatch(
-          moveUiProductInSamePackage({
+          StepperPackageActions.moveUiProductInSamePackage({
             currentIndex: event.currentIndex,
             previousIndex: event.previousIndex,
-            containerId: event.container.id,
+            packageId: event.container.id,
           })
         );
       }
@@ -505,7 +482,7 @@ export class PalletControlComponent
     // Paletten available products'a geri alma
     if (event.container.id === 'productsList') {
       this.store.dispatch(
-        moveProductToRemainingProducts({
+        StepperPackageActions.moveProductToRemainingProducts({
           uiProducts: event.previousContainer.data,
           previousIndex: event.previousIndex,
           previousContainerId: event.previousContainer.id,
@@ -561,7 +538,7 @@ export class PalletControlComponent
               'Kısmi Transfer'
             );
             this.store.dispatch(
-              movePartialProductBetweenPackages({
+              StepperPackageActions.movePartialProductBetweenPackages({
                 sourcePackageId: sourcePackage.id,
                 targetPackageId: targetPackage.id,
                 previousIndex: event.previousIndex,
@@ -573,7 +550,7 @@ export class PalletControlComponent
         }
         // Normal transfer
         this.store.dispatch(
-          moveUiProductInPackageToPackage({
+          StepperPackageActions.moveUiProductInPackageToPackage({
             sourcePackageId: sourcePackage.id,
             targetPackageId: targetPackage.id,
             previousIndex: event.previousIndex,
@@ -608,7 +585,7 @@ export class PalletControlComponent
           'Kısmi Transfer'
         );
         this.store.dispatch(
-          movePartialRemainingProductToPackage({
+          StepperPackageActions.movePartialRemainingProductToPackage({
             targetPackageId: targetPackage.id,
             previousIndex: event.previousIndex,
             maxCount: fitResult.maxCount,
@@ -619,7 +596,7 @@ export class PalletControlComponent
     }
     // Normal transfer
     this.store.dispatch(
-      moveRemainingProductToPackage({
+      StepperPackageActions.moveRemainingProductToPackage({
         targetPackageId: targetPackage.id,
         previousIndex: event.previousIndex,
       })
@@ -630,7 +607,7 @@ export class PalletControlComponent
   dropPalletToPackage(event: CdkDragDrop<any>): void {
     if (event.previousContainer === event.container) return;
     this.store.dispatch(
-      movePalletToPackage({
+      StepperPackageActions.movePalletToPackage({
         containerId: event.container.id,
         previousIndex: event.previousIndex,
         previousContainerData: event.previousContainer.data,
@@ -755,13 +732,13 @@ export class PalletControlComponent
   // Product manipulation methods
   splitProduct(productUiId: string, splitCount?: number | null): void {
     this.store.dispatch(
-      splitProduct({ productUiId: productUiId, splitCount: splitCount ?? null })
+      StepperPackageActions.splitProduct({ productUiId: productUiId, splitCount: splitCount ?? null })
     );
   }
 
   removeProductFromPackage(pkgId: string, productIndex: number): void {
     this.store.dispatch(
-      removeProductFromPackage({
+      StepperPackageActions.removeProductFromPackage({
         pkgId: pkgId,
         productIndex: productIndex,
       })
@@ -769,46 +746,47 @@ export class PalletControlComponent
   }
 
   removeAllPackage(): void {
-    this.store.dispatch(removeAllPackage());
+    this.store.dispatch(StepperPackageActions.removeAllPackage());
   }
 
   removePackage(packageToRemove: any): void {
-    this.store.dispatch(removePackage({ packageId: packageToRemove.id }));
+    this.store.dispatch(StepperPackageActions.removePackage({ packageId: packageToRemove.id }));
   }
 
   removePalletFromPackage(packageItem: UiPackage): void {
     this.store.dispatch(
-      removePalletFromPackage({
-        pkgId: packageItem.id,
+      StepperPackageActions.removePalletFromPackage({
+        packageId: packageItem.id,
       })
     );
   }
 
   onVerticalSortChange(value: boolean): void {
-    this.store.dispatch(setVerticalSort({ verticalSort: value }));
+    this.store.dispatch(StepperPackageActions.setVerticalSort({ verticalSort: value }));
   }
 
   calculatePackageDetail() {
     if (this.orderDetailsIsDirtySignal())
-      this.store.dispatch(
-        updateOrderDetails()
-      );
+      console.log('order details dirty')
+      // this.store.dispatch(
+      //   StepperOrderActions.updateOrderDetails()
+      // );
     else {
-      this.store.dispatch(calculatePackageDetail());
+      this.store.dispatch(StepperPackageActions.calculatePackageDetail());
     }
   }
 
   toggleAlignment(_package: any): void {
     _package.alignment = _package.alignment === 'v' ? 'h' : 'v';
-    this.store.dispatch(setVerticalSortInPackage({ pkgId: _package.id, alignment: _package.alignment }))
+    this.store.dispatch(StepperPackageActions.setVerticalSortInPackage({ pkgId: _package.id, alignment: _package.alignment }))
   }
 
   addUiProduct(productUiId: string) {
-    this.store.dispatch(addUiProductToRemainingProducts({ productUiId: productUiId }));
+    this.store.dispatch(StepperPackageActions.addUiProductToRemainingProducts({ productUiId: productUiId }));
   }
 
   deleteRemainingProduct(productUiId: string): void {
-    this.store.dispatch(deleteRemainingProduct({ productUiId: productUiId }));
+    this.store.dispatch(StepperPackageActions.deleteRemainingProduct({ productUiId: productUiId }));
   }
 
 
@@ -838,14 +816,14 @@ export class PalletControlComponent
       });
     }
     else if (this.isDirtySignal()) {
-      this.store.dispatch(palletControlSubmit());
+      this.store.dispatch(StepperPackageActions.palletControlSubmit());
     } else {
-      this.store.dispatch(navigateToStep({ stepIndex: 2 }))
+      this.store.dispatch(StepperUiActions.navigateToStep({ stepIndex: 2 }))
     }
   }
 
   goPreviousStep() {
-    this.store.dispatch(navigateToStep({ stepIndex: 0 }))
+    this.store.dispatch(StepperUiActions.navigateToStep({ stepIndex: 0 }))
   }
 
 }
