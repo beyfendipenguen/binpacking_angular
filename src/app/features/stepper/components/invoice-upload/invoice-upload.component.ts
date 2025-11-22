@@ -44,9 +44,10 @@ import {
   AppState, selectOrder, selectOrderDetails, selectIsOrderDetailsDirty, selectIsOrderDirty,
   selectTotalProductsMeter, selectTotalProductCount, selectStep1HasFile, selectStep1FileName,
   selectIsEditMode, selectUser, selectInvoiceTemplateFile, selectAverageOrderDetailHeight,
-  setTemplateFile, addOrderDetail, deleteOrderDetail, getPallets, navigateToStep, setOrder,
+  setTemplateFile, addOrderDetail, deleteOrderDetail, getPallets, navigateToStep,
   syncInvoiceUploadStep, updateOrderDetail, uploadInvoiceProcessFile
 } from '@app/store';
+import { OrderActions } from '@app/store/stepper/actions/order.actions';
 import { INVOICE_UPLOAD_CONSTANTS } from './constants/invoice-upload.constants';
 import { FileUploadManager } from './managers/file-upload.manager';
 import { OrderDetailManager } from './managers/order-detail.manager';
@@ -308,8 +309,22 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
         ...currentOrder,
         [field]: serializedValue
       });
-      this.store.dispatch(setOrder({ order: updatedOrder }));
+      this.store.dispatch(OrderActions.set({ order: updatedOrder }));
     }
+  }
+
+  onOrderFieldChange1(field: string, value: any): void {
+    let serializedValue = value;
+
+    if (value instanceof Date) {
+      serializedValue = value.toLocaleDateString('en-CA');
+    }
+
+    this.store.dispatch(
+      OrderActions.patch({
+        changes: { [field]: serializedValue }
+      })
+    );
   }
 
   onCompanyChange(selectedCompany: any): void {
@@ -340,7 +355,7 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
             company_relation: selectedCompany
           });
 
-          this.store.dispatch(setOrder({ order: updatedOrder }));
+          this.store.dispatch(OrderActions.set({ order: updatedOrder }));
           this.store.dispatch(getPallets());
         }
       },
@@ -354,7 +369,7 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
     let currentOrder = this.orderSignal();
     if (currentOrder) {
       const updatedOrder = structuredClone({ ...currentOrder, truck: selectedTruck });
-      this.store.dispatch(setOrder({ order: updatedOrder }));
+      this.store.dispatch(OrderActions.set({ order: updatedOrder }));
     }
   }
 
@@ -365,7 +380,7 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
         ...currentOrder,
         weight_type: selectedWeightType
       });
-      this.store.dispatch(setOrder({ order: updatedOrder }))
+      this.store.dispatch(OrderActions.set({ order: updatedOrder }))
     }
   }
 
@@ -405,7 +420,7 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
     let currentOrder = this.orderSignal();
     if (currentOrder) {
       const updatedOrder = { ...currentOrder, max_pallet_height: maxPalletHeight };
-      this.store.dispatch(setOrder({ order: updatedOrder }));
+      this.store.dispatch(OrderActions.set({ order: updatedOrder }));
     }
   }
 
@@ -413,7 +428,7 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
     let currentOrder = this.orderSignal();
     if (currentOrder) {
       const updatedOrder = { ...currentOrder, truck_weight_limit: value };
-      this.store.dispatch(setOrder({ order: updatedOrder }));
+      this.store.dispatch(OrderActions.set({ order: updatedOrder }));
     }
   }
 
@@ -433,7 +448,7 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
       max_pallet_height: 2400,
       truck_weight_limit: 25000
     };
-    this.store.dispatch(setOrder({ order: newOrder }))
+    this.store.dispatch(OrderActions.set({ order: newOrder }))
     this.openOrderDetailAddDialog();
   }
 
@@ -481,16 +496,18 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
 
   isFormValid(): boolean {
     let hasValidOrderDetails = this.orderDetailsSignal().length > 0;
-    let hasValidOrder = !!(this.orderSignal()?.date && this.orderSignal()?.company_relation && this.orderSignal()?.truck && this.orderSignal()?.weight_type && this.orderSignal()?.max_pallet_height && this.orderSignal()?.truck_weight_limit && this.orderSignal()?.truck_weight_limit != 0);
+    let hasValidOrder = !!(this.orderSignal()?.date &&
+      this.orderSignal()?.company_relation &&
+      this.orderSignal()?.truck &&
+      this.orderSignal()?.weight_type &&
+      this.orderSignal()?.max_pallet_height &&
+      this.orderSignal()?.truck_weight_limit &&
+      this.orderSignal()?.truck_weight_limit != 0
+    );
     return hasValidOrder && hasValidOrderDetails;
   }
 
   submit(): void {
-    // eger is diry ise
-    //  eger isonlyorderdiry ise
-    //    update or create order
-    //
-
     if (!this.isFormValid()) {
       this.toastService.warning(INVOICE_UPLOAD_CONSTANTS.MESSAGES.WARNING.FILL_REQUIRED_FIELDS);
       return;

@@ -10,6 +10,13 @@ import { UiPallet } from '@features/stepper/components/ui-models/ui-pallet.model
 import { UiProduct } from '@features/stepper/components/ui-models/ui-product.model';
 import { OrderDetailDiffCalculator } from '@features/utils/order-detail-diff.util';
 import { calculatePackageChanges } from '@app/features/stepper/components/pallet-control/package-changes.helper';
+import { OrderActions } from './actions/order.actions';
+import { Order } from '@app/features/interfaces/order.interface';
+
+// TODO:
+// ngrx-immer paketini yukle.
+// kodu yari yariya azaltiyor
+// immutable sorununu otamatik cozuyor.
 
 export const stepperReducer = createReducer(
   initialStepperState,
@@ -32,6 +39,17 @@ export const stepperReducer = createReducer(
         deletedIds: [...changes.deletedIds],
       }
     }
+  }),
+
+  on(OrderActions.patch, (state, { changes }) => {
+    return {
+      ...state,
+      order: {
+        ...state.order,
+        ...changes
+      } as Order
+    }
+
   }),
 
   on(StepperActions.deleteRemainingProduct, (state, { productUiId }) => {
@@ -439,14 +457,14 @@ export const stepperReducer = createReducer(
     }
   })),
 
-  on(StepperActions.setOrder, (state, { order }) => {
+  on(OrderActions.set, (state, { order }) => {
     return {
       ...state,
       order: { ...order },
     }
   }),
 
-  on(StepperActions.saveOrderSuccess, (state, { order }) => ({
+  on(OrderActions.saveSuccess, (state, { order }) => ({
     ...state,
     order: order,
     originalOrder: order,
@@ -627,7 +645,7 @@ export const stepperReducer = createReducer(
     fileExists: true
   })),
 
-  on(StepperActions.uploadFileToOrderSuccess, (state) => ({
+  on(OrderActions.uploadFileToOrderSuccess, (state) => ({
     ...state,
     fileExists: false
   })),
