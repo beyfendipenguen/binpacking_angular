@@ -1,3 +1,8 @@
+import { OrderDetailRead } from '@app/features/interfaces/order-detail.interface';
+import { Order } from '@app/features/interfaces/order.interface';
+import { Pallet } from '@app/features/interfaces/pallet.interface';
+import { UiPackage } from '@app/features/stepper/components/ui-models/ui-package.model';
+import { UiPallet } from '@app/features/stepper/components/ui-models/ui-pallet.model';
 import { createActionGroup, emptyProps, props } from '@ngrx/store';
 
 export const StepperUiActions = createActionGroup({
@@ -7,6 +12,8 @@ export const StepperUiActions = createActionGroup({
 
     // Edit Modu
     'Enable Edit Mode': props<{ orderId: string }>(),
+    'Set Edit Mode Stepper Data':props<{order:Order, orderDetails:OrderDetailRead[], pallets:UiPallet[], packages:UiPackage[]}>(), //Daha kullanilmiyor
+
     'Init': emptyProps(),
     'Initialize Stepper': props<{ editMode?: boolean; editOrderId?: string }>(),
     'Reset Stepper': emptyProps(),
