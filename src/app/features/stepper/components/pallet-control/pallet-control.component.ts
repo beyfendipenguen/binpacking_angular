@@ -82,7 +82,7 @@ import { ProductService } from '@app/features/services/product.service';
 import { CancelConfirmationDialogComponent } from '@app/shared/cancel-confirmation-dialog/cancel-confirmation-dialog.component';
 import { RepositoryService } from '../../services/repository.service';
 import { StepperPackageActions } from '@app/store/stepper/actions/stepper-package.actions';
-import { StepperOrderActions } from '@app/store/stepper/actions/stepper-order.actions';
+import { StepperInvoiceUploadActions } from '@app/store/stepper/actions/stepper-invoice-upload.actions';
 import { StepperUiActions } from '@app/store/stepper/actions/stepper-ui.actions';
 
 @Component({

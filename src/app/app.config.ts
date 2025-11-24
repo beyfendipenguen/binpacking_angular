@@ -18,7 +18,7 @@ import { reducers } from './store';
 import { UserEffects } from './store/user/user.effects';
 
 // ✅ Stepper Effects - 4 gruba ayrıldı
-import { StepperOrderEffects } from './store/stepper/effects/stepper-order.effects';
+import { StepperInvoiceUploadEffects } from './store/stepper/effects/stepper-invoice-upload.effects';
 import { StepperPackageEffects } from './store/stepper/effects/stepper-package.effects';
 import { StepperResultEffects } from './store/stepper/effects/stepper-result.effects';
 import { StepperGeneralEffects } from './store/stepper/effects/stepper-general.effects';
@@ -64,7 +64,7 @@ export const appConfig: ApplicationConfig = {
     // ✅ NgRx Effects - Refactored: 4 Stepper Effect + 1 User Effect
     provideEffects([
       // Stepper Effects (4 grup)
-      StepperOrderEffects,
+      StepperInvoiceUploadEffects,
       StepperPackageEffects,
       StepperResultEffects,
       StepperGeneralEffects,

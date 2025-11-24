@@ -1,7 +1,6 @@
 export const INVOICE_UPLOAD_CONSTANTS = {
   FILE: {
     VALID_TYPES: [
-      'application/pdf',
       'application/vnd.ms-excel',
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     ],
@@ -60,7 +59,6 @@ export const INVOICE_UPLOAD_CONSTANTS = {
 
   MESSAGES: {
     SUCCESS: {
-      FILE_SELECTED: 'Dosya başarıyla seçildi.',
       FILE_PROCESSED: 'Dosya İşlendi',
       ORDER_DETAIL_ADDED: 'Sipariş detayı başarıyla eklendi.',
       CHANGES_SAVED: 'Değişiklikler başarıyla kaydedildi',
@@ -68,12 +66,11 @@ export const INVOICE_UPLOAD_CONSTANTS = {
       FORCE_SAVED: 'Veriler zorla kaydedildi',
     },
     WARNING: {
-      SELECT_FILE: 'Lütfen bir dosya seçin.',
-      FILL_REQUIRED_FIELDS: 'Lütfen tüm zorunlu alanları doldurun (Sipariş No, Tarih, Müşteri, Tır, Ağırlık Tipi)',
+      FILL_REQUIRED_FIELDS: 'Lütfen tüm zorunlu alanları doldurun (Sipariş No, Tarih, Müşteri, Tır, Ağırlık Tipi, Kat Adedi, Ağırlık Limiti)',
       MISSING_ORDER_DETAILS: 'Sipariş detayları eksik. Lütfen kontrol ediniz.',
     },
     ERROR: {
-      INVALID_FILE_TYPE: 'Geçersiz dosya türü. Lütfen bir PDF veya Excel dosyası yükleyin.',
+      INVALID_FILE_TYPE: 'Geçersiz dosya türü. Lütfen uygun formatta Excel dosyası yükleyin ya da örnek ISB raporunu indirin.',
       FILE_TOO_LARGE: 'Dosya boyutu 10 MB sınırını aşıyor.',
       FILE_PROCESSING: 'Dosya işlenirken bir hata oluştu.',
       COMPANY_LOADING: 'Profil bilgisi yüklenirken hata oluştu CompanyRelation',

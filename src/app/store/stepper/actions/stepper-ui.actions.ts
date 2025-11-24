@@ -4,6 +4,9 @@ export const StepperUiActions = createActionGroup({
   source: 'Stepper UI',
   events: {
     // Genel
+
+    // Edit Modu
+    'Enable Edit Mode': props<{ orderId: string }>(),
     'Init': emptyProps(),
     'Initialize Stepper': props<{ editMode?: boolean; editOrderId?: string }>(),
     'Reset Stepper': emptyProps(),

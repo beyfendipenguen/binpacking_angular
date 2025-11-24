@@ -7,7 +7,7 @@ import { ToastService } from '@app/core/services/toast.service';
 import { RepositoryService } from '@app/features/stepper/services/repository.service';
 import { FileState, FileValidationResult } from '../models/invoice-upload-interfaces';
 import { AppState } from '@app/store';
-import { StepperOrderActions } from '@app/store/stepper/actions/stepper-order.actions';
+import { StepperInvoiceUploadActions } from '@app/store/stepper/actions/stepper-invoice-upload.actions';
 @Injectable({
   providedIn: 'root'
 })
@@ -64,8 +64,7 @@ export class FileUploadManager {
 
       if (validation.isValid) {
         this.fileState.file = file;
-        this.store.dispatch(StepperOrderActions.setFileExists());
-        this.toastService.success(INVOICE_UPLOAD_CONSTANTS.MESSAGES.SUCCESS.FILE_SELECTED);
+        this.store.dispatch(StepperInvoiceUploadActions.setFileExists({isFileExists:true}));
         return true;
       } else {
         this.toastService.error(validation.error!);
@@ -78,7 +77,6 @@ export class FileUploadManager {
 
   uploadFile(): Observable<any> {
     if (!this.fileState.file) {
-      this.toastService.warning(INVOICE_UPLOAD_CONSTANTS.MESSAGES.WARNING.SELECT_FILE);
       throw new Error('No file selected');
     }
 
@@ -103,6 +101,7 @@ export class FileUploadManager {
 
   resetFileInput(): void {
     this.fileState.file = null;
+    this.store.dispatch(StepperInvoiceUploadActions.setFileExists({isFileExists:false}))
     // Form reset should be handled by OrderFormManager
   }
 
@@ -140,3 +139,4 @@ export class FileUploadManager {
     return { ...this.fileState };
   }
 }
+

@@ -46,7 +46,7 @@
             <mat-icon>file_upload</mat-icon>
             <span>{{ file?.name || "Excel Dosyası Seç" }}</span>
           </button>
-          <input (change)="onFileSelected($event)" #fileInput type="file" accept=".pdf,.xls,.xlsx" hidden />
+          <input (change)="onFileSelected($event)" #fileInput type="file" accept=".xlsx" hidden />
         </div>
       </div>
     </div>

@@ -1,10 +1,17 @@
 import { createActionGroup, emptyProps, props } from '@ngrx/store';
 import { UiPackage } from '@features/stepper/components/ui-models/ui-package.model';
 import { UiPallet } from '@features/stepper/components/ui-models/ui-pallet.model';
+import { PackageDetail } from '@app/features/interfaces/package-detail.interface';
 
 export const StepperPackageActions = createActionGroup({
   source: 'Stepper Package',
   events: {
+
+    //Package Detail
+    'upsertMany': emptyProps(),
+    'upsertManySuccess': props<{ packageDetails: PackageDetail[] }>(),
+    'upsertManyFailure': emptyProps(),
+
     // Palet İşlemleri
     'Get Pallets': emptyProps(),
     'Get Pallets Success': props<{ pallets: UiPallet[] }>(),

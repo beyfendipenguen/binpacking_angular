@@ -40,17 +40,15 @@ import { ToastService } from '@core/services/toast.service';
 import { Order } from '@features/interfaces/order.interface';
 import { CompanyRelationService } from '@features/services/company-relation.service';
 import { GenericTableComponent } from '@shared/generic-table/generic-table.component';
-import { OrderActions } from '@app/store/stepper/actions/order.actions';
 import { INVOICE_UPLOAD_CONSTANTS } from './constants/invoice-upload.constants';
 import { FileUploadManager } from './managers/file-upload.manager';
 import { OrderDetailManager } from './managers/order-detail.manager';
 import { OrderFormManager } from './managers/order-form.manager';
-import { UIStateManager } from './managers/ui-state.manager';
-import { ReferenceData, UIState, OrderDetailUpdateEvent, WeightType } from './models/invoice-upload-interfaces';
+import { ReferenceData, OrderDetailUpdateEvent, WeightType } from './models/invoice-upload-interfaces';
 import { InvoiceCalculatorService } from './services/invoice-calculator.service';
 import { InvoiceDataLoaderService } from './services/invoice-data-loader.service';
 import { AppState, selectOrder, selectOrderDetails, selectIsOrderDetailsDirty, selectIsOrderDirty, selectTotalProductsMeter, selectTotalProductCount, selectStep1HasFile, selectStep1FileName, selectIsEditMode, selectUser, selectInvoiceTemplateFile, selectAverageOrderDetailHeight } from '@app/store';
-import { StepperOrderActions } from '@app/store/stepper/actions/stepper-order.actions';
+import { StepperInvoiceUploadActions } from '@app/store/stepper/actions/stepper-invoice-upload.actions';
 import { StepperPackageActions } from '@app/store/stepper/actions/stepper-package.actions';
 import { StepperUiActions } from '@app/store/stepper/actions/stepper-ui.actions';
 
@@ -88,7 +86,6 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
   private readonly fileUploadManager = inject(FileUploadManager);
   private readonly orderFormManager = inject(OrderFormManager);
   private readonly orderDetailManager = inject(OrderDetailManager);
-  private readonly uiStateManager = inject(UIStateManager);
   private readonly dataLoaderService = inject(InvoiceDataLoaderService);
   private readonly calculatorService = inject(InvoiceCalculatorService);
   private readonly companyRelationService = inject(CompanyRelationService);
@@ -134,11 +131,6 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
   readonly constants = INVOICE_UPLOAD_CONSTANTS;
 
   // Getters for template access
-
-
-  get uiState$(): Observable<UIState> {
-    return this.uiStateManager.uiState$;
-  }
 
 
   get file(): File | null {
@@ -222,15 +214,9 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
 
   private initializeComponent(): void {
     this.uploadForm = this.orderFormManager.initializeForm();
-    this.setupUIStateSubscription();
     this.loadReferenceData();
   }
 
-  private setupUIStateSubscription(): void {
-    const uiSub = this.uiState$.subscribe(state => {
-    });
-    this.subscriptions.push(uiSub);
-  }
 
   private loadReferenceData(): void {
     const dataSub = this.dataLoaderService.loadAllReferenceData().subscribe({
@@ -279,7 +265,7 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
         company_id: company_id,
         type: 'isb_template'
       }).subscribe(response => {
-        this.store.dispatch(StepperOrderActions.setTemplateFile({ file: response.results[0] }))
+        this.store.dispatch(StepperInvoiceUploadActions.getReportTemplateFile({ file: response.results[0] }))
       })
     }
   }
@@ -290,7 +276,7 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
   }
 
   uploadFile(): void {
-    this.store.dispatch(StepperOrderActions.uploadInvoiceProcessFile());
+    this.store.dispatch(StepperInvoiceUploadActions.uploadInvoiceProcessFile());
     this.resetForm();
 
   }
@@ -306,7 +292,7 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
         ...currentOrder,
         [field]: serializedValue
       });
-      this.store.dispatch(OrderActions.set({ order: updatedOrder }));
+      this.store.dispatch(StepperInvoiceUploadActions.set({ order: updatedOrder }));
     }
   }
 
@@ -318,7 +304,7 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
     }
 
     this.store.dispatch(
-      OrderActions.patch({
+      StepperInvoiceUploadActions.patch({
         changes: { [field]: serializedValue }
       })
     );
@@ -352,7 +338,7 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
             company_relation: selectedCompany
           });
 
-          this.store.dispatch(OrderActions.set({ order: updatedOrder }));
+          this.store.dispatch(StepperInvoiceUploadActions.set({ order: updatedOrder }));
           this.store.dispatch(StepperPackageActions.getPallets());
         }
       },
@@ -366,7 +352,7 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
     let currentOrder = this.orderSignal();
     if (currentOrder) {
       const updatedOrder = structuredClone({ ...currentOrder, truck: selectedTruck });
-      this.store.dispatch(OrderActions.set({ order: updatedOrder }));
+      this.store.dispatch(StepperInvoiceUploadActions.set({ order: updatedOrder }));
     }
   }
 
@@ -377,7 +363,7 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
         ...currentOrder,
         weight_type: selectedWeightType
       });
-      this.store.dispatch(OrderActions.set({ order: updatedOrder }))
+      this.store.dispatch(StepperInvoiceUploadActions.set({ order: updatedOrder }))
     }
   }
 
@@ -417,7 +403,7 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
     let currentOrder = this.orderSignal();
     if (currentOrder) {
       const updatedOrder = { ...currentOrder, max_pallet_height: maxPalletHeight };
-      this.store.dispatch(OrderActions.set({ order: updatedOrder }));
+      this.store.dispatch(StepperInvoiceUploadActions.set({ order: updatedOrder }));
     }
   }
 
@@ -425,7 +411,7 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
     let currentOrder = this.orderSignal();
     if (currentOrder) {
       const updatedOrder = { ...currentOrder, truck_weight_limit: value };
-      this.store.dispatch(OrderActions.set({ order: updatedOrder }));
+      this.store.dispatch(StepperInvoiceUploadActions.set({ order: updatedOrder }));
     }
   }
 
@@ -445,7 +431,7 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
       max_pallet_height: 2400,
       truck_weight_limit: 25000
     };
-    this.store.dispatch(OrderActions.set({ order: newOrder }))
+    this.store.dispatch(StepperInvoiceUploadActions.set({ order: newOrder }))
     this.openOrderDetailAddDialog();
   }
 
@@ -454,7 +440,7 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (orderDetail: any) => {
           if (orderDetail) {
-            this.store.dispatch(StepperOrderActions.addOrderDetail({
+            this.store.dispatch(StepperInvoiceUploadActions.addOrderDetail({
               orderDetail: orderDetail
             }));
 
@@ -467,13 +453,13 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
 
   updateOrderDetail(event: OrderDetailUpdateEvent): void {
     const updatedDetail = { ...event.item, ...event.data };
-    this.store.dispatch(StepperOrderActions.updateOrderDetail({
+    this.store.dispatch(StepperInvoiceUploadActions.updateOrderDetail({
       orderDetail: updatedDetail
     }));
   }
 
   deleteOrderDetail(id: string): void {
-    this.store.dispatch(StepperOrderActions.deleteOrderDetail({
+    this.store.dispatch(StepperInvoiceUploadActions.deleteOrderDetail({
       id: id
     }));
 
@@ -518,7 +504,7 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
       this.store.dispatch(StepperUiActions.navigateToStep({ stepIndex: 1 }))
       return;
     }
-    this.store.dispatch(StepperOrderActions.syncInvoiceUploadStep())
+    this.store.dispatch(StepperInvoiceUploadActions.invoiceUploadStepSubmit())
 
   }
 

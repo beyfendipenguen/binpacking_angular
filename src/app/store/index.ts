@@ -17,15 +17,10 @@ export const reducers: ActionReducerMap<AppState> = {
 // Export all selectors for easy import
 export * from './stepper/stepper.selectors';
 // Export Stepper Actions (4 gruba ayrıldı)
-export * from './stepper/actions/stepper-order.actions';
+export * from './stepper/actions/stepper-invoice-upload.actions';
 export * from './stepper/actions/stepper-package.actions';
 export * from './stepper/actions/stepper-result.actions';
 export * from './stepper/actions/stepper-ui.actions';
-
-// Export diğer action grupları (eski CRUD action'ları)
-export * from './stepper/actions/order.actions';
-export * from './stepper/actions/order-detail.actions';
-export * from './stepper/actions/package-detail.actions';
 
 export * from './user/user.selectors';
 export * from './user/user.actions';

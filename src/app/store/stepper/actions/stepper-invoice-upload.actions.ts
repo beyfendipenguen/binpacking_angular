@@ -3,11 +3,18 @@ import { Order } from '@features/interfaces/order.interface';
 import { OrderDetailRead } from '@app/features/interfaces/order-detail.interface';
 import { Document } from '@app/features/interfaces/file.interface';
 
-export const StepperOrderActions = createActionGroup({
-  source: 'Stepper Order',
+export const StepperInvoiceUploadActions = createActionGroup({
+  source: 'Stepper Invoice Upload',
   events: {
-    // Edit Modu
-    'Enable Edit Mode': props<{ orderId: string }>(),
+    //Order Detail
+    'upsertMany': emptyProps(),
+    'upsertManySuccess': props<{ orderDetails: OrderDetailRead[] }>(),
+    'upsertManyFailure': props<{ error: any }>(),
+    // Manuel Ekleme/Silme Sonrası Triggerlar
+    'Add Order Detail': props<{ orderDetail: OrderDetailRead }>(),
+    'Update Order Detail': props<{ orderDetail: OrderDetailRead }>(),
+    'Delete Order Detail': props<{ id: string }>(),
+    'Calculate Order Detail Changes': emptyProps(),
 
     // Order CRUD
     'Set': props<{ order: Order }>(),
@@ -19,7 +26,7 @@ export const StepperOrderActions = createActionGroup({
     // Fatura/Dosya Yükleme Süreci
     'Upload Invoice Process File': emptyProps(),
     'Upload Invoice Process File Success': emptyProps(),
-    'Initialize Step1 State From Upload': props<{
+    'Initialize Invoice Upload State From Upload': props<{
       order: Order,
       orderDetails: OrderDetailRead[],
       hasFile: boolean,
@@ -29,23 +36,12 @@ export const StepperOrderActions = createActionGroup({
     // Sipariş Dosyası Yükleme (Görsel vb.)
     'Upload File To Order': emptyProps(),
     'Upload File To Order Success': emptyProps(),
-    'Set File Exists': emptyProps(),
+    'Set File Exists': props<{ isFileExists: boolean }>(),
 
-    // Sync ve Save
-    'Sync Invoice Upload Step': emptyProps(),
-
-    // Order Detail Güncellemeleri (Toplu işlemler)
-    'Update Order Details Success': props<{ orderDetails: OrderDetailRead[] }>(),
-    'Create Order Details': emptyProps(),
-    'Create Order Details Success': props<{ orderDetails: OrderDetailRead[] }>(),
-
-    // Manuel Ekleme/Silme Sonrası Triggerlar
-    'Add Order Detail': props<{ orderDetail: OrderDetailRead }>(),
-    'Update Order Detail': props<{ orderDetail: OrderDetailRead }>(),
-    'Delete Order Detail': props<{ id: string }>(),
-    'Calculate Order Detail Changes': emptyProps(),
+    // Submit ve Save
+    'Invoice Upload Step Submit': emptyProps(),
 
     // Template File
-    'Set Template File': props<{ file: Document }>()
+    'Get Report Template File': props<{ file: Document }>()
   }
 });

@@ -27,7 +27,6 @@ import { ToastService } from '@core/services/toast.service';
 import { LoadingComponent } from '@shared/loading/loading.component';
 import { AppState, selectCompletedStep, selectIsEditMode, selectCurrentStep } from '@app/store';
 import { StepperUiActions } from '@app/store/stepper/actions/stepper-ui.actions';
-import { StepperOrderActions } from '@app/store/stepper/actions/stepper-order.actions';
 
 @Component({
   selector: 'app-stepper',
@@ -118,7 +117,7 @@ export class StepperComponent implements OnInit {
       this.legacyToastService.info("duzenlemek istediginiz siparis yarim kalan siparisinizdi", "edit mode ve local ayni")
       return;
     } else if (editModeOrderId) {
-      this.store.dispatch(StepperOrderActions.enableEditMode({ orderId: editModeOrderId }));
+      this.store.dispatch(StepperUiActions.enableEditMode({ orderId: editModeOrderId }));
     }
 
   }

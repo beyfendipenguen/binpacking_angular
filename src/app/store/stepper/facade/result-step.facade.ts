@@ -8,7 +8,7 @@ import { selectIsOrderDetailsDirty, selectOrderDetailsChanges, selectOrderResult
 import { RepositoryService } from '@features/stepper/services/repository.service';
 import { StepperResultActions } from '../actions/stepper-result.actions';
 import { StepperPackageActions } from '../actions/stepper-package.actions';
-import { StepperOrderActions } from '../actions/stepper-order.actions';
+import { StepperInvoiceUploadActions } from '../actions/stepper-invoice-upload.actions';
 
 /**
  * ResultStepFacade
@@ -109,7 +109,7 @@ export class ResultStepFacade {
 
             // Success action'ını dispatch et
             this.store.dispatch(
-              StepperOrderActions.updateOrderDetailsSuccess({
+              StepperInvoiceUploadActions.upsertManySuccess({
                 orderDetails: result.order_details
               })
             );

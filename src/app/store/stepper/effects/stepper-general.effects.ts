@@ -1,14 +1,18 @@
 import { Injectable, inject } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
-import { tap, withLatestFrom, map, filter } from 'rxjs/operators';
+import { tap, withLatestFrom, map, filter, catchError, switchMap } from 'rxjs/operators';
 import { AppState, selectStepperState } from '../../index';
 import { LocalStorageService } from '@features/stepper/services/local-storage.service';
 import { ToastService } from '@core/services/toast.service';
 import { StepperUiActions } from '../actions/stepper-ui.actions';
-import { StepperOrderActions } from '../actions/stepper-order.actions';
+import { StepperInvoiceUploadActions } from '../actions/stepper-invoice-upload.actions';
 import { StepperPackageActions } from '../actions/stepper-package.actions';
-import { OrderActions } from '../actions/order.actions';
+import { mapPackageDetailToPackage } from '@app/features/mappers/package-detail.mapper';
+import { forkJoin, of } from 'rxjs';
+import { OrderDetailService } from '@app/features/services/order-detail.service';
+import { OrderService } from '@app/features/services/order.service';
+import { RepositoryService } from '@app/features/stepper/services/repository.service';
 
 @Injectable()
 export class StepperGeneralEffects {
@@ -16,6 +20,33 @@ export class StepperGeneralEffects {
   private store = inject(Store<AppState>);
   private localStorageService = inject(LocalStorageService);
   private toastService = inject(ToastService);
+  private orderService = inject(OrderService);
+  private orderDetailService = inject(OrderDetailService);
+  private repositoryService = inject(RepositoryService);
+
+
+    // Edit Modu: Sipariş, detaylar ve paketleri paralel yükler
+    enableEditMode$ = createEffect(() =>
+      this.actions$.pipe(
+        ofType(StepperUiActions.enableEditMode),
+        switchMap((action) =>
+          forkJoin({
+            order: this.orderService.getById(action.orderId),
+            orderDetails: this.orderDetailService.getByOrderId(action.orderId),
+            packages: this.repositoryService.getPackageDetails(action.orderId).pipe(
+              map((details) => mapPackageDetailToPackage(details))
+            ),
+          }).pipe(
+            switchMap(({ order, orderDetails, packages }) => [
+              StepperInvoiceUploadActions.saveSuccess({ order }),
+              StepperInvoiceUploadActions.upsertManySuccess({ orderDetails }),
+              StepperPackageActions.setUiPackages({ packages })
+            ]),
+            catchError((error) => of(StepperUiActions.setGlobalError({ error })))
+          )
+        )
+      )
+    );
 
   // Global hataları kullanıcıya gösterir
   globalErrorLogging$ = createEffect(
@@ -64,18 +95,18 @@ export class StepperGeneralEffects {
   triggerStepperStepUpdated$ = createEffect(() =>
     this.actions$.pipe(
       ofType(
-        // Order Actions
-        OrderActions.set,
-        StepperOrderActions.set,
-        StepperOrderActions.uploadInvoiceProcessFileSuccess,
-        StepperOrderActions.addOrderDetail,
-        StepperOrderActions.updateOrderDetail,
-        StepperOrderActions.deleteOrderDetail,
-        StepperOrderActions.uploadFileToOrderSuccess,
-        StepperOrderActions.createOrderDetailsSuccess,
-        StepperOrderActions.saveSuccess,
-        OrderActions.saveSuccess,
-        StepperOrderActions.setTemplateFile,
+        StepperUiActions.setStepCompleted,
+        StepperUiActions.navigateToStep,
+
+        // Invoice Upload Actions
+        StepperInvoiceUploadActions.set,
+        StepperInvoiceUploadActions.uploadInvoiceProcessFileSuccess,
+        StepperInvoiceUploadActions.addOrderDetail,
+        StepperInvoiceUploadActions.updateOrderDetail,
+        StepperInvoiceUploadActions.deleteOrderDetail,
+        StepperInvoiceUploadActions.upsertManySuccess,
+        StepperInvoiceUploadActions.saveSuccess,
+        StepperInvoiceUploadActions.getReportTemplateFile,
 
         // Package Actions
         StepperPackageActions.calculatePackageDetailSuccess,

@@ -1,22 +1,21 @@
 import { on } from '@ngrx/store';
 import { StepperState } from '../stepper.state';
-import { StepperOrderActions } from '../actions/stepper-order.actions';
-import { OrderActions } from '../actions/order.actions';
-import { OrderDetailActions } from '../actions/order-detail.actions';
+import { StepperInvoiceUploadActions } from '../actions/stepper-invoice-upload.actions';
 import { Order } from '@app/features/interfaces/order.interface';
 import { OrderDetailDiffCalculator } from '@features/utils/order-detail-diff.util';
 import { mapUiPackagesToOrderDetails } from '@features/mappers/ui-package-to-order-detail.mapper';
 import { isEqual } from 'lodash-es';
+import { StepperUiActions } from '../actions/stepper-ui.actions';
 
 export const stepperOrderHandlers = [
   // Order Setleme
-  on(OrderActions.set, StepperOrderActions.set, (state: StepperState, { order }) => ({
+  on(StepperInvoiceUploadActions.set, StepperInvoiceUploadActions.set, (state: StepperState, { order }) => ({
     ...state,
     order: { ...order },
   })),
 
   // Order Patch
-  on(OrderActions.patch, (state: StepperState, { changes }) => ({
+  on(StepperInvoiceUploadActions.patch, (state: StepperState, { changes }) => ({
     ...state,
     order: {
       ...state.order,
@@ -25,21 +24,21 @@ export const stepperOrderHandlers = [
   })),
 
   // Edit Mode
-  on(StepperOrderActions.enableEditMode, (state: StepperState) => ({
+  on(StepperUiActions.enableEditMode, (state: StepperState) => ({
     ...state,
     isEditMode: true,
     loading: true
   })),
 
   // Order Save Success
-  on(OrderActions.saveSuccess, StepperOrderActions.saveSuccess, (state: StepperState, { order }) => ({
+  on(StepperInvoiceUploadActions.saveSuccess, StepperInvoiceUploadActions.saveSuccess, (state: StepperState, { order }) => ({
     ...state,
     order: order,
     originalOrder: order,
   })),
 
   // Fatura Yükleme Başlangıcı
-  on(StepperOrderActions.initializeStep1StateFromUpload, (state: StepperState, { order, orderDetails, hasFile, fileName }) => ({
+  on(StepperInvoiceUploadActions.initializeInvoiceUploadStateFromUpload, (state: StepperState, { order, orderDetails, hasFile, fileName }) => ({
     ...state,
     order,
     step1State: {
@@ -53,18 +52,18 @@ export const stepperOrderHandlers = [
   })),
 
   // Dosya Yükleme Durumları
-  on(StepperOrderActions.setFileExists, (state: StepperState) => ({
+  on(StepperInvoiceUploadActions.setFileExists, (state: StepperState, {isFileExists}) => ({
     ...state,
-    fileExists: true
+    fileExists: isFileExists
   })),
 
-  on(OrderActions.uploadFileToOrderSuccess, StepperOrderActions.uploadFileToOrderSuccess, (state: StepperState) => ({
+  on(StepperInvoiceUploadActions.uploadFileToOrderSuccess, StepperInvoiceUploadActions.uploadFileToOrderSuccess, (state: StepperState) => ({
     ...state,
     fileExists: false
   })),
 
   // Template File
-  on(StepperOrderActions.setTemplateFile, (state: StepperState, { file }) => ({
+  on(StepperInvoiceUploadActions.getReportTemplateFile, (state: StepperState, { file }) => ({
     ...state,
     step1State: {
       ...state.step1State,
@@ -73,19 +72,7 @@ export const stepperOrderHandlers = [
   })),
 
   // Order Details Success
-  on(StepperOrderActions.createOrderDetailsSuccess, (state: StepperState, { orderDetails }) => ({
-    ...state,
-    step1State: {
-      ...state.step1State,
-      orderDetails: [...orderDetails],
-      originalOrderDetails: [...orderDetails],
-      added: [],
-      deletedIds: [],
-      modified: [],
-    }
-  })),
-
-  on(OrderDetailActions.upsertManySuccess, StepperOrderActions.updateOrderDetailsSuccess, (state: StepperState, { orderDetails }) => ({
+  on(StepperInvoiceUploadActions.upsertManySuccess, (state: StepperState, { orderDetails }) => ({
     ...state,
     step1State: {
       ...state.step1State,
@@ -98,7 +85,7 @@ export const stepperOrderHandlers = [
   })),
 
   // Manuel Ekleme/Silme (Order Detail)
-  on(StepperOrderActions.addOrderDetail, (state: StepperState, { orderDetail }) => ({
+  on(StepperInvoiceUploadActions.addOrderDetail, (state: StepperState, { orderDetail }) => ({
     ...state,
     step1State: {
       ...state.step1State,
@@ -106,7 +93,7 @@ export const stepperOrderHandlers = [
     }
   })),
 
-  on(StepperOrderActions.updateOrderDetail, (state: StepperState, { orderDetail }) => {
+  on(StepperInvoiceUploadActions.updateOrderDetail, (state: StepperState, { orderDetail }) => {
     const originalDetail = state.step1State.originalOrderDetails.find(item => item.id === orderDetail.id);
 
     // OrderDetails array'ini güncelle (OrderDetailRead tipi)
@@ -149,7 +136,7 @@ export const stepperOrderHandlers = [
     };
   }),
 
-  on(StepperOrderActions.deleteOrderDetail, (state: StepperState, { id }) => {
+  on(StepperInvoiceUploadActions.deleteOrderDetail, (state: StepperState, { id }) => {
     const orderDetails = state.step1State.orderDetails.filter(item => item.id !== id);
     return {
       ...state,
@@ -161,7 +148,7 @@ export const stepperOrderHandlers = [
   }),
 
   // Calculate Order Detail Changes
-  on(StepperOrderActions.calculateOrderDetailChanges, (state: StepperState) => {
+  on(StepperInvoiceUploadActions.calculateOrderDetailChanges, (state: StepperState) => {
     const mapperOrderDetails = mapUiPackagesToOrderDetails(state.step2State.packages);
     const changes = OrderDetailDiffCalculator.calculateDiff(
       mapperOrderDetails,

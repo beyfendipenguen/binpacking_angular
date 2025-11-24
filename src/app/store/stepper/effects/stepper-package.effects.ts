@@ -4,9 +4,7 @@ import { Store } from '@ngrx/store';
 import { map, switchMap, catchError, withLatestFrom, filter, concatMap, take, tap } from 'rxjs/operators';
 import { of } from 'rxjs';
 
-import { OrderDetailActions } from '../actions/order-detail.actions';
-import { PackageActions } from '../actions/package-detail.actions';
-import { StepperOrderActions } from '../actions/stepper-order.actions';
+import { StepperInvoiceUploadActions } from '../actions/stepper-invoice-upload.actions';
 import { StepperPackageActions } from '../actions/stepper-package.actions';
 import { StepperUiActions } from '../actions/stepper-ui.actions';
 
@@ -31,7 +29,7 @@ export class StepperPackageEffects {
   // Fatura yüklendiğinde paletleri getir
   triggerGetPallets$ = createEffect(() =>
     this.actions$.pipe(
-      ofType(StepperOrderActions.uploadInvoiceProcessFileSuccess),
+      ofType(StepperInvoiceUploadActions.uploadInvoiceProcessFileSuccess),
       map(() => StepperPackageActions.getPallets())
     )
   );
@@ -76,7 +74,7 @@ export class StepperPackageEffects {
   // Paket Detaylarını Kaydetme
   packageDetailsUpsertMany$ = createEffect(() =>
     this.actions$.pipe(
-      ofType(PackageActions.upsertMany),
+      ofType(StepperPackageActions.upsertMany),
       withLatestFrom(
         this.store.select(selectPackageChanges),
         this.store.select(selectIsPackagesDirty)
@@ -84,8 +82,8 @@ export class StepperPackageEffects {
       filter(([, , isDirty]) => isDirty),
       switchMap(([_, changes]) =>
         this.repositoryService.bulkUpdatePackageDetails(changes).pipe(
-          map((result) => PackageActions.upsertManySuccess({ packageDetails: result.package_details })),
-          catchError((error) => of(PackageActions.upsertManyFailure()))
+          map((result) => StepperPackageActions.upsertManySuccess({ packageDetails: result.package_details })),
+          catchError((error) => of(StepperPackageActions.upsertManyFailure()))
         )
       )
     )
@@ -96,17 +94,17 @@ export class StepperPackageEffects {
     this.actions$.pipe(
       ofType(StepperPackageActions.palletControlSubmit),
       switchMap(() =>
-        of(PackageActions.upsertMany()).pipe(
+        of(StepperPackageActions.upsertMany()).pipe(
           concatMap(() =>
             this.actions$.pipe(
-              ofType(PackageActions.upsertManySuccess),
+              ofType(StepperPackageActions.upsertManySuccess),
               take(1),
-              map(() => OrderDetailActions.upsertMany())
+              map(() => StepperPackageActions.upsertMany())
             )
           ),
           concatMap(() =>
             this.actions$.pipe(
-              ofType(OrderDetailActions.upsertManySuccess),
+              ofType(StepperPackageActions.upsertManySuccess),
               take(1),
               map(() => StepperUiActions.setStepCompleted({ stepIndex: 2 }))
             )

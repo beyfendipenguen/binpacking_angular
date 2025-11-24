@@ -1,7 +1,6 @@
 import { on } from '@ngrx/store';
 import { StepperState } from '../stepper.state';
 import { StepperPackageActions } from '../actions/stepper-package.actions';
-import { PackageActions } from '../actions/package-detail.actions';
 import { UiPackage } from '@features/stepper/components/ui-models/ui-package.model';
 import { UiPallet } from '@features/stepper/components/ui-models/ui-pallet.model';
 import { UiProduct } from '@features/stepper/components/ui-models/ui-product.model';
@@ -801,7 +800,7 @@ export const stepperPackageHandlers = [
   }),
 
   // Package Details Upsert Many Success
-  on(PackageActions.upsertManySuccess, StepperPackageActions.createPackageDetailsSuccess, (state: StepperState, { packageDetails }) => {
+  on(StepperPackageActions.upsertManySuccess, (state: StepperState, { packageDetails }) => {
     const uiPackages = mapPackageDetailToPackage(packageDetails);
     return {
       ...state,
