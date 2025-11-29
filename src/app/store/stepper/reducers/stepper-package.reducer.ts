@@ -9,6 +9,10 @@ import { calculatePackageChanges } from '@features/stepper/components/pallet-con
 import { mapUiPackagesToOrderDetails } from '@features/mappers/ui-package-to-order-detail.mapper';
 import { OrderDetailDiffCalculator } from '@features/utils/order-detail-diff.util';
 import { v4 as Guid } from 'uuid';
+import { Order } from '@app/features/interfaces/order.interface';
+import { Package } from '@app/features/interfaces/package.interface';
+import { IUiPackage } from '@app/features/stepper/interfaces/ui-interfaces/ui-package.interface';
+import { toInteger } from 'lodash';
 
 // Helper Functions
 const consolidateProducts = (products: UiProduct[]): UiProduct[] => {
@@ -32,24 +36,23 @@ const consolidateProducts = (products: UiProduct[]): UiProduct[] => {
   return Array.from(consolidatedMap.values());
 };
 
-const ensureEmptyPackageAdded = (packages: any[], order: any): any => {
-  const emptyPackage = new UiPackage({
+const createEmptyPackage = (packageNo: number, order: any) => (
+  new UiPackage({
     id: Guid(),
     pallet: null,
     products: [],
     order: order,
-    name: `${packages.length + 1}`,
+    name: `${packageNo}`,
     isSavedInDb: false,
-  });
+  })
+)
 
+const ensureEmptyPackageAdded = (packages: any[], order: any): any => {
   if (packages.some(pkg => pkg.pallet === null || pkg.products.length === 0))
-    return ensurePackagesNamesOrdered(packages);
-  return ensurePackagesNamesOrdered([...packages, emptyPackage]);
+    return packages;
+  return [...packages, createEmptyPackage(packages.length + 1, order)];
 };
 
-const ensurePackagesNamesOrdered = (packages: Partial<UiPackage>[]) => {
-  return packages.map((pkg, index) => ({ ...pkg, name: `${index + 1}` }));
-};
 
 export const stepperPackageHandlers = [
   // Set Vertical Sort
@@ -310,7 +313,7 @@ export const stepperPackageHandlers = [
 
   // Move Partial Remaining Product To Package
   on(StepperPackageActions.movePartialRemainingProductToPackage, (state: StepperState, { targetPackageId, previousIndex, maxCount }) => {
-     const targetPackage = state.step2State.packages.find(p => p.id === targetPackageId);
+    const targetPackage = state.step2State.packages.find(p => p.id === targetPackageId);
 
     if (!targetPackage) {
       return state;
@@ -366,7 +369,7 @@ export const stepperPackageHandlers = [
   }),
 
   // Move Pallet To Package
-  on(StepperPackageActions.movePalletToPackage, (state: StepperState, {  containerId, previousIndex, previousContainerData }) => {
+  on(StepperPackageActions.movePalletToPackage, (state: StepperState, { containerId, previousIndex, previousContainerData }) => {
     const currentPackages = state.step2State.packages;
     const targetPackage = currentPackages.find(p => p.id === containerId);
     if (!targetPackage) return state;
@@ -456,7 +459,7 @@ export const stepperPackageHandlers = [
   }),
 
   // Move Ui Product In Package To Package
-  on(StepperPackageActions.moveUiProductInPackageToPackage, (state: StepperState,  { sourcePackageId, targetPackageId, previousIndex }) => {
+  on(StepperPackageActions.moveUiProductInPackageToPackage, (state: StepperState, { sourcePackageId, targetPackageId, previousIndex }) => {
 
     if (sourcePackageId === targetPackageId) {
       return state;
@@ -802,12 +805,15 @@ export const stepperPackageHandlers = [
   // Package Details Upsert Many Success
   on(StepperPackageActions.upsertManySuccess, (state: StepperState, { packageDetails }) => {
     const uiPackages = mapPackageDetailToPackage(packageDetails);
+    uiPackages.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
+    const emptyPacageNo = toInteger(uiPackages.at(-1)?.name) + 1;
+
     return {
       ...state,
       completedStep: 2,
       step2State: {
         ...state.step2State,
-        packages: uiPackages,
+        packages: [...uiPackages, createEmptyPackage(emptyPacageNo, state.order)],
         originalPackages: uiPackages,
         addedPackages: [],
         modifiedPackages: [],

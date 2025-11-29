@@ -95,7 +95,7 @@ export function arePackagesEqual(pkg1: IUiPackage, pkg2: IUiPackage): boolean {
   }
 
   // 3. Name karsilastirmasi
-  if(pkg1.name !== pkg2.name){
+  if (pkg1.name !== pkg2.name) {
     return false;
   }
 
@@ -202,7 +202,7 @@ export function calculatePackageChanges(
     if (!originalMatch) {
       // Orijinalde yok → ADDED
       console.log('[calculatePackageChanges] Added:', pkg.pallet?.id);
-      if(pkg.pallet?.id !== undefined){
+      if (pkg.pallet?.id !== undefined) {
         added.push(pkg);
       }
     } else {
@@ -225,7 +225,7 @@ export function calculatePackageChanges(
     if (!currentMatch) {
       // Güncel listede yok → DELETED
       console.log('[calculatePackageChanges] Deleted:', originalPkg.pallet?.id);
-      if(originalPkg.pallet?.id !== undefined){
+      if (originalPkg.pallet?.id !== undefined) {
         deletedIds.push(originalPkg.id); // Orijinal halini döndür
       }
     }
@@ -253,15 +253,18 @@ export function arePackageListsEqual(
   packages: IUiPackage[],
   originalPackages: IUiPackage[]
 ): boolean {
+
+  const validPackages = packages.filter(pkg => pkg.pallet?.id !== undefined || pkg.products.length > 0);
+
   // Uzunluk kontrolü
-  if (packages.length !== originalPackages.length) {
+  if (validPackages.length !== originalPackages.length) {
     return false;
   }
 
   // Her paketi karşılaştır
   // NOT: Paket sırası önemli değil, sadece içerik önemli
   // Bu yüzden her paketi orijinalde arayıp karşılaştırıyoruz
-  return packages.every(pkg => {
+  return validPackages.every(pkg => {
     const originalMatch = findMatchingPackage(pkg, originalPackages);
     if (!originalMatch) return false;
     return arePackagesEqual(pkg, originalMatch);

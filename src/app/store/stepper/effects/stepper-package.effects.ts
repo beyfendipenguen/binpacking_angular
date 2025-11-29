@@ -1,8 +1,8 @@
 import { Injectable, inject } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
-import { map, switchMap, catchError, withLatestFrom, filter, concatMap, take, tap } from 'rxjs/operators';
-import { of } from 'rxjs';
+import { map, switchMap, catchError, withLatestFrom, filter, concatMap, take, tap, mergeMap } from 'rxjs/operators';
+import { from, of } from 'rxjs';
 
 import { StepperInvoiceUploadActions } from '../actions/stepper-invoice-upload.actions';
 import { StepperPackageActions } from '../actions/stepper-package.actions';
@@ -19,6 +19,8 @@ import {
 import { RepositoryService } from '@features/stepper/services/repository.service';
 import { UiPallet } from '@features/stepper/components/ui-models/ui-pallet.model';
 import { mapPackageDetailToPackage } from '@features/mappers/package-detail.mapper';
+import { GlobalErrorHandler } from '@app/ngrx.config';
+import { StepperGeneralEffects } from './stepper-general.effects';
 
 @Injectable()
 export class StepperPackageEffects {
@@ -93,24 +95,12 @@ export class StepperPackageEffects {
   palletControlSubmit$ = createEffect(() =>
     this.actions$.pipe(
       ofType(StepperPackageActions.palletControlSubmit),
-      switchMap(() =>
-        of(StepperPackageActions.upsertMany()).pipe(
-          concatMap(() =>
-            this.actions$.pipe(
-              ofType(StepperPackageActions.upsertManySuccess),
-              take(1),
-              map(() => StepperPackageActions.upsertMany())
-            )
-          ),
-          concatMap(() =>
-            this.actions$.pipe(
-              ofType(StepperPackageActions.upsertManySuccess),
-              take(1),
-              map(() => StepperUiActions.setStepCompleted({ stepIndex: 2 }))
-            )
-          )
-        )
-      )
+      mergeMap(() =>
+        [
+          StepperPackageActions.upsertMany(),
+          StepperInvoiceUploadActions.upsertMany()
+        ]
+      ),
     )
   );
 

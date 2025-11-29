@@ -241,6 +241,11 @@ export const selectIsPackagesDirty = createSelector(
   selectPackages,
   selectStep2OriginalPackages,
   (packages, originalPackages) => {
+    // paketler yoksa dirty değil (henüz paketleme hesaplama istegi atilmamis)
+    if (!packages || packages.length === 0) {
+      console.log('[selectIsStep2PackagesDirty] Original packages yok, dirty=true');
+      return false;
+    }
     // Orijinal paketler yoksa dirty değil (henüz kaydedilmemiş)
     if (!originalPackages || originalPackages.length === 0) {
       console.log('[selectIsStep2PackagesDirty] Original packages yok, dirty=true');
