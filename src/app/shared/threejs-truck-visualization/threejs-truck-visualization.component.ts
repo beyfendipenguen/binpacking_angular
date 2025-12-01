@@ -55,7 +55,7 @@ interface CachedModels {
   imports: [CommonModule, FormsModule],
   templateUrl: './threejs-truck-visualization.component.html',
   styleUrl: './threejs-truck-visualization.component.scss',
-  changeDetection: ChangeDetectionStrategy.Default
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit, OnChanges, OnDestroy {
   @ViewChild('threeContainer', { static: true }) threeContainer!: ElementRef;
@@ -66,7 +66,6 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
   @Input() weightCalculationDepth: number = 3000;
 
   private readonly store = inject(Store<AppState>);
-  private readonly dialog = inject(MatDialog);
 
   // 🔥 STATIC CACHE - Component destroy olsa bile kalır
   private static modelCache: CachedModels | null = null;
@@ -145,7 +144,10 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
   private animationFrameId: number | null = null;
   private isDestroyed = false;
   private frameCount = 0;
-  private lastUpdateTime = 0;
+
+  // 🔥 RENDER OPTIMIZASYONU
+  // Sürekli render almak yerine sadece ihtiyaç olduğunda render alacağız.
+  private needsRender = true;
 
   // Timers
   private dataChangeTimeout: any = null;
@@ -153,7 +155,6 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
   private hoverThrottleTimeout: any = null;
 
   // ✅ Production için render management
-  private needsRender = true;
   private isViewReady = false;
 
   // Color management
@@ -199,13 +200,13 @@ static clearCache(): void {
     });
   }
 
-  this.modelCache = null;
-  this.isCacheValid = false;
+  ThreeJSTruckVisualizationComponent.modelCache = null;
+  ThreeJSTruckVisualizationComponent.isCacheValid = false;
 }
 
 ngOnInit(): void {
   this.gltfLoader = new GLTFLoader();
-  this.isLoadingModels = true;  // ✅ true olmalı
+  this.isLoadingModels = !ThreeJSTruckVisualizationComponent.isCacheValid;  // ✅ true olmalı
   this.isLoadingData = false;   // ✅ false olmalı
 }
 
@@ -215,43 +216,39 @@ ngOnInit(): void {
   }
 
   private async initializeThreeJS(): Promise<void> {
-  try {
-    this.isLoadingModels = true;
-    this.cdr.detectChanges();
+    try {
+      this.ngZone.runOutsideAngular(() => {
+        this.setupThreeJS();
+        this.createPlatform();
+        this.createGroundPlane();
 
-    // 1️⃣ Scene setup
-    this.setupThreeJS();
-    await this.delay(50);
+        // Render döngüsünü başlat
+        this.startRenderLoop();
+      });
 
-    // 2️⃣ Platform oluştur (modeller yüklenmeden ÖNCE)
-    this.createPlatform();
-    this.createGroundPlane();
+      // Modelleri yükle
+      await this.loadAllModels();
 
-    // 3️⃣ Render loop başlat
-    this.startRenderLoop();
-    await this.delay(50);
+      this.ngZone.run(() => {
+        this.isLoadingModels = false;
 
-    // 4️⃣ Modelleri yükle (CACHE İLE)
-    await this.loadAllModels();
+        // Data varsa işle
+        if (this.piecesData && (Array.isArray(this.piecesData) ? this.piecesData.length > 0 : true)) {
+          this.safeProcessData();
+        }
 
-    // 5️⃣ Loading kapat
-    this.isLoadingModels = false;
-    this.isViewReady = true;
-    this.cdr.detectChanges();
+        this.triggerRender();
+        this.cdr.markForCheck();
+      });
 
-    // 6️⃣ Data varsa process et
-    if (this.piecesData && (Array.isArray(this.piecesData) ? this.piecesData.length > 0 : true)) {
-      await this.safeProcessData();
+    } catch (error) {
+      console.error('ThreeJS init error:', error);
+      this.ngZone.run(() => {
+        this.isLoadingModels = false;
+        this.cdr.markForCheck();
+      });
     }
-
-    // 7️⃣ Son render
-    this.forceRender();
-
-  } catch (error) {
-    this.isLoadingModels = false;
-    this.cdr.detectChanges();
   }
-}
 
   ngOnChanges(changes: SimpleChanges): void {
     if (this.isDestroyed || !this.isViewReady) return;
@@ -273,125 +270,91 @@ ngOnInit(): void {
   // ========================================
 
   private async loadAllModels(): Promise<void> {
-  try {
-    // 🔥 CACHE KONTROLÜ
-    if (ThreeJSTruckVisualizationComponent.isCacheValid &&
-        ThreeJSTruckVisualizationComponent.modelCache) {
+    if (this.isDestroyed) return;
 
+    // 1. Önce Cache Kontrol Et
+    if (ThreeJSTruckVisualizationComponent.isCacheValid && ThreeJSTruckVisualizationComponent.modelCache) {
+      // Cache'den al ve kopyala (Clone çok hızlıdır)
       const cached = ThreeJSTruckVisualizationComponent.modelCache;
 
-      // Clone ile kullan
+      // Clone(true) deep copy yapar
       this.truckModel = cached.truck.clone(true);
       this.trailerWheelModel = cached.wheel.clone(true);
 
-      // Transform'ları uygula
-      this.applyTruckTransforms();
-      this.applyWheelTransforms();
-
-      // Scene'e ekle
-      this.truckGroup.add(this.truckModel);
-      this.truckGroup.add(this.trailerWheelModel);
-
-      this.modelsLoaded.truck = true;
-      this.modelsLoaded.trailerWheel = true;
-
-
-      // Birkaç render
-      for (let i = 0; i < 3; i++) {
-        this.forceRender();
-        await this.delay(30);
-      }
-
+      this.finalizeModelSetup();
       return;
     }
 
-    // 🔥 CACHE YOKSA NORMAL YÜKLE
+    // 2. Cache Yoksa İndir
+    try {
+      await Promise.all([
+        this.loadTruckModel(),
+        this.loadTrailerWheelModel()
+      ]);
 
-    await Promise.all([
-      this.loadTruckModel(),
-      this.loadTrailerWheelModel()
-    ]);
+      // Modeller yüklendi, şimdi cache'e atalım
+      if (this.truckModel && this.trailerWheelModel && !this.isDestroyed) {
+        // Cache için orijinalin kopyasını sakla (transform edilmemiş hali daha temiz olabilir ama burada transform edilmişi saklamak daha pratik)
+        // Not: Burada transform uygulanmadan önceki "raw" halini saklamak daha güvenlidir ama
+        // hızlı olması için mevcut halini clone alıp saklayacağız.
 
-    // 🔥 CACHE'E KAYDET (transform öncesi)
-    if (this.truckModel && this.trailerWheelModel) {
+        ThreeJSTruckVisualizationComponent.modelCache = {
+          truck: this.truckModel.clone(true),
+          wheel: this.trailerWheelModel.clone(true),
+          timestamp: Date.now()
+        };
+        ThreeJSTruckVisualizationComponent.isCacheValid = true;
+      }
 
-      ThreeJSTruckVisualizationComponent.modelCache = {
-        truck: this.truckModel.clone(true),
-        wheel: this.trailerWheelModel.clone(true),
-        timestamp: Date.now()
-      };
-      ThreeJSTruckVisualizationComponent.isCacheValid = true;
+      this.finalizeModelSetup();
 
+    } catch (error) {
+      console.error("Model loading failed", error);
+      // Hata durumunda bile component çalışmalı
     }
-
-    // Render
-    for (let i = 0; i < 5; i++) {
-      this.forceRender();
-      await this.delay(50);
-    }
-
-  } catch (error) {
-    throw error;
   }
-}
+  private finalizeModelSetup(): void {
+    if (this.isDestroyed) return;
+
+    // Transformları uygula
+    this.applyTruckTransforms();
+    this.applyWheelTransforms();
+
+    // Sahneye ekle
+    if (this.truckModel) this.truckGroup.add(this.truckModel);
+    if (this.trailerWheelModel) this.truckGroup.add(this.trailerWheelModel);
+
+    this.modelsLoaded.truck = true;
+    this.modelsLoaded.trailerWheel = true;
+
+    this.triggerRender();
+  }
 
   private loadTruckModel(): Promise<void> {
-  return new Promise((resolve, reject) => {
-    const baseUrl = window.location.origin;
-    const modelPath = `${baseUrl}/assets/models/truck/truck.gltf`;
+    return new Promise((resolve, reject) => {
+      const baseUrl = window.location.origin;
+      const modelPath = `${baseUrl}/assets/models/truck/truck.gltf`;
 
-
-    this.gltfLoader.load(
-      modelPath,
-      (gltf) => {
+      this.gltfLoader.load(modelPath, (gltf) => {
+        if (this.isDestroyed) return;
         this.truckModel = gltf.scene;
-        this.applyTruckTransforms();  // ✅ Ayrı metod
+        resolve();
+      }, undefined, reject);
+    });
+  }
 
-        this.truckGroup.add(this.truckModel);
-        this.modelsLoaded.truck = true;
+ private loadTrailerWheelModel(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const baseUrl = window.location.origin;
+      const modelPath = `${baseUrl}/assets/models/truck/truck-wheels.gltf`;
 
-        this.forceRender();
-
-        setTimeout(() => resolve(), 100);
-      },
-      (progress) => {
-        const percent = (progress.loaded / progress.total) * 100;
-      },
-      (error) => {
-        reject(error);
-      }
-    );
-  });
-}
-
-  private loadTrailerWheelModel(): Promise<void> {
-  return new Promise((resolve, reject) => {
-    const baseUrl = window.location.origin;
-    const modelPath = `${baseUrl}/assets/models/truck/truck-wheels.gltf`;
-
-
-    this.gltfLoader.load(
-      modelPath,
-      (gltf) => {
+      this.gltfLoader.load(modelPath, (gltf) => {
+        if (this.isDestroyed) return;
         this.trailerWheelModel = gltf.scene;
-        this.applyWheelTransforms();  // ✅ Ayrı metod
-
-        this.truckGroup.add(this.trailerWheelModel);
-        this.modelsLoaded.trailerWheel = true;
-
-        this.forceRender();
-
-        setTimeout(() => resolve(), 100);
-      },
-      (progress) => {
-        const percent = (progress.loaded / progress.total) * 100;
-      },
-      (error) => {
-        reject(error);
-      }
-    );
-  });
-}
+        resolve();
+      }, undefined, reject);
+    });
+  }
 
 private applyTruckTransforms(): void {
   if (!this.truckModel) return;
@@ -415,6 +378,7 @@ private applyTruckTransforms(): void {
       child.receiveShadow = true;
     }
   });
+  if (this.renderer) this.renderer.shadowMap.needsUpdate = true;
 }
 
 private applyWheelTransforms(): void {
@@ -482,17 +446,11 @@ private applyWheelTransforms(): void {
   @HostListener('window:resize')
   onWindowResize(): void {
     if (!this.renderer || !this.camera || !this.threeContainer) return;
-
     const container = this.threeContainer.nativeElement;
-    const width = container.clientWidth;
-    const height = container.clientHeight;
-
-    if (width > 0 && height > 0) {
-      this.camera.aspect = width / height;
-      this.camera.updateProjectionMatrix();
-      this.renderer.setSize(width, height);
-      this.forceRender();
-    }
+    this.camera.aspect = container.clientWidth / container.clientHeight;
+    this.camera.updateProjectionMatrix();
+    this.renderer.setSize(container.clientWidth, container.clientHeight);
+    this.triggerRender();
   }
 
   // ========================================
@@ -523,7 +481,8 @@ private applyWheelTransforms(): void {
         }
       }
     });
-
+    this.restoreAllPackages();
+    this.triggerRender();
   }
 
   clearDeletedPackages(): void {
@@ -758,14 +717,14 @@ private applyWheelTransforms(): void {
 
     if (this.isDragging && this.draggedPackage) {
       this.updateDraggedPackageWithSnapping();
-      this.needsRender = true;
+      this.triggerRender();
     } else if (this.isRotatingCamera) {
       this.updateCameraRotationSmooth(event);
-      this.needsRender = true;
+      this.triggerRender();
     } else if (this.isPanningCamera) {
       this.updateCameraPanning(event);
-      this.needsRender = true;
-    } else if (!this.isDragging && !this.isRotatingCamera && !this.isPanningCamera) {
+      this.triggerRender();
+    } else {
       this.updateHoverEffectsThrottled();
     }
   }
@@ -786,9 +745,10 @@ private applyWheelTransforms(): void {
     if (this.isPanningCamera) {
       this.stopCameraPanning();
     }
+    this.triggerRender();
 
     if (event.button === 0 && !this.mouseMoved && clickDuration < 200 && !this.isDragging) {
-      setTimeout(() => this.handleMouseClick(event), 10);
+      this.handleMouseClick(event);
     }
   }
 
@@ -805,17 +765,17 @@ private applyWheelTransforms(): void {
     } else {
       this.clearSelection();
     }
+    this.triggerRender();
   }
 
-  private handleWheel(event: WheelEvent): void {
+private handleWheel(event: WheelEvent): void {
     event.preventDefault();
     const zoomSpeed = 1;
     const delta = event.deltaY > 0 ? 1 : -1;
     const newZoom = Math.max(this.minZoom, Math.min(this.maxZoom, this.zoomLevel + delta * zoomSpeed));
     this.setZoomLevelPreserveTarget(newZoom);
-    this.needsRender = true;
+    this.triggerRender();
   }
-
   // ========================================
   // CAMERA CONTROLS
   // ========================================
@@ -1154,7 +1114,7 @@ private applyWheelTransforms(): void {
     this.highlightSelectedPackage();
     this.orderResultChange();
 
-    this.forceRender();
+    this.triggerRender();
     this.cdr.detectChanges();
   }
 
@@ -1520,6 +1480,7 @@ private applyWheelTransforms(): void {
     this.hoverThrottleTimeout = setTimeout(() => {
       this.updateHoverEffects();
       this.hoverThrottleTimeout = null;
+      this.triggerRender();
     }, 50);
   }
 
@@ -1752,22 +1713,24 @@ private applyWheelTransforms(): void {
   }
 
   // ✅ Production için optimize render loop
-  private startRenderLoop(): void {
-    if (this.isDestroyed) return;
+private startRenderLoop(): void {
+    const animate = () => {
+      if (this.isDestroyed) return;
 
-    this.ngZone.runOutsideAngular(() => {
-      const animate = () => {
-        if (this.isDestroyed) return;
-        this.animationFrameId = requestAnimationFrame(animate);
+      this.animationFrameId = requestAnimationFrame(animate);
 
-        if (this.renderer && this.scene && this.camera) {
-          this.renderer.render(this.scene, this.camera);
-        }
-
+      // Sadece ihtiyaç varsa render al
+      if (this.needsRender && this.renderer && this.scene && this.camera) {
+        this.renderer.render(this.scene, this.camera);
+        this.needsRender = false; // Render alındı, bayrağı indir
         this.updatePerformanceStats(performance.now());
-      };
-      animate();
-    });
+      }
+    };
+    animate();
+  }
+
+  private triggerRender(): void {
+    this.needsRender = true;
   }
 
   private forceRender(): void {
@@ -1790,8 +1753,6 @@ private applyWheelTransforms(): void {
 
   private cleanup(): void {
     this.isDragging = false;
-    this.isRotatingCamera = false;
-    this.isPanningCamera = false;
 
     if (this.dataChangeTimeout) {
       clearTimeout(this.dataChangeTimeout);
@@ -1805,21 +1766,20 @@ private applyWheelTransforms(): void {
 
     if (this.animationFrameId) {
       cancelAnimationFrame(this.animationFrameId);
-      this.animationFrameId = null;
     }
 
     if (this.renderer) {
       this.renderer.dispose();
-      const canvas = this.renderer.domElement;
-      if (canvas.parentNode) {
-        canvas.parentNode.removeChild(canvas);
-      }
     }
 
     this.processedPackages.forEach(pkg => {
       if (pkg.mesh) {
         pkg.mesh.geometry.dispose();
-        (pkg.mesh.material as THREE.Material).dispose();
+        if (Array.isArray(pkg.mesh.material)) {
+           pkg.mesh.material.forEach(m => m.dispose());
+        } else {
+           (pkg.mesh.material as THREE.Material).dispose();
+        }
       }
     });
 

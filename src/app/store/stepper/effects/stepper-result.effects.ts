@@ -2,9 +2,9 @@ import { Injectable, inject } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
 import { map, switchMap, catchError, withLatestFrom, concatMap, tap } from 'rxjs/operators';
-import { of } from 'rxjs';
+import { of, filter } from 'rxjs';
 
-import { AppState, selectOrderResult } from '../../index';
+import { AppState, selectOrderId, selectOrderResult, selectStep3IsDirty } from '../../index';
 import { RepositoryService } from '@features/stepper/services/repository.service';
 import { ResultStepFacade } from '../facade/result-step.facade';
 import { StepperUiActions } from '../actions/stepper-ui.actions';
@@ -58,10 +58,10 @@ export class StepperResultEffects {
   completeShipment$ = createEffect(() =>
     this.actions$.pipe(
       ofType(StepperResultActions.completeShipment),
-      withLatestFrom(this.store.select(selectOrderResult)),
-      switchMap(([action, orderResult]) =>
+      withLatestFrom(this.store.select(selectOrderResult),this.store.select(selectStep3IsDirty)),
+      filter(([ , , isDirty]) => isDirty),
+      switchMap(([action]) =>
         this.repositoryService.partialUpdateOrderResult(action.orderResult).pipe(
-          map(() => StepperUiActions.resetStepper()),
           catchError((error) =>
             of(StepperUiActions.setGlobalError({
               error: { message: error.message, stepIndex: 3 }
@@ -71,13 +71,15 @@ export class StepperResultEffects {
       )
     )
   );
+  
 
   // Create Report File
   createReportFile$ = createEffect(() =>
     this.actions$.pipe(
       ofType(StepperResultActions.createReportFile),
-      switchMap(() =>
-        this.repositoryService.createReport().pipe(
+      withLatestFrom(this.store.select(selectOrderId)),
+      switchMap(([, orderId]) =>
+        this.repositoryService.createReport(orderId).pipe(
           map((response) => StepperResultActions.createReportFileSuccess({ reportFiles: response.files })),
           catchError((error) =>
             of(StepperUiActions.setGlobalError({
