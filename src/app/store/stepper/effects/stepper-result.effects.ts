@@ -15,63 +15,36 @@ export class StepperResultEffects {
   private actions$ = inject(Actions);
   private store = inject(Store<AppState>);
   private repositoryService = inject(RepositoryService);
-  private resultStepFacade = inject(ResultStepFacade);
 
-  // Sonuç Submit İşlemi (Facade Kullanımı)
+
+
+  // Complete Shipment
+  // is dirty degilse ise reset stepepr/
+  // is dirty ise backend git gel rest stepper true mu bak 
+  // ona gore yap
   resultStepSubmit$ = createEffect(() =>
     this.actions$.pipe(
       ofType(StepperResultActions.resultStepSubmit),
-      tap(() => console.log('[Result Step] Submit başlatıldı')),
-      concatMap((action) =>
-        this.resultStepFacade.submitResultStep(action.resetStepper).pipe(
-          map(() => StepperResultActions.resultStepSubmitSuccess()),
-          catchError((error) => {
-            console.error('[Result Step] Hata:', error);
-            return of(StepperResultActions.resultStepSubmitError({
-              error: error.message || 'Submit hatası'
-            }));
-          })
-        )
-      )
-    )
-  );
-
-  // Update Order Result
-  updateOrderResult$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(StepperResultActions.updateOrderResult),
-      withLatestFrom(this.store.select(selectOrderResult)),
-      switchMap(([_, orderResult]) =>
-        this.repositoryService.partialUpdateOrderResult(orderResult).pipe(
-          map(() => StepperResultActions.createReportFile()),
-          catchError((error) =>
-            of(StepperUiActions.setGlobalError({
-              error: { message: error.message, stepIndex: 3 }
-            }))
-          )
-        )
-      )
-    )
-  );
-
-  // Complete Shipment
-  completeShipment$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(StepperResultActions.completeShipment),
-      withLatestFrom(this.store.select(selectOrderResult),this.store.select(selectStep3IsDirty)),
-      filter(([ , , isDirty]) => isDirty),
+      withLatestFrom(this.store.select(selectStep3IsDirty)),
+      tap(action => {
+        if (action[0].resetStepper) {
+          this.store.dispatch(StepperUiActions.resetStepper())
+        }
+      }),
+      filter(([, isDirty]) => isDirty),
       switchMap(([action]) =>
         this.repositoryService.partialUpdateOrderResult(action.orderResult).pipe(
+          map((response) => StepperResultActions.createReportFile({ orderId: action.orderId })),
           catchError((error) =>
             of(StepperUiActions.setGlobalError({
               error: { message: error.message, stepIndex: 3 }
             }))
           )
-        )
+        ),
       )
     )
   );
-  
+
 
   // Create Report File
   createReportFile$ = createEffect(() =>

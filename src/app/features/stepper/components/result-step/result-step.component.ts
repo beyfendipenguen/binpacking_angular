@@ -42,7 +42,7 @@ interface PackageData {
   weight: number;
   color?: string;
   dimensions?: string;
-  pkgId:string;
+  pkgId: string;
 }
 
 @Component({
@@ -114,7 +114,7 @@ export class ResultStepComponent implements OnInit, OnDestroy {
   });
   // NgRx Observables
   public isEditMode$ = this.store.select(selectIsEditMode);
-  public editOrderId$ = this.store.select(selectOrderId);
+  public orderIdSignal = this.store.selectSignal(selectOrderId);
 
   private resultAutoSaveTimeout: any;
   public currentViewType: string = 'isometric';
@@ -481,6 +481,9 @@ export class ResultStepComponent implements OnInit, OnDestroy {
 
   completeOrder(resetStepper: boolean) {
     const orderResult = this.convertPiecesToJsonString();
+    // orderid result reset
+    // store bosaltiyoz
+    // 
 
     if (this.threeJSComponent.deletedPackages.length > 0) {
       const dialogRef = this.dialog.open(CancelConfirmationDialogComponent, {
@@ -502,7 +505,7 @@ export class ResultStepComponent implements OnInit, OnDestroy {
           this.reportFiles = [];
         }
         if (result === true) {
-          this.store.dispatch(StepperResultActions.resultStepSubmit({ orderResult, resetStepper, packageNames: this.threeJSComponent.deletedPackages.map(pckg => pckg.id.toString()), }))
+          this.store.dispatch(StepperResultActions.resultStepSubmit({ orderId: this.orderIdSignal(), orderResult, resetStepper, packageNames: this.threeJSComponent.deletedPackages.map(pckg => pckg.id.toString()), }))
           this.threeJSComponent.deletedPackages = []
           this.shipmentCompleted.emit();
         }
@@ -515,34 +518,34 @@ export class ResultStepComponent implements OnInit, OnDestroy {
         this.hasResults = false;
         this.reportFiles = [];
       }
-      this.store.dispatch(StepperResultActions.resultStepSubmit({ orderResult, resetStepper, packageNames: this.threeJSComponent.deletedPackages.map(pckg => pckg.id.toString()), }))
+      this.store.dispatch(StepperResultActions.resultStepSubmit({ orderId: this.orderIdSignal(), orderResult, resetStepper, packageNames: this.threeJSComponent.deletedPackages.map(pckg => pckg.id.toString()), }))
 
       this.shipmentCompleted.emit();
     }
   }
 
-convertPiecesToJsonString(): string {
-  const piecesData = this.threeJSComponent.processedPackages;
-  const packages = this.store.selectSignal(selectPackages);
+  convertPiecesToJsonString(): string {
+    const piecesData = this.threeJSComponent.processedPackages;
+    const packages = this.store.selectSignal(selectPackages);
 
-  const formattedData = piecesData.map(piece => {
-    const matchingPackage = packages().find(pkg => pkg.id === piece.pkgId);
-    const pieceId = matchingPackage ? matchingPackage.name : piece.id;
+    const formattedData = piecesData.map(piece => {
+      const matchingPackage = packages().find(pkg => pkg.id === piece.pkgId);
+      const pieceId = matchingPackage ? matchingPackage.name : piece.id;
 
-    return [
-      piece.x,
-      piece.y,
-      piece.z,
-      piece.length,
-      piece.width,
-      piece.height,
-      pieceId,
-      piece.weight,
-      piece.pkgId
-    ];
-  });
+      return [
+        piece.x,
+        piece.y,
+        piece.z,
+        piece.length,
+        piece.width,
+        piece.height,
+        pieceId,
+        piece.weight,
+        piece.pkgId
+      ];
+    });
 
-  return JSON.stringify(formattedData);
-}
+    return JSON.stringify(formattedData);
+  }
 
 }

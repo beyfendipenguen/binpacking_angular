@@ -45,7 +45,7 @@ export const stepperResultHandlers = [
   })),
 
   // Result Step Submit
-  on(StepperResultActions.resultStepSubmit, (state: StepperState, { orderResult, resetStepper, packageNames }) => {
+  on(StepperResultActions.resultStepSubmit, (state: StepperState, { orderResult, packageNames }) => {
     const currentPackages = state.step2State.packages;
     let packagesToKeep = [...currentPackages];
     if (!!packageNames && packageNames.length > 0) {
