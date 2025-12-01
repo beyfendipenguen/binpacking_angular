@@ -91,9 +91,6 @@ export const stepperUiHandlers = [
   }),
 
   on(StepperUiActions.setStep3IsDirty, (state: StepperState) => {
-    if (state.step3State.isDirty) {
-      return state;
-    }
     return {
       ...state,
       step3State: {

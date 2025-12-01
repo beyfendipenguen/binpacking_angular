@@ -171,7 +171,7 @@ export class ResultStepComponent implements OnInit, OnDestroy {
         takeUntil(this.destroy$),
         switchMap((response) => {
           this.orderResultId = response.data.order_result_id
-          this.store.dispatch(StepperUiActions.setStepperData({ data: { orderResultId: this.orderResultId } }));
+          this.store.dispatch(StepperResultActions.setOrderResultId({orderResultId: this.orderResultId}));
           this.safeProcessOptimizationResult(response);
           this.originalPiecesData = JSON.parse(JSON.stringify(this.piecesData));
           this.optimizationProgress = Math.min(80, this.optimizationProgress);
@@ -483,7 +483,7 @@ export class ResultStepComponent implements OnInit, OnDestroy {
     const orderResult = this.convertPiecesToJsonString();
     // orderid result reset
     // store bosaltiyoz
-    // 
+    //
 
     if (this.threeJSComponent.deletedPackages.length > 0) {
       const dialogRef = this.dialog.open(CancelConfirmationDialogComponent, {

@@ -16,6 +16,10 @@ export const StepperResultActions = createActionGroup({
     'Create Report File Success': props<{ reportFiles: any[] }>(),
 
     // Tamamlama
-    'Complete Shipment': props<{ orderResult: string }>()
+    'Complete Shipment': props<{ orderResult: string }>(),
+
+    //SetOrderResultId
+    'Set Order Result Id': props<{ orderResultId: string }>(),
+
   }
 });

@@ -103,4 +103,9 @@ export const stepperResultHandlers = [
       timestamp: new Date()
     }
   })),
+
+  on(StepperResultActions.setOrderResultId,(state: StepperState, { orderResultId })=>({
+    ...state,
+    orderResultId: orderResultId
+  }))
 ];
