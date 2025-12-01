@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { Observable, of } from 'rxjs';
 import { concatMap, switchMap, tap, take, map } from 'rxjs/operators';
-import { AppState} from '../..';
+import { AppState } from '../..';
 import { AuthService } from '../../../core/auth/services/auth.service';
 import { selectIsOrderDetailsDirty, selectOrderDetailsChanges, selectOrderResult, selectPackageChanges } from '../stepper.selectors';
 import { RepositoryService } from '@features/stepper/services/repository.service';
@@ -60,7 +60,6 @@ export class ResultStepFacade {
       // 5. Adım: Report file oluşturma sinyalini gönder
       tap(() => {
         console.log('[ResultStepFacade] Report file oluşturma başlatılıyor...');
-        this.store.dispatch(StepperResultActions.createReportFile());
       })
     );
   }
