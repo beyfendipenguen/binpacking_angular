@@ -4,7 +4,7 @@ import { Store } from '@ngrx/store';
 import { map, switchMap, catchError, withLatestFrom, tap } from 'rxjs/operators';
 import { of, filter } from 'rxjs';
 
-import { AppState, selectOrderId, selectStep3IsDirty } from '../../index';
+import { AppState, selectIsEditMode, selectOrderId, selectStep3IsDirty } from '../../index';
 import { RepositoryService } from '@features/stepper/services/repository.service';
 import { StepperUiActions } from '../actions/stepper-ui.actions';
 import { StepperResultActions } from '../actions/stepper-result.actions';
@@ -17,17 +17,19 @@ export class StepperResultEffects {
 
 
 
-  // Complete Shipment
   // is dirty degilse ise reset stepepr/
   // is dirty ise backend git gel rest stepper true mu bak
   // ona gore yap
   resultStepSubmit$ = createEffect(() =>
     this.actions$.pipe(
       ofType(StepperResultActions.resultStepSubmit),
-      withLatestFrom(this.store.select(selectStep3IsDirty)),
-      tap(action => {
-        if (action[0].resetStepper) {
+      withLatestFrom(this.store.select(selectStep3IsDirty),this.store.select(selectIsEditMode)),
+      tap(([action, ,isEditMode]) => {
+        if (action.resetStepper) {
           this.store.dispatch(StepperUiActions.resetStepper())
+        }
+        if(isEditMode){
+          this.store.dispatch(StepperUiActions.reviseOrder({orderId: action.orderId}))
         }
       }),
       filter(([, isDirty]) => isDirty),
@@ -43,7 +45,6 @@ export class StepperResultEffects {
       )
     )
   );
-
 
   // Create Report File
   createReportFile$ = createEffect(() =>
@@ -61,4 +62,5 @@ export class StepperResultEffects {
       )
     )
   );
+
 }

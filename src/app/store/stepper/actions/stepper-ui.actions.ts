@@ -14,6 +14,12 @@ export const StepperUiActions = createActionGroup({
     'Enable Edit Mode': props<{ orderId: string }>(),
     'Set Edit Mode Stepper Data':props<{order:Order, orderDetails:OrderDetailRead[], pallets:UiPallet[], packages:UiPackage[]}>(), //Daha kullanilmiyor
 
+    //Revize Order Name
+    'Revise Order': props<{orderId:string}>(),
+    'Revise Order Success': emptyProps(),
+    'Revise Order Failure': emptyProps(),
+
+
     'Init': emptyProps(),
     'Initialize Stepper': props<{ editMode?: boolean; editOrderId?: string }>(),
     'Reset Stepper': emptyProps(),

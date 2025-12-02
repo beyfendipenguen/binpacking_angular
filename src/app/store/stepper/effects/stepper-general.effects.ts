@@ -25,26 +25,41 @@ export class StepperGeneralEffects {
   private repositoryService = inject(RepositoryService);
 
 
-    // Edit Modu: Sipariş, detaylar ve paketleri paralel yükler
-    enableEditMode$ = createEffect(() =>
-      this.actions$.pipe(
-        ofType(StepperUiActions.enableEditMode),
-        switchMap((action) =>
-          forkJoin({
-            order: this.orderService.getById(action.orderId),
-            orderDetails: this.orderDetailService.getByOrderId(action.orderId),
-            packageDetails: this.repositoryService.getPackageDetails(action.orderId)
-          }).pipe(
-            switchMap(({ order, orderDetails, packageDetails }) => [
-              StepperInvoiceUploadActions.saveSuccess({ order }),
-              StepperInvoiceUploadActions.upsertManySuccess({ orderDetails }),
-              StepperPackageActions.upsertManySuccess({ packageDetails })
-            ]),
-            catchError((error) => of(StepperUiActions.setGlobalError({ error })))
-          )
+  // Edit Modu: Sipariş, detaylar ve paketleri paralel yükler
+  enableEditMode$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(StepperUiActions.enableEditMode),
+      switchMap((action) =>
+        forkJoin({
+          order: this.orderService.getById(action.orderId),
+          orderDetails: this.orderDetailService.getByOrderId(action.orderId),
+          packageDetails: this.repositoryService.getPackageDetails(action.orderId),
+          pallets: this.repositoryService.getPalletsByOrder(action.orderId)
+        }).pipe(
+          switchMap(({ order, orderDetails, packageDetails,pallets }) => [
+            StepperInvoiceUploadActions.saveSuccess({ order }),
+            StepperInvoiceUploadActions.upsertManySuccess({ orderDetails }),
+            StepperPackageActions.upsertManySuccess({ packageDetails }),
+            StepperPackageActions.getPalletsSuccess({pallets})
+          ]),
+          catchError((error) => of(StepperUiActions.setGlobalError({ error })))
         )
       )
-    );
+    )
+  );
+
+  //Order name i edit modda rev1 2 artirmak icin
+  reviseOrder$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(StepperUiActions.reviseOrder),
+      switchMap((action) =>
+        this.orderService.reviseOrder(action.orderId).pipe(
+          map(() => StepperUiActions.reviseOrderSuccess()),
+          catchError((error) => of(StepperUiActions.reviseOrderFailure()))
+        )
+      )
+    )
+  )
 
   // Global hataları kullanıcıya gösterir
   globalErrorLogging$ = createEffect(

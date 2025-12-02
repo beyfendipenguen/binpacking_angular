@@ -12,7 +12,7 @@ export interface Package extends Base {
   // Ya order nesnesi ya da order_id olabilir
   order?: Order;
   order_id?: string;
-  name?: string | null;
+  name: string;
   height: number;
   alignment: string;
 }

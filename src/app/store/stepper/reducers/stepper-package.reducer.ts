@@ -621,7 +621,8 @@ export const stepperPackageHandlers = [
 
     if (!packageToDelete) return state;
 
-    const updatedPackages = currentPackages.filter(p => p.id !== packageId);
+    let updatedPackages = currentPackages.filter(p => p.id !== packageId);
+    updatedPackages.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }))
 
     const remainingProducts = consolidateProducts(
       state.step2State.remainingProducts.concat(packageToDelete.products || [])
