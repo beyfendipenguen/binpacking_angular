@@ -131,13 +131,12 @@ export const stepperPackageHandlers = [
 
   // Set Ui Packages
   on(StepperPackageActions.setUiPackages, (state: StepperState, { packages }) => {
-    const isEditMode = state.isEditMode;
     return {
       ...state,
       step2State: {
         ...state.step2State,
         packages: ensureEmptyPackageAdded(packages, state.order),
-        originalPackages: isEditMode ? ensureEmptyPackageAdded(packages, state.order) : state.step2State.originalPackages,
+        originalPackages: state.step2State.originalPackages,
         addedPackages: [],
         modifiedPackages: [],
         deletedPackageIds: []

@@ -94,11 +94,6 @@ export function arePackagesEqual(pkg1: IUiPackage, pkg2: IUiPackage): boolean {
     return false;
   }
 
-  // 3. Name karsilastirmasi
-  if (pkg1.name !== pkg2.name) {
-    return false;
-  }
-
   // 4. Products karşılaştırması (sıra önemli)
   if (!areProductListsEqual(pkg1.products, pkg2.products)) {
     return false;
@@ -254,7 +249,7 @@ export function arePackageListsEqual(
   originalPackages: IUiPackage[]
 ): boolean {
 
-  const validPackages = packages.filter(pkg => pkg.pallet?.id !== undefined || pkg.products.length > 0);
+  const validPackages = packages.filter(pkg => pkg.products.length > 0);
 
   // Uzunluk kontrolü
   if (validPackages.length !== originalPackages.length) {

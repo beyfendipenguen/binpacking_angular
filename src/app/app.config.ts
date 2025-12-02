@@ -24,7 +24,6 @@ import { StepperResultEffects } from './store/stepper/effects/stepper-result.eff
 import { StepperGeneralEffects } from './store/stepper/effects/stepper-general.effects';
 
 import { STORE_CONFIG, DEVTOOLS_CONFIG, metaReducers } from './ngrx.config';
-import { ResultStepFacade } from './store/stepper/facade/result-step.facade';
 import { loadingInterceptor } from './shared/loading/loading.interceptor';
 
 export function appInitialization() {
@@ -74,8 +73,6 @@ export const appConfig: ApplicationConfig = {
     ]),
 
     // ✅ NgRx DevTools - Geliştirilmiş Ayarlar
-    ...(isDevMode() ? [provideStoreDevtools(DEVTOOLS_CONFIG)] : []),
-
-    ResultStepFacade
+    ...(isDevMode() ? [provideStoreDevtools(DEVTOOLS_CONFIG)] : [])
   ]
 };

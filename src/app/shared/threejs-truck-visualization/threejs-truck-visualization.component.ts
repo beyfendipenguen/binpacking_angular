@@ -12,16 +12,17 @@ import {
   NgZone,
   HostListener,
   inject,
-  AfterViewInit
+  AfterViewInit,
+  signal
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import * as THREE from 'three';
-import { AppState, selectTruck } from '../../store';
 import { Store } from '@ngrx/store';
-import { MatDialog } from '@angular/material/dialog';
+import { AppState, selectStep3IsDirty, selectTruck } from '../../store';
 import { StepperUiActions } from '@app/store/stepper/actions/stepper-ui.actions';
+import { ThreeJSRenderManagerService } from './services/threejs-render-manager.service';
+import { ThreeJSComponents, ThreeJSInitializationService } from './services/threejs-initialization.service';
 
 interface PackageData {
   id: number;
@@ -40,13 +41,7 @@ interface PackageData {
   rotation?: number;
   originalLength?: number;
   originalWidth?: number;
-  pkgId:string;
-}
-
-interface CachedModels {
-  truck: THREE.Group;
-  wheel: THREE.Group;
-  timestamp: number;
+  pkgId: string;
 }
 
 @Component({
@@ -65,48 +60,46 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
   @Input() showWeightDisplay: boolean = true;
   @Input() weightCalculationDepth: number = 3000;
 
+  // Services
   private readonly store = inject(Store<AppState>);
+  private readonly renderManager = inject(ThreeJSRenderManagerService);
+  private readonly initService = inject(ThreeJSInitializationService);
+  private readonly cdr = inject(ChangeDetectorRef);
+  private readonly ngZone = inject(NgZone);
 
-  // 🔥 STATIC CACHE - Component destroy olsa bile kalır
-  private static modelCache: CachedModels | null = null;
-  private static isCacheValid = false;
+  // Signals
+  truckDimension = this.store.selectSignal(selectTruck);
+  isDirty = this.store.selectSignal(selectStep3IsDirty)
+  isLoadingSignal = signal(true);
+  isDataLoadingSignal = signal(false);
+  deletedPackagesSignal = signal<PackageData[]>([]);
+  processedPackagesSignal = signal<PackageData[]>([]);
+  selectedPackageSignal = signal<PackageData | null>(null);
 
+  // Three.js components
+  private threeComponents?: ThreeJSComponents;
+  private scene!: THREE.Scene;
+  private camera!: THREE.PerspectiveCamera;
+  private renderer!: THREE.WebGLRenderer;
+  private packagesGroup!: THREE.Group;
+
+  // State
+  modelsLoaded = { truck: false, trailerWheel: false };
+  isLoadingModels = true;
+  isLoadingData = false;
+  hasThreeJSError = false;
+  isDestroyed = false;
+  isViewReady = false;
+
+  // Camera controls
   private readonly minCameraPhi = Math.PI / 6;
   private readonly maxCameraPhi = Math.PI / 2.2;
   private readonly minCameraHeight = 500;
-  truckDimension = this.store.selectSignal(selectTruck)
-  // Models
-  private gltfLoader!: GLTFLoader;
-  private truckModel?: THREE.Group;
-  private trailerWheelModel?: THREE.Group;
-  private platformMesh?: THREE.Mesh;
-
-  modelsLoaded = {
-    truck: false,
-    trailerWheel: false
-  };
-
-  // UI State
-  isLoadingModels = true;
-  isLoadingData = false;
-  dragModeEnabled = true;
-  wireframeMode = false;
-  currentView = 'isometric';
-  showControls = true;
-  showStats = true;
-  selectedPackage: PackageData | null = null;
-  showCollisionWarning = false;
-
-  // Camera controls
+  private cameraTarget = new THREE.Vector3();
+  private cameraBaseDistance = 0;
   minZoom = 100;
   maxZoom = 300;
   zoomLevel = 10;
-  private cameraTarget = new THREE.Vector3();
-
-  // Performance Stats
-  currentFPS = 60;
-  triangleCount = 0;
-  originalPackageCount = 0;
 
   // Drag system
   private isDragging = false;
@@ -118,16 +111,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
   private dragSensitivity = 0.9;
   private lastDragPosition = new THREE.Vector3();
 
-  // Three.js Objects
-  private scene!: THREE.Scene;
-  private camera!: THREE.PerspectiveCamera;
-  private renderer!: THREE.WebGLRenderer;
-
-  // Groups
-  private truckGroup!: THREE.Group;
-  private packagesGroup!: THREE.Group;
-
-  // Camera controls
+  // Camera interaction
   private isRotatingCamera = false;
   private isPanningCamera = false;
   private lastMouseX = 0;
@@ -136,26 +120,18 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
   private lastPanMouseY = 0;
   private mouseDownTime = 0;
   private mouseMoved = false;
-  private cameraBaseDistance = 0;
+
+  // UI State
+  dragModeEnabled = true;
+  wireframeMode = false;
+  currentView = 'isometric';
+  showControls = true;
+  showStats = true;
+  showCollisionWarning = false;
 
   // Data
-  processedPackages: PackageData[] = [];
-  deletedPackages: PackageData[] = [];
-  private animationFrameId: number | null = null;
-  private isDestroyed = false;
-  private frameCount = 0;
 
-  // 🔥 RENDER OPTIMIZASYONU
-  // Sürekli render almak yerine sadece ihtiyaç olduğunda render alacağız.
-  private needsRender = true;
-
-  // Timers
-  private dataChangeTimeout: any = null;
-  private pendingDataChange = false;
-  private hoverThrottleTimeout: any = null;
-
-  // ✅ Production için render management
-  private isViewReady = false;
+  currentFPS = 60;
 
   // Color management
   private readonly COLOR_PALETTE = [
@@ -166,87 +142,28 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
   ];
   private usedColors = new Set<string>();
 
-  constructor(
-    private cdr: ChangeDetectorRef,
-    private ngZone: NgZone
-  ) { }
+  // Throttles
+  private hoverThrottleTimeout: any = null;
 
-  // ngOnInit'ten ÖNCE ekle
-static clearCache(): void {
-  if (this.modelCache) {
-    // Dispose geometries/materials
-    this.modelCache.truck.traverse((child) => {
-      if ((child as THREE.Mesh).isMesh) {
-        const mesh = child as THREE.Mesh;
-        mesh.geometry?.dispose();
-        if (Array.isArray(mesh.material)) {
-          mesh.material.forEach(mat => mat?.dispose());
-        } else {
-          mesh.material?.dispose();
-        }
-      }
-    });
+  constructor() { }
 
-    this.modelCache.wheel.traverse((child) => {
-      if ((child as THREE.Mesh).isMesh) {
-        const mesh = child as THREE.Mesh;
-        mesh.geometry?.dispose();
-        if (Array.isArray(mesh.material)) {
-          mesh.material.forEach(mat => mat?.dispose());
-        } else {
-          mesh.material?.dispose();
-        }
-      }
-    });
+  ngOnInit(): void {
+    console.log('[Component] ngOnInit - Başlatılıyor');
+    this.isLoadingModels = true;
+    this.isLoadingSignal.set(true);
   }
-
-  ThreeJSTruckVisualizationComponent.modelCache = null;
-  ThreeJSTruckVisualizationComponent.isCacheValid = false;
-}
-
-ngOnInit(): void {
-  this.gltfLoader = new GLTFLoader();
-  this.isLoadingModels = !ThreeJSTruckVisualizationComponent.isCacheValid;  // ✅ true olmalı
-  this.isLoadingData = false;   // ✅ false olmalı
-}
 
   async ngAfterViewInit(): Promise<void> {
-    // ✅ View hazır olduktan sonra Three.js'i başlat
-    await this.initializeThreeJS();
-  }
+    console.log('[Component] ngAfterViewInit - Three.js başlatılıyor');
 
-  private async initializeThreeJS(): Promise<void> {
     try {
-      this.ngZone.runOutsideAngular(() => {
-        this.setupThreeJS();
-        this.createPlatform();
-        this.createGroundPlane();
-
-        // Render döngüsünü başlat
-        this.startRenderLoop();
-      });
-
-      // Modelleri yükle
-      await this.loadAllModels();
-
-      this.ngZone.run(() => {
-        this.isLoadingModels = false;
-
-        // Data varsa işle
-        if (this.piecesData && (Array.isArray(this.piecesData) ? this.piecesData.length > 0 : true)) {
-          this.safeProcessData();
-        }
-
-        this.triggerRender();
-        this.cdr.markForCheck();
-      });
-
+      await this.initializeThreeJS();
+      console.log('[Component] Three.js başarıyla başlatıldı');
     } catch (error) {
-      console.error('ThreeJS init error:', error);
-      this.ngZone.run(() => {
-        this.isLoadingModels = false;
-        this.cdr.markForCheck();
-      });
+      console.error('[Component] Three.js başlatma hatası:', error);
+      this.hasThreeJSError = true;
+      this.isLoadingSignal.set(false);
+      this.cdr.detectChanges();
     }
   }
 
@@ -254,425 +171,265 @@ ngOnInit(): void {
     if (this.isDestroyed || !this.isViewReady) return;
 
     if (changes['piecesData'] || changes['truckDimension']) {
-      if (this.scene && this.truckGroup && this.packagesGroup) {
+      if (this.scene && this.packagesGroup) {
         this.safeProcessData();
       }
     }
   }
 
   ngOnDestroy(): void {
+    console.log('[Component] ngOnDestroy - Cleanup başlatılıyor');
     this.isDestroyed = true;
     this.cleanup();
   }
 
   // ========================================
-  // MODEL LOADING
+  // INITIALIZATION
   // ========================================
 
-  private async loadAllModels(): Promise<void> {
-    if (this.isDestroyed) return;
+  private async initializeThreeJS(): Promise<void> {
+    try {
+      this.isLoadingModels = true;
+      this.isLoadingSignal.set(true);
 
-    // 1. Önce Cache Kontrol Et
-    if (ThreeJSTruckVisualizationComponent.isCacheValid && ThreeJSTruckVisualizationComponent.modelCache) {
-      // Cache'den al ve kopyala (Clone çok hızlıdır)
-      const cached = ThreeJSTruckVisualizationComponent.modelCache;
+      const container = this.threeContainer.nativeElement;
+      const truckDims = this.truckDimension();
 
-      // Clone(true) deep copy yapar
-      this.truckModel = cached.truck.clone(true);
-      this.trailerWheelModel = cached.wheel.clone(true);
+      console.log('[Component] Initialization başlatılıyor...', { truckDims });
 
-      this.finalizeModelSetup();
+      // Initialize via service
+      this.threeComponents = await this.initService.initialize({
+        containerElement: container,
+        truckDimensions: truckDims,
+        enableShadows: true,
+        pixelRatio: 2
+      });
+
+      // Extract components
+      this.scene = this.threeComponents.scene;
+      this.camera = this.threeComponents.camera;
+      this.renderer = this.threeComponents.renderer;
+      this.packagesGroup = this.threeComponents.packagesGroup;
+
+      // Setup camera target
+      this.cameraTarget.set(
+        truckDims[0] / 2,
+        truckDims[2] / 2,
+        truckDims[1] / 2
+      );
+
+      // Setup drag plane
+      this.dragPlane.setFromNormalAndCoplanarPoint(
+        new THREE.Vector3(0, 1, 0),
+        new THREE.Vector3(0, 0, 0)
+      );
+
+      // Setup mouse events
+      this.setupMouseEvents();
+
+      // Start render loop
+      this.renderManager.startRenderLoop(
+        this.renderer,
+        this.scene,
+        this.camera
+      );
+
+      // Models loaded
+      this.modelsLoaded.truck = true;
+      this.modelsLoaded.trailerWheel = true;
+
+      // Loading complete
+      this.isLoadingModels = false;
+      this.isLoadingSignal.set(false);
+      this.isViewReady = true;
+
+      console.log('[Component] Initialization tamamlandı');
+
+      // Force initial render
+      this.renderManager.requestRender();
+
+      // Process data if available
+      if (this.piecesData && (Array.isArray(this.piecesData) ? this.piecesData.length > 0 : true)) {
+        await this.safeProcessData();
+      }
+
+      this.cdr.detectChanges();
+
+    } catch (error) {
+      console.error('[Component] Initialization hatası:', error);
+      this.hasThreeJSError = true;
+      this.isLoadingSignal.set(false);
+      throw error;
+    }
+  }
+
+  // ========================================
+  // DATA PROCESSING
+  // ========================================
+
+  private async safeProcessData(): Promise<void> {
+    if (this.isDestroyed || !this.isViewReady) return;
+
+    this.isLoadingData = true;
+    this.isDataLoadingSignal.set(true);
+
+    try {
+      this.processData();
+      this.createPackageVisualization();
+
+      this.renderManager.requestRender();
+    } catch (error) {
+      console.error('[Component] Data processing hatası:', error);
+    } finally {
+      this.isLoadingData = false;
+      this.isDataLoadingSignal.set(false);
+
+      this.ngZone.run(() => {
+        this.cdr.detectChanges();
+      });
+    }
+  }
+
+  private processData(): void {
+    const pieces = typeof this.piecesData === 'string'
+      ? JSON.parse(this.piecesData)
+      : this.piecesData;
+
+    if (!pieces || pieces.length === 0) {
+      this.processedPackagesSignal.set([]);
+      this.deletedPackagesSignal.set([]);
+      this.usedColors.clear();
       return;
     }
 
-    // 2. Cache Yoksa İndir
-    try {
-      await Promise.all([
-        this.loadTruckModel(),
-        this.loadTrailerWheelModel()
-      ]);
+    // Mevcut state'i koruyarak process et
+    const stateMap = new Map();
+    this.processedPackagesSignal().forEach(pkg => {
+      stateMap.set(pkg.id, {
+        color: pkg.color,
+        originalColor: pkg.originalColor,
+        rotation: pkg.rotation || 0,
+        originalLength: pkg.originalLength,
+        originalWidth: pkg.originalWidth
+      });
+    });
 
-      // Modeller yüklendi, şimdi cache'e atalım
-      if (this.truckModel && this.trailerWheelModel && !this.isDestroyed) {
-        // Cache için orijinalin kopyasını sakla (transform edilmemiş hali daha temiz olabilir ama burada transform edilmişi saklamak daha pratik)
-        // Not: Burada transform uygulanmadan önceki "raw" halini saklamak daha güvenlidir ama
-        // hızlı olması için mevcut halini clone alıp saklayacağız.
+    const processed: PackageData[] = [];
+    const deleted: PackageData[] = [];
 
-        ThreeJSTruckVisualizationComponent.modelCache = {
-          truck: this.truckModel.clone(true),
-          wheel: this.trailerWheelModel.clone(true),
-          timestamp: Date.now()
-        };
-        ThreeJSTruckVisualizationComponent.isCacheValid = true;
+    pieces.forEach((piece: any, index: number) => {
+      const id = piece[6] || index;
+      const saved = stateMap.get(id);
+
+      let length = piece[3] || 0;
+      let width = piece[4] || 0;
+      let rotation = 0;
+      let originalLength = length;
+      let originalWidth = width;
+
+      if (saved) {
+        rotation = saved.rotation;
+        originalLength = saved.originalLength || length;
+        originalWidth = saved.originalWidth || width;
+
+        if (rotation % 180 === 90) {
+          length = originalWidth;
+          width = originalLength;
+        }
       }
 
-      this.finalizeModelSetup();
+      let color: string;
+      let originalColor: string;
 
-    } catch (error) {
-      console.error("Model loading failed", error);
-      // Hata durumunda bile component çalışmalı
-    }
-  }
-  private finalizeModelSetup(): void {
-    if (this.isDestroyed) return;
+      if (saved) {
+        color = saved.color || this.getUniqueColor();
+        originalColor = saved.originalColor || color;
+      } else {
+        color = this.getUniqueColor();
+        originalColor = color;
+      }
 
-    // Transformları uygula
-    this.applyTruckTransforms();
-    this.applyWheelTransforms();
+      const pkg: PackageData = {
+        id,
+        x: piece[0] || 0,
+        y: piece[1] || 0,
+        z: piece[2] || 0,
+        length,
+        width,
+        height: piece[5] || 0,
+        weight: piece[7] || 0,
+        color,
+        originalColor,
+        rotation,
+        originalLength,
+        originalWidth,
+        dimensions: `${length}×${width}×${piece[5] || 0}mm`,
+        isBeingDragged: false,
+        pkgId: piece[8]
+      };
 
-    // Sahneye ekle
-    if (this.truckModel) this.truckGroup.add(this.truckModel);
-    if (this.trailerWheelModel) this.truckGroup.add(this.trailerWheelModel);
-
-    this.modelsLoaded.truck = true;
-    this.modelsLoaded.trailerWheel = true;
-
-    this.triggerRender();
-  }
-
-  private loadTruckModel(): Promise<void> {
-    return new Promise((resolve, reject) => {
-      const baseUrl = window.location.origin;
-      const modelPath = `${baseUrl}/assets/models/truck/truck.gltf`;
-
-      this.gltfLoader.load(modelPath, (gltf) => {
-        if (this.isDestroyed) return;
-        this.truckModel = gltf.scene;
-        resolve();
-      }, undefined, reject);
-    });
-  }
-
- private loadTrailerWheelModel(): Promise<void> {
-    return new Promise((resolve, reject) => {
-      const baseUrl = window.location.origin;
-      const modelPath = `${baseUrl}/assets/models/truck/truck-wheels.gltf`;
-
-      this.gltfLoader.load(modelPath, (gltf) => {
-        if (this.isDestroyed) return;
-        this.trailerWheelModel = gltf.scene;
-        resolve();
-      }, undefined, reject);
-    });
-  }
-
-private applyTruckTransforms(): void {
-  if (!this.truckModel) return;
-
-  const box = new THREE.Box3().setFromObject(this.truckModel);
-  const size = box.getSize(new THREE.Vector3());
-
-  const scaleX = this.truckDimension()[0] / size.x;
-  const scaleY = this.truckDimension()[2] / size.y;
-  const scaleZ = this.truckDimension()[1] / size.z;
-
-  const scale = Math.min(scaleX, scaleY, scaleZ);
-  this.truckModel.scale.setScalar(scale * 2.5);
-
-  this.truckModel.rotation.y = -Math.PI / 2;
-  this.truckModel.position.set(0, 0, this.truckDimension()[1] / 2 + 100);
-
-  this.truckModel.traverse((child) => {
-    if ((child as THREE.Mesh).isMesh) {
-      child.castShadow = true;
-      child.receiveShadow = true;
-    }
-  });
-  if (this.renderer) this.renderer.shadowMap.needsUpdate = true;
-}
-
-private applyWheelTransforms(): void {
-  if (!this.trailerWheelModel) return;
-
-  const box = new THREE.Box3().setFromObject(this.trailerWheelModel);
-  const size = box.getSize(new THREE.Vector3());
-
-  const scaleX = this.truckDimension()[0] / size.x;
-  const scaleY = this.truckDimension()[2] / size.y;
-  const scaleZ = this.truckDimension()[1] / size.z;
-
-  const scale = Math.min(scaleX, scaleY, scaleZ);
-  this.trailerWheelModel.scale.setScalar(scale);
-
-  this.trailerWheelModel.rotation.y = Math.PI / 2;
-  this.trailerWheelModel.position.set(
-    this.truckDimension()[0] / 2,
-    0,
-    this.truckDimension()[1] / 2
-  );
-
-  this.trailerWheelModel.traverse((child) => {
-    if ((child as THREE.Mesh).isMesh) {
-      child.castShadow = true;
-      child.receiveShadow = true;
-    }
-  });
-}
-
-  // ========================================
-  // KEYBOARD SHORTCUTS
-  // ========================================
-
-  @HostListener('document:keydown', ['$event'])
-  handleKeyboardShortcuts(event: KeyboardEvent): void {
-    if (this.isDragging) return;
-
-    switch (event.key) {
-      case 'r':
-      case 'R':
-        if (this.selectedPackage) {
-          event.preventDefault();
-          this.rotateSelectedPackage();
-        }
-        break;
-
-      case 'Delete':
-      case 'Backspace':
-        if (this.selectedPackage) {
-          event.preventDefault();
-          this.deleteSelectedPackage();
-        }
-        break;
-
-      case 'Escape':
-        if (this.selectedPackage) {
-          event.preventDefault();
-          this.clearSelection();
-        }
-        break;
-    }
-  }
-
-  @HostListener('window:resize')
-  onWindowResize(): void {
-    if (!this.renderer || !this.camera || !this.threeContainer) return;
-    const container = this.threeContainer.nativeElement;
-    this.camera.aspect = container.clientWidth / container.clientHeight;
-    this.camera.updateProjectionMatrix();
-    this.renderer.setSize(container.clientWidth, container.clientHeight);
-    this.triggerRender();
-  }
-
-  // ========================================
-  // UTILITY METHODS
-  // ========================================
-
-  restoreAllPackages(): void {
-    if (this.deletedPackages.length === 0) return;
-
-    const totalDeleted = this.deletedPackages.length;
-    const packagesToRestore = [...this.deletedPackages];
-    let restoredCount = 0;
-    let rotatedCount = 0;
-
-    packagesToRestore.forEach(pkg => {
-      const beforeLength = this.processedPackages.length;
-      const hadRotation = pkg.rotation && pkg.rotation % 180 === 90;
-
-      this.restorePackage(pkg);
-
-      const afterLength = this.processedPackages.length;
-
-      if (afterLength > beforeLength) {
-        restoredCount++;
-        const restoredPkg = this.processedPackages[afterLength - 1];
-        if (restoredPkg.rotation && restoredPkg.rotation % 180 === 90 && !hadRotation) {
-          rotatedCount++;
-        }
+      if (piece[0] === -1 && piece[1] === -1 && piece[2] === -1) {
+        deleted.push(pkg);
+      } else {
+        processed.push(pkg);
       }
     });
-    this.restoreAllPackages();
-    this.triggerRender();
+
+    this.processedPackagesSignal.set(processed);
+    if (deleted.length !== 0) {
+      this.deletedPackagesSignal.set(deleted);
+    }
   }
 
-  clearDeletedPackages(): void {
+  private createPackageVisualization(): void {
+    if (!this.packagesGroup) return;
+
+    this.packagesGroup.clear();
+
+    this.processedPackagesSignal().forEach((packageData) => {
+      this.createPackageMesh(packageData);
+    });
+
+    this.ngZone.run(() => {
+      this.cdr.markForCheck();
+    });
   }
 
-  // ========================================
-  // THREE.JS SETUP
-  // ========================================
-
-  private setupThreeJS(): void {
-    const container = this.threeContainer.nativeElement;
-
-    // Scene
-    this.scene = new THREE.Scene();
-
-    const gradientCanvas = document.createElement('canvas');
-    gradientCanvas.width = 512;
-    gradientCanvas.height = 512;
-    const context = gradientCanvas.getContext('2d')!;
-    const gradient = context.createLinearGradient(0, 0, 0, 512);
-    gradient.addColorStop(0, '#e0f2fe');
-    gradient.addColorStop(0.5, '#f0f9ff');
-    gradient.addColorStop(1, '#f8fafc');
-    context.fillStyle = gradient;
-    context.fillRect(0, 0, 512, 512);
-
-    const gradientTexture = new THREE.CanvasTexture(gradientCanvas);
-    this.scene.background = gradientTexture;
-
-    // Camera
-    const width = container.clientWidth || 800;
-    const height = container.clientHeight || 600;
-
-    this.camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 100000);
-
-    this.cameraTarget.set(
-      this.truckDimension()[0] / 2,
-      this.truckDimension()[2] / 2,
-      this.truckDimension()[1] / 2
+  private createPackageMesh(packageData: PackageData): void {
+    const geometry = new THREE.BoxGeometry(
+      packageData.length,
+      packageData.height,
+      packageData.width
     );
 
-    // Renderer
-    this.renderer = new THREE.WebGLRenderer({
-      antialias: true,
-      alpha: true
+    const material = new THREE.MeshLambertMaterial({
+      color: packageData.color,
+      transparent: false,
+      opacity: 1.0,
+      wireframe: this.wireframeMode
     });
-    this.renderer.setSize(width, height);
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    this.renderer.shadowMap.enabled = true;
-    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
-    container.appendChild(this.renderer.domElement);
+    const mesh = new THREE.Mesh(geometry, material);
 
-    this.setupLighting();
-    this.setupSmoothMouseEvents();
-
-    // Groups
-    this.truckGroup = new THREE.Group();
-    this.packagesGroup = new THREE.Group();
-    this.packagesGroup.position.y = 1100;
-
-    this.scene.add(this.truckGroup);
-    this.scene.add(this.packagesGroup);
-
-
-    this.dragPlane.setFromNormalAndCoplanarPoint(
-      new THREE.Vector3(0, 1, 0),
-      new THREE.Vector3(0, 0, 0)
+    mesh.position.set(
+      packageData.x + packageData.length / 2,
+      packageData.z + packageData.height / 2,
+      packageData.y + packageData.width / 2
     );
 
-    this.setView('isometric');
-  }
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
+    mesh.userData = { packageData };
 
-  private setupLighting(): void {
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
-    this.scene.add(ambientLight);
-
-    const mainLight = new THREE.DirectionalLight(0xffffff, 1.0);
-    mainLight.position.set(5000, 8000, 3000);
-    mainLight.castShadow = true;
-
-    mainLight.shadow.mapSize.width = 2048;
-    mainLight.shadow.mapSize.height = 2048;
-    mainLight.shadow.camera.near = 1;
-    mainLight.shadow.camera.far = 20000;
-    mainLight.shadow.camera.left = -8000;
-    mainLight.shadow.camera.right = 8000;
-    mainLight.shadow.camera.top = 8000;
-    mainLight.shadow.camera.bottom = -8000;
-    mainLight.shadow.bias = -0.0005;
-
-    this.scene.add(mainLight);
-
-    const fillLight = new THREE.DirectionalLight(0xffffff, 0.3);
-    fillLight.position.set(-3000, 4000, -2000);
-    this.scene.add(fillLight);
-
-    const rimLight = new THREE.DirectionalLight(0xadd8e6, 0.2);
-    rimLight.position.set(-2000, 3000, 5000);
-    this.scene.add(rimLight);
-
-    const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 0.4);
-    this.scene.add(hemiLight);
-  }
-
-  private createGroundPlane(): void {
-    const groundGeometry = new THREE.PlaneGeometry(300000, 300000);
-    const groundMaterial = new THREE.MeshStandardMaterial({
-      color: 0xf5f5f5,
-      metalness: 0,
-      roughness: 0.8,
-      side: THREE.DoubleSide
-    });
-
-    const groundMesh = new THREE.Mesh(groundGeometry, groundMaterial);
-    groundMesh.rotation.x = -Math.PI / 2;
-    groundMesh.position.y = -200;
-    groundMesh.receiveShadow = true;
-
-    this.scene.add(groundMesh);
-  }
-
-  private createPlatform(): void {
-    const platformLength = this.truckDimension()[0];
-    const platformWidth = this.truckDimension()[1];
-    const platformHeight = 200;
-
-    const geometry = new THREE.BoxGeometry(platformLength, platformHeight, platformWidth);
-    const material = new THREE.MeshStandardMaterial({
-      color: 0x808080,
-      metalness: 0.3,
-      roughness: 0.7,
-      side: THREE.DoubleSide
-    });
-
-    this.platformMesh = new THREE.Mesh(geometry, material);
-    this.platformMesh.position.set(
-      this.truckDimension()[0] / 2,
-      1100 - platformHeight / 2,
-      this.truckDimension()[1] / 2
-    );
-
-    this.platformMesh.castShadow = false;
-    this.platformMesh.receiveShadow = true;
-
-    this.scene.add(this.platformMesh);
-  }
-
-  // ========================================
-  // WEIGHT CALCULATION
-  // ========================================
-
-  get frontSectionWeight(): number {
-    if (!this.processedPackages || this.processedPackages.length === 0) {
-      return 0;
-    }
-
-    return this.processedPackages.reduce((total, pkg) => {
-      const packageStart = pkg.x;
-      const packageEnd = pkg.x + pkg.length;
-
-      if (packageStart >= this.weightCalculationDepth) {
-        return total;
-      }
-
-      if (packageEnd <= this.weightCalculationDepth) {
-        return total + (pkg.weight || 0);
-      }
-
-      const overlapLength = this.weightCalculationDepth - packageStart;
-      const overlapRatio = overlapLength / pkg.length;
-      const partialWeight = (pkg.weight || 0) * overlapRatio;
-
-      return total + partialWeight;
-    }, 0);
-  }
-
-  get frontSectionWeightDisplay(): string {
-    const weight = this.frontSectionWeight;
-    if (weight >= 1000) {
-      return `${(weight / 1000).toFixed(1)} ton`;
-    }
-    return `${weight.toFixed(0)} kg`;
+    packageData.mesh = mesh;
+    this.packagesGroup.add(mesh);
   }
 
   // ========================================
   // MOUSE EVENTS
   // ========================================
 
-  private setupSmoothMouseEvents(): void {
+  private setupMouseEvents(): void {
     const canvas = this.renderer.domElement;
 
     canvas.addEventListener('mousedown', this.handleMouseDown.bind(this), { passive: false });
@@ -695,14 +452,17 @@ private applyWheelTransforms(): void {
     this.updateMouseCoordinates(event);
 
     if (event.button === 0) {
+      // Left click - package drag
       const intersectedPackage = this.getIntersectedPackage();
       if (intersectedPackage && this.dragModeEnabled) {
         this.initiateDragging(intersectedPackage);
       }
     } else if (event.button === 1) {
+      // Middle click - pan
       event.preventDefault();
       this.startCameraPanning(event);
     } else if (event.button === 2) {
+      // Right click - rotate or pan
       if (event.ctrlKey) {
         this.startCameraPanning(event);
       } else {
@@ -717,14 +477,14 @@ private applyWheelTransforms(): void {
 
     if (this.isDragging && this.draggedPackage) {
       this.updateDraggedPackageWithSnapping();
-      this.triggerRender();
+      this.renderManager.requestRender();
     } else if (this.isRotatingCamera) {
       this.updateCameraRotationSmooth(event);
-      this.triggerRender();
+      this.renderManager.requestRender();
     } else if (this.isPanningCamera) {
       this.updateCameraPanning(event);
-      this.triggerRender();
-    } else {
+      this.renderManager.requestRender();
+    } else if (!this.isDragging && !this.isRotatingCamera && !this.isPanningCamera) {
       this.updateHoverEffectsThrottled();
     }
   }
@@ -745,10 +505,9 @@ private applyWheelTransforms(): void {
     if (this.isPanningCamera) {
       this.stopCameraPanning();
     }
-    this.triggerRender();
 
     if (event.button === 0 && !this.mouseMoved && clickDuration < 200 && !this.isDragging) {
-      this.handleMouseClick(event);
+      setTimeout(() => this.handleMouseClick(event), 10);
     }
   }
 
@@ -765,17 +524,23 @@ private applyWheelTransforms(): void {
     } else {
       this.clearSelection();
     }
-    this.triggerRender();
   }
 
-private handleWheel(event: WheelEvent): void {
+  private handleWheel(event: WheelEvent): void {
     event.preventDefault();
     const zoomSpeed = 1;
     const delta = event.deltaY > 0 ? 1 : -1;
     const newZoom = Math.max(this.minZoom, Math.min(this.maxZoom, this.zoomLevel + delta * zoomSpeed));
     this.setZoomLevelPreserveTarget(newZoom);
-    this.triggerRender();
+    this.renderManager.requestRender();
   }
+
+  private updateMouseCoordinates(event: MouseEvent): void {
+    const rect = this.renderer.domElement.getBoundingClientRect();
+    this.mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+    this.mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+  }
+
   // ========================================
   // CAMERA CONTROLS
   // ========================================
@@ -924,7 +689,6 @@ private handleWheel(event: WheelEvent): void {
         this.lastDragPosition.copy(packageData.mesh.position);
         this.highlightDraggedPackage();
         this.renderer.domElement.style.cursor = 'grabbing';
-        this.temporarilyHideUIElements();
       } else {
         this.cancelDragging();
       }
@@ -948,14 +712,15 @@ private handleWheel(event: WheelEvent): void {
       );
 
       const pkg = this.draggedPackage;
+      const truckDims = this.truckDimension();
 
       smoothPosition.x = Math.max(
         pkg.length / 2,
-        Math.min(this.truckDimension()[0] - pkg.length / 2, smoothPosition.x)
+        Math.min(truckDims[0] - pkg.length / 2, smoothPosition.x)
       );
       smoothPosition.z = Math.max(
         pkg.width / 2,
-        Math.min(this.truckDimension()[1] - pkg.width / 2, smoothPosition.z)
+        Math.min(truckDims[1] - pkg.width / 2, smoothPosition.z)
       );
 
       const snappedPosition = this.snapToNearbyPackages(pkg, smoothPosition);
@@ -972,35 +737,49 @@ private handleWheel(event: WheelEvent): void {
           pkg.x = testPosition.x;
           pkg.y = testPosition.y;
           this.lastDragPosition.copy(snappedPosition);
-          this.pendingDataChange = true;
           this.clearCollisionWarning();
+          this.orderResultChange();
         } else {
-          const hasSnapped = snappedPosition.distanceTo(smoothPosition) > 1;
-
-          if (hasSnapped) {
-            const smoothTestPos = {
-              x: smoothPosition.x - pkg.length / 2,
-              y: smoothPosition.z - pkg.width / 2,
-              z: pkg.z
-            };
-
-            if (!this.checkCollisionPrecise(pkg, smoothTestPos)) {
-              pkg.mesh?.position.copy(smoothPosition);
-              pkg.x = smoothTestPos.x;
-              pkg.y = smoothTestPos.y;
-              this.lastDragPosition.copy(smoothPosition);
-              this.pendingDataChange = true;
-              this.clearCollisionWarning();
-            } else {
-              this.showCollisionWarningBriefly();
-            }
-          } else {
-            this.showCollisionWarningBriefly();
-          }
+          this.showCollisionWarningBriefly();
         }
       }
     }
   }
+
+  private completeDragging(): void {
+    if (!this.isDragging || !this.draggedPackage) return;
+
+    if (this.draggedPackage.mesh) {
+      const material = this.draggedPackage.mesh.material as THREE.MeshLambertMaterial;
+      material.wireframe = this.wireframeMode;
+      material.emissive.setHex(0x000000);
+    }
+
+    this.draggedPackage.isBeingDragged = false;
+    this.isDragging = false;
+    this.draggedPackage = null;
+    this.renderer.domElement.style.cursor = this.dragModeEnabled ? 'grab' : 'default';
+    this.clearHighlights();
+
+    if (this.selectedPackageSignal()) {
+      this.highlightSelectedPackage();
+    }
+
+    this.renderManager.requestRender();
+  }
+
+  private cancelDragging(): void {
+    if (this.draggedPackage) {
+      this.draggedPackage.isBeingDragged = false;
+    }
+    this.isDragging = false;
+    this.draggedPackage = null;
+    this.renderer.domElement.style.cursor = this.dragModeEnabled ? 'grab' : 'default';
+  }
+
+  // ========================================
+  // COLLISION & SNAPPING
+  // ========================================
 
   private checkCollisionPrecise(
     packageToCheck: PackageData,
@@ -1009,7 +788,7 @@ private handleWheel(event: WheelEvent): void {
     const checkLength = packageToCheck.length;
     const checkWidth = packageToCheck.width;
 
-    for (const otherPackage of this.processedPackages) {
+    for (const otherPackage of this.processedPackagesSignal()) {
       if (otherPackage.id === packageToCheck.id || !otherPackage.mesh) continue;
 
       const otherLength = otherPackage.length;
@@ -1027,147 +806,217 @@ private handleWheel(event: WheelEvent): void {
     return false;
   }
 
-  private completeDragging(): void {
-    if (!this.isDragging || !this.draggedPackage) return;
+  private snapToNearbyPackages(pkg: PackageData, targetPos: THREE.Vector3): THREE.Vector3 {
+    const snapThreshold = 50;
+    const snappedPos = targetPos.clone();
 
-    if (this.draggedPackage.mesh) {
-      const material = this.draggedPackage.mesh.material as THREE.MeshLambertMaterial;
-      material.wireframe = this.wireframeMode;
-      material.emissive.setHex(0x000000);
-    }
+    const pkgPos = {
+      x: targetPos.x - pkg.length / 2,
+      y: targetPos.z - pkg.width / 2,
+      z: pkg.z
+    };
 
-    this.draggedPackage.isBeingDragged = false;
+    let snappedX = pkgPos.x;
+    let snappedY = pkgPos.y;
 
-    if (this.pendingDataChange) {
-      this.orderResultChange();
-      this.pendingDataChange = false;
-    }
+    for (const otherPkg of this.processedPackagesSignal()) {
+      if (otherPkg.id === pkg.id || !otherPkg.mesh) continue;
 
-    this.isDragging = false;
-    this.draggedPackage = null;
-    this.renderer.domElement.style.cursor = this.dragModeEnabled ? 'grab' : 'default';
-    this.clearHighlights();
-    this.restoreUIElements();
+      // X-axis snapping
+      const distToLeft = Math.abs(pkgPos.x - (otherPkg.x + otherPkg.length));
+      if (distToLeft < snapThreshold && distToLeft < Math.abs(pkgPos.x - otherPkg.x)) {
+        snappedX = otherPkg.x + otherPkg.length;
+      }
 
-    if (this.selectedPackage) {
-      this.highlightSelectedPackage();
-    }
+      const distToRight = Math.abs((pkgPos.x + pkg.length) - otherPkg.x);
+      if (distToRight < snapThreshold && distToRight < distToLeft) {
+        snappedX = otherPkg.x - pkg.length;
+      }
 
-    this.forceRender();
-  }
+      // Y-axis snapping
+      const distToFront = Math.abs(pkgPos.y - (otherPkg.y + otherPkg.width));
+      if (distToFront < snapThreshold && distToFront < Math.abs(pkgPos.y - otherPkg.y)) {
+        snappedY = otherPkg.y + otherPkg.width;
+      }
 
-  // ========================================
-  // COLOR MANAGEMENT
-  // ========================================
-
-  private getUniqueColor(): string {
-    for (const color of this.COLOR_PALETTE) {
-      if (!this.usedColors.has(color)) {
-        this.usedColors.add(color);
-        return color;
+      const distToBack = Math.abs((pkgPos.y + pkg.width) - otherPkg.y);
+      if (distToBack < snapThreshold && distToBack < distToFront) {
+        snappedY = otherPkg.y - pkg.width;
       }
     }
-    const randomColor = `#${Math.floor(Math.random() * 16777215)
-      .toString(16)
-      .padStart(6, '0')}`;
-    this.usedColors.add(randomColor);
-    return randomColor;
-  }
 
-  private releaseColor(color: string): void {
-    this.usedColors.delete(color);
+    snappedPos.x = snappedX + pkg.length / 2;
+    snappedPos.z = snappedY + pkg.width / 2;
+
+    return snappedPos;
   }
 
   // ========================================
-  // ROTATION SYSTEM
+  // PACKAGE SELECTION & HIGHLIGHTS
+  // ========================================
+
+  private getIntersectedPackage(): PackageData | null {
+    this.raycaster.setFromCamera(this.mouse, this.camera);
+    const intersects = this.raycaster.intersectObjects(this.packagesGroup.children);
+
+    if (intersects.length > 0) {
+      const mesh = intersects[0].object as THREE.Mesh;
+      return mesh.userData['packageData'] || null;
+    }
+    return null;
+  }
+
+  private selectPackage(packageData: PackageData): void {
+    this.clearHighlights();
+    this.selectedPackageSignal.set(packageData);
+    this.highlightSelectedPackage();
+    this.renderManager.requestRender();
+  }
+
+  clearSelection(): void {
+    this.selectedPackageSignal.set(null);
+    this.clearHighlights();
+    this.renderManager.requestRender();
+  }
+
+  private highlightSelectedPackage(): void {
+    this.clearHighlights();
+    const selected = this.selectedPackageSignal();
+    if (selected?.mesh) {
+      const material = selected.mesh.material as THREE.MeshLambertMaterial;
+      material.emissive.setHex(0x666666);
+    }
+  }
+
+  private highlightDraggedPackage(): void {
+    if (this.draggedPackage?.mesh) {
+      const material = this.draggedPackage.mesh.material as THREE.MeshLambertMaterial;
+      const isInSnapZone = this.isNearOtherPackages(this.draggedPackage, 50);
+
+      if (isInSnapZone) {
+        material.emissive.setHex(0x0088ff);
+      } else {
+        material.emissive.setHex(0x888888);
+      }
+
+      material.wireframe = true;
+    }
+  }
+
+  private clearHighlights(): void {
+    this.processedPackagesSignal().forEach(pkg => {
+      if (pkg.mesh && !pkg.isBeingDragged) {
+        const material = pkg.mesh.material as THREE.MeshLambertMaterial;
+        material.emissive.setHex(0x000000);
+        material.wireframe = this.wireframeMode;
+        pkg.mesh.scale.setScalar(1.0);
+      }
+    });
+  }
+
+  private updateHoverEffectsThrottled(): void {
+    if (this.hoverThrottleTimeout) return;
+    this.hoverThrottleTimeout = setTimeout(() => {
+      this.updateHoverEffects();
+      this.hoverThrottleTimeout = null;
+    }, 50);
+  }
+
+  private updateHoverEffects(): void {
+    if (this.isDragging) return;
+
+    const hoveredPackage = this.getIntersectedPackage();
+    this.processedPackagesSignal().forEach(pkg => {
+      if (pkg.mesh && pkg !== this.selectedPackageSignal() && !pkg.isBeingDragged) {
+        const material = pkg.mesh.material as THREE.MeshLambertMaterial;
+        if (pkg === hoveredPackage) {
+          material.emissive.setHex(0x333333);
+        } else {
+          material.emissive.setHex(0x000000);
+        }
+        pkg.mesh.scale.setScalar(1.0);
+      }
+    });
+    this.renderManager.requestRender();
+  }
+
+  private isNearOtherPackages(pkg: PackageData, threshold: number): boolean {
+    for (const otherPkg of this.processedPackagesSignal()) {
+      if (otherPkg.id === pkg.id || !otherPkg.mesh) continue;
+
+      const distX = Math.min(
+        Math.abs(pkg.x - (otherPkg.x + otherPkg.length)),
+        Math.abs((pkg.x + pkg.length) - otherPkg.x)
+      );
+
+      const distY = Math.min(
+        Math.abs(pkg.y - (otherPkg.y + otherPkg.width)),
+        Math.abs((pkg.y + pkg.width) - otherPkg.y)
+      );
+
+      if (distX < threshold || distY < threshold) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  // ========================================
+  // PACKAGE OPERATIONS
   // ========================================
 
   rotateSelectedPackage(): void {
-    if (!this.selectedPackage?.mesh) return;
+    const selected = this.selectedPackageSignal();
+    if (!selected?.mesh) return;
 
-    if (!this.selectedPackage.originalLength) {
-      this.selectedPackage.originalLength = this.selectedPackage.length;
-      this.selectedPackage.originalWidth = this.selectedPackage.width;
+    if (!selected.originalLength) {
+      selected.originalLength = selected.length;
+      selected.originalWidth = selected.width;
     }
 
-    const oldLength = this.selectedPackage.length;
-    const oldWidth = this.selectedPackage.width;
+    const oldLength = selected.length;
+    const oldWidth = selected.width;
 
-    this.selectedPackage.length = oldWidth;
-    this.selectedPackage.width = oldLength;
+    selected.length = oldWidth;
+    selected.width = oldLength;
 
-    if (this.checkCollisionPrecise(this.selectedPackage, {
-      x: this.selectedPackage.x,
-      y: this.selectedPackage.y,
-      z: this.selectedPackage.z
+    if (this.checkCollisionPrecise(selected, {
+      x: selected.x,
+      y: selected.y,
+      z: selected.z
     })) {
-      this.selectedPackage.length = oldLength;
-      this.selectedPackage.width = oldWidth;
+      selected.length = oldLength;
+      selected.width = oldWidth;
       this.showCollisionWarningBriefly();
       return;
     }
 
-    this.selectedPackage.rotation = (this.selectedPackage.rotation || 0) + 90;
-    this.selectedPackage.dimensions = `${this.selectedPackage.length}×${this.selectedPackage.width}×${this.selectedPackage.height}mm`;
+    selected.rotation = (selected.rotation || 0) + 90;
+    selected.dimensions = `${selected.length}×${selected.width}×${selected.height}mm`;
 
-    this.recreatePackageMeshCompletely(this.selectedPackage);
+    this.recreatePackageMesh(selected);
     this.highlightSelectedPackage();
     this.orderResultChange();
 
-    this.triggerRender();
+    this.renderManager.requestRender();
     this.cdr.detectChanges();
   }
 
-  private recreatePackageMeshCompletely(packageData: PackageData): void {
-    if (packageData.mesh) {
-      const material = packageData.mesh.material as THREE.MeshLambertMaterial;
-      material.emissive.setHex(0x000000);
-
-      this.packagesGroup.remove(packageData.mesh);
-      packageData.mesh.geometry.dispose();
-      material.dispose();
-      packageData.mesh = undefined;
-    }
-
-    const geometry = new THREE.BoxGeometry(
-      packageData.length,
-      packageData.height,
-      packageData.width
-    );
-
-    const material = new THREE.MeshLambertMaterial({
-      color: packageData.color,
-      transparent: false,
-      opacity: 1.0,
-      wireframe: this.wireframeMode
-    });
-
-    const newMesh = new THREE.Mesh(geometry, material);
-
-    newMesh.position.set(
-      packageData.x + packageData.length / 2,
-      packageData.z + packageData.height / 2,
-      packageData.y + packageData.width / 2
-    );
-
-    newMesh.castShadow = true;
-    newMesh.receiveShadow = true;
-    newMesh.userData = { packageData };
-
-    packageData.mesh = newMesh;
-    this.packagesGroup.add(newMesh);
-  }
-
-  // ========================================
-  // PACKAGE MANAGEMENT
-  // ========================================
-
   deleteSelectedPackage(): void {
-    if (!this.selectedPackage) return;
+    const selected = this.selectedPackageSignal();
+    if (!selected) return;
 
-    const index = this.processedPackages.findIndex(pkg => pkg.id === this.selectedPackage!.id);
+    const packages = this.processedPackagesSignal();
+    const index = packages.findIndex(pkg => pkg.id === selected.id);
     if (index > -1) {
-      const deletedPackage = this.processedPackages.splice(index, 1)[0];
+      const deletedPackage = packages[index];
+
+      this.processedPackagesSignal.update(pkgs =>
+        pkgs.filter((_, i) => i !== index)
+      );
+
+
+      this.deletedPackagesSignal.update(arr => [...arr, deletedPackage]);
 
       if (deletedPackage.originalColor) {
         this.releaseColor(deletedPackage.originalColor);
@@ -1179,18 +1028,14 @@ private handleWheel(event: WheelEvent): void {
         (deletedPackage.mesh.material as THREE.Material).dispose();
       }
 
-      this.deletedPackages.push(deletedPackage);
-      this.selectedPackage = null;
+      this.selectedPackageSignal.set(null);
       this.orderResultChange();
-      this.forceRender();
+      this.renderManager.requestRender();
     }
   }
 
   restorePackage(packageData: PackageData): void {
-    const index = this.deletedPackages.findIndex(pkg => pkg.id === packageData.id);
-    if (index > -1) {
-      this.deletedPackages.splice(index, 1);
-    }
+    this.deletedPackagesSignal.update(arr => arr.filter(pkg => pkg.id !== packageData.id));
 
     let validPosition = this.findValidPosition(packageData);
 
@@ -1231,128 +1076,78 @@ private handleWheel(event: WheelEvent): void {
       }
 
       this.createPackageMesh(packageData);
-      this.processedPackages.push(packageData);
+      this.processedPackagesSignal.update(packages => [...packages, packageData]);
       this.orderResultChange();
-      this.forceRender();
+      this.renderManager.requestRender();
     } else {
-      this.deletedPackages.push(packageData);
+      this.deletedPackagesSignal.update(arr => [...arr, packageData]);
     }
   }
 
-  // ========================================
-  // DATA PROCESSING
-  // ========================================
+  restoreAllPackages(): void {
+    const deleted = this.deletedPackagesSignal();
+    if (deleted.length === 0) return;
+    const packagesToRestore = [...deleted];
+    packagesToRestore.forEach(pkg => this.restorePackage(pkg));
+  }
 
-  private processData(): void {
-    const pieces = typeof this.piecesData === 'string'
-      ? JSON.parse(this.piecesData)
-      : this.piecesData;
+  clearDeletedPackages(): void {
+    this.deletedPackagesSignal.set([]);
+  }
 
-    if (!pieces || pieces.length === 0) {
-      this.processedPackages = [];
-      this.deletedPackages = [];
-      this.originalPackageCount = 0;
-      this.usedColors.clear();
-      return;
+  private recreatePackageMesh(packageData: PackageData): void {
+    if (packageData.mesh) {
+      const material = packageData.mesh.material as THREE.MeshLambertMaterial;
+      material.emissive.setHex(0x000000);
+
+      this.packagesGroup.remove(packageData.mesh);
+      packageData.mesh.geometry.dispose();
+      material.dispose();
+      packageData.mesh = undefined;
     }
 
-    const stateMap = new Map();
-    this.processedPackages.forEach(pkg => {
-      stateMap.set(pkg.id, {
-        color: pkg.color,
-        originalColor: pkg.originalColor,
-        rotation: pkg.rotation || 0,
-        originalLength: pkg.originalLength,
-        originalWidth: pkg.originalWidth
-      });
-    });
+    this.createPackageMesh(packageData);
+  }
 
-    const processed: PackageData[] = [];
-    const deleted: PackageData[] = [];
+  private findValidPosition(packageData: PackageData): { x: number, y: number, z: number } | null {
+    if (!this.checkCollisionPrecise(packageData, {
+      x: packageData.x,
+      y: packageData.y,
+      z: packageData.z
+    })) {
+      return { x: packageData.x, y: packageData.y, z: packageData.z };
+    }
 
-    pieces.forEach((piece: any, index: number) => {
-      const id = piece[6] || index;
-      const saved = stateMap.get(id);
+    const truckDims = this.truckDimension();
+    const stepSize = 100;
 
-      let length = piece[3] || 0;
-      let width = piece[4] || 0;
-      let rotation = 0;
-      let originalLength = length;
-      let originalWidth = width;
-
-      if (saved) {
-        rotation = saved.rotation;
-        originalLength = saved.originalLength || length;
-        originalWidth = saved.originalWidth || width;
-
-        if (rotation % 180 === 90) {
-          length = originalWidth;
-          width = originalLength;
+    for (let x = 0; x <= truckDims[0] - packageData.length; x += stepSize) {
+      for (let y = 0; y <= truckDims[1] - packageData.width; y += stepSize) {
+        const testPosition = { x, y, z: 0 };
+        if (!this.checkCollisionPrecise(packageData, testPosition)) {
+          return testPosition;
         }
       }
-
-      let color: string;
-      let originalColor: string;
-
-      if (saved) {
-        color = saved.color || this.getUniqueColor();
-        originalColor = saved.originalColor || color;
-      } else {
-        color = this.getUniqueColor();
-        originalColor = color;
-      }
-
-      const pkg: PackageData = {
-        id,
-        x: piece[0] || 0,
-        y: piece[1] || 0,
-        z: piece[2] || 0,
-        length,
-        width,
-        height: piece[5] || 0,
-        weight: piece[7] || 0,
-        color,
-        originalColor,
-        rotation,
-        originalLength,
-        originalWidth,
-        dimensions: `${length}×${width}×${piece[5] || 0}mm`,
-        isBeingDragged: false,
-        pkgId: piece[8]
-      };
-
-      if (piece[0] === -1 && piece[1] === -1 && piece[2] === -1) {
-        deleted.push(pkg);
-      } else {
-        processed.push(pkg);
-      }
-    });
-
-    this.processedPackages = processed;
-    if (deleted.length != 0) {
-      this.deletedPackages = deleted;
     }
-    this.originalPackageCount = this.processedPackages.length;
-  }
 
-  private createPackageMesh(packageData: PackageData): void {
-    this.recreatePackageMeshCompletely(packageData);
+    return null;
   }
 
   // ========================================
-  // CAMERA VIEW SYSTEM
+  // VIEW CONTROLS
   // ========================================
 
   setView(viewType: string): void {
     this.currentView = viewType;
+    const truckDims = this.truckDimension();
 
     this.cameraTarget.set(
-      this.truckDimension()[0] / 2,
-      this.truckDimension()[2] / 2,
-      this.truckDimension()[1] / 2
+      truckDims[0] / 2,
+      truckDims[2] / 2,
+      truckDims[1] / 2
     );
 
-    const maxDim = Math.max(...this.truckDimension());
+    const maxDim = Math.max(...truckDims);
     const distance = maxDim * 1.5;
     this.cameraBaseDistance = distance;
 
@@ -1377,7 +1172,7 @@ private handleWheel(event: WheelEvent): void {
     }
 
     this.camera.lookAt(this.cameraTarget);
-    this.forceRender();
+    this.renderManager.requestRender();
   }
 
   resetView(): void {
@@ -1386,189 +1181,68 @@ private handleWheel(event: WheelEvent): void {
   }
 
   // ========================================
-  // UI HELPERS AND UTILITIES
+  // WEIGHT CALCULATION
   // ========================================
 
-  private updateMouseCoordinates(event: MouseEvent): void {
-    const rect = this.renderer.domElement.getBoundingClientRect();
-    this.mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-    this.mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
-  }
-
-  private getIntersectedPackage(): PackageData | null {
-    this.raycaster.setFromCamera(this.mouse, this.camera);
-    const intersects = this.raycaster.intersectObjects(this.packagesGroup.children);
-
-    if (intersects.length > 0) {
-      const mesh = intersects[0].object as THREE.Mesh;
-      return mesh.userData['packageData'] || null;
-    }
-    return null;
-  }
-
-  private selectPackage(packageData: PackageData): void {
-    this.clearHighlights();
-    this.selectedPackage = packageData;
-    this.highlightSelectedPackage();
-    this.forceRender();
-  }
-
-  clearSelection(): void {
-    this.selectedPackage = null;
-    this.clearHighlights();
-    this.forceRender();
-  }
-
-  private highlightSelectedPackage(): void {
-    this.clearHighlights();
-
-    if (this.selectedPackage?.mesh) {
-      const material = this.selectedPackage.mesh.material as THREE.MeshLambertMaterial;
-      material.emissive.setHex(0x666666);
-    }
-  }
-
-  private highlightDraggedPackage(): void {
-    if (this.draggedPackage?.mesh) {
-      const material = this.draggedPackage.mesh.material as THREE.MeshLambertMaterial;
-      const isInSnapZone = this.isNearOtherPackages(this.draggedPackage, 50);
-
-      if (isInSnapZone) {
-        material.emissive.setHex(0x0088ff);
-      } else {
-        material.emissive.setHex(0x888888);
-      }
-
-      material.wireframe = true;
-    }
-  }
-
-  private isNearOtherPackages(pkg: PackageData, threshold: number): boolean {
-    for (const otherPkg of this.processedPackages) {
-      if (otherPkg.id === pkg.id || !otherPkg.mesh) continue;
-
-      const distX = Math.min(
-        Math.abs(pkg.x - (otherPkg.x + otherPkg.length)),
-        Math.abs((pkg.x + pkg.length) - otherPkg.x)
-      );
-
-      const distY = Math.min(
-        Math.abs(pkg.y - (otherPkg.y + otherPkg.width)),
-        Math.abs((pkg.y + pkg.width) - otherPkg.y)
-      );
-
-      if (distX < threshold || distY < threshold) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  private clearHighlights(): void {
-    this.processedPackages.forEach(pkg => {
-      if (pkg.mesh && !pkg.isBeingDragged) {
-        const material = pkg.mesh.material as THREE.MeshLambertMaterial;
-        material.emissive.setHex(0x000000);
-        material.wireframe = this.wireframeMode;
-        pkg.mesh.scale.setScalar(1.0);
-      }
-    });
-  }
-
-  private updateHoverEffectsThrottled(): void {
-    if (this.hoverThrottleTimeout) return;
-    this.hoverThrottleTimeout = setTimeout(() => {
-      this.updateHoverEffects();
-      this.hoverThrottleTimeout = null;
-      this.triggerRender();
-    }, 50);
-  }
-
-  private updateHoverEffects(): void {
-    if (this.isDragging) return;
-
-    const hoveredPackage = this.getIntersectedPackage();
-    this.processedPackages.forEach(pkg => {
-      if (pkg.mesh && pkg !== this.selectedPackage && !pkg.isBeingDragged) {
-        const material = pkg.mesh.material as THREE.MeshLambertMaterial;
-        if (pkg === hoveredPackage) {
-          material.emissive.setHex(0x333333);
-        } else {
-          material.emissive.setHex(0x000000);
-        }
-        pkg.mesh.scale.setScalar(1.0);
-      }
-    });
-    this.needsRender = true;
-  }
-
-  private snapToNearbyPackages(pkg: PackageData, targetPos: THREE.Vector3): THREE.Vector3 {
-    const snapThreshold = 50;
-    const snappedPos = targetPos.clone();
-
-    const pkgPos = {
-      x: targetPos.x - pkg.length / 2,
-      y: targetPos.z - pkg.width / 2,
-      z: pkg.z
-    };
-
-    let snappedX = pkgPos.x;
-    let snappedY = pkgPos.y;
-
-    for (const otherPkg of this.processedPackages) {
-      if (otherPkg.id === pkg.id || !otherPkg.mesh) continue;
-
-      const distToLeft = Math.abs(pkgPos.x - (otherPkg.x + otherPkg.length));
-      if (distToLeft < snapThreshold && distToLeft < Math.abs(pkgPos.x - otherPkg.x)) {
-        snappedX = otherPkg.x + otherPkg.length;
-      }
-
-      const distToRight = Math.abs((pkgPos.x + pkg.length) - otherPkg.x);
-      if (distToRight < snapThreshold && distToRight < distToLeft) {
-        snappedX = otherPkg.x - pkg.length;
-      }
-
-      const distToFront = Math.abs(pkgPos.y - (otherPkg.y + otherPkg.width));
-      if (distToFront < snapThreshold && distToFront < Math.abs(pkgPos.y - otherPkg.y)) {
-        snappedY = otherPkg.y + otherPkg.width;
-      }
-
-      const distToBack = Math.abs((pkgPos.y + pkg.width) - otherPkg.y);
-      if (distToBack < snapThreshold && distToBack < distToFront) {
-        snappedY = otherPkg.y - pkg.width;
-      }
+  get frontSectionWeight(): number {
+    const packages = this.processedPackagesSignal();
+    if (!packages || packages.length === 0) {
+      return 0;
     }
 
-    snappedPos.x = snappedX + pkg.length / 2;
-    snappedPos.z = snappedY + pkg.width / 2;
+    return this.processedPackagesSignal().reduce((total, pkg) => {
+      const packageStart = pkg.x;
+      const packageEnd = pkg.x + pkg.length;
 
-    return snappedPos;
-  }
-
-  private cancelDragging(): void {
-    if (this.draggedPackage) {
-      this.draggedPackage.isBeingDragged = false;
-    }
-    this.isDragging = false;
-    this.draggedPackage = null;
-    this.renderer.domElement.style.cursor = this.dragModeEnabled ? 'grab' : 'default';
-    this.restoreUIElements();
-  }
-
-  private temporarilyHideUIElements(): void {
-    this.showControls = false;
-    this.showStats = false;
-  }
-
-  private restoreUIElements(): void {
-    this.showControls = true;
-    this.showStats = true;
-    setTimeout(() => {
-      if (!this.isDestroyed) {
-        this.cdr.detectChanges();
+      if (packageStart >= this.weightCalculationDepth) {
+        return total;
       }
-    }, 50);
+
+      if (packageEnd <= this.weightCalculationDepth) {
+        return total + (pkg.weight || 0);
+      }
+
+      const overlapLength = this.weightCalculationDepth - packageStart;
+      const overlapRatio = overlapLength / pkg.length;
+      const partialWeight = (pkg.weight || 0) * overlapRatio;
+
+      return total + partialWeight;
+    }, 0);
   }
+
+  get frontSectionWeightDisplay(): string {
+    const weight = this.frontSectionWeight;
+    if (weight >= 1000) {
+      return `${(weight / 1000).toFixed(1)} ton`;
+    }
+    return `${weight.toFixed(0)} kg`;
+  }
+
+  // ========================================
+  // COLOR MANAGEMENT
+  // ========================================
+
+  private getUniqueColor(): string {
+    for (const color of this.COLOR_PALETTE) {
+      if (!this.usedColors.has(color)) {
+        this.usedColors.add(color);
+        return color;
+      }
+    }
+    const randomColor = `#${Math.floor(Math.random() * 16777215)
+      .toString(16)
+      .padStart(6, '0')}`;
+    this.usedColors.add(randomColor);
+    return randomColor;
+  }
+
+  private releaseColor(color: string): void {
+    this.usedColors.delete(color);
+  }
+
+  // ========================================
+  // COLLISION WARNING
+  // ========================================
 
   private showCollisionWarningBriefly(): void {
     if (!this.showCollisionWarning) {
@@ -1591,198 +1265,106 @@ private handleWheel(event: WheelEvent): void {
     }
   }
 
-  private orderResultChange(): void {
-    this.store.dispatch(StepperUiActions.setStep3IsDirty());
-  }
+  // ========================================
+  // HOST LISTENERS
+  // ========================================
 
-  private findValidPosition(packageData: PackageData): { x: number, y: number, z: number } | null {
-    if (!this.checkCollisionPrecise(packageData, {
-      x: packageData.x,
-      y: packageData.y,
-      z: packageData.z
-    })) {
-      return { x: packageData.x, y: packageData.y, z: packageData.z };
-    }
+  @HostListener('document:keydown', ['$event'])
+  handleKeyboardShortcuts(event: KeyboardEvent): void {
+    if (this.isDragging) return;
 
-    const stepSize = 100;
-
-    for (let x = 0; x <= this.truckDimension()[0] - packageData.length; x += stepSize) {
-      for (let y = 0; y <= this.truckDimension()[1] - packageData.width; y += stepSize) {
-        const testPosition = { x, y, z: 0 };
-        if (!this.checkCollisionPrecise(packageData, testPosition)) {
-          return testPosition;
+    switch (event.key) {
+      case 'r':
+      case 'R':
+        if (this.selectedPackageSignal()) {
+          event.preventDefault();
+          this.rotateSelectedPackage();
         }
-      }
-    }
+        break;
 
-    return null;
+      case 'Delete':
+      case 'Backspace':
+        if (this.selectedPackageSignal()) {
+          event.preventDefault();
+          this.deleteSelectedPackage();
+        }
+        break;
+
+      case 'Escape':
+        if (this.selectedPackageSignal()) {
+          event.preventDefault();
+          this.clearSelection();
+        }
+        break;
+    }
   }
+
+  @HostListener('window:resize')
+  onWindowResize(): void {
+    if (!this.renderer || !this.camera || !this.threeContainer) return;
+
+    const container = this.threeContainer.nativeElement;
+    const width = container.clientWidth;
+    const height = container.clientHeight;
+
+    if (width > 0 && height > 0) {
+      this.camera.aspect = width / height;
+      this.camera.updateProjectionMatrix();
+      this.renderer.setSize(width, height);
+      this.renderManager.requestRender();
+    }
+  }
+
+  // ========================================
+  // UTILITIES
+  // ========================================
 
   trackDeletedPackage(index: number, item: PackageData): any {
     return item.id;
   }
 
-  // ========================================
-  // LIFECYCLE METHODS
-  // ========================================
-
-  private async safeProcessData(): Promise<void> {
-    if (this.isDestroyed) return;
-
-    if (!this.scene || !this.truckGroup || !this.packagesGroup) {
-      await this.delay(100);
-      if (!this.isDestroyed) {
-        return this.safeProcessData();
-      }
-      return;
-    }
-
-    this.isLoadingData = true;
-
-    try {
-      this.processData();
-      this.createTruckVisualization();
-      this.createPackageVisualization();
-
-      this.forceRender();
-
-    } catch (error) {
-    } finally {
-      this.isLoadingData = false;
+  private orderResultChange(): void {
+    if (!this.isDirty()) {
       this.ngZone.run(() => {
-        this.cdr.detectChanges();
+        this.store.dispatch(StepperUiActions.setStep3IsDirty());
       });
     }
   }
 
-  private createTruckVisualization(): void {
-    if (!this.truckGroup) return;
-
-    const savedTruckModel = this.truckModel;
-    const savedTrailerWheelModel = this.trailerWheelModel;
-
-    if (savedTruckModel) {
-      this.truckGroup.remove(savedTruckModel);
-    }
-    if (savedTrailerWheelModel) {
-      this.truckGroup.remove(savedTrailerWheelModel);
-    }
-
-    this.truckGroup.clear();
-
-    const geometry = new THREE.BoxGeometry(
-      this.truckDimension()[0],
-      this.truckDimension()[2],
-      this.truckDimension()[1]
-    );
-
-    const edges = new THREE.EdgesGeometry(geometry);
-    const material = new THREE.LineBasicMaterial({
-      color: 0x666666,
-      linewidth: 2
-    });
-
-    const wireframe = new THREE.LineSegments(edges, material);
-    wireframe.position.set(
-      this.truckDimension()[0] / 2,
-      this.truckDimension()[2] / 2 + 1100,
-      this.truckDimension()[1] / 2
-    );
-
-    this.truckGroup.add(wireframe);
-
-    if (savedTruckModel) {
-      this.truckGroup.add(savedTruckModel);
-    }
-    if (savedTrailerWheelModel) {
-      this.truckGroup.add(savedTrailerWheelModel);
-    }
-  }
-
-  private createPackageVisualization(): void {
-    if (!this.packagesGroup) return;
-
-    this.packagesGroup.clear();
-    this.processedPackages.forEach((packageData) => {
-      this.createPackageMesh(packageData);
-    });
-
-    this.ngZone.run(() => {
-      this.cdr.markForCheck();
-    });
-  }
-
-  // ✅ Production için optimize render loop
-private startRenderLoop(): void {
-    const animate = () => {
-      if (this.isDestroyed) return;
-
-      this.animationFrameId = requestAnimationFrame(animate);
-
-      // Sadece ihtiyaç varsa render al
-      if (this.needsRender && this.renderer && this.scene && this.camera) {
-        this.renderer.render(this.scene, this.camera);
-        this.needsRender = false; // Render alındı, bayrağı indir
-        this.updatePerformanceStats(performance.now());
-      }
-    };
-    animate();
-  }
-
-  private triggerRender(): void {
-    this.needsRender = true;
-  }
-
-  private forceRender(): void {
-    if (this.renderer && this.scene && this.camera) {
-      this.renderer.render(this.scene, this.camera);
-    }
-  }
-
-  private updatePerformanceStats(currentTime: number): void {
-    this.frameCount++;
-    if (this.frameCount % 60 === 0) {
-      this.currentFPS = Math.round(1000 / (currentTime / this.frameCount));
-      this.frameCount = 0;
-    }
-  }
-
-  private delay(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
-  }
+  // ========================================
+  // CLEANUP
+  // ========================================
 
   private cleanup(): void {
-    this.isDragging = false;
+    console.log('[Component] Cleanup başlatılıyor...');
 
-    if (this.dataChangeTimeout) {
-      clearTimeout(this.dataChangeTimeout);
-      this.dataChangeTimeout = null;
-    }
+    this.isDragging = false;
+    this.isRotatingCamera = false;
+    this.isPanningCamera = false;
 
     if (this.hoverThrottleTimeout) {
       clearTimeout(this.hoverThrottleTimeout);
       this.hoverThrottleTimeout = null;
     }
 
-    if (this.animationFrameId) {
-      cancelAnimationFrame(this.animationFrameId);
+    // Stop render loop
+    this.renderManager.cleanup();
+
+    // Cleanup Three.js resources
+    if (this.threeComponents) {
+      this.initService.cleanup(this.threeComponents);
     }
 
-    if (this.renderer) {
-      this.renderer.dispose();
-    }
-
-    this.processedPackages.forEach(pkg => {
+    // Dispose packages
+    this.processedPackagesSignal().forEach(pkg => {
       if (pkg.mesh) {
         pkg.mesh.geometry.dispose();
-        if (Array.isArray(pkg.mesh.material)) {
-           pkg.mesh.material.forEach(m => m.dispose());
-        } else {
-           (pkg.mesh.material as THREE.Material).dispose();
-        }
+        (pkg.mesh.material as THREE.Material).dispose();
       }
     });
 
     this.usedColors.clear();
+
+    console.log('[Component] Cleanup tamamlandı');
   }
 }

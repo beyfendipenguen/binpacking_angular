@@ -1,12 +1,11 @@
 import { Injectable, inject } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
-import { map, switchMap, catchError, withLatestFrom, concatMap, tap } from 'rxjs/operators';
+import { map, switchMap, catchError, withLatestFrom, tap } from 'rxjs/operators';
 import { of, filter } from 'rxjs';
 
-import { AppState, selectOrderId, selectOrderResult, selectStep3IsDirty } from '../../index';
+import { AppState, selectOrderId, selectStep3IsDirty } from '../../index';
 import { RepositoryService } from '@features/stepper/services/repository.service';
-import { ResultStepFacade } from '../facade/result-step.facade';
 import { StepperUiActions } from '../actions/stepper-ui.actions';
 import { StepperResultActions } from '../actions/stepper-result.actions';
 
@@ -20,7 +19,7 @@ export class StepperResultEffects {
 
   // Complete Shipment
   // is dirty degilse ise reset stepepr/
-  // is dirty ise backend git gel rest stepper true mu bak 
+  // is dirty ise backend git gel rest stepper true mu bak
   // ona gore yap
   resultStepSubmit$ = createEffect(() =>
     this.actions$.pipe(
@@ -50,9 +49,8 @@ export class StepperResultEffects {
   createReportFile$ = createEffect(() =>
     this.actions$.pipe(
       ofType(StepperResultActions.createReportFile),
-      withLatestFrom(this.store.select(selectOrderId)),
-      switchMap(([, orderId]) =>
-        this.repositoryService.createReport(orderId).pipe(
+      switchMap((action) =>
+        this.repositoryService.createReport(action.orderId).pipe(
           map((response) => StepperResultActions.createReportFileSuccess({ reportFiles: response.files })),
           catchError((error) =>
             of(StepperUiActions.setGlobalError({

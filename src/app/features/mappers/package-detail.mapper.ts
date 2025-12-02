@@ -91,7 +91,7 @@ export function createTotalHeight(uiProducts: UiProduct[], pallet: UiPallet | nu
 export function mapPackageToPackageDetail(uiPackageList: IUiPackage[]): PackageDetail[] {
   const packageDetailList: PackageDetail[] = [];
 
-  uiPackageList.forEach((uiPackage) => {
+  uiPackageList.filter(pkg =>pkg.products.length > 0).forEach((uiPackage) => {
     const totalHeight = createTotalHeight(uiPackage.products, uiPackage.pallet);
     // For each product in the UiPackage, create a PackageDetail
     uiPackage.products.forEach((uiProduct) => {

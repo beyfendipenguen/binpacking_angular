@@ -33,14 +33,12 @@ export class StepperGeneralEffects {
           forkJoin({
             order: this.orderService.getById(action.orderId),
             orderDetails: this.orderDetailService.getByOrderId(action.orderId),
-            packages: this.repositoryService.getPackageDetails(action.orderId).pipe(
-              map((details) => mapPackageDetailToPackage(details))
-            ),
+            packageDetails: this.repositoryService.getPackageDetails(action.orderId)
           }).pipe(
-            switchMap(({ order, orderDetails, packages }) => [
+            switchMap(({ order, orderDetails, packageDetails }) => [
               StepperInvoiceUploadActions.saveSuccess({ order }),
               StepperInvoiceUploadActions.upsertManySuccess({ orderDetails }),
-              StepperPackageActions.setUiPackages({ packages })
+              StepperPackageActions.upsertManySuccess({ packageDetails })
             ]),
             catchError((error) => of(StepperUiActions.setGlobalError({ error })))
           )

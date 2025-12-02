@@ -30,34 +30,35 @@
   </div>
 
   <!-- Package Info Panel (Top Right) -->
-  <div class="package-info-panel" *ngIf="selectedPackage && !isLoadingModels && !isLoadingData">
+   @if(selectedPackageSignal(); as selected){
+  <div class="package-info-panel" *ngIf="!isLoadingModels && !isLoadingData">
     <div class="info-content">
       <h4>📦 Seçili Paket</h4>
 
       <div class="package-details">
         <div class="detail-row">
           <span class="label">ID:</span>
-          <span class="value">#{{ selectedPackage.id }}</span>
+          <span class="value">#{{ selected.id }}</span>
         </div>
         <div class="detail-row">
           <span class="label">Boyutlar:</span>
-          <span class="value">{{ selectedPackage.dimensions }}</span>
+          <span class="value">{{ selected.dimensions }}</span>
         </div>
         <div class="detail-row">
           <span class="label">Ağırlık:</span>
-          <span class="value">{{ selectedPackage.weight }} kg</span>
+          <span class="value">{{ selected.weight }} kg</span>
         </div>
         <div class="detail-row">
           <span class="label">Pozisyon:</span>
           <span class="value">
-            ({{ selectedPackage.x | number:'1.0-0' }},
-             {{ selectedPackage.y | number:'1.0-0' }},
-             {{ selectedPackage.z | number:'1.0-0' }})
+            ({{ selected.x | number:'1.0-0' }},
+             {{ selected.y | number:'1.0-0' }},
+             {{ selected.z | number:'1.0-0' }})
           </span>
         </div>
-        <div class="detail-row" *ngIf="selectedPackage.rotation">
+        <div class="detail-row" *ngIf="selected.rotation">
           <span class="label">Döndürülme:</span>
-          <span class="value">{{ selectedPackage.rotation }}°</span>
+          <span class="value">{{ selected.rotation }}°</span>
         </div>
       </div>
 
@@ -66,13 +67,13 @@
         <button class="action-btn rotate-btn"
                 (click)="rotateSelectedPackage()"
                 title="90° Döndür (Kısayol: R)"
-                [disabled]="!selectedPackage">
+                [disabled]="!selectedPackageSignal()">
           🔄 Döndür
         </button>
         <button class="action-btn delete-btn"
                 (click)="deleteSelectedPackage()"
                 title="Paketi Sil (Kısayol: Delete)"
-                [disabled]="!selectedPackage">
+                [disabled]="!selectedPackageSignal()">
           🗑️ Sil
         </button>
       </div>
@@ -84,20 +85,20 @@
       </button>
     </div>
   </div>
-
+}
   <!-- Deleted Packages Panel (Bottom Right) -->
   <div class="deleted-packages-panel"
-       *ngIf="deletedPackages.length > 0 && !isLoadingModels && !isLoadingData"
-       [class.below-selection]="selectedPackage">
+       *ngIf="deletedPackagesSignal().length > 0 && !isLoadingModels && !isLoadingData"
+       [class.below-selection]="selectedPackageSignal()">
     <div class="deleted-content">
       <h4>
         🗑️ Yerleşmeyen Paketler
-        <span class="delete-count">{{ deletedPackages.length }}</span>
+        <span class="delete-count">{{ deletedPackagesSignal().length }}</span>
       </h4>
 
       <div class="deleted-list">
         <div class="deleted-item"
-             *ngFor="let pkg of deletedPackages; trackBy: trackDeletedPackage">
+             *ngFor="let pkg of deletedPackagesSignal(); trackBy: trackDeletedPackage">
           <div class="deleted-info">
             <span class="deleted-id">#{{ pkg.id }}</span>
             <span class="deleted-dims">{{ pkg.dimensions }}</span>

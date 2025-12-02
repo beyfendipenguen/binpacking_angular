@@ -226,7 +226,7 @@ export class RepositoryService {
     );
   }
 
-  createReport(order_id: string = this.getOrderId()): Observable<any> {
+  createReport(order_id: string): Observable<any> {
     return this.http.get<any>(
       `${this.api.getApiUrl()}/logistics/create-report/${order_id}/`
     );
