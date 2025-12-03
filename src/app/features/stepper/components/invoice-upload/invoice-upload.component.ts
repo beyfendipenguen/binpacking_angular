@@ -6,7 +6,8 @@ import {
   OnDestroy,
   ChangeDetectionStrategy,
   computed,
-  effect
+  effect,
+  signal
 } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
 import { MatStepperModule } from '@angular/material/stepper';
@@ -130,8 +131,8 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
   // Expose constants for template
   readonly constants = INVOICE_UPLOAD_CONSTANTS;
 
-  // Getters for template access
 
+  showMessageBalloon = signal(false);
 
   get file(): File | null {
     return this.fileUploadManager.getCurrentFile();
@@ -189,16 +190,13 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.initializeComponent();
     this.getTemplateFile();
-    // this.unitsControl.valueChanges.pipe(
-    //   debounceTime(300),
-    //   distinctUntilChanged(),
-    //   takeUntil(this.destroy$)
-    // ).subscribe(units => {
-    //   if (units !== null && units !== undefined && units > 0) {
-    //     const newHeight = units * this.unitProductHeight();
-    //     this.onMaxPalletHeightChange(newHeight);
-    //   }
-    // });
+    setTimeout(() => {
+      this.showMessageBalloon.set(true);
+      setTimeout(() => {
+        console.log('Balon gizleniyor');
+        this.showMessageBalloon.set(false);
+      }, 4000);
+    }, 1000);
   }
 
   ngOnDestroy(): void {

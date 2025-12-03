@@ -19,6 +19,14 @@
     <button mat-icon-button class="template-info-floating" (click)="downloadTemplate()"
       matTooltip="İSB Raporu şablonunu indir" matTooltipPosition="left">
       <mat-icon>info</mat-icon>
+      @if(showMessageBalloon()) {
+      <div class="message-balloon">
+        <div class="balloon-content">
+          Şablonu indirmek için buraya tıklayın!
+        </div>
+        <div class="balloon-arrow"></div>
+      </div>
+      }
     </button>
 
     <div class="empty-state">
