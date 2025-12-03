@@ -18,6 +18,7 @@ export const StepperUiActions = createActionGroup({
     'Revise Order': props<{orderId:string}>(),
     'Revise Order Success': emptyProps(),
     'Revise Order Failure': emptyProps(),
+    'Mark Order As Revised': emptyProps(),
 
 
     'Init': emptyProps(),

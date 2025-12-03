@@ -105,4 +105,10 @@ export const stepperUiHandlers = [
     ...state
     // Bu action genelde effect'te handle edilir (localStorage save için)
   })),
+
+  on(StepperUiActions.markOrderAsRevised, (state: StepperState) => ({
+    ...state,
+    hasRevisedOrder: true
+  }))
+
 ];

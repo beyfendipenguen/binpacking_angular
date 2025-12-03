@@ -18,7 +18,7 @@ import { DomSanitizer } from '@angular/platform-browser';
 import { MatIconModule } from '@angular/material/icon';
 import { CommonModule } from '@angular/common';
 import { Subject, firstValueFrom } from 'rxjs';
-import { takeUntil, finalize } from 'rxjs/operators';
+import { takeUntil, finalize, take, withLatestFrom } from 'rxjs/operators';
 
 import { Store } from '@ngrx/store';
 import { MatDialog } from '@angular/material/dialog';
@@ -26,7 +26,7 @@ import { ToastService } from '@core/services/toast.service';
 import { CancelConfirmationDialogComponent } from '@shared/cancel-confirmation-dialog/cancel-confirmation-dialog.component';
 import { ThreeJSTruckVisualizationComponent } from '@shared/threejs-truck-visualization/threejs-truck-visualization.component';
 
-import { AppState, selectRemainingProducts, selectStep3IsDirty, selectPackages, selectOrderId } from '@app/store';
+import { AppState, selectRemainingProducts, selectStep3IsDirty, selectPackages, selectOrderId, selectIsEditMode, selectHasRevisedOrder } from '@app/store';
 import { StepperUiActions } from '@app/store/stepper/actions/stepper-ui.actions';
 import { StepperResultActions } from '@app/store/stepper/actions/stepper-result.actions';
 import { ReportFile, ResultStepService } from './result-step.service';
@@ -102,7 +102,7 @@ export class ResultStepComponent implements OnInit, OnDestroy {
     }
   });
 
-  constructor() {}
+  constructor() { }
 
   ngOnInit(): void {
     console.log('[ResultStep] Component initialized');
@@ -125,6 +125,18 @@ export class ResultStepComponent implements OnInit, OnDestroy {
     this.optimizationProgress = 0;
 
     this.startProgressSimulation();
+    // Edit mode ve henüz revise edilmemişse revise et
+    this.store.select(selectIsEditMode).pipe(
+      take(1),
+      withLatestFrom(this.store.select(selectHasRevisedOrder))
+    ).subscribe(([isEditMode, hasRevised]) => {
+      if (isEditMode && !hasRevised) {
+        this.store.select(selectOrderId).pipe(take(1)).subscribe(orderId => {
+          this.store.dispatch(StepperUiActions.reviseOrder({ orderId }));
+          this.store.dispatch(StepperUiActions.markOrderAsRevised());
+        });
+      }
+    });
 
     this.resultStepService
       .calculateAndGenerateReport()

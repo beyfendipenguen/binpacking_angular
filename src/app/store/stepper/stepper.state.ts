@@ -14,6 +14,7 @@ export interface StepperState {
   orderResultId: string;
 
   isEditMode: boolean;
+  hasRevisedOrder: boolean;
 
   error: string | null;
 
@@ -69,6 +70,7 @@ export const initialStepperState: StepperState = {
   fileExists: false,
   orderResultId: "",
   isEditMode: false,
+  hasRevisedOrder: false,
 
   error: null,
   globalError: null,

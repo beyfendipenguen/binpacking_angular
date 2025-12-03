@@ -18,6 +18,10 @@ export const selectOriginalOrder = createSelector(
   (state) => state.originalOrder
 );
 
+export const selectHasRevisedOrder = createSelector(
+  selectStepperState,
+  (state) => state.hasRevisedOrder
+);
 
 // #endregion
 

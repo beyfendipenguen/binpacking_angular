@@ -4,18 +4,18 @@ import { Store } from '@ngrx/store';
 import { map, switchMap, catchError, withLatestFrom, tap } from 'rxjs/operators';
 import { of, filter } from 'rxjs';
 
-import { AppState, selectIsEditMode, selectOrderId, selectStep3IsDirty } from '../../index';
+import { AppState, selectHasRevisedOrder, selectIsEditMode, selectStep3IsDirty } from '../../index';
 import { RepositoryService } from '@features/stepper/services/repository.service';
 import { StepperUiActions } from '../actions/stepper-ui.actions';
 import { StepperResultActions } from '../actions/stepper-result.actions';
+import { OrderService } from '@app/features/services/order.service';
 
 @Injectable()
 export class StepperResultEffects {
   private actions$ = inject(Actions);
   private store = inject(Store<AppState>);
   private repositoryService = inject(RepositoryService);
-
-
+  private oderService = inject(OrderService);
 
   // is dirty degilse ise reset stepepr/
   // is dirty ise backend git gel rest stepper true mu bak
@@ -23,25 +23,38 @@ export class StepperResultEffects {
   resultStepSubmit$ = createEffect(() =>
     this.actions$.pipe(
       ofType(StepperResultActions.resultStepSubmit),
-      withLatestFrom(this.store.select(selectStep3IsDirty),this.store.select(selectIsEditMode)),
-      tap(([action, ,isEditMode]) => {
+      withLatestFrom(
+        this.store.select(selectStep3IsDirty),
+        this.store.select(selectIsEditMode),
+        this.store.select(selectHasRevisedOrder)
+      ),
+      tap(([action]) => {
         if (action.resetStepper) {
           this.store.dispatch(StepperUiActions.resetStepper())
         }
-        if(isEditMode){
-          this.store.dispatch(StepperUiActions.reviseOrder({orderId: action.orderId}))
-        }
       }),
       filter(([, isDirty]) => isDirty),
-      switchMap(([action]) =>
-        this.repositoryService.partialUpdateOrderResult(action.orderResult).pipe(
-          map((response) => StepperResultActions.createReportFile({ orderId: action.orderId })),
-          catchError((error) =>
-            of(StepperUiActions.setGlobalError({
-              error: { message: error.message, stepIndex: 3 }
-            }))
-          )
-        ),
+      switchMap(([action, , isEditMode, hasRevised]) => {
+        // Önce reviseOrder çalışsın (eğer edit mode ise)
+        if (isEditMode && !hasRevised) {
+          return this.oderService.reviseOrder(action.orderId).pipe(
+            switchMap(() =>
+              this.repositoryService.partialUpdateOrderResult(action.orderResult)
+            ),
+            map(() => action) // action'ı taşı
+          );
+        }
+
+        // Edit mode değilse direkt partialUpdate
+        return this.repositoryService.partialUpdateOrderResult(action.orderResult).pipe(
+          map(() => action) // action'ı taşı
+        );
+      }),
+      map((action) => StepperResultActions.createReportFile({ orderId: action.orderId })),
+      catchError((error) =>
+        of(StepperUiActions.setGlobalError({
+          error: { message: error.message, stepIndex: 3 }
+        }))
       )
     )
   );
