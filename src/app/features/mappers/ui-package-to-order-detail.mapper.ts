@@ -30,8 +30,7 @@ export function mapUiPackagesToOrderDetails(
       count: packageDetail.count,
       unit_price: "1",
       remaining_count: packageDetail.count,
-      product: packageDetail.product
-
-    }
+      product: packageDetail.product,
+    } as OrderDetailRead;
   })
 }

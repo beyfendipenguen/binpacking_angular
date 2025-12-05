@@ -3,6 +3,7 @@ import { OrderDetailRead, OrderDetailWrite } from "@features/interfaces/order-de
 import { Product } from "@features/interfaces/product.interface";
 import { OrderDetailChanges } from "@features/stepper/components/invoice-upload/models/invoice-upload-interfaces";
 import { PackageDetailReadDto } from "../interfaces/package-detail.interface";
+import { v4 as Guid } from "uuid";
 
 
 export class OrderDetailDiffCalculator {
@@ -19,10 +20,10 @@ export class OrderDetailDiffCalculator {
   ): OrderDetailChanges {
 
     let mergedRemainingPackageDetails = remainingPackageDetails.reduce((acc, packageDetail) => {
-      if (!acc.some(p => p.id === packageDetail.id)) {
+      if (!acc.some(p => p.product.id === packageDetail.product.id)) {
         acc.push(packageDetail);
       } else {
-        const existingPackageDetail = acc.find(p => p.id === packageDetail.id);
+        const existingPackageDetail = acc.find(p => p.product.id === packageDetail.product.id);
         if (existingPackageDetail) {
           existingPackageDetail.count += packageDetail.count;
         }
@@ -39,7 +40,7 @@ export class OrderDetailDiffCalculator {
     mergedRemainingPackageDetails.forEach(packageDetail => {
       if (!mapperOrderDetails.some(orderDetail => orderDetail.product.id === packageDetail.product.id)) {
         mapperOrderDetails.push({
-          id: "",
+          id: Guid(),
           count: packageDetail.count,
           unit_price: "1",
           remaining_count: 0,
