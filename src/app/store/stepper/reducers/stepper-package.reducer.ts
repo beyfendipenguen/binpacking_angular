@@ -98,11 +98,14 @@ export const stepperPackageHandlers = [
 
   // Calculate Package Detail Success
   on(StepperPackageActions.calculatePackageDetailSuccess, (state: StepperState, { packages }) => {
-    let remainingProducts: any[] = [];
-    const order = state.order;
+    const { order } = state;
     if (!order) return state;
 
-    const filteredPackages = packages.filter((pkg) => {
+    let remainingProducts: any[] = [];
+
+    const uiPackages = mapPackageReadDtoListToIUiPackageList(packages);
+
+    const filteredPackages = uiPackages.filter((pkg) => {
       const palletVolume =
         parseFloat(pkg.pallet?.dimension.width.toString() ?? '0') *
         parseFloat(pkg.pallet?.dimension.depth.toString() ?? '0') *
@@ -127,12 +130,17 @@ export const stepperPackageHandlers = [
       return true;
     });
 
+    const sortedPackages = [...filteredPackages].sort((a, b) =>
+      a.name.localeCompare(b.name, undefined, { numeric: true })
+    );
+
     return {
       ...state,
       step2State: {
         ...state.step2State,
-        packages: ensureEmptyPackageAdded(filteredPackages, state.order),
-        addedPackages: ensureEmptyPackageAdded(filteredPackages, state.order),
+        packages: ensureEmptyPackageAdded(sortedPackages, state.order),
+        originalPackages: packages,
+        addedPackages: [],
         modifiedPackages: [],
         deletedPackageIds: [],
         remainingProducts: remainingProducts,
@@ -203,9 +211,9 @@ export const stepperPackageHandlers = [
   }),
 
   // Delete Remaining Product
-  on(StepperPackageActions.deleteRemainingProduct, (state: StepperState, { packageDetailId }) => {
+  on(StepperPackageActions.deleteRemainingProducts, (state: StepperState, { packageDetailIds }) => {
     const remainingProducts = state.step2State.remainingProducts;
-    const updatedRemainingProducts = remainingProducts.filter(pd => pd.id !== packageDetailId);
+    const updatedRemainingProducts = remainingProducts.filter(pd => !packageDetailIds.includes(pd.id));
 
     return {
       ...state,
@@ -811,16 +819,20 @@ export const stepperPackageHandlers = [
 
   // Package Details Upsert Many Success
   on(StepperPackageActions.upsertManySuccess, (state: StepperState, { packages }) => {
-    packages.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
-    const emptyPacageNo = toInteger(packages.at(-1)?.name) + 1;
-    const uiPackages = mapPackageReadDtoListToIUiPackageList(packages)
+    const sortedPackages = [...packages].sort((a, b) =>
+      a.name.localeCompare(b.name, undefined, { numeric: true })
+    );
+
+    const emptyPackageNo = toInteger(sortedPackages.at(-1)?.name) + 1;
+    const uiPackages = mapPackageReadDtoListToIUiPackageList(sortedPackages);
+
     return {
       ...state,
       completedStep: 2,
       step2State: {
         ...state.step2State,
-        packages: [...uiPackages, createEmptyPackage(emptyPacageNo, state.order)],
-        originalPackages: packages,
+        packages: [...uiPackages, createEmptyPackage(emptyPackageNo, state.order)],
+        originalPackages: sortedPackages,
         addedPackages: [],
         modifiedPackages: [],
         deletedPackageIds: [],

@@ -247,11 +247,16 @@ export const selectOriginalPackages = createSelector(
 export const selectIsPackagesDirty = createSelector(
   selectPackages,
   selectOriginalPackages,
-  (packages, originalPackages) => {
+  selectRemainingProducts,
+  (packages, originalPackages, remainingProducts) => {
 
     if (!packages || packages.length === 0) {
       console.log('[selectIsStep2PackagesDirty] Original packages yok, dirty=true');
       return false;
+    }
+
+    if (remainingProducts.length > 0){
+      return true;
     }
 
     // Orijinal paketler yoksa dirty değil (henüz kaydedilmemiş)
@@ -281,11 +286,9 @@ export const selectPackageChanges = createSelector(
   selectPackages, // UiPackage instance'ları döner
   selectOriginalPackages,
   (packages, originalPackages) => {
-    console.log('[selectPackageChanges] Hesaplanıyor...');
 
     // Original packages yoksa tümü added
     if (!originalPackages || originalPackages.length === 0) {
-      console.log('[selectPackageChanges] Original yok, tümü added');
       return {
         added: mapUiPackagesToPackageWriteDtoList(packages),
         modified: [],

@@ -29,7 +29,7 @@ export class StepperPackageEffects {
   orderDetailChanges$ = createEffect(() =>
     this.actions$.pipe(
       ofType(
-        StepperPackageActions.deleteRemainingProduct,
+        StepperPackageActions.deleteRemainingProducts,
         StepperPackageActions.addPackageDetailToRemainingProducts,
         StepperPackageActions.upsertPackageDetailCount,
       ),
@@ -71,8 +71,7 @@ export class StepperPackageEffects {
       withLatestFrom(this.store.select(selectVerticalSort)),
       switchMap(([_, verticalSort]) =>
         this.repositoryService.calculatePackageDetails(verticalSort).pipe(
-          map((response) => mapPackageReadDtoListToIUiPackageList(response.packages)),
-          map((packages) => StepperPackageActions.calculatePackageDetailSuccess({ packages: packages })),
+          map((response) => StepperPackageActions.calculatePackageDetailSuccess({ packages: response.packages })),
           catchError((error) =>
             of(StepperUiActions.setGlobalError({
               error: { message: error.message, stepIndex: 2 }
@@ -143,7 +142,7 @@ export class StepperPackageEffects {
         // Product İşlemleri
         StepperPackageActions.splitPackageDetail,
         StepperPackageActions.addPackageDetailToRemainingProducts,
-        StepperPackageActions.deleteRemainingProduct,
+        StepperPackageActions.deleteRemainingProducts,
 
         // Alignment Değişiklikleri
         StepperPackageActions.setVerticalSortInPackage,

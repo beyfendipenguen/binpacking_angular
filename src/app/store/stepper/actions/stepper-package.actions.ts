@@ -10,9 +10,9 @@ export const StepperPackageActions = createActionGroup({
   events: {
 
     //Package Detail
-    'upsertMany': emptyProps(),
-    'upsertManySuccess': props<{ packages: PackageReadDto[] }>(),
-    'upsertManyFailure': emptyProps(),
+    'Upsert Many': emptyProps(),
+    'Upsert Many Success': props<{ packages: PackageReadDto[] }>(),
+    'Upsert Many Failure': emptyProps(),
 
     // Palet İşlemleri
     'Get Pallets': emptyProps(),
@@ -21,7 +21,7 @@ export const StepperPackageActions = createActionGroup({
 
     // Paket Hesaplama
     'Calculate Package Detail': emptyProps(),
-    'Calculate Package Detail Success': props<{ packages: IUiPackage[] }>(),
+    'Calculate Package Detail Success': props<{ packages: PackageReadDto[] }>(),
     'Set Ui Packages': props<{ packages: UiPackage[] }>(),
     'Calculate Package Changes': emptyProps(),
     'Create Package Details Success': props<{ packageDetails: any }>(),
@@ -45,7 +45,7 @@ export const StepperPackageActions = createActionGroup({
 
     // Remaining Alanı İşlemleri
     'Add Package Detail To Remaining Products': props<{ packageDetailId: string }>(),
-    'Delete Remaining Product': props<{ packageDetailId: string }>(),
+    'Delete Remaining Products': props<{ packageDetailIds: string[] }>(),
     'Remaining Product Move Product': props<{ previousIndex: number, currentIndex: number }>(),
     'Set Remaining Products': props<{ remainingProducts: PackageDetailReadDto[] }>(),
     'Merge Remaining Products': emptyProps(),

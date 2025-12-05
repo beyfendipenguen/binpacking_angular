@@ -157,7 +157,7 @@
             </button>
           </div>
           <div class="split-product-container">
-            <button mat-icon-button class="action-button" (click)="deleteRemainingProduct(packageDetail.id)"
+            <button mat-icon-button class="action-button" (click)="deleteRemainingProducts([packageDetail.id])"
               matTooltip="Ürünü Sil">
               <mat-icon>close</mat-icon>
             </button>
@@ -403,7 +403,7 @@
         <span>Geri</span>
       </button>
 
-      <button mat-raised-button class="next-button" (click)="submitForm()">
+      <button mat-raised-button class="next-button" (click)="submitForm()" [disabled]= "!uiPackages() || uiPackages().length === 0">
         <span>{{ this.isDirtySignal() ? "Kaydet" : "ileri" }}</span>
         <mat-icon>arrow_forward</mat-icon>
       </button>

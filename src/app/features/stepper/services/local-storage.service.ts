@@ -50,13 +50,13 @@ export class LocalStorageService {
           ...parsed,
           step2State: {
             ...parsed.step2State,
-            packages: parsed.step2State.packages.map((pkg: any) => new UiPackage({ ...pkg })),
-            remainingProducts: parsed.step2State.remainingProducts.map((product: any) => new UiProduct({ ...product })),
-            originalRemainingProducts: parsed.step2State.originalRemainingProducts.map((product: any) => new UiProduct({ ...product })),
-            originalPackages: parsed.step2State.originalPackages.map((pkg: any) => new UiPackage({ ...pkg, pallet: new UiPallet({ ...pkg.pallet }), products: pkg.products.map((product: any) => new UiProduct({ ...product })) })),
-            deletedPackageIds: parsed.step2State.deletedPackageIds.map((pkg: any) => new UiPackage({ ...pkg, pallet: new UiPallet({ ...pkg.pallet }), products: pkg.products.map((product: any) => new UiProduct({ ...product })) })),
-            modifiedPackages: parsed.step2State.modifiedPackages.map((pkg: any) => new UiPackage({ ...pkg, pallet: new UiPallet({ ...pkg.pallet }), products: pkg.products.map((product: any) => new UiProduct({ ...product })) })),
-            addedPackages: parsed.step2State.addedPackages.map((pkg: any) => new UiPackage({ ...pkg, pallet: new UiPallet({ ...pkg.pallet }), products: pkg.products.map((product: any) => new UiProduct({ ...product })) })),
+            packages: parsed.step2State.packages,
+            remainingProducts: parsed.step2State.remainingProducts,
+            originalRemainingProducts: parsed.step2State.originalRemainingProducts,
+            originalPackages: parsed.step2State.originalPackages,
+            deletedPackageIds: parsed.step2State.deletedPackageIds,
+            modifiedPackages: parsed.step2State.modifiedPackages,
+            addedPackages: parsed.step2State.addedPackages,
           },
         }
 

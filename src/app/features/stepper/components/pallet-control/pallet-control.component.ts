@@ -793,8 +793,8 @@ export class PalletControlComponent
     this.store.dispatch(StepperPackageActions.addPackageDetailToRemainingProducts({ packageDetailId }));
   }
 
-  deleteRemainingProduct(packageDetailId: string): void {
-    this.store.dispatch(StepperPackageActions.deleteRemainingProduct({ packageDetailId }));
+  deleteRemainingProducts(packageDetailIds: string[]): void {
+    this.store.dispatch(StepperPackageActions.deleteRemainingProducts({ packageDetailIds }));
   }
 
 
@@ -815,7 +815,8 @@ export class PalletControlComponent
 
       dialogRef.afterClosed().subscribe(result => {
         if (result === true) {
-          this.remainingProducts().forEach(packageDetail => this.deleteRemainingProduct(packageDetail.id))
+          const packageDetailIds = this.remainingProducts().map(detail => detail.id);
+          this.deleteRemainingProducts(packageDetailIds)
           this.submitForm()
         } else {
           return;
