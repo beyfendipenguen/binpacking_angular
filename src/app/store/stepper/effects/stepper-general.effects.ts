@@ -8,11 +8,12 @@ import { ToastService } from '@core/services/toast.service';
 import { StepperUiActions } from '../actions/stepper-ui.actions';
 import { StepperInvoiceUploadActions } from '../actions/stepper-invoice-upload.actions';
 import { StepperPackageActions } from '../actions/stepper-package.actions';
-import { mapPackageDetailToPackage } from '@app/features/mappers/package-detail.mapper';
+import { mapPackageReadDtoListToIUiPackageList } from '@app/features/mappers/package.mapper';
 import { forkJoin, of } from 'rxjs';
 import { OrderDetailService } from '@app/features/services/order-detail.service';
 import { OrderService } from '@app/features/services/order.service';
 import { RepositoryService } from '@app/features/stepper/services/repository.service';
+import { PackageService } from '@app/features/services/package.service';
 
 @Injectable()
 export class StepperGeneralEffects {
@@ -23,6 +24,7 @@ export class StepperGeneralEffects {
   private orderService = inject(OrderService);
   private orderDetailService = inject(OrderDetailService);
   private repositoryService = inject(RepositoryService);
+  private packageService = inject(PackageService)
 
 
   // Edit Modu: Sipariş, detaylar ve paketleri paralel yükler
@@ -33,14 +35,16 @@ export class StepperGeneralEffects {
         forkJoin({
           order: this.orderService.getById(action.orderId),
           orderDetails: this.orderDetailService.getByOrderId(action.orderId),
-          packageDetails: this.repositoryService.getPackageDetails(action.orderId),
-          pallets: this.repositoryService.getPalletsByOrder(action.orderId)
+          packages: this.packageService.getAll({ order_id: action.orderId, limit: 100 }).pipe(
+            map(response => response.results)
+          ),
+          pallets: this.repositoryService.getPalletsByOrder(action.orderId),
         }).pipe(
-          switchMap(({ order, orderDetails, packageDetails,pallets }) => [
+          switchMap(({ order, orderDetails, packages, pallets }) => [
             StepperInvoiceUploadActions.saveSuccess({ order }),
             StepperInvoiceUploadActions.upsertManySuccess({ orderDetails }),
-            StepperPackageActions.upsertManySuccess({ packageDetails }),
-            StepperPackageActions.getPalletsSuccess({pallets})
+            StepperPackageActions.upsertManySuccess({ packages }),
+            StepperPackageActions.getPalletsSuccess({ pallets })
           ]),
           catchError((error) => of(StepperUiActions.setGlobalError({ error })))
         )
@@ -124,21 +128,21 @@ export class StepperGeneralEffects {
         // Package Actions
         StepperPackageActions.calculatePackageDetailSuccess,
         StepperPackageActions.createPackageDetailsSuccess,
-        StepperPackageActions.moveUiProductInSamePackage,
+        StepperPackageActions.movePackageDetailInSamePackage,
         StepperPackageActions.remainingProductMoveProduct,
-        StepperPackageActions.moveProductToRemainingProducts,
-        StepperPackageActions.moveUiProductInPackageToPackage,
+        StepperPackageActions.movePackageDetailToRemainingProducts,
+        StepperPackageActions.movePackageDetailInPackageToPackage,
         StepperPackageActions.moveRemainingProductToPackage,
         StepperPackageActions.movePalletToPackage,
-        StepperPackageActions.splitProduct,
-        StepperPackageActions.removeProductFromPackage,
+        StepperPackageActions.splitPackageDetail,
+        StepperPackageActions.removePackageDetailFromPackage,
         StepperPackageActions.removeAllPackage,
         StepperPackageActions.removePalletFromPackage,
         StepperPackageActions.removePackage,
-        StepperPackageActions.addUiProductToRemainingProducts,
-        StepperPackageActions.updateProductCountAndCreateOrUpdateOrderDetail,
+        StepperPackageActions.addPackageDetailToRemainingProducts,
+        StepperPackageActions.upsertPackageDetailCount,
         StepperPackageActions.movePartialRemainingProductToPackage,
-        StepperPackageActions.movePartialProductBetweenPackages,
+        StepperPackageActions.movePartialPackageDetailBetweenPackages,
       ),
       map(() => StepperUiActions.stepperStepUpdated())
     )

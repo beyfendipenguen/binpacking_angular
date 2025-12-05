@@ -10,23 +10,28 @@
  * - Product sırası önemlidir (drag-drop nedeniyle)
  */
 
+import { PackageReadDto, PackageWriteDto } from "@app/features/interfaces/package.interface";
 import { IUiPackage } from "../../interfaces/ui-interfaces/ui-package.interface";
+import { PackageDetailReadDto } from "@app/features/interfaces/package-detail.interface";
+import { mapUiPackageToPackageWriteDto } from "@app/features/mappers/package.mapper";
 
 /**
  * İki ürünü karşılaştırır
  *
  * Karşılaştırma: product.id ve product.count
  *
- * @param product1 - İlk ürün
- * @param product2 - İkinci ürün
+ * @param packageDetail1 - İlk ürün
+ * @param packageDetail2 - İkinci ürün
  * @returns true ise ürünler eşit
  */
-function areProductsEqual(product1: any, product2: any): boolean {
-  if (!product1 || !product2) return false;
+function arePackageDetailsEqual(packageDetail1: PackageDetailReadDto, packageDetail2: PackageDetailReadDto): boolean {
+  if (!packageDetail1 || !packageDetail2) return false;
 
   return (
-    product1.id === product2.id &&
-    product1.count === product2.count
+    packageDetail1.id === packageDetail2.id &&
+    packageDetail1.product.id === packageDetail2.product.id &&
+    packageDetail1.count === packageDetail2.count &&
+    packageDetail1.priority === packageDetail2.priority
   );
 }
 
@@ -36,17 +41,17 @@ function areProductsEqual(product1: any, product2: any): boolean {
  * Önemli: Sıra önemlidir! [A, B] !== [B, A]
  * Çünkü drag-drop ile sıralama yapılıyor
  *
- * @param products1 - İlk ürün listesi
- * @param products2 - İkinci ürün listesi
+ * @param packageDetail1 - İlk ürün listesi
+ * @param packageDetail2 - İkinci ürün listesi
  * @returns true ise listeler eşit (sıra dahil)
  */
-function areProductListsEqual(products1: any[], products2: any[]): boolean {
-  if (!products1 || !products2) return false;
-  if (products1.length !== products2.length) return false;
+function arePackageDetailListEqual(packageDetail1: any[], packageDetail2: any[]): boolean {
+  if (!packageDetail1 || !packageDetail2) return false;
+  if (packageDetail1.length !== packageDetail2.length) return false;
 
   // Sıralı karşılaştırma (index bazlı)
-  return products1.every((product, index) =>
-    areProductsEqual(product, products2[index])
+  return packageDetail1.every((product, index) =>
+    arePackageDetailsEqual(product, packageDetail2[index])
   );
 }
 
@@ -72,7 +77,7 @@ function areProductListsEqual(products1: any[], products2: any[]): boolean {
  * const pkg3 = { pallet: { id: 'p1' }, alignment: 'v', products: [A, B] };
  * arePackagesEqual(pkg1, pkg3); // false (alignment farklı)
  */
-export function arePackagesEqual(pkg1: IUiPackage, pkg2: IUiPackage): boolean {
+export function arePackagesEqual(pkg1: IUiPackage, pkg2: PackageReadDto): boolean {
   if (!pkg1 || !pkg2) return false;
 
   // 1. Pallet ID karşılaştırması
@@ -95,7 +100,7 @@ export function arePackagesEqual(pkg1: IUiPackage, pkg2: IUiPackage): boolean {
   }
 
   // 4. Products karşılaştırması (sıra önemli)
-  if (!areProductListsEqual(pkg1.products, pkg2.products)) {
+  if (!arePackageDetailListEqual(pkg1.package_details, pkg2.package_details)) {
     return false;
   }
 
@@ -122,15 +127,11 @@ export function arePackagesEqual(pkg1: IUiPackage, pkg2: IUiPackage): boolean {
  */
 function findMatchingPackage(
   pkg: IUiPackage,
-  candidates: IUiPackage[]
-): IUiPackage | null {
-  if (!pkg.pallet?.id) {
-    console.warn('[findMatchingPackage] Paket pallet ID\'si yok:', pkg);
-    return null;
-  }
+  candidates: PackageReadDto[]
+): PackageReadDto | null {
 
   const match = candidates.find(
-    candidate => candidate.id === pkg.id && candidate.pallet?.id === pkg.pallet?.id
+    candidate => candidate.id === pkg.id && candidate.pallet.id === pkg.pallet?.id
   );
 
   return match || null;
@@ -142,8 +143,8 @@ function findMatchingPackage(
  * Paket değişikliklerini temsil eder
  */
 export interface PackageChanges {
-  added: IUiPackage[];     // Yeni eklenen paketler
-  modified: IUiPackage[];  // Değiştirilen paketler (güncel hali)
+  added: PackageWriteDto[];     // Yeni eklenen paketler
+  modified: PackageWriteDto[];  // Değiştirilen paketler (güncel hali)
   deletedIds: string[];   // Silinen paketler (orijinal hali)
 }
 
@@ -179,16 +180,12 @@ export interface PackageChanges {
  */
 export function calculatePackageChanges(
   packages: IUiPackage[],
-  originalPackages: IUiPackage[]
+  originalPackages: PackageReadDto[]
 ): PackageChanges {
-  const added: IUiPackage[] = [];
-  const modified: IUiPackage[] = [];
+  const added: PackageWriteDto[] = [];
+  const modified: PackageWriteDto[] = [];
   const deletedIds: string[] = [];
 
-  console.log('[calculatePackageChanges] Başlatılıyor', {
-    currentCount: packages.length,
-    originalCount: originalPackages.length
-  });
 
   // 1. Güncel paketleri tara (ADDED ve MODIFIED bul)
   packages.forEach(pkg => {
@@ -196,40 +193,25 @@ export function calculatePackageChanges(
 
     if (!originalMatch) {
       // Orijinalde yok → ADDED
-      console.log('[calculatePackageChanges] Added:', pkg.pallet?.id);
-      if (pkg.pallet?.id !== undefined) {
-        added.push(pkg);
-      }
+      if (pkg.pallet?.id !== undefined)
+        added.push(mapUiPackageToPackageWriteDto(pkg))
     } else {
       // Orijinalde var → İçerik karşılaştır
-      if (!arePackagesEqual(pkg, originalMatch)) {
-        // İçerik farklı → MODIFIED
-        console.log('[calculatePackageChanges] Modified:', pkg.pallet?.id);
-        modified.push(pkg); // Güncel halini döndür
-      } else {
-        // İçerik aynı → Değişiklik yok
-        console.log('[calculatePackageChanges] Unchanged:', pkg.pallet?.id);
-      }
+      if (!arePackagesEqual(pkg, originalMatch))
+        modified.push(mapUiPackageToPackageWriteDto(pkg))
     }
   });
 
   // 2. Orijinal paketleri tara (DELETED bul)
   originalPackages.forEach(originalPkg => {
-    const currentMatch = findMatchingPackage(originalPkg, packages);
+    const currentMatch = packages.find(
+      pkg => pkg.id === originalPkg.id
+    );
 
     if (!currentMatch) {
       // Güncel listede yok → DELETED
-      console.log('[calculatePackageChanges] Deleted:', originalPkg.pallet?.id);
-      if (originalPkg.pallet?.id !== undefined) {
-        deletedIds.push(originalPkg.id); // Orijinal halini döndür
-      }
+      deletedIds.push(originalPkg.id); // Orijinal halini döndür
     }
-  });
-
-  console.log('[calculatePackageChanges] Tamamlandı', {
-    addedCount: added.length,
-    modifiedCount: modified.length,
-    deletedCount: deletedIds.length
   });
 
   return { added, modified, deletedIds };
@@ -246,10 +228,10 @@ export function calculatePackageChanges(
  */
 export function arePackageListsEqual(
   packages: IUiPackage[],
-  originalPackages: IUiPackage[]
+  originalPackages: PackageReadDto[]
 ): boolean {
 
-  const validPackages = packages.filter(pkg => pkg.products.length > 0);
+  const validPackages = packages.filter(pkg => pkg.package_details.length > 0);
 
   // Uzunluk kontrolü
   if (validPackages.length !== originalPackages.length) {

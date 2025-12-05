@@ -4,8 +4,33 @@ import { StepperInvoiceUploadActions } from '../actions/stepper-invoice-upload.a
 import { Order } from '@app/features/interfaces/order.interface';
 import { OrderDetailDiffCalculator } from '@features/utils/order-detail-diff.util';
 import { mapUiPackagesToOrderDetails } from '@features/mappers/ui-package-to-order-detail.mapper';
-import { isEqual } from 'lodash-es';
 import { StepperUiActions } from '../actions/stepper-ui.actions';
+import { IUiProduct } from '@app/features/stepper/interfaces/ui-interfaces/ui-product.interface';
+import { update } from 'lodash';
+import { IUiPackage } from '@app/features/stepper/interfaces/ui-interfaces/ui-package.interface';
+import { count } from 'd3';
+import { PackageDetailReadDto } from '@app/features/interfaces/package-detail.interface';
+
+const consolidatePackageDetails = (packageDetails: PackageDetailReadDto[]): PackageDetailReadDto[] => {
+  const consolidatedMap = new Map<string, PackageDetailReadDto>();
+
+  for (const packageDetail of packageDetails) {
+    const existing = consolidatedMap.get(packageDetail.id);
+
+    if (existing) {
+      consolidatedMap.set(
+        packageDetail.id,
+        {
+          ...existing,
+          count: existing.count + packageDetail.count
+        }
+      );
+    } else {
+      consolidatedMap.set(packageDetail.id, { ...packageDetail });
+    }
+  }
+  return Array.from(consolidatedMap.values());
+};
 
 export const stepperOrderHandlers = [
   // Order Setleme
@@ -52,7 +77,7 @@ export const stepperOrderHandlers = [
   })),
 
   // Dosya Yükleme Durumları
-  on(StepperInvoiceUploadActions.setFileExists, (state: StepperState, {isFileExists}) => ({
+  on(StepperInvoiceUploadActions.setFileExists, (state: StepperState, { isFileExists }) => ({
     ...state,
     fileExists: isFileExists
   })),
@@ -94,73 +119,79 @@ export const stepperOrderHandlers = [
   })),
 
   on(StepperInvoiceUploadActions.updateOrderDetail, (state: StepperState, { orderDetail }) => {
-    const originalDetail = state.step1State.originalOrderDetails.find(item => item.id === orderDetail.id);
 
-    // OrderDetails array'ini güncelle (OrderDetailRead tipi)
-    const orderDetails = state.step1State.orderDetails.map(detail =>
-      detail.id === orderDetail.id ? orderDetail : detail
+    const { keptPackages, extractedPackageDetails: extractedPackageDetails } = state.step2State.packages.reduce(
+      (acc, pkg) => {
+        const hasProduct = pkg.package_details.some(pd => pd.product.id === orderDetail.product.id);
+        if (hasProduct) {
+          acc.extractedPackageDetails.push(...pkg.package_details);
+        } else {
+          acc.keptPackages.push(pkg);
+        }
+        return acc;
+      },
+      { keptPackages: [] as IUiPackage[], extractedPackageDetails: [] as PackageDetailReadDto[] }
     );
 
-    // OrderDetailRead'i OrderDetailWrite'a dönüştür
-    const orderDetailWrite = OrderDetailDiffCalculator.orderDetailReadToWrite(orderDetail);
-
-    // Added array'ini güncelle (OrderDetailWrite tipi)
-    const added = state.step1State.added.map(detail =>
-      detail.id === orderDetail.id ? orderDetailWrite : detail
+    const sortedPackages = [...keptPackages].sort((a, b) =>
+      a.name.localeCompare(b.name, undefined, { numeric: true })
     );
 
-    const isOriginal = !!originalDetail;
-    const isAlreadyModified = state.step1State.modified.some(item => item.id === orderDetail.id);
+    const remainingProducts = consolidatePackageDetails(extractedPackageDetails).map(p => p.id === orderDetail.product.id ? { ...p, count: orderDetail.count } : p);
 
-    let modified = [...state.step1State.modified];
-    if (isOriginal && !isAlreadyModified && !isEqual(originalDetail, orderDetail)) {
-      modified.push(orderDetailWrite);
-    } else if (isAlreadyModified) {
-      modified = modified.map(item => item.id === orderDetail.id ? orderDetailWrite : item);
-    }
-
-    const isDirty = modified.length > 0 || state.step1State.added.length > 0 || state.step1State.deletedIds.length > 0;
-
-    if (!isDirty) {
-      return state;
-    }
+    const orderDetails = state.step1State.orderDetails.map(item =>
+      item.id === orderDetail.id ? { ...orderDetail } : item
+    );
 
     return {
       ...state,
       step1State: {
         ...state.step1State,
-        added,
-        orderDetails,
-        modified,
+        orderDetails
+      },
+      step2State: {
+        ...state.step2State,
+        packages: sortedPackages,
+        remainingProducts,
       }
     };
   }),
 
   on(StepperInvoiceUploadActions.deleteOrderDetail, (state: StepperState, { id }) => {
+    const newPackages = state.step2State.packages.map(pkg => {
+      if (pkg.package_details.some(pd => pd.product.id === id)) {
+        return {
+          ...pkg,
+          package_details: pkg.package_details.filter(pd => pd.product.id !== id)
+        };
+      }
+      return pkg;
+    }).filter(pkg => pkg.pallet && pkg.package_details.length > 0);
     const orderDetails = state.step1State.orderDetails.filter(item => item.id !== id);
     return {
       ...state,
       step1State: {
         ...state.step1State,
         orderDetails,
+      },
+      step2State: {
+        ...state.step2State,
+        packages: newPackages,
       }
     };
   }),
 
   // Calculate Order Detail Changes
   on(StepperInvoiceUploadActions.calculateOrderDetailChanges, (state: StepperState) => {
-    const mapperOrderDetails = mapUiPackagesToOrderDetails(state.step2State.packages);
     const changes = OrderDetailDiffCalculator.calculateDiff(
-      mapperOrderDetails,
+      [...state.step1State.orderDetails],
       state.step1State.originalOrderDetails,
       state.step2State.remainingProducts
     );
-
     return {
       ...state,
       step1State: {
         ...state.step1State,
-        orderDetails: [...mapperOrderDetails],
         added: changes.added.map(od => ({ ...od })),
         modified: changes.modified.map(od => ({ ...od })),
         deletedIds: [...changes.deletedIds],

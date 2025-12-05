@@ -83,35 +83,35 @@
             [matAutocomplete]="auto" id="searchControl" name="searchControl" />
 
           @if(searchControl.value) {
-            <button mat-icon-button class="clear-search" (click)="clearSearch()" matTooltip="Aramayı Temizle">
-              <mat-icon>close</mat-icon>
-            </button>
+          <button mat-icon-button class="clear-search" (click)="clearSearch()" matTooltip="Aramayı Temizle">
+            <mat-icon>close</mat-icon>
+          </button>
           }
 
           <mat-autocomplete #auto="matAutocomplete" class="search-autocomplete"
             [displayWith]="displayProductFn.bind(this)">
             @if(isSearching) {
-              <mat-option class="loading-indicator">
-                <mat-spinner diameter="20"></mat-spinner>
-                <span>Aranıyor...</span>
-              </mat-option>
+            <mat-option class="loading-indicator">
+              <mat-spinner diameter="20"></mat-spinner>
+              <span>Aranıyor...</span>
+            </mat-option>
             }
 
             @if(!isSearching) {
-              @if(filteredProducts().length === 0) {
-                <mat-option disabled>
-                  <mat-icon>search_off</mat-icon>
-                  <span>Sonuç bulunamadı</span>
-                </mat-option>
-              }
-              @for(product of filteredProducts(); track product.id) {
-                <mat-option [value]="product" (click)="selectProduct(product)">
-                  <div class="product-option">
-                    <mat-icon>inventory</mat-icon>
-                    <span>{{ product.name }}</span>
-                  </div>
-                </mat-option>
-              }
+            @if(filteredProducts().length === 0) {
+            <mat-option disabled>
+              <mat-icon>search_off</mat-icon>
+              <span>Sonuç bulunamadı</span>
+            </mat-option>
+            }
+            @for(product of filteredProducts(); track product.id) {
+            <mat-option [value]="product" (click)="selectProduct(product)">
+              <div class="product-option">
+                <mat-icon>inventory</mat-icon>
+                <span>{{ product.name }}</span>
+              </div>
+            </mat-option>
+            }
             }
           </mat-autocomplete>
         </div>
@@ -119,36 +119,36 @@
 
       <div cdkDropList #productsList="cdkDropList" id="productsList" [cdkDropListData]="remainingProducts()"
         [cdkDropListConnectedTo]="palletDropListIds()" class="inventory-list"
-        (cdkDropListDropped)="dropProductToPallet($event)">
-        @for(product of remainingProducts(); track product.ui_id){
+        (cdkDropListDropped)="dropPackageDetailToPackage($event)">
+        @for(packageDetail of remainingProducts(); track packageDetail.id){
         <div class="product-item" cdkDrag (cdkDragStarted)="dragStarted($event)" (cdkDragEnded)="dragEnded()"
-          [cdkDragData]="product">
+          [cdkDragData]="packageDetail">
           <div class="product-icon"></div>
           <div class="product-info">
-            <span class="product-name">{{ product.name }}</span>
+            <span class="product-name">{{ packageDetail.product.name }}</span>
             <div class="product-count-container">
-              <input matInput class="product-count-input" type="number" min="1" [value]="product.count"
+              <input matInput class="product-count-input" type="number" min="1" [value]="packageDetail.count"
                 (keydown.enter)="$event.preventDefault()" inputmode="numeric"
-                (change)="updateProductCount(product, $event)" id="productCount-{{product.ui_id}}"
-                name="productCount-{{product.ui_id}}" />
+                (change)="updatePackageDetailCount(packageDetail, $event)" id="productCount-{{packageDetail.id}}"
+                name="productCount-{{packageDetail.id}}" />
               <span class="count-label">Adet</span>
             </div>
           </div>
 
           <div class="split-product-container">
-            <input class="mini-split-input" type="number" min="1" [max]="product.count - 1" placeholder="1" #splitInput
-              (keydown.enter)="
+            <input class="mini-split-input" type="number" min="1" [max]="packageDetail.count - 1" placeholder="1"
+              #splitInput (keydown.enter)="
                 splitProduct(
-                  product.ui_id,
+                  packageDetail.id,
                   splitInput.value ? +splitInput.value : null
                 );
                 splitInput.value = ''
-              " matTooltip="Kaç Adet Ayırmak İstiyorsunuz?" id="splitInput-{{product.ui_id}}"
-              name="splitInput-{{product.ui_id}}" />
+              " matTooltip="Kaç Adet Ayırmak İstiyorsunuz?" id="splitInput-{{packageDetail.id}}"
+              name="splitInput-{{packageDetail.id}}" />
 
             <button mat-icon-button class="action-button split-button" (click)="
                 splitProduct(
-                  product.ui_id,
+                  packageDetail.id,
                   splitInput.value ? +splitInput.value : null
                 );
                 splitInput.value = ''
@@ -157,7 +157,7 @@
             </button>
           </div>
           <div class="split-product-container">
-            <button mat-icon-button class="action-button" (click)="deleteRemainingProduct(product.ui_id)"
+            <button mat-icon-button class="action-button" (click)="deleteRemainingProduct(packageDetail.id)"
               matTooltip="Ürünü Sil">
               <mat-icon>close</mat-icon>
             </button>
@@ -272,32 +272,33 @@
               </div>
 
               <!-- Palet içindeki ürünler -->
-              <div cdkDropList [id]="package.pallet.ui_id" [cdkDropListData]="package.products"
+              <div cdkDropList [id]="package.pallet.ui_id" [cdkDropListData]="package.package_details"
                 [cdkDropListConnectedTo]="palletDropListIds()" class="pallet-content"
-                (cdkDropListDropped)="dropProductToPallet($event)">
-                @for(product of package.products;let j = $index; track
-                product.ui_id){
+                (cdkDropListDropped)="dropPackageDetailToPackage($event)">
+                @for(packageDetail of package.package_details;let j = $index; track
+                packageDetail.id){
 
-                <div class="pallet-item" cdkDrag [cdkDragData]="product" (cdkDragStarted)="dragStarted($event)"
+                <div class="pallet-item" cdkDrag [cdkDragData]="packageDetail" (cdkDragStarted)="dragStarted($event)"
                   (cdkDragEnded)="dragEnded()">
                   <div class="product-icon small"></div>
                   <div class="product-info">
-                    <span class="product-name">{{ product.name }}</span>
-                    <span class="product-count">{{ product.count }} Adet</span>
+                    <span class="product-name">{{ packageDetail.product.name }}</span>
+                    <span class="product-count">{{ packageDetail.count }} Adet</span>
                   </div>
                   <div class="button-container">
-                    <button mat-icon-button class="action-button" (click)="addUiProduct(product.ui_id)" matTooltip="Ekle">
+                    <button mat-icon-button class="action-button" (click)="addPackageDetail(packageDetail.id)"
+                      matTooltip="Ekle">
                       <mat-icon>add</mat-icon>
                     </button>
-                    <button mat-icon-button class="action-button" (click)="removeProductFromPackage(package.id, j)"
-                      matTooltip="Ürünü çıkar">
+                    <button mat-icon-button class="action-button"
+                      (click)="removePackageDetailFromPackage(package.id, j)" matTooltip="Ürünü çıkar">
                       <mat-icon>close</mat-icon>
                     </button>
                   </div>
                 </div>
                 }
                 <!-- Boş palet mesajı -->
-                @if(package.products.length === 0){
+                @if(package.package_details.length === 0){
                 <div class="empty-state">
                   <mat-icon>drag_indicator</mat-icon>
                   <p>Bu palete ürün sürükleyin</p>
@@ -313,7 +314,7 @@
                   </div>
                   <div class="metric">
                     <mat-icon>straighten</mat-icon>
-                    <span>{{ package.totalMeter() }} m</span>
+                    <!-- <span>{{ package.totalMeter() }} m</span> -->
                   </div>
                   <div class="metric efficiency-metric">
                     <mat-icon>analytics</mat-icon>
@@ -321,33 +322,33 @@
                       <span class="efficiency-value">{{
                         getPalletFillPercentage(
                         package.pallet,
-                        package.products
+                        package.package_details
                         )
                         }}%</span>
                       <div class="efficiency-bar">
                         <div class="efficiency-fill" [style.width.%]="
                             getPalletFillPercentage(
                               package.pallet,
-                              package.products
+                              package.package_details
                             )
                           " [class.high-efficiency]="
                             getPalletFillPercentage(
                               package.pallet,
-                              package.products
+                              package.package_details
                             ) >= 80
                           " [class.medium-efficiency]="
                             getPalletFillPercentage(
                               package.pallet,
-                              package.products
+                              package.package_details
                             ) >= 50 &&
                             getPalletFillPercentage(
                               package.pallet,
-                              package.products
+                              package.package_details
                             ) < 80
                           " [class.low-efficiency]="
                             getPalletFillPercentage(
                               package.pallet,
-                              package.products
+                              package.package_details
                             ) < 50
                           "></div>
                       </div>

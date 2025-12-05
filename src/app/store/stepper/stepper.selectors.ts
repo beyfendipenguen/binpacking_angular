@@ -5,6 +5,9 @@ import { toInteger } from 'lodash';
 import { deepEqual, areOrderDetailsEqual } from '../../features/stepper/components/invoice-upload/helpers/order-detail.helper';
 import { arePackageListsEqual, calculatePackageChanges } from '../../features/stepper/components/pallet-control/package-changes.helper';
 import { UiPallet } from '../../features/stepper/components/ui-models/ui-pallet.model';
+import { PackageDetailWriteDto } from '@app/features/interfaces/package-detail.interface';
+import { mapUiPackagesToPackageWriteDtoList, mapUiPackageToPackageWriteDto } from '@app/features/mappers/package.mapper';
+import { PackageWriteDto } from '@app/features/interfaces/package.interface';
 
 // Feature selector
 export const selectStepperState = createFeatureSelector<StepperState>('stepper');
@@ -156,7 +159,7 @@ export const selectUiPackages = createSelector(selectStep2State, (state) =>
  */
 export const selectValidPackages = createSelector(
   selectUiPackages,
-  (packages) => packages.filter(pkg => pkg.pallet && pkg.products?.length > 0)
+  (packages) => packages.filter(pkg => pkg.pallet && pkg.package_details?.length > 0)
 );
 
 /**
@@ -176,16 +179,16 @@ export const uiPackageCount = createSelector(selectStep2State, (state) => state.
 export const hasPackage = createSelector(selectStep2State, (state) => state.packages.length > 0)
 export const remainingProductCount = createSelector(selectStep2State, (state) => state.remainingProducts.length)
 
-export const allDropListIds = createSelector(selectStep2State, (state) => {
+export const allDropListIds = createSelector(selectPackages, (packages) => {
   const ids = ['productsList', 'availablePalletsList'];
 
   // Package container'ları ekle (boş paketler için)
-  state.packages
+  packages
     .filter(pkg => pkg.pallet === null)
     .forEach(pkg => ids.push(pkg.id));
 
   // Pallet container'ları ekle
-  state.packages
+  packages
     .filter(pkg => pkg.pallet !== null)
     .forEach(pkg => {
       if (pkg.pallet) {
@@ -195,15 +198,15 @@ export const allDropListIds = createSelector(selectStep2State, (state) => {
   return ids;
 });
 
-export const packageDropListIds = createSelector(selectStep2State, (state) => {
-  return state.packages
+export const packageDropListIds = createSelector(selectPackages, (packages) => {
+  return packages
     .filter(pkg => pkg.pallet === null)
     .map(pkg => pkg.id);
 });
 
-export const palletDropListIds = createSelector(selectStep2State, (state) => {
+export const palletDropListIds = createSelector(selectPackages, (packages) => {
   const ids = ['productsList'];
-  state.packages
+  packages
     .filter(pkg => pkg.pallet !== null)
     .forEach(pkg => {
       if (pkg.pallet) {
@@ -222,7 +225,7 @@ export const selectStep2Changes = createSelector(
   })
 );
 
-export const selectStep2OriginalPackages = createSelector(
+export const selectOriginalPackages = createSelector(
   selectStep2State,
   (step2State) => step2State.originalPackages
 );
@@ -243,28 +246,21 @@ export const selectStep2OriginalPackages = createSelector(
  */
 export const selectIsPackagesDirty = createSelector(
   selectPackages,
-  selectStep2OriginalPackages,
+  selectOriginalPackages,
   (packages, originalPackages) => {
-    // paketler yoksa dirty değil (henüz paketleme hesaplama istegi atilmamis)
+
     if (!packages || packages.length === 0) {
       console.log('[selectIsStep2PackagesDirty] Original packages yok, dirty=true');
       return false;
     }
+
     // Orijinal paketler yoksa dirty değil (henüz kaydedilmemiş)
     if (!originalPackages || originalPackages.length === 0) {
       console.log('[selectIsStep2PackagesDirty] Original packages yok, dirty=true');
       return true;
     }
 
-    // Paketleri karşılaştır
     const isEqual = arePackageListsEqual(packages, originalPackages);
-
-    console.log('[selectIsStep2PackagesDirty] Karşılaştırma:', {
-      packagesCount: packages.length,
-      originalCount: originalPackages.length,
-      isEqual,
-      isDirty: !isEqual
-    });
 
     return !isEqual;
   }
@@ -282,8 +278,8 @@ export const selectIsPackagesDirty = createSelector(
  * @returns PackageChanges - { added, modified, deleted }
  */
 export const selectPackageChanges = createSelector(
-  selectUiPackages, // UiPackage instance'ları döner
-  selectStep2OriginalPackages,
+  selectPackages, // UiPackage instance'ları döner
+  selectOriginalPackages,
   (packages, originalPackages) => {
     console.log('[selectPackageChanges] Hesaplanıyor...');
 
@@ -291,7 +287,7 @@ export const selectPackageChanges = createSelector(
     if (!originalPackages || originalPackages.length === 0) {
       console.log('[selectPackageChanges] Original yok, tümü added');
       return {
-        added: packages,
+        added: mapUiPackagesToPackageWriteDtoList(packages),
         modified: [],
         deletedIds: []
       };
@@ -382,15 +378,14 @@ export const selectTotalProductsMeter = createSelector(selectOrderDetails, (orde
   }, 0);
 })
 
-export const selectTotalPackagesMeter = createSelector(selectUiPackages, (uiPackages) => {
-  const packages = uiPackages;
+export const selectTotalPackagesMeter = createSelector(selectPackages, (packages) => {
 
   const totalMm = packages.reduce((total, pkg) => {
-    if (pkg.products.length === 0) return total;
+    if (pkg.package_details.length === 0) return total;
 
-    const packageMeter = pkg.products.reduce((pTotal: any, product: any) => {
-      const productDepth = Number(product.dimension?.depth) || 0;
-      const count = Number(product.count) || 0;
+    const packageMeter = pkg.package_details.reduce((pTotal: any, packageDetail: any) => {
+      const productDepth = Number(packageDetail.product.dimension?.depth) || 0;
+      const count = Number(packageDetail.count) || 0;
       return pTotal + (count * productDepth);
     }, 0);
 
@@ -518,16 +513,16 @@ export const selectRemainingArea = createSelector(selectUiPackages, selectOrder,
 
 function packageTotalWeight(pkg: UiPackage, weightType: string): number {
   const palletWeight = Math.floor(pkg.pallet?.weight ?? 0);
-  const productsWeight = pkg.products.reduce(
-    (total, product) => {
+  const productsWeight = pkg.package_details.reduce(
+    (total, packageDetail) => {
       if (weightType == 'std') {
-        return total + Math.floor(product.weight_type.std * product.count);
+        return total + Math.floor(packageDetail.product.weight_type.std * packageDetail.count);
       }
       else if (weightType == 'eco') {
-        return total + Math.floor(product.weight_type.eco * product.count);
+        return total + Math.floor(packageDetail.product.weight_type.eco * packageDetail.count);
       }
       else {
-        return total + Math.floor(product.weight_type.pre * product.count);
+        return total + Math.floor(packageDetail.product.weight_type.pre * packageDetail.count);
       }
     }, 0
   );

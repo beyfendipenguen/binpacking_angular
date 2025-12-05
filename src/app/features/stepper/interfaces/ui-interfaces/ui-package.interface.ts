@@ -1,20 +1,13 @@
-import { Signal } from "@angular/core";
-import { Order } from "@app/features/interfaces/order.interface";
-import { Package } from "@app/features/interfaces/package.interface";
+import { PackageDetailReadDto } from "@app/features/interfaces/package-detail.interface";
 import { IUiPallet } from "./ui-pallet.interface";
-import { IUiProduct } from "./ui-product.interface";
 
-export interface IUiPackage extends Package {
+export interface IUiPackage {
+  id: string;
   pallet: IUiPallet | null;
-  products: IUiProduct[];
-  order: Order;
+  order_id: string;
+  package_details: PackageDetailReadDto[];
   is_remaining: boolean;
-
-  readonly totalMeter: Signal<number>;
-  readonly totalVolume: Signal<number>;
-  readonly totalWeight: Signal<number>;
-
-  isSavedInDb: boolean;
-
-  readonly productsSignal: Signal<IUiProduct[]>;
+  name: string;
+  alignment: string;
+  height: number;
 }

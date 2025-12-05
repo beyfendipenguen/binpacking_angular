@@ -34,6 +34,7 @@ import { UiProduct } from '../ui-models/ui-product.model';
 import { UiPallet } from '../ui-models/ui-pallet.model';
 import { UiPackage } from '../ui-models/ui-package.model';
 import { Store } from '@ngrx/store';
+import { v4 as Guid } from 'uuid';
 
 import {
   selectRemainingProducts,
@@ -84,6 +85,8 @@ import { RepositoryService } from '../../services/repository.service';
 import { StepperPackageActions } from '@app/store/stepper/actions/stepper-package.actions';
 import { StepperInvoiceUploadActions } from '@app/store/stepper/actions/stepper-invoice-upload.actions';
 import { StepperUiActions } from '@app/store/stepper/actions/stepper-ui.actions';
+import { PackageDetailReadDto } from '@app/features/interfaces/package-detail.interface';
+import { Product } from '@app/features/interfaces/product.interface';
 
 @Component({
   selector: 'app-pallet-control',
@@ -148,7 +151,7 @@ export class PalletControlComponent
 
   // Form and other properties
   secondFormGroup: FormGroup;
-  currentDraggedProduct: UiProduct | null = null;
+  currentDraggedProduct: PackageDetailReadDto | null = null;
 
   //Sorting Process
   sortAscending = signal<boolean>(false);
@@ -195,19 +198,19 @@ export class PalletControlComponent
   packageTotalWeight(pkg: UiPackage): number {
     const order = this.orderSignal();
     const palletWeight = Number(pkg.pallet?.weight) || 0;
-    const productsWeight = pkg.products.reduce((total, product) => {
+    const productsWeight = pkg.package_details.reduce((total, packageDetail) => {
       if (!order) {
         return 0;
       }
       let weight = 0;
       if (order.weight_type == 'std') {
-        weight = Number(product.weight_type?.std) || 0;
+        weight = Number(packageDetail.product.weight_type?.std) || 0;
       } else if (order.weight_type == 'eco') {
-        weight = Number(product.weight_type?.eco) || 0;
+        weight = Number(packageDetail.product.weight_type?.eco) || 0;
       } else {
-        weight = Number(product.weight_type?.pre) || 0;
+        weight = Number(packageDetail.product.weight_type?.pre) || 0;
       }
-      const count = Number(product.count) || 0;
+      const count = Number(packageDetail.count) || 0;
       return total + (weight * count);
     }, 0);
 
@@ -218,15 +221,15 @@ export class PalletControlComponent
   }
 
   // Dimension and fit checking methods
-  canFitProductToPallet(
-    product: UiProduct,
+  canFitPackageDetailToPallet(
+    packageDetail: PackageDetailReadDto,
     pallet: UiPallet,
-    existingProducts: UiProduct[]
+    existingPackageDetails: PackageDetailReadDto[]
   ): boolean {
-    if (!this.checkDimensionsFit(product, pallet)) {
+    if (!this.checkDimensionsFit(packageDetail, pallet)) {
       return false;
     }
-    return this.checkVolumeAvailable(product, pallet, existingProducts);
+    return this.checkVolumeAvailable(packageDetail, pallet, existingPackageDetails);
   }
 
   //Sorting css optimize process
@@ -236,9 +239,9 @@ export class PalletControlComponent
 
     const remainingProducts = [...this.remainingProducts()].sort((a, b) => {
       return multiplier * (
-        (b.dimension.depth - a.dimension.depth) ||      // Önce depth (büyükten küçüğe)
-        (b.dimension.width - a.dimension.width) ||      // Sonra width (büyükten küçüğe)
-        (b.dimension.height - a.dimension.height) ||    // Sonra height (büyükten küçüğe)
+        (b.product.dimension.depth - a.product.dimension.depth) ||      // Önce depth (büyükten küçüğe)
+        (b.product.dimension.width - a.product.dimension.width) ||      // Sonra width (büyükten küçüğe)
+        (b.product.dimension.height - a.product.dimension.height) ||    // Sonra height (büyükten küçüğe)
         (b.count - a.count)                             // Son olarak count (büyükten küçüğe)
       );
     });
@@ -251,14 +254,14 @@ export class PalletControlComponent
     this.store.dispatch(StepperPackageActions.mergeRemainingProducts())
   }
 
-  private checkDimensionsFit(product: UiProduct, pallet: UiPallet): boolean {
-    if (!product?.dimension || !pallet?.dimension) {
+  private checkDimensionsFit(packageDetail: PackageDetailReadDto, pallet: UiPallet): boolean {
+    if (!packageDetail?.product.dimension || !pallet?.dimension) {
       return false;
     }
 
-    const safeProductWidth = this.safeNumber(product.dimension.width);
-    const safeProductDepth = this.safeNumber(product.dimension.depth);
-    const safeProductHeight = this.safeNumber(product.dimension.height);
+    const safeProductWidth = this.safeNumber(packageDetail.product.dimension.width);
+    const safeProductDepth = this.safeNumber(packageDetail.product.dimension.depth);
+    const safeProductHeight = this.safeNumber(packageDetail.product.dimension.height);
     const safePalletWidth = this.safeNumber(pallet.dimension.width);
     const safePalletDepth = this.safeNumber(pallet.dimension.depth);
     const safePalletHeight = this.safeNumber(pallet.dimension.height);
@@ -278,11 +281,11 @@ export class PalletControlComponent
   }
 
   private checkVolumeAvailable(
-    product: UiProduct,
+    packageDetail: PackageDetailReadDto,
     pallet: UiPallet,
-    existingProducts: UiProduct[]
+    existingPackageDetails: PackageDetailReadDto[]
   ): boolean {
-    if (!product?.dimension || !pallet?.dimension) {
+    if (!packageDetail?.product.dimension || !pallet?.dimension) {
       return false;
     }
 
@@ -291,29 +294,29 @@ export class PalletControlComponent
       this.safeNumber(pallet.dimension.depth) *
       this.safeNumber(pallet.dimension.height);
 
-    const usedVolume = this.calculateUsedVolume(existingProducts);
+    const usedVolume = this.calculateUsedVolume(existingPackageDetails);
 
     const newProductVolume =
-      this.safeNumber(product.dimension.width) *
-      this.safeNumber(product.dimension.depth) *
-      this.safeNumber(product.dimension.height) *
-      this.safeNumber(product.count);
+      this.safeNumber(packageDetail.product.dimension.width) *
+      this.safeNumber(packageDetail.product.dimension.depth) *
+      this.safeNumber(packageDetail.product.dimension.height) *
+      this.safeNumber(packageDetail.count);
 
     return newProductVolume <= palletTotalVolume - usedVolume;
   }
 
-  private calculateUsedVolume(products: UiProduct[]): number {
-    if (products.length === 0) return 0;
+  private calculateUsedVolume(packageDetails: PackageDetailReadDto[]): number {
+    if (packageDetails.length === 0) return 0;
 
-    return products.reduce((total, product) => {
-      if (!product?.dimension) {
+    return packageDetails.reduce((total, packageDetail) => {
+      if (!packageDetail?.product.dimension) {
         return total;
       }
       const volume =
-        this.safeNumber(product.dimension.width) *
-        this.safeNumber(product.dimension.depth) *
-        this.safeNumber(product.dimension.height) *
-        this.safeNumber(product.count);
+        this.safeNumber(packageDetail.product.dimension.width) *
+        this.safeNumber(packageDetail.product.dimension.depth) *
+        this.safeNumber(packageDetail.product.dimension.height) *
+        this.safeNumber(packageDetail.count);
       return total + volume;
     }, 0);
   }
@@ -341,7 +344,7 @@ export class PalletControlComponent
 
   getRemainingPalletVolume(
     pallet: UiPallet,
-    existingProducts: UiProduct[]
+    existingPacakgeDetails: PackageDetailReadDto[]
   ): number {
     if (!pallet?.dimension) {
       return 0;
@@ -350,13 +353,13 @@ export class PalletControlComponent
       this.safeNumber(pallet.dimension.width) *
       this.safeNumber(pallet.dimension.depth) *
       this.safeNumber(pallet.dimension.height);
-    const usedVolume = this.calculateUsedVolume(existingProducts);
+    const usedVolume = this.calculateUsedVolume(existingPacakgeDetails);
     return Math.max(0, palletTotalVolume - usedVolume);
   }
 
   getPalletFillPercentage(
     pallet: UiPallet,
-    existingProducts: UiProduct[]
+    existingPacakgeDetails: PackageDetailReadDto[]
   ): number {
     if (!pallet?.dimension) {
       return 0;
@@ -365,36 +368,36 @@ export class PalletControlComponent
       this.safeNumber(pallet.dimension.width) *
       this.safeNumber(pallet.dimension.depth) *
       this.safeNumber(pallet.dimension.height);
-    const usedVolume = this.calculateUsedVolume(existingProducts);
+    const usedVolume = this.calculateUsedVolume(existingPacakgeDetails);
     return Math.round((usedVolume / palletTotalVolume) * 100);
   }
 
   getMaxProductCount(
-    product: UiProduct,
+    packageDetail: PackageDetailReadDto,
     pallet: UiPallet,
-    existingProducts: UiProduct[]
+    existingPacakgeDetails: PackageDetailReadDto[]
   ): number {
-    if (!product?.dimension || !pallet?.dimension) {
+    if (!packageDetail?.product.dimension || !pallet?.dimension) {
       return 0;
     }
 
-    if (!this.checkDimensionsFit(product, pallet)) {
+    if (!this.checkDimensionsFit(packageDetail, pallet)) {
       return 0;
     }
 
     const remainingVolume = this.getRemainingPalletVolume(
       pallet,
-      existingProducts
+      existingPacakgeDetails
     );
     const singleProductVolume =
-      this.safeNumber(product.dimension.width) *
-      this.safeNumber(product.dimension.depth) *
-      this.safeNumber(product.dimension.height);
+      this.safeNumber(packageDetail.product.dimension.width) *
+      this.safeNumber(packageDetail.product.dimension.depth) *
+      this.safeNumber(packageDetail.product.dimension.height);
 
     return Math.floor(remainingVolume / singleProductVolume);
   }
 
-  updateProductCount(product: UiProduct, event: any): void {
+  updatePackageDetailCount(packageDetail: PackageDetailReadDto, event: any): void {
     // Bu metodu sen doldur - product count güncellemesi için
     const newCount = parseInt(event.target.value);
     if (Number.isNaN(newCount) || newCount < 1) {
@@ -402,23 +405,30 @@ export class PalletControlComponent
       return;
     }
     this.store.dispatch(
-      StepperPackageActions.updateProductCountAndCreateOrUpdateOrderDetail({ product, count: newCount})
+      StepperPackageActions.upsertPackageDetailCount({ packageDetail, count: newCount })
     );
   }
 
-  selectProduct(product: any) {
+  selectProduct(product: Product) {
+    const newPackageDetail = {
+      id: Guid(),
+      count: 0,
+      package_id: Guid(),
+      priority: 0,
+      product
+    } as PackageDetailReadDto
+
     this.store.dispatch(
-      StepperPackageActions.updateProductCountAndCreateOrUpdateOrderDetail({
-        product: product,
-        count: 0,
+      StepperPackageActions.upsertPackageDetailCount({
+        packageDetail: newPackageDetail,
       })
     );
     // Seçimden sonra aramayı temizle (opsiyonel)
     this.clearSearch();
   }
 
-  displayProductFn(product: any): string {
-    return product ? product.name : '';
+  displayProductFn(packageDetail: PackageDetailReadDto): string {
+    return packageDetail?.product?.name ? packageDetail.product.name : '';
   }
 
   private setupSearchSubscription(): void {
@@ -445,7 +455,7 @@ export class PalletControlComponent
         })
       )
       .subscribe({
-        next: (products: any[]) => {
+        next: (products: Product[]) => {
           this.filteredProducts.set(products);
         },
       });
@@ -458,7 +468,7 @@ export class PalletControlComponent
   }
 
   // Drag & Drop Event Handlers
-  dropProductToPallet(event: CdkDragDrop<UiProduct[]>): void {
+  dropPackageDetailToPackage(event: CdkDragDrop<PackageDetailReadDto[]>): void {
     if (event.previousContainer === event.container) {
       if (event.container.id === 'productsList') {
         this.store.dispatch(
@@ -469,7 +479,7 @@ export class PalletControlComponent
         );
       } else {
         this.store.dispatch(
-          StepperPackageActions.moveUiProductInSamePackage({
+          StepperPackageActions.movePackageDetailInSamePackage({
             currentIndex: event.currentIndex,
             previousIndex: event.previousIndex,
             packageId: event.container.id,
@@ -482,8 +492,8 @@ export class PalletControlComponent
     // Paletten available products'a geri alma
     if (event.container.id === 'productsList') {
       this.store.dispatch(
-        StepperPackageActions.moveProductToRemainingProducts({
-          uiProducts: event.previousContainer.data,
+        StepperPackageActions.movePackageDetailToRemainingProducts({
+          packageDetails: event.previousContainer.data,
           previousIndex: event.previousIndex,
           previousContainerId: event.previousContainer.id,
         })
@@ -504,7 +514,7 @@ export class PalletControlComponent
 
     // Source container'ın palet mi yoksa productsList mi olduğunu kontrol et
     const isSourceFromPallet = event.previousContainer.id !== 'productsList';
-    const product = event.previousContainer.data[event.previousIndex];
+    const packageDetail = event.previousContainer.data[event.previousIndex];
 
     if (isSourceFromPallet) {
       const sourcePackage = currentPackages.find(
@@ -515,30 +525,30 @@ export class PalletControlComponent
         // Sığma kontrolü
         if (targetPackage.pallet) {
           const fitResult = this.calculateMaxFitCount(
-            product,
+            packageDetail,
             targetPackage.pallet,
-            targetPackage.products
+            targetPackage.package_details
           );
 
           if (fitResult.maxCount === 0) {
             // Hiç sığmıyor
             const fillPercentage = this.getPalletFillPercentage(
               targetPackage.pallet,
-              targetPackage.products
+              targetPackage.package_details
             );
             this.toastService.error(
               `Ürün bu palete sığmıyor. Palet doluluk: %${fillPercentage}`,
               'Boyut Hatası'
             );
             return;
-          } else if (fitResult.maxCount < product.count) {
+          } else if (fitResult.maxCount < packageDetail.count) {
             // Kısmi sığıyor - YENİ DURUM
             this.toastService.warning(
-              `${product.count} adetten ${fitResult.maxCount} tanesi palete eklendi`,
+              `${packageDetail.count} adetten ${fitResult.maxCount} tanesi palete eklendi`,
               'Kısmi Transfer'
             );
             this.store.dispatch(
-              StepperPackageActions.movePartialProductBetweenPackages({
+              StepperPackageActions.movePartialPackageDetailBetweenPackages({
                 sourcePackageId: sourcePackage.id,
                 targetPackageId: targetPackage.id,
                 previousIndex: event.previousIndex,
@@ -550,7 +560,7 @@ export class PalletControlComponent
         }
         // Normal transfer
         this.store.dispatch(
-          StepperPackageActions.moveUiProductInPackageToPackage({
+          StepperPackageActions.movePackageDetailInPackageToPackage({
             sourcePackageId: sourcePackage.id,
             targetPackageId: targetPackage.id,
             previousIndex: event.previousIndex,
@@ -563,25 +573,25 @@ export class PalletControlComponent
     // Available products'tan palete transfer
     if (targetPackage.pallet) {
       const fitResult = this.calculateMaxFitCount(
-        product,
+        packageDetail,
         targetPackage.pallet,
-        targetPackage.products
+        targetPackage.package_details
       );
       if (fitResult.maxCount === 0) {
         // Hiç sığmıyor
         const fillPercentage = this.getPalletFillPercentage(
           targetPackage.pallet,
-          targetPackage.products
+          targetPackage.package_details
         );
         this.toastService.error(
           `Ürün bu palete sığmıyor. Palet doluluk: %${fillPercentage}`,
           'Boyut Hatası'
         );
         return;
-      } else if (fitResult.maxCount < product.count) {
+      } else if (fitResult.maxCount < packageDetail.count) {
         // Kısmi sığıyor
         this.toastService.warning(
-          `${product.count} adetten ${fitResult.maxCount} tanesi palete eklendi`,
+          `${packageDetail.count} adetten ${fitResult.maxCount} tanesi palete eklendi`,
           'Kısmi Transfer'
         );
         this.store.dispatch(
@@ -616,11 +626,11 @@ export class PalletControlComponent
   }
 
   dragStarted(event: CdkDragStart): void {
-    const product = event.source.data as UiProduct;
-    this.currentDraggedProduct = product;
+    const packageDetail = event.source.data as PackageDetailReadDto;
+    this.currentDraggedProduct = packageDetail;
     const palletElements = new Map<string, HTMLElement>();
 
-    if (!product?.dimension) {
+    if (!packageDetail?.product.dimension) {
       this.toastService.error('Ürün boyut bilgisi eksik');
       return;
     }
@@ -637,9 +647,9 @@ export class PalletControlComponent
     this.uiPackages().forEach((pkg, index) => {
       if (pkg.pallet) {
         const fitResult = this.calculateMaxFitCount(
-          product,
+          packageDetail,
           pkg.pallet,
-          pkg.products
+          pkg.package_details
         );
         const palletElement = palletElements.get(pkg.pallet.ui_id);
 
@@ -649,16 +659,16 @@ export class PalletControlComponent
             palletElement.classList.add('cannot-drop');
             palletElement.classList.remove('can-drop', 'partial-drop');
 
-            const fillPercentage = this.getPalletFillPercentage(pkg.pallet, pkg.products);
+            const fillPercentage = this.getPalletFillPercentage(pkg.pallet, pkg.package_details);
             palletElement.title = `❌ Sığmaz - Palet doluluk: %${fillPercentage}`;
 
-          } else if (fitResult.maxCount < product.count) {
+          } else if (fitResult.maxCount < packageDetail.count) {
             // Kısmi sığıyor
             palletElement.classList.add('partial-drop');
             palletElement.classList.remove('can-drop', 'cannot-drop');
 
-            const fillPercentage = this.getPalletFillPercentage(pkg.pallet, pkg.products);
-            palletElement.title = `⚠️ Sadece ${fitResult.maxCount} adet sığar (${product.count} adetten) - Doluluk: %${fillPercentage}`;
+            const fillPercentage = this.getPalletFillPercentage(pkg.pallet, pkg.package_details);
+            palletElement.title = `⚠️ Sadece ${fitResult.maxCount} adet sığar (${packageDetail.count} adetten) - Doluluk: %${fillPercentage}`;
 
           } else {
             // Tamamen sığıyor - YEŞİL
@@ -680,17 +690,15 @@ export class PalletControlComponent
     });
   }
 
-  calculateMaxFitCount(product: UiProduct, pallet: UiPallet, existingProducts: UiProduct[]): { canFit: boolean; maxCount: number } {
+  calculateMaxFitCount(packageDetail: PackageDetailReadDto, pallet: UiPallet, existingPacakgeDetails: PackageDetailReadDto[]): { canFit: boolean; maxCount: number } {
     // Tek bir ürünün boyutsal olarak sığıp sığmadığını kontrol et
-    const singleProductCanFit = this.canFitProductToPallet(
+    const singleProductCanFit = this.canFitPackageDetailToPallet(
       {
-        ...product, count: 1,
-        split: function (perItem?: number | null): UiProduct[] {
-          throw new Error('Function not implemented.');
-        }
+        ...packageDetail,
+        count: 1,
       },
       pallet,
-      existingProducts
+      existingPacakgeDetails
     );
 
     if (!singleProductCanFit) {
@@ -702,10 +710,10 @@ export class PalletControlComponent
       pallet.dimension.depth * pallet.dimension.width * pallet.dimension.height;
 
     // Mevcut ürünlerin toplam hacmi
-    const usedVolume = existingProducts.reduce((total, p) => {
+    const usedVolume = existingPacakgeDetails.reduce((total, pd) => {
       const productVolume =
-        p.dimension.depth * p.dimension.width * p.dimension.height;
-      return total + productVolume * p.count;
+        pd.product.dimension.depth * pd.product.dimension.width * pd.product.dimension.height;
+      return total + productVolume * pd.count;
     }, 0);
 
     // Kalan hacim
@@ -713,15 +721,15 @@ export class PalletControlComponent
 
     // Bir adet ürünün hacmi
     const productVolume =
-      product.dimension.depth *
-      product.dimension.width *
-      product.dimension.height;
+      packageDetail.product.dimension.depth *
+      packageDetail.product.dimension.width *
+      packageDetail.product.dimension.height;
 
     // Maksimum kaç adet sığabilir
     const maxCount = Math.floor(remainingVolume / productVolume);
 
     // Product count'tan fazla olamaz
-    const finalMaxCount = Math.min(maxCount, product.count);
+    const finalMaxCount = Math.min(maxCount, packageDetail.count);
 
     return {
       canFit: true,
@@ -730,17 +738,17 @@ export class PalletControlComponent
   }
 
   // Product manipulation methods
-  splitProduct(productUiId: string, splitCount?: number | null): void {
+  splitProduct(packageDetailId: string, splitCount?: number | null): void {
     this.store.dispatch(
-      StepperPackageActions.splitProduct({ productUiId: productUiId, splitCount: splitCount ?? null })
+      StepperPackageActions.splitPackageDetail({ packageDetailId, splitCount: splitCount ?? null })
     );
   }
 
-  removeProductFromPackage(pkgId: string, productIndex: number): void {
+  removePackageDetailFromPackage(pkgId: string, packageDetailIndex: number): void {
     this.store.dispatch(
-      StepperPackageActions.removeProductFromPackage({
-        pkgId: pkgId,
-        productIndex: productIndex,
+      StepperPackageActions.removePackageDetailFromPackage({
+        pkgId,
+        packageDetailIndex,
       })
     );
   }
@@ -768,9 +776,9 @@ export class PalletControlComponent
   calculatePackageDetail() {
     if (this.orderDetailsIsDirtySignal())
       console.log('order details dirty')
-      // this.store.dispatch(
-      //   StepperOrderActions.updateOrderDetails()
-      // );
+    // this.store.dispatch(
+    //   StepperOrderActions.updateOrderDetails()
+    // );
     else {
       this.store.dispatch(StepperPackageActions.calculatePackageDetail());
     }
@@ -781,12 +789,12 @@ export class PalletControlComponent
     this.store.dispatch(StepperPackageActions.setVerticalSortInPackage({ pkgId: _package.id, alignment: _package.alignment }))
   }
 
-  addUiProduct(productUiId: string) {
-    this.store.dispatch(StepperPackageActions.addUiProductToRemainingProducts({ productUiId: productUiId }));
+  addPackageDetail(packageDetailId: string) {
+    this.store.dispatch(StepperPackageActions.addPackageDetailToRemainingProducts({ packageDetailId }));
   }
 
-  deleteRemainingProduct(productUiId: string): void {
-    this.store.dispatch(StepperPackageActions.deleteRemainingProduct({ productUiId: productUiId }));
+  deleteRemainingProduct(packageDetailId: string): void {
+    this.store.dispatch(StepperPackageActions.deleteRemainingProduct({ packageDetailId }));
   }
 
 
@@ -807,7 +815,7 @@ export class PalletControlComponent
 
       dialogRef.afterClosed().subscribe(result => {
         if (result === true) {
-          this.remainingProducts().forEach(product => this.deleteRemainingProduct(product.ui_id))
+          this.remainingProducts().forEach(packageDetail => this.deleteRemainingProduct(packageDetail.id))
           this.submitForm()
         } else {
           return;

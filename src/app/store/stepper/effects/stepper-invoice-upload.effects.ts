@@ -138,20 +138,19 @@ export class StepperInvoiceUploadEffects {
     )
   );
 
-  completeInvoiceUploadStep$ = createEffect(()=>
+  completeInvoiceUploadStep$ = createEffect(() =>
     this.actions$.pipe(
-    ofType(StepperInvoiceUploadActions.upsertManySuccess),
-    map(() => StepperUiActions.setStepCompleted({ stepIndex: 1 }))
-  ))
+      ofType(StepperInvoiceUploadActions.upsertManySuccess),
+      map(() => StepperUiActions.setStepCompleted({ stepIndex: 1 }))
+    ))
 
   // Order Detail Değişikliklerini Hesapla
   orderDetailChanges$ = createEffect(() =>
     this.actions$.pipe(
       ofType(
-        StepperPackageActions.deleteRemainingProduct,
-        StepperPackageActions.addUiProductToRemainingProducts,
-        StepperPackageActions.updateProductCountAndCreateOrUpdateOrderDetail,
         StepperInvoiceUploadActions.deleteOrderDetail,
+        StepperInvoiceUploadActions.addOrderDetail,
+        StepperInvoiceUploadActions.updateOrderDetail
       ),
       map(() => StepperInvoiceUploadActions.calculateOrderDetailChanges()),
       catchError((error) =>

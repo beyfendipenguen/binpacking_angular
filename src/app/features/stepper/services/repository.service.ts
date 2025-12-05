@@ -4,16 +4,17 @@ import { ApiService } from "@core/services/api.service";
 import { CompanyRelation } from "@features/interfaces/company-relation.interface";
 import { OrderDetailRead } from "@features/interfaces/order-detail.interface";
 import { Order } from "@features/interfaces/order.interface";
-import { PackageDetail } from "@features/interfaces/package-detail.interface";
+import { PackageDetailWriteDto } from "@features/interfaces/package-detail.interface";
 import { Pallet } from "@features/interfaces/pallet.interface";
 import { Truck } from "@features/interfaces/truck.interface";
-import { mapPackageToPackageDetail } from "@features/mappers/package-detail.mapper";
 import { AppState, selectOrderId, selectOrderResultId, selectCompanyRelationId } from "@app/store";
 import { Store } from "@ngrx/store";
 import { Observable, map, switchMap, tap, catchError } from "rxjs";
 import { OrderDetailChanges } from "../components/invoice-upload/models/invoice-upload-interfaces";
 import { FileResponse } from "../interfaces/file-response.interface";
 import { IUiPackage } from "../interfaces/ui-interfaces/ui-package.interface";
+import { PackageReadDto } from "@app/features/interfaces/package.interface";
+import { PackageChanges } from "../components/pallet-control/package-changes.helper";
 
 @Injectable({
   providedIn: 'root',
@@ -44,7 +45,7 @@ export class RepositoryService {
       .get<any>(`${this.api.getApiUrl()}/orders/order-details/?order_id=${id}`).pipe(map((response) => response.results));
   }
 
-  getPackageDetails(order_id: string = this.getOrderId()): Observable<PackageDetail[]> {
+  getPackageDetails(order_id: string = this.getOrderId()): Observable<PackageDetailWriteDto[]> {
     return this.http
       .get<any>(`${this.api.getApiUrl()}/logistics/package-details/?order_id=${order_id}&limit=100`)
       .pipe(map(response => response.results));
@@ -142,7 +143,7 @@ export class RepositoryService {
     }>(`${this.api.getApiUrl()}/orders/process-file/`, formData);
   }
 
-  calculatePackageDetails(verticalSort: boolean, order_id: string = this.getOrderId()): Observable<{ package_details: PackageDetail[] }> {
+  calculatePackageDetails(verticalSort: boolean, order_id: string = this.getOrderId()): Observable<{ packages: PackageReadDto[] }> {
     const params = new HttpParams().set('vertical_sort', verticalSort.toString());
 
     return this.http
@@ -163,46 +164,18 @@ export class RepositoryService {
    * @returns Observable<{ package_details: PackageDetailRead[] }>
    */
   bulkUpdatePackageDetails(
-    changes: {
-      added: IUiPackage[],
-      modified: IUiPackage[],
-      deletedIds: string[]
-    },
+    changes: PackageChanges,
     orderId: string = this.getOrderId()
-  ): Observable<{ package_details: any[] }> {
-    console.log('[RepositoryService] bulkUpdatePackageDetails - Başlatılıyor:', {
-      addedCount: changes.added.length,
-      modifiedCount: changes.modified.length,
-      deletedCount: changes.deletedIds.length,
-      orderId
-    });
+  ): Observable<{ message: string, packages: PackageReadDto[] }> {
 
-    // UiPackage[] → PackageDetail[] mapping
-    const addedPackageDetails = mapPackageToPackageDetail(changes.added);
-    const modifiedPackageDetails = mapPackageToPackageDetail(changes.modified);
-
-
-    const payload = {
-      added: addedPackageDetails,
-      modified: modifiedPackageDetails,
-      deletedPackageIds: changes.deletedIds
-    };
-
-    console.log('[RepositoryService] bulkUpdatePackageDetails - Payload:', {
-      addedDetails: payload.added.length,
-      modifiedDetails: payload.modified.length,
-      deletedIds: payload.deletedPackageIds.length
-    });
-
-    return this.http.post<{ package_details: any[] }>(
+    return this.http.post<{ message: string, packages: PackageReadDto[] }>(
       `${this.api.getApiUrl()}/logistics/create-package-detail/${orderId}/`,
-      payload
+      {
+        added: changes.added,
+        modified: changes.modified,
+        deletedPackageIds: changes.deletedIds
+      }
     ).pipe(
-      tap(response => {
-        console.log('[RepositoryService] bulkUpdatePackageDetails - Response:', {
-          packageDetailsCount: response.package_details?.length
-        });
-      }),
       catchError(error => {
         console.error('[RepositoryService] bulkUpdatePackageDetails - Error:', error);
         throw error;

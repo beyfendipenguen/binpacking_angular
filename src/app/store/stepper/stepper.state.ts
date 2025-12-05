@@ -4,6 +4,9 @@ import { IUiPackage } from "@app/features/stepper/interfaces/ui-interfaces/ui-pa
 import { IUiPallet } from "@app/features/stepper/interfaces/ui-interfaces/ui-pallet.interface";
 import { IUiProduct } from "@app/features/stepper/interfaces/ui-interfaces/ui-product.interface";
 import { Document } from "@app/features/interfaces/file.interface";
+import { PackageDetailReadDto, PackageDetailWriteDto } from "@app/features/interfaces/package-detail.interface";
+import { PackageReadDto, PackageWriteDto } from "@app/features/interfaces/package.interface";
+import { UiPackage } from "@app/features/stepper/components/ui-models/ui-package.model";
 
 export interface StepperState {
   order: Order | null;
@@ -40,14 +43,13 @@ export interface StepperState {
   step2State: {
     packages: IUiPackage[];
     pallets: IUiPallet[];
-    remainingProducts: IUiProduct[];
-    originalPackages: IUiPackage[];
-    originalRemainingProducts: IUiProduct[];
-    addedPackages: IUiPackage[];
-    modifiedPackages: IUiPackage[];
+    remainingProducts: PackageDetailReadDto[];
+    originalPackages: PackageReadDto[];
+    addedPackages: PackageWriteDto[];
+    modifiedPackages: PackageWriteDto[];
     deletedPackageIds: string[];
+    verticalSort: boolean;
     isDirty: boolean;
-    verticalSort: boolean
   };
 
   step3State: {
@@ -90,12 +92,11 @@ export const initialStepperState: StepperState = {
     pallets: [],
     remainingProducts: [],
     originalPackages: [],
-    originalRemainingProducts: [],
     addedPackages: [],
     modifiedPackages: [],
     deletedPackageIds: [],
-    isDirty: false,
-    verticalSort: false
+    verticalSort: false,
+    isDirty: false
   },
 
   step3State: {

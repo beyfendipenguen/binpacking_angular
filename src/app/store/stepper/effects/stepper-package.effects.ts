@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
 import { map, switchMap, catchError, withLatestFrom, filter, concatMap, take, tap, mergeMap } from 'rxjs/operators';
-import { from, of } from 'rxjs';
+import { of } from 'rxjs';
 
 import { StepperInvoiceUploadActions } from '../actions/stepper-invoice-upload.actions';
 import { StepperPackageActions } from '../actions/stepper-package.actions';
@@ -18,15 +18,27 @@ import {
 
 import { RepositoryService } from '@features/stepper/services/repository.service';
 import { UiPallet } from '@features/stepper/components/ui-models/ui-pallet.model';
-import { mapPackageDetailToPackage } from '@features/mappers/package-detail.mapper';
-import { GlobalErrorHandler } from '@app/ngrx.config';
-import { StepperGeneralEffects } from './stepper-general.effects';
+import { mapPackageReadDtoListToIUiPackageList } from '@app/features/mappers/package.mapper';
 
 @Injectable()
 export class StepperPackageEffects {
   private actions$ = inject(Actions);
   private store = inject(Store<AppState>);
   private repositoryService = inject(RepositoryService);
+
+  orderDetailChanges$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(
+        StepperPackageActions.deleteRemainingProduct,
+        StepperPackageActions.addPackageDetailToRemainingProducts,
+        StepperPackageActions.upsertPackageDetailCount,
+      ),
+      map(() => StepperPackageActions.calculateOrderDetailChanges()),
+      catchError((error) =>
+        of(StepperUiActions.setGlobalError({ error: { message: error.message } }))
+      )
+    )
+  );
 
   // Fatura yüklendiğinde paletleri getir
   triggerGetPallets$ = createEffect(() =>
@@ -59,10 +71,8 @@ export class StepperPackageEffects {
       withLatestFrom(this.store.select(selectVerticalSort)),
       switchMap(([_, verticalSort]) =>
         this.repositoryService.calculatePackageDetails(verticalSort).pipe(
-          map(response => ({
-            uiPackages: mapPackageDetailToPackage(response.package_details),
-          })),
-          map((response) => StepperPackageActions.calculatePackageDetailSuccess({ packages: response.uiPackages })),
+          map((response) => mapPackageReadDtoListToIUiPackageList(response.packages)),
+          map((packages) => StepperPackageActions.calculatePackageDetailSuccess({ packages: packages })),
           catchError((error) =>
             of(StepperUiActions.setGlobalError({
               error: { message: error.message, stepIndex: 2 }
@@ -84,7 +94,7 @@ export class StepperPackageEffects {
       filter(([, , isDirty]) => isDirty),
       switchMap(([_, changes]) =>
         this.repositoryService.bulkUpdatePackageDetails(changes).pipe(
-          map((result) => StepperPackageActions.upsertManySuccess({ packageDetails: result.package_details })),
+          map((result) => StepperPackageActions.upsertManySuccess({ packages: result.packages })),
           catchError((error) => of(StepperPackageActions.upsertManyFailure()))
         )
       )
@@ -113,33 +123,33 @@ export class StepperPackageEffects {
         StepperPackageActions.removePalletFromPackage,
 
         // Drag-Drop: Product İşlemleri (Paketler Arası)
-        StepperPackageActions.moveUiProductInPackageToPackage,
-        StepperPackageActions.movePartialProductBetweenPackages,
+        StepperPackageActions.movePackageDetailInPackageToPackage,
+        StepperPackageActions.movePartialPackageDetailBetweenPackages,
 
         // Drag-Drop: Product İşlemleri (Paket İçi)
-        StepperPackageActions.moveUiProductInSamePackage,
+        StepperPackageActions.movePackageDetailInSamePackage,
 
         // Drag-Drop: Remaining Products İşlemleri
         StepperPackageActions.moveRemainingProductToPackage,
         StepperPackageActions.movePartialRemainingProductToPackage,
-        StepperPackageActions.moveProductToRemainingProducts,
+        StepperPackageActions.movePackageDetailToRemainingProducts,
         StepperPackageActions.remainingProductMoveProduct,
 
         // Package İşlemleri
         StepperPackageActions.removePackage,
         StepperPackageActions.removeAllPackage,
-        StepperPackageActions.removeProductFromPackage,
+        StepperPackageActions.removePackageDetailFromPackage,
 
         // Product İşlemleri
-        StepperPackageActions.splitProduct,
-        StepperPackageActions.addUiProductToRemainingProducts,
+        StepperPackageActions.splitPackageDetail,
+        StepperPackageActions.addPackageDetailToRemainingProducts,
         StepperPackageActions.deleteRemainingProduct,
 
         // Alignment Değişiklikleri
         StepperPackageActions.setVerticalSortInPackage,
 
         // Product Count Güncellemeleri
-        StepperPackageActions.updateProductCountAndCreateOrUpdateOrderDetail,
+        StepperPackageActions.upsertPackageDetailCount,
       ),
       tap(() => console.log('[packageChanges$] Değişiklik tespit edildi, hesaplanıyor...')),
       map(() => StepperPackageActions.calculatePackageChanges()),

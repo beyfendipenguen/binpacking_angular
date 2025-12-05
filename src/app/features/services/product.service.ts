@@ -20,7 +20,7 @@ export class ProductService extends GenericCrudService<Product> {
    * @param query Arama sorgusu
    * @param limit Maksimum sonuç sayısı (varsayılan 10)
    */
-  searchProducts(query: string, limit: number = 10): Observable<any[]> {
+  searchProducts(query: string, limit: number = 10): Observable<Product[]> {
     // Çok kısa sorgular için boş sonuç döndür (backend'i meşgul etmemek için)
     this.ensureApiUrl();
     if (!query || query.length < 3) {
@@ -53,7 +53,7 @@ export class ProductService extends GenericCrudService<Product> {
   searchProductsWithParsedQuery(
     query: string,
     limit: number = 10
-  ): Observable<any[]> {
+  ): Observable<Product[]> {
     this.ensureApiUrl();
 
     if (!query || query.trim().length < 2) {

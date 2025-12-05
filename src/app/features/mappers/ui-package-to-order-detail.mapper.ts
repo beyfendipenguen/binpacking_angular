@@ -2,6 +2,7 @@ import { v4 as Guid } from 'uuid';
 import { OrderDetailRead } from '../interfaces/order-detail.interface';
 import { UiProduct } from '../stepper/components/ui-models/ui-product.model';
 import { IUiPackage } from '../stepper/interfaces/ui-interfaces/ui-package.interface';
+import { PackageDetailReadDto } from '../interfaces/package-detail.interface';
 
 /**
  * UiPackage array'ini OrderDetail array'ine çevirir
@@ -9,34 +10,28 @@ import { IUiPackage } from '../stepper/interfaces/ui-interfaces/ui-package.inter
 export function mapUiPackagesToOrderDetails(
   uiPackages: IUiPackage[]
 ): OrderDetailRead[] {
-  const products = uiPackages.flatMap(uiPackage => uiPackage.products)
-  const uniqueProducts = products.reduce((acc, product) => {
-    if (!acc[product.id]) {
-      acc[product.id] = { ...product };
+  const packageDetails = uiPackages.flatMap(uiPackage => uiPackage.package_details)
+  const consolidatedPackageDetails = packageDetails.reduce((acc, packageDetail) => {
+    if (!acc[packageDetail.product.id]) {
+      acc[packageDetail.product.id] = { ...packageDetail };
     } else {
-      acc[product.id] = {
-        ...product,
-        count: acc[product.id].count + product.count
+      acc[packageDetail.product.id] = {
+        ...packageDetail,
+        count: acc[packageDetail.product.id].count + packageDetail.count
       };
     }
     return acc;
-  }, {} as Record<string, UiProduct>);
+  }, {} as Record<string, PackageDetailReadDto>);
 
-  return Object.values(uniqueProducts).map(product => {
+  return Object.values(consolidatedPackageDetails).map(packageDetail => {
     return {
       id: Guid(),
       order_id: "",
-      count: product.count,
+      count: packageDetail.count,
       unit_price: "1",
-      remaining_count: product.count,
-      product: {
-        id: product.id,
-        name: product.name,
-        count: product.count,
-        dimension: { ...product.dimension },
-        product_type: { ...product.product_type },
-        weight_type: { ...product.weight_type }
-      },
+      remaining_count: packageDetail.count,
+      product: packageDetail.product
+
     }
   })
 }

@@ -2,6 +2,7 @@ import { UiProduct } from "@features/stepper/components/ui-models/ui-product.mod
 import { OrderDetailRead, OrderDetailWrite } from "@features/interfaces/order-detail.interface";
 import { Product } from "@features/interfaces/product.interface";
 import { OrderDetailChanges } from "@features/stepper/components/invoice-upload/models/invoice-upload-interfaces";
+import { PackageDetailReadDto } from "../interfaces/package-detail.interface";
 
 
 export class OrderDetailDiffCalculator {
@@ -14,36 +15,36 @@ export class OrderDetailDiffCalculator {
   static calculateDiff(
     mapperOrderDetails: OrderDetailRead[],
     originalOrderDetails: OrderDetailRead[],
-    remainingProducts: UiProduct[]
+    remainingPackageDetails: PackageDetailReadDto[]
   ): OrderDetailChanges {
 
-    let mergedRemainingProducts = remainingProducts.reduce((acc, product) => {
-      if (!acc.some(p => p.id === product.id)) {
-        acc.push(product);
+    let mergedRemainingPackageDetails = remainingPackageDetails.reduce((acc, packageDetail) => {
+      if (!acc.some(p => p.id === packageDetail.id)) {
+        acc.push(packageDetail);
       } else {
-        const existingProduct = acc.find(p => p.id === product.id);
-        if (existingProduct) {
-          existingProduct.count += product.count;
+        const existingPackageDetail = acc.find(p => p.id === packageDetail.id);
+        if (existingPackageDetail) {
+          existingPackageDetail.count += packageDetail.count;
         }
       }
       return acc;
-    }, [] as UiProduct[]);
+    }, [] as PackageDetailReadDto[]);
 
 
     mapperOrderDetails.map(orderDetail => {
-      const remainingProduct = mergedRemainingProducts.find(p => p.id === orderDetail.product.id)
-      return remainingProduct ? { ...orderDetail, count: orderDetail.count + remainingProduct.count } : orderDetail
+      const remainingPackageDetail = mergedRemainingPackageDetails.find(p => p.product.id === orderDetail.product.id)
+      return remainingPackageDetail ? { ...orderDetail, count: orderDetail.count + remainingPackageDetail.count } : orderDetail
     });
 
-    mergedRemainingProducts.forEach(product => {
-      if (!mapperOrderDetails.some(orderDetail => orderDetail.product.id === product.id)) {
+    mergedRemainingPackageDetails.forEach(packageDetail => {
+      if (!mapperOrderDetails.some(orderDetail => orderDetail.product.id === packageDetail.product.id)) {
         mapperOrderDetails.push({
           id: "",
-          count: product.count,
+          count: packageDetail.count,
           unit_price: "1",
           remaining_count: 0,
-          product: product as Product,
-          order_id: ""
+          product: packageDetail.product as Product,
+          order_id: "",
         } as OrderDetailRead)
       }
     })

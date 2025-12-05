@@ -3,52 +3,52 @@ import { StepperState } from '../stepper.state';
 import { StepperPackageActions } from '../actions/stepper-package.actions';
 import { UiPackage } from '@features/stepper/components/ui-models/ui-package.model';
 import { UiPallet } from '@features/stepper/components/ui-models/ui-pallet.model';
-import { UiProduct } from '@features/stepper/components/ui-models/ui-product.model';
-import { mapPackageDetailToPackage } from '@features/mappers/package-detail.mapper';
 import { calculatePackageChanges } from '@features/stepper/components/pallet-control/package-changes.helper';
 import { mapUiPackagesToOrderDetails } from '@features/mappers/ui-package-to-order-detail.mapper';
 import { OrderDetailDiffCalculator } from '@features/utils/order-detail-diff.util';
 import { v4 as Guid } from 'uuid';
-import { Order } from '@app/features/interfaces/order.interface';
-import { Package } from '@app/features/interfaces/package.interface';
-import { IUiPackage } from '@app/features/stepper/interfaces/ui-interfaces/ui-package.interface';
+import { PackageDetailReadDto } from '@app/features/interfaces/package-detail.interface';
 import { toInteger } from 'lodash';
+import { mapPackageReadDtoListToIUiPackageList } from '@app/features/mappers/package.mapper';
+import { IUiPackage } from '@app/features/stepper/interfaces/ui-interfaces/ui-package.interface';
 
 // Helper Functions
-const consolidateProducts = (products: UiProduct[]): UiProduct[] => {
-  const consolidatedMap = new Map<string, UiProduct>();
+const consolidatePackageDetails = (packageDetails: PackageDetailReadDto[]): PackageDetailReadDto[] => {
+  const consolidatedMap = new Map<string, PackageDetailReadDto>();
 
-  for (const product of products) {
-    const existing = consolidatedMap.get(product.id);
+  for (const packageDetail of packageDetails) {
+    const existing = consolidatedMap.get(packageDetail.id);
 
     if (existing) {
       consolidatedMap.set(
-        product.id,
-        new UiProduct({
+        packageDetail.id,
+        {
           ...existing,
-          count: existing.count + product.count
-        })
+          count: existing.count + packageDetail.count
+        }
       );
     } else {
-      consolidatedMap.set(product.id, new UiProduct({ ...product }));
+      consolidatedMap.set(packageDetail.id, { ...packageDetail });
     }
   }
   return Array.from(consolidatedMap.values());
 };
 
 const createEmptyPackage = (packageNo: number, order: any) => (
-  new UiPackage({
+  {
     id: Guid(),
-    pallet: null,
-    products: [],
-    order: order,
+    order_id: order.id,
     name: `${packageNo}`,
-    isSavedInDb: false,
-  })
+    pallet: null,
+    height: 2400,
+    package_details: [],
+    is_remaining: true,
+    alignment: "h"
+  }
 )
 
-const ensureEmptyPackageAdded = (packages: any[], order: any): any => {
-  if (packages.some(pkg => pkg.pallet === null || pkg.products.length === 0))
+const ensureEmptyPackageAdded = (packages: IUiPackage[], order: any): any => {
+  if (packages.some(pkg => pkg.pallet === null || pkg.package_details.length === 0))
     return packages;
   return [...packages, createEmptyPackage(packages.length + 1, order)];
 };
@@ -76,9 +76,29 @@ export const stepperPackageHandlers = [
     }
   }),
 
+  on(StepperPackageActions.calculateOrderDetailChanges, (state: StepperState) => {
+    const mapperOrderDetails = mapUiPackagesToOrderDetails(state.step2State.packages);
+    const changes = OrderDetailDiffCalculator.calculateDiff(
+      mapperOrderDetails,
+      state.step1State.originalOrderDetails,
+      state.step2State.remainingProducts
+    );
+
+    return {
+      ...state,
+      step1State: {
+        ...state.step1State,
+        orderDetails: [...mapperOrderDetails],
+        added: changes.added.map(od => ({ ...od })),
+        modified: changes.modified.map(od => ({ ...od })),
+        deletedIds: [...changes.deletedIds],
+      }
+    };
+  }),
+
   // Calculate Package Detail Success
   on(StepperPackageActions.calculatePackageDetailSuccess, (state: StepperState, { packages }) => {
-    const remainingProducts: any[] = [];
+    let remainingProducts: any[] = [];
     const order = state.order;
     if (!order) return state;
 
@@ -88,19 +108,19 @@ export const stepperPackageHandlers = [
         parseFloat(pkg.pallet?.dimension.depth.toString() ?? '0') *
         parseFloat(order.max_pallet_height.toString() ?? '0');
 
-      const productsVolume = pkg.products.reduce((sum: number, product: any) => {
+      const productsVolume = pkg.package_details.reduce((sum: number, packageDetail: PackageDetailReadDto) => {
         const productVolume =
-          parseFloat(product.dimension.width) *
-          parseFloat(product.dimension.height) *
-          parseFloat(product.dimension.depth) *
-          product.count;
+          packageDetail.product.dimension.width *
+          packageDetail.product.dimension.height *
+          packageDetail.product.dimension.depth *
+          packageDetail.count;
         return sum + productVolume;
       }, 0);
 
       const fillRate = (productsVolume / palletVolume) * 100;
 
       if (fillRate < 30) {
-        remainingProducts.push(...pkg.products);
+        remainingProducts.push(...pkg.package_details);
         return false;
       }
 
@@ -155,19 +175,19 @@ export const stepperPackageHandlers = [
 
   // Merge Remaining Products
   on(StepperPackageActions.mergeRemainingProducts, (state: StepperState) => {
-    const currentProducts = state.step2State.remainingProducts;
-    const mergedMap = new Map<string, UiProduct>();
+    const currentPackageDetails = state.step2State.remainingProducts;
+    const mergedMap = new Map<string, PackageDetailReadDto>();
 
-    currentProducts.forEach(product => {
-      const existing = mergedMap.get(product.id);
+    currentPackageDetails.forEach(packageDetail => {
+      const existing = mergedMap.get(packageDetail.product.id);
 
       if (existing) {
-        mergedMap.set(product.id, new UiProduct({
+        mergedMap.set(packageDetail.product.id, {
           ...existing,
-          count: existing.count + product.count
-        }));
+          count: existing.count + packageDetail.count
+        });
       } else {
-        mergedMap.set(product.id, new UiProduct({ ...product }));
+        mergedMap.set(packageDetail.product.id, { ...packageDetail });
       }
     });
 
@@ -183,9 +203,9 @@ export const stepperPackageHandlers = [
   }),
 
   // Delete Remaining Product
-  on(StepperPackageActions.deleteRemainingProduct, (state: StepperState, { productUiId }) => {
+  on(StepperPackageActions.deleteRemainingProduct, (state: StepperState, { packageDetailId }) => {
     const remainingProducts = state.step2State.remainingProducts;
-    const updatedRemainingProducts = remainingProducts.filter(p => p.ui_id !== productUiId);
+    const updatedRemainingProducts = remainingProducts.filter(pd => pd.id !== packageDetailId);
 
     return {
       ...state,
@@ -197,21 +217,21 @@ export const stepperPackageHandlers = [
   }),
 
   // Add Ui Product To Remaining Products
-  on(StepperPackageActions.addUiProductToRemainingProducts, (state: StepperState, { productUiId }) => {
-    const product = state.step2State.packages.flatMap(p => p.products).find(p => p.ui_id === productUiId)
-    if (!product) {
+  on(StepperPackageActions.addPackageDetailToRemainingProducts, (state: StepperState, { packageDetailId }) => {
+    const packageDetail = state.step2State.packages.flatMap(pkg => pkg.package_details).find(pd => pd.id === packageDetailId)
+    if (!packageDetail) {
       return state;
     }
 
     const remainingProducts = state.step2State.remainingProducts;
-    const alreadyExists = remainingProducts.some(p => p.ui_id === product.ui_id);
+    const alreadyExists = remainingProducts.some(pd => pd.id === packageDetail.id);
 
     if (alreadyExists) {
       return state;
     }
 
-    const newProduct = {
-      ...product,
+    const newPackageDetail = {
+      ...packageDetail,
       count: 1,
     };
 
@@ -219,7 +239,7 @@ export const stepperPackageHandlers = [
       ...state,
       step2State: {
         ...state.step2State,
-        remainingProducts: [...remainingProducts, newProduct],
+        remainingProducts: [...remainingProducts, newPackageDetail],
       }
     };
   }),
@@ -240,12 +260,12 @@ export const stepperPackageHandlers = [
   }),
 
   // Move Product To Remaining Products
-  on(StepperPackageActions.moveProductToRemainingProducts, (state: StepperState, { uiProducts, previousIndex, previousContainerId }) => {
-    const sourceProducts = [...uiProducts];
-    const removedProduct = sourceProducts.splice(previousIndex, 1)[0];
+  on(StepperPackageActions.movePackageDetailToRemainingProducts, (state: StepperState, { packageDetails, previousIndex, previousContainerId }) => {
+    const sourcePackageDetails = [...packageDetails];
+    const removedPackageDetail = sourcePackageDetails.splice(previousIndex, 1)[0];
 
     const currentRemainingProducts = state.step2State.remainingProducts; // Store'dan mevcut array'i al
-    const updatedRemainingProducts = [...currentRemainingProducts, removedProduct];
+    const updatedRemainingProducts = [...currentRemainingProducts, removedPackageDetail];
 
     const currentPackages = state.step2State.packages;
     const sourcePackage = currentPackages.find(pkg =>
@@ -254,7 +274,7 @@ export const stepperPackageHandlers = [
 
     if (sourcePackage) {
       const updatedPackages = currentPackages.map(pkg =>
-        pkg.id === sourcePackage.id ? new UiPackage({ ...pkg, products: sourceProducts }) : pkg
+        pkg.id === sourcePackage.id ? new UiPackage({ ...pkg, package_details: sourcePackageDetails }) : pkg
       ) as UiPackage[];
 
       return {
@@ -272,29 +292,29 @@ export const stepperPackageHandlers = [
   // Move Remaining Product To Package
   on(StepperPackageActions.moveRemainingProductToPackage, (state: StepperState, { targetPackageId, previousIndex }) => {
 
-    const sourceProducts = [...state.step2State.remainingProducts];
+    const sourcePackageDetails = [...state.step2State.remainingProducts];
     const targetPackage = state.step2State.packages.find(p => p.id === targetPackageId)
     if (!targetPackage) return state;
-    const targetProducts = [...targetPackage.products];
+    const targetPackageDetails = [...targetPackage.package_details];
 
-    const removedProduct = sourceProducts.splice(previousIndex, 1)[0];
+    const removedProduct = sourcePackageDetails.splice(previousIndex, 1)[0];
 
-    const existingProductIndex = targetProducts.findIndex(p =>
+    const existingProductIndex = targetPackageDetails.findIndex(p =>
       p.id === removedProduct.id
     );
 
     if (existingProductIndex !== -1) {
-      targetProducts[existingProductIndex] = new UiProduct({
-        ...targetProducts[existingProductIndex],
-        count: targetProducts[existingProductIndex].count + removedProduct.count
-      });
+      targetPackageDetails[existingProductIndex] = {
+        ...targetPackageDetails[existingProductIndex],
+        count: targetPackageDetails[existingProductIndex].count + removedProduct.count
+      };
     } else {
-      targetProducts.push(new UiProduct({
+      targetPackageDetails.push({
         ...removedProduct,
-      }));
+      });
     }
 
-    const updatedPackage = { ...targetPackage, products: targetProducts };
+    const updatedPackage = { ...targetPackage, package_details: targetPackageDetails };
     const updatedPackages = state.step2State.packages.map(pkg =>
       pkg.id === updatedPackage.id ? updatedPackage : pkg
     ) as UiPackage[];
@@ -305,7 +325,7 @@ export const stepperPackageHandlers = [
       step2State: {
         ...state.step2State,
         packages: ensureEmptyPackageAdded(updatedPackages, state.order),
-        remainingProducts: [...sourceProducts]
+        remainingProducts: [...sourcePackageDetails]
       }
     }
   }),
@@ -318,40 +338,40 @@ export const stepperPackageHandlers = [
       return state;
     }
 
-    const sourceProducts = [...state.step2State.remainingProducts];
-    const product = sourceProducts[previousIndex];
+    const sourcePackageDetails = [...state.step2State.remainingProducts];
+    const packageDetail = sourcePackageDetails[previousIndex];
 
-    if (!product) {
+    if (!packageDetail) {
       return state;
     }
 
-    const targetProducts = [...targetPackage.products];
-    const remainingCount = product.count - maxCount;
+    const targetPackageDetails = [...targetPackage.package_details];
+    const remainingCount = packageDetail.count - maxCount;
 
     if (remainingCount > 0) {
-      sourceProducts[previousIndex] = {
-        ...product,
+      sourcePackageDetails[previousIndex] = {
+        ...packageDetail,
         count: remainingCount
       };
     } else {
-      sourceProducts.splice(previousIndex, 1);
+      sourcePackageDetails.splice(previousIndex, 1);
     }
 
-    const existingProductIndex = targetProducts.findIndex(p => p.id === product.id);
+    const existingPackageDetailIndex = targetPackageDetails.findIndex(p => p.id === packageDetail.id);
 
-    if (existingProductIndex !== -1) {
-      targetProducts[existingProductIndex] = {
-        ...targetProducts[existingProductIndex],
-        count: targetProducts[existingProductIndex].count + maxCount
+    if (existingPackageDetailIndex !== -1) {
+      targetPackageDetails[existingPackageDetailIndex] = {
+        ...targetPackageDetails[existingPackageDetailIndex],
+        count: targetPackageDetails[existingPackageDetailIndex].count + maxCount
       };
     } else {
-      targetProducts.push({
-        ...product,
+      targetPackageDetails.push({
+        ...packageDetail,
         count: maxCount
       });
     }
 
-    const updatedPackage = { ...targetPackage, products: targetProducts };
+    const updatedPackage = { ...targetPackage, package_details: targetPackageDetails };
     const updatedPackages = state.step2State.packages.map(pkg =>
       pkg.id === targetPackageId ? updatedPackage : { ...pkg }
     );
@@ -361,7 +381,7 @@ export const stepperPackageHandlers = [
       step2State: {
         ...state.step2State,
         packages: ensureEmptyPackageAdded(updatedPackages, state.order),
-        remainingProducts: sourceProducts
+        remainingProducts: sourcePackageDetails
 
       }
     };
@@ -383,11 +403,6 @@ export const stepperPackageHandlers = [
       pkg.id === targetPackage.id ? { ...targetPackage, pallet: palletClone } : pkg
     ) as UiPackage[];
 
-    const updatedPackage = {
-      ...targetPackage,
-      pallet: palletClone
-    }
-
     return {
       ...state,
       step2State: {
@@ -403,15 +418,15 @@ export const stepperPackageHandlers = [
     if (!pkg || !pkg.pallet) return state;
 
     let updatedRemainingProducts;
-    if (pkg.products?.length > 0) {
-      const uiProducts = pkg.products;
+    if (pkg.package_details?.length > 0) {
+      const packageDetails = pkg.package_details;
       const currentRemainingProducts = state.step2State.remainingProducts;
-      updatedRemainingProducts = [...currentRemainingProducts, ...uiProducts];
+      updatedRemainingProducts = [...currentRemainingProducts, ...packageDetails];
     }
 
     const currentPackages = state.step2State.packages;
     const updatedPackages = currentPackages.map(uiPackage =>
-      uiPackage.id === pkg.id ? { ...pkg, pallet: null, products: [] } : uiPackage
+      uiPackage.id === pkg.id ? { ...pkg, pallet: null, package_details: [] } : uiPackage
     ) as UiPackage[];
 
     return {
@@ -425,7 +440,7 @@ export const stepperPackageHandlers = [
   }),
 
   // Move Ui Product In Same Package
-  on(StepperPackageActions.moveUiProductInSamePackage, (state: StepperState, { packageId, previousIndex, currentIndex }) => {
+  on(StepperPackageActions.movePackageDetailInSamePackage, (state: StepperState, { packageId, previousIndex, currentIndex }) => {
     const currentPackages = state.step2State.packages;
     const targetPackageIndex = currentPackages.findIndex(pkg => pkg.id === packageId);
 
@@ -433,16 +448,16 @@ export const stepperPackageHandlers = [
       const updatedPackages = [...currentPackages];
       const targetPackage = { ...updatedPackages[targetPackageIndex] };
 
-      const updatedProducts = [...targetPackage.products];
-      const [removed] = updatedProducts.splice(previousIndex, 1);
-      updatedProducts.splice(currentIndex, 0, removed);
+      const updatedPackageDetails = [...targetPackage.package_details];
+      const [removed] = updatedPackageDetails.splice(previousIndex, 1);
+      updatedPackageDetails.splice(currentIndex, 0, removed);
 
-      const productsWithUpdatedPriority = updatedProducts.map((product: any, index: number) => ({
-        ...product,
+      const packageDetailsWithUpdatedPriority = updatedPackageDetails.map((packageDetail: PackageDetailReadDto, index: number) => ({
+        ...packageDetail,
         priority: index
       }));
 
-      targetPackage.products = productsWithUpdatedPriority;
+      targetPackage.package_details = packageDetailsWithUpdatedPriority;
       updatedPackages[targetPackageIndex] = targetPackage;
 
       return {
@@ -458,7 +473,7 @@ export const stepperPackageHandlers = [
   }),
 
   // Move Ui Product In Package To Package
-  on(StepperPackageActions.moveUiProductInPackageToPackage, (state: StepperState, { sourcePackageId, targetPackageId, previousIndex }) => {
+  on(StepperPackageActions.movePackageDetailInPackageToPackage, (state: StepperState, { sourcePackageId, targetPackageId, previousIndex }) => {
 
     if (sourcePackageId === targetPackageId) {
       return state;
@@ -468,17 +483,17 @@ export const stepperPackageHandlers = [
     if (!sourcePackage || !targetPackage) return state;
 
 
-    const sourceProducts = [...sourcePackage.products];
-    let targetProducts = [...targetPackage.products];
-    const [removedProduct] = sourceProducts.splice(previousIndex, 1);
+    const sourcePackageDetails = [...sourcePackage.package_details];
+    let targetPackageDetails = [...targetPackage.package_details];
+    const [removedPackageDetail] = sourcePackageDetails.splice(previousIndex, 1);
 
-    targetProducts = targetProducts.map(p => p.id === removedProduct.id ? new UiProduct({ ...p, count: p.count + removedProduct.count }) : new UiProduct({ ...p }))
+    targetPackageDetails = targetPackageDetails.map(pd => pd.product.id === removedPackageDetail.product.id ? { ...pd, count: pd.count + removedPackageDetail.count } : { ...pd })
 
-    if (targetProducts.findIndex(p => p.id === removedProduct.id) === -1)
-      targetProducts.push(removedProduct);
+    if (targetPackageDetails.findIndex(p => p.product.id === removedPackageDetail.product.id) === -1)
+      targetPackageDetails.push(removedPackageDetail);
 
-    const updatedSourcePackage = { ...sourcePackage, products: sourceProducts };
-    const updatedTargetPackage = { ...targetPackage, products: targetProducts };
+    const updatedSourcePackage = { ...sourcePackage, package_details: sourcePackageDetails };
+    const updatedTargetPackage = { ...targetPackage, package_details: targetPackageDetails };
 
     const updatedPackages = state.step2State.packages.map(pkg => {
       if (pkg.id === sourcePackage.id) return updatedSourcePackage;
@@ -497,7 +512,7 @@ export const stepperPackageHandlers = [
   }),
 
   // Move Partial Product Between Packages
-  on(StepperPackageActions.movePartialProductBetweenPackages, (state: StepperState, { sourcePackageId, targetPackageId, previousIndex, maxCount }) => {
+  on(StepperPackageActions.movePartialPackageDetailBetweenPackages, (state: StepperState, { sourcePackageId, targetPackageId, previousIndex, maxCount }) => {
 
     // 1. Package'leri bul
     const sourcePackage = state.step2State.packages.find(p => p.id === sourcePackageId);
@@ -509,42 +524,42 @@ export const stepperPackageHandlers = [
     }
 
     // 2. Product array'lerini kopyala
-    const sourceProducts = [...sourcePackage.products];
-    const targetProducts = [...targetPackage.products];
+    const sourcePackageDetails = [...sourcePackage.package_details];
+    const targetPackageDetails = [...targetPackage.package_details];
 
-    const product = sourceProducts[previousIndex];
+    const packageDetail = sourcePackageDetails[previousIndex];
 
     // ✅ KRITIK: Product check
-    if (!product) {
+    if (!packageDetail) {
       return state;
     }
 
     // 3. Source'dan azalt
-    const remainingCount = product.count - maxCount;
+    const remainingCount = packageDetail.count - maxCount;
 
     if (remainingCount > 0) {
       // ✅ Plain object kullan
-      sourceProducts[previousIndex] = {
-        ...product,
+      sourcePackageDetails[previousIndex] = {
+        ...packageDetail,
         count: remainingCount
       };
     } else {
-      sourceProducts.splice(previousIndex, 1);
+      sourcePackageDetails.splice(previousIndex, 1);
     }
 
     // 4. Target'a ekle
-    const existingProductIndex = targetProducts.findIndex(p => p.id === product.id);
+    const existingPackageDetailIndex = targetPackageDetails.findIndex(p => p.id === packageDetail.id);
 
-    if (existingProductIndex !== -1) {
+    if (existingPackageDetailIndex !== -1) {
       // ✅ Plain object kullan
-      targetProducts[existingProductIndex] = {
-        ...targetProducts[existingProductIndex],
-        count: targetProducts[existingProductIndex].count + maxCount
+      targetPackageDetails[existingPackageDetailIndex] = {
+        ...targetPackageDetails[existingPackageDetailIndex],
+        count: targetPackageDetails[existingPackageDetailIndex].count + maxCount
       };
     } else {
       // ✅ Plain object kullan
-      targetProducts.push({
-        ...product,
+      targetPackageDetails.push({
+        ...packageDetail,
         count: maxCount
       });
     }
@@ -552,11 +567,11 @@ export const stepperPackageHandlers = [
     // 5. Package'leri güncelle - ✅ Plain object
     const updatedSourcePackage = {
       ...sourcePackage,
-      products: sourceProducts
+      package_details: sourcePackageDetails
     };
     const updatedTargetPackage = {
       ...targetPackage,
-      products: targetProducts
+      package_details: targetPackageDetails
     };
 
     // 6. Tüm packages array'ini güncelle - ✅ Her şeyi kopyala
@@ -565,8 +580,6 @@ export const stepperPackageHandlers = [
       if (pkg.id === targetPackageId) return updatedTargetPackage;
       return { ...pkg };  // ✅ Diğer package'leri de kopyala
     });
-
-
 
     // 8. Yeni state döndür
     return {
@@ -579,7 +592,7 @@ export const stepperPackageHandlers = [
   }),
 
   // Remove Product From Package
-  on(StepperPackageActions.removeProductFromPackage, (state: StepperState, { pkgId, productIndex }) => {
+  on(StepperPackageActions.removePackageDetailFromPackage, (state: StepperState, { pkgId, packageDetailIndex }) => {
     const currentPackages = state.step2State.packages;
     const pkg = currentPackages.find(p => p.id === pkgId);
 
@@ -588,21 +601,21 @@ export const stepperPackageHandlers = [
     }
 
     const currentRemainingProducts = state.step2State.remainingProducts;
-    const productToRemove = pkg.products[productIndex];
+    const productToRemove = pkg.package_details[packageDetailIndex];
 
     if (!productToRemove) {
       return state;
     }
 
-    const updatedPackageProducts = [...pkg.products];
-    const removedProduct = updatedPackageProducts.splice(productIndex, 1)[0];
+    const updatedPackageDetails = [...pkg.package_details];
+    const removedPackageDetail = updatedPackageDetails.splice(packageDetailIndex, 1)[0];
 
-    const updatedPackage = { ...pkg, products: updatedPackageProducts };
+    const updatedPackage = { ...pkg, package_details: updatedPackageDetails };
     const updatedPackages = currentPackages.map(p =>
       p.id === pkgId ? updatedPackage : { ...p }
     );
 
-    const updatedRemainingProducts = [...currentRemainingProducts, { ...removedProduct }];
+    const updatedRemainingProducts = [...currentRemainingProducts, { ...removedPackageDetail }];
 
     return {
       ...state,
@@ -624,8 +637,8 @@ export const stepperPackageHandlers = [
     let updatedPackages = currentPackages.filter(p => p.id !== packageId);
     updatedPackages.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }))
 
-    const remainingProducts = consolidateProducts(
-      state.step2State.remainingProducts.concat(packageToDelete.products || [])
+    const remainingProducts = consolidatePackageDetails(
+      state.step2State.remainingProducts.concat(packageToDelete.package_details || [])
     );
 
     return {
@@ -640,20 +653,17 @@ export const stepperPackageHandlers = [
 
   // Remove All Package
   on(StepperPackageActions.removeAllPackage, (state: StepperState) => {
-    const allProducts: UiProduct[] = [];
+    const allPackageDetails: PackageDetailReadDto[] = [];
 
     for (const pkg of state.step2State.packages) {
-      if (pkg.products?.length > 0) {
-        const uiProducts = pkg.products.map((product: any) =>
-          product instanceof UiProduct ? product : new UiProduct(product)
-        );
-        allProducts.push(...uiProducts);
+      if (pkg.package_details?.length > 0) {
+        allPackageDetails.push(...pkg.package_details);
       }
     }
 
-    const remainingProducts = consolidateProducts([
+    const remainingProducts = consolidatePackageDetails([
       ...state.step2State.remainingProducts,
-      ...allProducts
+      ...allPackageDetails
     ]);
 
     return {
@@ -667,33 +677,33 @@ export const stepperPackageHandlers = [
   }),
 
   // Split Product
-  on(StepperPackageActions.splitProduct, (state: StepperState, { productUiId, splitCount }) => {
-    const product = state.step2State.remainingProducts.find(p => p.ui_id === productUiId);
+  on(StepperPackageActions.splitPackageDetail, (state: StepperState, { packageDetailId, splitCount }) => {
+    const packageDetail = state.step2State.remainingProducts.find(pd => pd.id === packageDetailId);
 
-    if (!product) {
+    if (!packageDetail) {
       return state;
     }
 
-    if (product.count <= 1) {
+    if (packageDetail.count <= 1) {
       return state;
     }
 
-    const currentProducts = state.step2State.remainingProducts;
+    const currentPackageDetails = state.step2State.remainingProducts;
     let validatedCount: number;
     let isCustomSplit = false;
 
     if (splitCount !== undefined && splitCount !== null) {
-      if (splitCount <= 0 || splitCount >= product.count) {
+      if (splitCount <= 0 || splitCount >= packageDetail.count) {
         return state;
       }
       validatedCount = splitCount;
       isCustomSplit = true;
     } else {
-      validatedCount = Math.floor(product.count / 2);
+      validatedCount = Math.floor(packageDetail.count / 2);
       isCustomSplit = false;
     }
 
-    const originalIndex = currentProducts.findIndex(p => p.ui_id === productUiId);
+    const originalIndex = currentPackageDetails.findIndex(pd => pd.id === packageDetailId);
 
     if (originalIndex === -1) {
       return state;
@@ -703,33 +713,33 @@ export const stepperPackageHandlers = [
 
     if (isCustomSplit) {
       const firstPart = {
-        ...product,
-        ui_id: Guid(),
+        ...packageDetail,
+        id: Guid(),
         count: validatedCount,
       };
 
       const secondPart = {
-        ...product,
-        ui_id: Guid(),
-        count: product.count - validatedCount,
+        ...packageDetail,
+        id: Guid(),
+        count: packageDetail.count - validatedCount,
       };
 
-      remainingProducts = [...currentProducts];
+      remainingProducts = [...currentPackageDetails];
       remainingProducts.splice(originalIndex, 1, firstPart, secondPart);
     } else {
       const firstHalf = {
-        ...product,
-        ui_id: Guid(),
+        ...packageDetail,
+        id: Guid(),
         count: validatedCount,
       };
 
       const secondHalf = {
-        ...product,
-        ui_id: Guid(),
-        count: product.count - validatedCount,
+        ...packageDetail,
+        id: Guid(),
+        count: packageDetail.count - validatedCount,
       };
 
-      remainingProducts = [...currentProducts];
+      remainingProducts = [...currentPackageDetails];
       remainingProducts.splice(originalIndex, 1, firstHalf, secondHalf);
     }
 
@@ -743,31 +753,28 @@ export const stepperPackageHandlers = [
   }),
 
   // Update Product Count And Create Or Update Order Detail
-  on(StepperPackageActions.updateProductCountAndCreateOrUpdateOrderDetail, (state: StepperState, { product, count }) => {
+  on(StepperPackageActions.upsertPackageDetailCount, (state: StepperState, { packageDetail, count }) => {
     const existingRemainingProductIndex = state.step2State.remainingProducts.findIndex(
-      item => item.ui_id === product.ui_id
+      item => item.product.id === packageDetail.product.id
     );
 
     let updatedRemainingProducts = [...state.step2State.remainingProducts];
 
     if (existingRemainingProductIndex !== -1) {
       updatedRemainingProducts = updatedRemainingProducts.map((p, i) =>
-        i === existingRemainingProductIndex ? { ...p, count: count } : { ...p }
+        i === existingRemainingProductIndex ? { ...p, count: count || 0 } : { ...p }
       );
     } else {
-      const newUiProduct: any = {
-        ...product,
-        ui_id: Guid(),
-        count: count,
+      const newPackageDetail: PackageDetailReadDto = {
+        ...packageDetail,
+        id: Guid(),
+        count: 0,
       };
-      updatedRemainingProducts = [...updatedRemainingProducts, newUiProduct];
+      updatedRemainingProducts = [...updatedRemainingProducts, newPackageDetail];
     }
 
     return {
       ...state,
-      step1State: {
-        ...state.step1State,
-      },
       step2State: {
         ...state.step2State,
         remainingProducts: updatedRemainingProducts
@@ -803,41 +810,30 @@ export const stepperPackageHandlers = [
   }),
 
   // Package Details Upsert Many Success
-  on(StepperPackageActions.upsertManySuccess, (state: StepperState, { packageDetails }) => {
-    const uiPackages = mapPackageDetailToPackage(packageDetails);
-    uiPackages.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
-    const emptyPacageNo = toInteger(uiPackages.at(-1)?.name) + 1;
-
+  on(StepperPackageActions.upsertManySuccess, (state: StepperState, { packages }) => {
+    packages.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
+    const emptyPacageNo = toInteger(packages.at(-1)?.name) + 1;
+    const uiPackages = mapPackageReadDtoListToIUiPackageList(packages)
     return {
       ...state,
       completedStep: 2,
       step2State: {
         ...state.step2State,
         packages: [...uiPackages, createEmptyPackage(emptyPacageNo, state.order)],
-        originalPackages: uiPackages,
+        originalPackages: packages,
         addedPackages: [],
         modifiedPackages: [],
         deletedPackageIds: [],
-        isDirty: false
       }
     };
   }),
 
   // Calculate Package Changes
   on(StepperPackageActions.calculatePackageChanges, (state: StepperState) => {
-    console.log('[Reducer] calculatePackageChanges - Başlatılıyor');
 
-    const packages = state.step2State.packages.map(
-      (pkg: any) => new UiPackage({ ...pkg })
-    );
-    const originalPackages = state.step2State.originalPackages.map(
-      (pkg: any) => new UiPackage({ ...pkg })
-    );
+    const packages = state.step2State.packages;
+    const originalPackages = state.step2State.originalPackages;
 
-    console.log('[Reducer] calculatePackageChanges - Paket sayıları:', {
-      packagesCount: packages.length,
-      originalPackagesCount: originalPackages.length
-    });
 
     const changes = calculatePackageChanges(packages, originalPackages);
     const isDirty = originalPackages.length === 0
@@ -846,11 +842,6 @@ export const stepperPackageHandlers = [
         changes.modified.length > 0 ||
         changes.deletedIds.length > 0);
 
-    console.log('[Reducer] calculatePackageChanges - Changes hesaplandı:', {
-      addedCount: changes.added.length,
-      modifiedCount: changes.modified.length,
-      deletedCount: changes.deletedIds.length
-    });
 
     return {
       ...state,
