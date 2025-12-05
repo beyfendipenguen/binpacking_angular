@@ -44,6 +44,25 @@ export const stepperResultHandlers = [
     }
   })),
 
+  on(StepperResultActions.addDeletedPackageIdList, (state: StepperState, { packageIds }) => {
+    const packageIdSet = new Set(packageIds);
+
+    return {
+      ...state,
+      step2State: {
+        ...state.step2State,
+        packages: state.step2State.packages.map(pkg => ({
+          ...pkg,
+          is_remaining: !packageIdSet.has(pkg.id)
+        }))
+      },
+      step3State: {
+        ...state.step3State,
+        deletedPackageIds: [...packageIds]
+      }
+    };
+  }),
+
   // Result Step Submit
   on(StepperResultActions.resultStepSubmit, (state: StepperState, { orderResult, packageNames }) => {
     const currentPackages = state.step2State.packages;

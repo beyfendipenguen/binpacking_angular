@@ -303,7 +303,7 @@ export class ResultStepComponent implements OnInit, OnDestroy {
     resetStepper: boolean,
     deletedPackages: any[]
   ): Promise<void> {
-    const dialogRef = this.dialog.open(CancelConfirmationDialogComponent, {
+  const dialogRef = this.dialog.open(CancelConfirmationDialogComponent, {
       width: '400px',
       maxWidth: '95vw',
       disableClose: true,
@@ -311,8 +311,9 @@ export class ResultStepComponent implements OnInit, OnDestroy {
       data: {
         header: 'Yerleştirilmeyen paketler var!',
         title: 'Bütün paketler yerleştirilmemiş veya sığmıyor olabilir.',
-        info: 'Eğer bu şekilde devam etmek isterseniz yerleştirilmeyen ürünler siparişten kaldırılacaktır.',
-        confirmButtonText: 'Yine de devam et.'
+        info: 'Lütfen devam edebilmek için paketleri 2. adıma dönerek kontrol edin veya silin',
+        rejectButtonText: 'Tamam',
+        showYesButton:false
       }
     });
 

@@ -809,7 +809,9 @@ export class PalletControlComponent
           header: "Yerleştirilmeyen  Ürünler Var!",
           title: "Kalan ürünleri yerleştirmeniz gerekmektedir",
           info: "Eğer bu şekide devam etmek isterseniz yerleştirilmeyen ürünler siparişten kaldırılacaktır.",
-          confirmButtonText: "Yine de devam et."
+          confirmButtonText: "Yine de devam et.",
+          showYesButton: true,
+          rejectButtonText:"Geri dön."
         }
       });
 

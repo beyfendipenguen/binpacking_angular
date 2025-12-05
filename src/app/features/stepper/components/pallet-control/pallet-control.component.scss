@@ -1359,6 +1359,65 @@ form {
   background-color: $background-color;
 }
 
+
+/* ===============================
+isRemaining
+==================================*/
+.package-card {
+  border: 1px solid $primary-color;
+  border-radius: 8px;
+  background-color: $white;
+  display: flex;
+  flex-direction: column;
+  height: 300px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  position: relative;
+
+  &.remaining-package {
+    border: 2px dashed #ff9800;
+    background-color: rgba(255, 152, 0, 0.03);
+
+    .package-header {
+      background: repeating-linear-gradient(
+        45deg,
+        #ff9800,
+        #ff9800 10px,
+        #f57c00 10px,
+        #f57c00 20px
+      );
+      position: relative;
+
+      &::before {
+        content: '⚠';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 30px;
+        z-index: 15;
+        animation: shake-center 3s ease-in-out infinite;
+      }
+    }
+
+    &:hover {
+      border-style: solid;
+      background-color: rgba(255, 152, 0, 0.08);
+    }
+  }
+}
+
+@keyframes shake-center {
+  0%, 100% { transform: translate(-50%, -50%) rotate(0deg); }
+  10%, 30% { transform: translate(-50%, -50%) rotate(-5deg); }
+  20%, 40% { transform: translate(-50%, -50%) rotate(5deg); }
+  50%, 90% { transform: translate(-50%, -50%) rotate(0deg); }
+}
+
+/* ===============================
+end isRemaining
+==================================*/
+
 /* =====================
    PALET CONTAINER
 ===================== */

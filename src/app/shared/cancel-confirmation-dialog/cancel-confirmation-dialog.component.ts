@@ -17,7 +17,7 @@ export class CancelConfirmationDialogComponent {
 
   constructor(
     public dialogRef: MatDialogRef<CancelConfirmationDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: { header: string, title: string, info: string, confirmButtonText: string }
+    @Inject(MAT_DIALOG_DATA) public data: { header: string, title: string, info: string, confirmButtonText: string, showYesButton: true, rejectButtonText: "Hayır" }
   ) { }
 
   onNoClick(): void {

@@ -229,7 +229,7 @@
 
       <div class="packages-grid">
         @for(package of uiPackages(); track package.id){
-        <div class="package-card">
+        <div class="package-card"  [class.remaining-package]="!package.is_remaining">
           <div class="package-header">
             <div class="package-title">
               <mat-icon>inbox</mat-icon>

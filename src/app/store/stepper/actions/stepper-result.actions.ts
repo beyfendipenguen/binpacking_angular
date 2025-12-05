@@ -21,5 +21,8 @@ export const StepperResultActions = createActionGroup({
     //SetOrderResultId
     'Set Order Result Id': props<{ orderResultId: string }>(),
 
+    //Delete Package
+    'Add Deleted Package Id List': props<{packageIds:string[]}>(),
+
   }
 });

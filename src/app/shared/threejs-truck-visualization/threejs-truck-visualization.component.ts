@@ -19,7 +19,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import * as THREE from 'three';
 import { Store } from '@ngrx/store';
-import { AppState, selectStep3IsDirty, selectTruck } from '../../store';
+import { AppState, selectStep3IsDirty, selectTruck, StepperResultActions } from '../../store';
 import { StepperUiActions } from '@app/store/stepper/actions/stepper-ui.actions';
 import { ThreeJSRenderManagerService } from './services/threejs-render-manager.service';
 import { ThreeJSComponents, ThreeJSInitializationService } from './services/threejs-initialization.service';
@@ -370,6 +370,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
 
       if (piece[0] === -1 && piece[1] === -1 && piece[2] === -1) {
         deleted.push(pkg);
+
       } else {
         processed.push(pkg);
       }
@@ -377,6 +378,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
 
     this.processedPackagesSignal.set(processed);
     if (deleted.length !== 0) {
+      this.store.dispatch(StepperResultActions.addDeletedPackageIdList({packageIds:deleted.map(p=>p.pkgId)}))
       this.deletedPackagesSignal.set(deleted);
     }
   }
@@ -1017,7 +1019,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
 
 
       this.deletedPackagesSignal.update(arr => [...arr, deletedPackage]);
-
+      this.store.dispatch(StepperResultActions.addDeletedPackageIdList({packageIds:this.deletedPackagesSignal().map(p=>p.pkgId)}))
       if (deletedPackage.originalColor) {
         this.releaseColor(deletedPackage.originalColor);
       }
@@ -1036,6 +1038,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
 
   restorePackage(packageData: PackageData): void {
     this.deletedPackagesSignal.update(arr => arr.filter(pkg => pkg.id !== packageData.id));
+    this.store.dispatch(StepperResultActions.addDeletedPackageIdList({packageIds:this.deletedPackagesSignal().map(p=>p.pkgId)}))
 
     let validPosition = this.findValidPosition(packageData);
 
@@ -1081,6 +1084,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
       this.renderManager.requestRender();
     } else {
       this.deletedPackagesSignal.update(arr => [...arr, packageData]);
+      this.store.dispatch(StepperResultActions.addDeletedPackageIdList({packageIds:this.deletedPackagesSignal().map(p=>p.pkgId)}))
     }
   }
 

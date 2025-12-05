@@ -23,7 +23,7 @@ export class UiPackage implements IUiPackage {
     this.height = init.height || 2400;
     this.order_id = init.order_id || "";
     this.package_details = init.package_details || [];
-    this.is_remaining = init.is_remaining || true;
+    this.is_remaining = init.is_remaining || false
     this.alignment = init.alignment || "h";
   }
 

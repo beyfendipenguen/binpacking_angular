@@ -59,6 +59,7 @@ export interface StepperState {
     hasThreeJSError: boolean;
     processedPackages: string[];
     isDirty: boolean;
+    deletedPackageIds:string[];
   };
 }
 
@@ -105,7 +106,8 @@ export const initialStepperState: StepperState = {
     currentViewType: 'isometric',
     processedPackages: [],
     hasThreeJSError: false,
-    isDirty: false
+    isDirty: false,
+    deletedPackageIds:[]
   },
 
 };

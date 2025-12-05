@@ -17,11 +17,13 @@
   <mat-dialog-actions>
     <button mat-stroked-button (click)="onNoClick()" class="no-button">
       <mat-icon>close</mat-icon>
-      <span>Hayır</span>
+      <span>{{data.rejectButtonText}}</span>
     </button>
-    <button mat-raised-button (click)="onYesClick()" class="yes-button" cdkFocusInitial>
-      <mat-icon>check</mat-icon>
-      <span>{{data.confirmButtonText}}</span>
-    </button>
+    @if(data.showYesButton){
+      <button mat-raised-button (click)="onYesClick()" class="yes-button" cdkFocusInitial>
+        <mat-icon>check</mat-icon>
+        <span>{{data.confirmButtonText}}</span>
+      </button>
+    }
   </mat-dialog-actions>
 </div>
