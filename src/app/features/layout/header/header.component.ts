@@ -85,7 +85,10 @@ export class HeaderComponent implements OnInit {
         header: "İşlemi İptal Et",
         title: "İşlemi iptal etmek istediğinizden emin misiniz?",
         info: "Girdiğiniz tüm bilgiler kaybolacaktır.",
-        confirmButtonText: "Evet, İptal Et"
+        confirmButtonText: "Evet, İptal Et",
+        showYesButton: true,
+        rejectButtonText: "Hayır"
+
       }
     });
 

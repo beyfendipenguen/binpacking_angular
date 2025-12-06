@@ -9,6 +9,8 @@ import { RepositoryService } from '@features/stepper/services/repository.service
 import { StepperUiActions } from '../actions/stepper-ui.actions';
 import { StepperResultActions } from '../actions/stepper-result.actions';
 import { OrderService } from '@app/features/services/order.service';
+import { StepperGeneralEffects } from './stepper-general.effects';
+import { AuthService } from '@app/core/auth/services/auth.service';
 
 @Injectable()
 export class StepperResultEffects {
@@ -16,6 +18,9 @@ export class StepperResultEffects {
   private store = inject(Store<AppState>);
   private repositoryService = inject(RepositoryService);
   private oderService = inject(OrderService);
+  private authService = inject(AuthService);
+
+  // Result Step Submit
 
   // is dirty degilse ise reset stepepr/
   // is dirty ise backend git gel rest stepper true mu bak
@@ -30,7 +35,7 @@ export class StepperResultEffects {
       ),
       tap(([action]) => {
         if (action.resetStepper) {
-          this.store.dispatch(StepperUiActions.resetStepper())
+          this.authService.clearLocalAndStore();
         }
       }),
       filter(([, isDirty]) => isDirty),
