@@ -51,10 +51,8 @@ export class ThreeJSModelCacheService {
       const metadata = this.getCacheMetadata();
 
       if (metadata && this.isCacheMetadataValid(metadata)) {
-        console.log('[ModelCache] Valid metadata found, cache will be used on first load');
         ThreeJSModelCacheService.isCacheValid = true;
       } else {
-        console.log('[ModelCache] No valid metadata, fresh load required');
         this.clearCache();
       }
     } catch (error) {
@@ -69,13 +67,11 @@ export class ThreeJSModelCacheService {
   async getModels(): Promise<CachedModel> {
     // Cache geçerliyse ve yüklüyse, direk döndür
     if (ThreeJSModelCacheService.isCacheValid && ThreeJSModelCacheService.modelCache) {
-      console.log('[ModelCache] Returning cached models');
       return Promise.resolve(ThreeJSModelCacheService.modelCache);
     }
 
     // Zaten yükleme devam ediyorsa, aynı promise'i döndür (중복 방지)
     if (ThreeJSModelCacheService.isLoading && ThreeJSModelCacheService.loadingPromise) {
-      console.log('[ModelCache] Loading already in progress, returning existing promise');
       return ThreeJSModelCacheService.loadingPromise;
     }
 
@@ -104,7 +100,6 @@ export class ThreeJSModelCacheService {
    * Load models from files
    */
   private async loadModels(): Promise<CachedModel> {
-    console.log('[ModelCache] Loading models from files...');
 
     const baseUrl = window.location.origin;
     const truckPath = `${baseUrl}/assets/models/truck/truck.gltf`;
@@ -115,8 +110,6 @@ export class ThreeJSModelCacheService {
         this.loadGLTF(truckPath),
         this.loadGLTF(wheelPath)
       ]);
-
-      console.log('[ModelCache] Models loaded successfully');
 
       return {
         truck: truckGltf.scene,
@@ -137,10 +130,6 @@ export class ThreeJSModelCacheService {
       this.gltfLoader.load(
         path,
         (gltf) => resolve(gltf),
-        (progress) => {
-          const percent = (progress.loaded / progress.total) * 100;
-          console.log(`[ModelCache] Loading ${path}: ${percent.toFixed(0)}%`);
-        },
         (error) => reject(error)
       );
     });
@@ -160,7 +149,6 @@ export class ThreeJSModelCacheService {
    * Clear cache completely
    */
   clearCache(): void {
-    console.log('[ModelCache] Clearing cache...');
 
     // Dispose geometries and materials
     if (ThreeJSModelCacheService.modelCache) {
@@ -207,7 +195,6 @@ export class ThreeJSModelCacheService {
       };
 
       localStorage.setItem(this.CACHE_KEY, JSON.stringify(metadata));
-      console.log('[ModelCache] Metadata saved to localStorage');
     } catch (error) {
       console.error('[ModelCache] Failed to save metadata:', error);
     }
@@ -234,14 +221,12 @@ export class ThreeJSModelCacheService {
   private isCacheMetadataValid(metadata: ModelMetadata): boolean {
     // Version check
     if (metadata.version !== this.CACHE_VERSION) {
-      console.log('[ModelCache] Version mismatch, cache invalid');
       return false;
     }
 
     // Expiry check
     const expiryTime = metadata.timestamp + (this.CACHE_EXPIRY_DAYS * 24 * 60 * 60 * 1000);
     if (Date.now() > expiryTime) {
-      console.log('[ModelCache] Cache expired');
       return false;
     }
 

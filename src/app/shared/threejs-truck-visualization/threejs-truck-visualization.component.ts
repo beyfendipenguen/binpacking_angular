@@ -148,17 +148,14 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
   constructor() { }
 
   ngOnInit(): void {
-    console.log('[Component] ngOnInit - Başlatılıyor');
     this.isLoadingModels = true;
     this.isLoadingSignal.set(true);
   }
 
   async ngAfterViewInit(): Promise<void> {
-    console.log('[Component] ngAfterViewInit - Three.js başlatılıyor');
 
     try {
       await this.initializeThreeJS();
-      console.log('[Component] Three.js başarıyla başlatıldı');
     } catch (error) {
       console.error('[Component] Three.js başlatma hatası:', error);
       this.hasThreeJSError = true;
@@ -178,7 +175,6 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
   }
 
   ngOnDestroy(): void {
-    console.log('[Component] ngOnDestroy - Cleanup başlatılıyor');
     this.isDestroyed = true;
     this.cleanup();
   }
@@ -194,8 +190,6 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
 
       const container = this.threeContainer.nativeElement;
       const truckDims = this.truckDimension();
-
-      console.log('[Component] Initialization başlatılıyor...', { truckDims });
 
       // Initialize via service
       this.threeComponents = await this.initService.initialize({
@@ -242,8 +236,6 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
       this.isLoadingModels = false;
       this.isLoadingSignal.set(false);
       this.isViewReady = true;
-
-      console.log('[Component] Initialization tamamlandı');
 
       // Force initial render
       this.renderManager.requestRender();
@@ -1340,7 +1332,6 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
   // ========================================
 
   private cleanup(): void {
-    console.log('[Component] Cleanup başlatılıyor...');
 
     this.isDragging = false;
     this.isRotatingCamera = false;
@@ -1369,7 +1360,6 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
 
     this.usedColors.clear();
 
-    console.log('[Component] Cleanup tamamlandı');
   }
 
   /**

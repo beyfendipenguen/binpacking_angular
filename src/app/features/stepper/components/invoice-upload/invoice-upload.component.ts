@@ -194,7 +194,6 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
     setTimeout(() => {
       this.showMessageBalloon.set(true);
       setTimeout(() => {
-        console.log('Balon gizleniyor');
         this.showMessageBalloon.set(false);
       }, 4000);
     }, 1000);

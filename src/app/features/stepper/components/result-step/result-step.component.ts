@@ -104,7 +104,7 @@ export class ResultStepComponent implements OnInit, OnDestroy {
   constructor() { }
 
   ngOnInit(): void {
-    console.log('[ResultStep] Component initialized');
+
   }
 
   ngOnDestroy(): void {
@@ -117,7 +117,6 @@ export class ResultStepComponent implements OnInit, OnDestroy {
   // ========================================
 
   calculateBinpacking(): void {
-    console.log('[ResultStep] Starting binpacking calculation...');
 
     this.isLoading = true;
     this.isLoadingSignal.set(true);
@@ -151,7 +150,6 @@ export class ResultStepComponent implements OnInit, OnDestroy {
       )
       .subscribe({
         next: (result) => {
-          console.log('[ResultStep] Calculation successful:', result);
 
           this.orderResultId = result.orderResultId;
           this.piecesData = result.piecesData;
@@ -270,7 +268,6 @@ export class ResultStepComponent implements OnInit, OnDestroy {
       return;
     }
 
-    console.log('[ResultStep] Complete shipment called');
     this.completeOrder(true);
   }
 
@@ -279,7 +276,6 @@ export class ResultStepComponent implements OnInit, OnDestroy {
   // ========================================
 
   async completeOrder(resetStepper: boolean): Promise<void> {
-    console.log('[ResultStep] Complete order:', { resetStepper });
 
     try {
       // Convert pieces to JSON

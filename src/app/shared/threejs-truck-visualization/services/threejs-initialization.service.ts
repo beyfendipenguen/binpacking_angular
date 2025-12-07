@@ -43,7 +43,6 @@ export class ThreeJSInitializationService {
    * Initialize complete Three.js environment
    */
   async initialize(config: ThreeJSConfig): Promise<ThreeJSComponents> {
-    console.log('[ThreeJSInit] Starting initialization...');
 
     // 1. Basic components
     const scene = this.createScene();
@@ -81,8 +80,6 @@ export class ThreeJSInitializationService {
 
     // 8. Create wireframe for truck container
     this.createTruckWireframe(truckGroup, config.truckDimensions);
-
-    console.log('[ThreeJSInit] Initialization complete');
 
     return {
       scene,
@@ -365,8 +362,6 @@ export class ThreeJSInitializationService {
    * Cleanup Three.js resources
    */
   cleanup(components: Partial<ThreeJSComponents>): void {
-    console.log('[ThreeJSInit] Cleaning up resources...');
-
     // Dispose renderer
     if (components.renderer) {
       components.renderer.dispose();

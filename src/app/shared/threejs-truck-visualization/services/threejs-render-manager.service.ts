@@ -49,7 +49,6 @@ export class ThreeJSRenderManagerService {
       return;
     }
 
-    console.log('[RenderManager] Starting render loop');
     this.isRendering = true;
     this.needsRender = true; // İlk frame'i render et
 
@@ -84,7 +83,6 @@ export class ThreeJSRenderManagerService {
    * Stop render loop
    */
   stopRenderLoop(): void {
-    console.log('[RenderManager] Stopping render loop');
     this.isRendering = false;
 
     if (this.animationFrameId !== null) {

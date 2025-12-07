@@ -774,14 +774,8 @@ export class PalletControlComponent
   }
 
   calculatePackageDetail() {
-    if (this.orderDetailsIsDirtySignal())
-      console.log('order details dirty')
-    // this.store.dispatch(
-    //   StepperOrderActions.updateOrderDetails()
-    // );
-    else {
+    if (!this.orderDetailsIsDirtySignal())
       this.store.dispatch(StepperPackageActions.calculatePackageDetail());
-    }
   }
 
   toggleAlignment(_package: any): void {

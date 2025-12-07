@@ -47,17 +47,11 @@ export class ResultStepService {
     piecesData: any[];
     reportFiles: ReportFile[];
   }> {
-    console.log('[ResultStepService] Starting calculation...');
 
     return this.repositoryService.calculatePacking().pipe(
-      tap(response => {
-        console.log('[ResultStepService] Packing calculated:', response.data.order_result_id);
-      }),
       switchMap(packingResponse => {
         const orderResultId = packingResponse.data.order_result_id;
         const piecesData = this.processPiecesData(packingResponse.data.data || packingResponse.data);
-
-        console.log('[ResultStepService] Generating report...');
 
         return this.repositoryService.createReport(this.orderIdSignal()).pipe(
           map(reportResponse => ({
