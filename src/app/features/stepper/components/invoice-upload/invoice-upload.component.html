@@ -246,11 +246,13 @@
       </div>
     </div>
   </div>
-  }
-
   <!-- Navigation Controls -->
   <button mat-button class="next-button" (click)="submit()" [disabled]="!orderSignal() || !isFormValid()">
     <mat-icon>arrow_forward</mat-icon>
     <span>{{isOrderDetailsDirtySignal() || isOrderDirtySignal() ? 'KAYDET' : 'İLERİ'}}</span>
   </button>
+  }
+
+
+
 </div>
