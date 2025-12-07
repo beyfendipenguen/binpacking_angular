@@ -214,7 +214,7 @@
         [nestedDisplayColumns]="nestedDisplayColumns" [parentId]="orderSignal()?.id " [useParentId]="true"
         [parentIdFieldName]="'order_id'" [title]="''" [showRowNumbers]="true" (addClick)="openOrderDetailAddDialog()"
         (externalDataUpdate)="updateOrderDetail($event)" (externalDataDelete)="deleteOrderDetail($event)"
-        [excludeFields]="excludeFields">
+        [excludeFields]="excludeFields" [showDeleteButton]="!hasPackages()" [showAddButton]="!hasPackages()" [showUpdateButton]="!hasPackages()">
       </app-generic-table>
 
       <div class="summary-footer">

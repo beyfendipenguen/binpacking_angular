@@ -14,10 +14,9 @@ import {
   computed
 } from '@angular/core';
 import { MatButton } from '@angular/material/button';
-import { DomSanitizer } from '@angular/platform-browser';
 import { MatIconModule } from '@angular/material/icon';
 import { CommonModule } from '@angular/common';
-import { Subject, firstValueFrom } from 'rxjs';
+import { Subject } from 'rxjs';
 import { takeUntil, finalize, take, withLatestFrom } from 'rxjs/operators';
 
 import { Store } from '@ngrx/store';
@@ -26,7 +25,7 @@ import { ToastService } from '@core/services/toast.service';
 import { CancelConfirmationDialogComponent } from '@shared/cancel-confirmation-dialog/cancel-confirmation-dialog.component';
 import { ThreeJSTruckVisualizationComponent } from '@shared/threejs-truck-visualization/threejs-truck-visualization.component';
 
-import { AppState, selectRemainingProducts, selectStep3IsDirty, selectPackages, selectOrderId, selectIsEditMode, selectHasRevisedOrder } from '@app/store';
+import { AppState, selectRemainingProducts, selectStep3IsDirty, selectOrderId, selectIsEditMode, selectHasRevisedOrder } from '@app/store';
 import { StepperUiActions } from '@app/store/stepper/actions/stepper-ui.actions';
 import { StepperResultActions } from '@app/store/stepper/actions/stepper-result.actions';
 import { ReportFile, ResultStepService } from './result-step.service';
@@ -158,7 +157,6 @@ export class ResultStepComponent implements OnInit, OnDestroy {
           this.piecesData = result.piecesData;
           this.originalPiecesData = JSON.parse(JSON.stringify(result.piecesData));
           this.reportFiles = result.reportFiles;
-
           this.hasResults = true;
           this.hasResultsSignal.set(true);
 
@@ -167,6 +165,9 @@ export class ResultStepComponent implements OnInit, OnDestroy {
           }));
 
           this.toastService.success('Paketleme ve rapor başarıyla oluşturuldu');
+          if(this.originalPiecesData.find(pkg => pkg[0] === -1 && pkg[1] === -1 && pkg[2] === -1)){
+            this.store.dispatch(StepperResultActions.setIsDirty({ isDirty: true }))
+          }
           this.cdr.markForCheck();
         },
         error: (error) => {
@@ -256,6 +257,10 @@ export class ResultStepComponent implements OnInit, OnDestroy {
   // ========================================
 
   goPreviousStep(): void {
+    const deletedPackages = this.threeJSComponent?.deletedPackagesSignal() || [];
+    if(deletedPackages.length > 0){
+      this.resetComponent()
+    }
     this.store.dispatch(StepperUiActions.navigateToStep({ stepIndex: 1 }));
   }
 
@@ -285,9 +290,9 @@ export class ResultStepComponent implements OnInit, OnDestroy {
       const deletedPackages = this.threeJSComponent?.deletedPackagesSignal() || [];
 
       if (deletedPackages.length > 0) {
-        await this.handleDeletedPackages(orderResult, resetStepper, deletedPackages);
+        await this.warningDialog();
       } else {
-        this.submitOrderResult(orderResult, resetStepper, []);
+        this.submitOrderResult(orderResult, resetStepper);
       }
     } catch (error) {
       console.error('[ResultStep] Complete order error:', error);
@@ -298,12 +303,8 @@ export class ResultStepComponent implements OnInit, OnDestroy {
   /**
    * Handle deleted packages confirmation
    */
-  private async handleDeletedPackages(
-    orderResult: string,
-    resetStepper: boolean,
-    deletedPackages: any[]
-  ): Promise<void> {
-  const dialogRef = this.dialog.open(CancelConfirmationDialogComponent, {
+  private async warningDialog(): Promise<void> {
+    this.dialog.open(CancelConfirmationDialogComponent, {
       width: '400px',
       maxWidth: '95vw',
       disableClose: true,
@@ -316,20 +317,6 @@ export class ResultStepComponent implements OnInit, OnDestroy {
         showYesButton:false
       }
     });
-
-    const result = await firstValueFrom(dialogRef.afterClosed());
-
-    if (result === true) {
-      const packageNames = deletedPackages.map(pckg => pckg.id.toString());
-      this.submitOrderResult(orderResult, resetStepper, packageNames);
-
-      // Clear deleted packages
-      if (this.threeJSComponent) {
-        this.threeJSComponent.deletedPackagesSignal.set([]);
-      }
-    } else {
-      console.log('[ResultStep] User cancelled submission');
-    }
   }
 
   /**
@@ -337,13 +324,11 @@ export class ResultStepComponent implements OnInit, OnDestroy {
    */
   private submitOrderResult(
     orderResult: string,
-    resetStepper: boolean,
-    packageNames: string[]
+    resetStepper: boolean
   ): void {
     console.log('[ResultStep] Submitting order result:', {
       orderResult,
-      resetStepper,
-      packageNamesCount: packageNames.length
+      resetStepper
     });
 
     // Reset UI state if needed
@@ -354,7 +339,7 @@ export class ResultStepComponent implements OnInit, OnDestroy {
     }
 
     // Submit order result
-    this.store.dispatch(StepperResultActions.resultStepSubmit({ orderId: this.orderIdSignal(), orderResult, resetStepper, packageNames: this.threeJSComponent.deletedPackagesSignal().map(pckg => pckg.id.toString()), }))
+    this.store.dispatch(StepperResultActions.resultStepSubmit({ orderId: this.orderIdSignal(), orderResult, resetStepper}))
 
 
     // Emit completion
@@ -389,4 +374,37 @@ export class ResultStepComponent implements OnInit, OnDestroy {
       return error?.message || 'Beklenmeyen bir hata oluştu.';
     }
   }
+
+  /**
+   * Component'i başlangıç haline getirir
+   * - Tüm state'leri temizler
+   * - Progress simulation'ı durdurur
+   * - Three.js component'i reset eder
+   */
+  resetComponent(): void {
+    this.stopProgressSimulation();
+
+    this.isLoadingSignal.set(false);
+    this.hasResultsSignal.set(false);
+    this.pendingFile.set(null);
+
+    this.piecesData = [];
+    this.originalPiecesData = [];
+    this.orderResultId = '';
+    this.reportFiles = [];
+    this.currentViewType = 'isometric';
+
+    this.isLoading = false;
+    this.hasResults = false;
+    this.hasThreeJSError = false;
+    this.optimizationProgress = 0;
+
+    if (this.threeJSComponent) {
+      this.threeJSComponent.reset();
+    }
+    this.store.dispatch(StepperResultActions.setIsDirty({ isDirty: false }));
+
+    this.cdr.markForCheck();
+  }
 }
+

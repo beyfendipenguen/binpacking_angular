@@ -4,7 +4,7 @@ export const StepperResultActions = createActionGroup({
   source: 'Stepper Result',
   events: {
     // Submit
-    'Result Step Submit': props<{ orderId: string, orderResult: string, resetStepper: boolean, packageNames?: string[] }>(),
+    'Result Step Submit': props<{ orderId: string, orderResult: string, resetStepper: boolean}>(),
     'Result Step Submit Success': emptyProps(),
     'Result Step Submit Error': props<{ error: string }>(),
 
@@ -23,6 +23,9 @@ export const StepperResultActions = createActionGroup({
 
     //Delete Package
     'Add Deleted Package Id List': props<{packageIds:string[]}>(),
+
+    // Set is dirty
+    'Set Is Dirty': props<{ isDirty: boolean }>(),
 
   }
 });

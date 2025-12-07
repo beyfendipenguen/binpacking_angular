@@ -9,7 +9,6 @@ import { RepositoryService } from '@features/stepper/services/repository.service
 import { StepperUiActions } from '../actions/stepper-ui.actions';
 import { StepperResultActions } from '../actions/stepper-result.actions';
 import { OrderService } from '@app/features/services/order.service';
-import { StepperGeneralEffects } from './stepper-general.effects';
 import { AuthService } from '@app/core/auth/services/auth.service';
 
 @Injectable()

@@ -1371,4 +1371,110 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
 
     console.log('[Component] Cleanup tamamlandı');
   }
+
+  /**
+   * Component'i tamamen sıfırlar ve başlangıç haline getirir
+   * - Three.js scene'i temizler
+   * - Tüm package'ları kaldırır
+   * - Camera'yı default pozisyona alır
+   * - State'leri ve signals'ları sıfırlar
+   * - Store'u günceller
+   */
+  reset(): void {
+
+    if (this.isDragging) {
+      this.cancelDragging();
+    }
+    if (this.isRotatingCamera) {
+      this.stopCameraRotation();
+    }
+    if (this.isPanningCamera) {
+      this.stopCameraPanning();
+    }
+
+    if (this.hoverThrottleTimeout) {
+      clearTimeout(this.hoverThrottleTimeout);
+      this.hoverThrottleTimeout = null;
+    }
+
+    this.isLoadingSignal.set(false);
+    this.isDataLoadingSignal.set(false);
+    this.deletedPackagesSignal.set([]);
+    this.processedPackagesSignal.set([]);
+    this.selectedPackageSignal.set(null);
+
+    if (this.packagesGroup) {
+      this.processedPackagesSignal().forEach(pkg => {
+        if (pkg.mesh) {
+          this.packagesGroup.remove(pkg.mesh);
+          pkg.mesh = undefined;
+        }
+      });
+      this.packagesGroup.clear();
+    }
+
+    this.piecesData = [];
+
+    this.isLoadingModels = false;
+    this.isLoadingData = false;
+    this.hasThreeJSError = false;
+    this.dragModeEnabled = true;
+    this.wireframeMode = false;
+    this.currentView = 'isometric';
+    this.showControls = true;
+    this.showStats = true;
+    this.showCollisionWarning = false;
+
+    this.isDragging = false;
+    this.draggedPackage = null;
+    this.isRotatingCamera = false;
+    this.isPanningCamera = false;
+    this.lastMouseX = 0;
+    this.lastMouseY = 0;
+    this.lastPanMouseX = 0;
+    this.lastPanMouseY = 0;
+    this.mouseDownTime = 0;
+    this.mouseMoved = false;
+
+    if (this.camera && this.threeContainer) {
+      const truckDims = this.truckDimension();
+
+      this.cameraTarget.set(
+        truckDims[0] / 2,
+        truckDims[2] / 2,
+        truckDims[1] / 2
+      );
+
+      const maxDim = Math.max(...truckDims);
+      const distance = maxDim * 1.5;
+      this.cameraBaseDistance = distance;
+      this.zoomLevel = 10;
+
+      this.camera.position.set(
+        this.cameraTarget.x + distance * 0.4,
+        this.cameraTarget.y + distance * 0.4,
+        this.cameraTarget.z + distance * 0.4
+      );
+      this.camera.lookAt(this.cameraTarget);
+    }
+
+    if (this.dragPlane) {
+      this.dragPlane.setFromNormalAndCoplanarPoint(
+        new THREE.Vector3(0, 1, 0),
+        new THREE.Vector3(0, 0, 0)
+      );
+    }
+
+    this.usedColors.clear();
+
+    if (this.renderer?.domElement) {
+      this.renderer.domElement.style.cursor = 'grab';
+    }
+
+    if (this.renderManager) {
+      this.renderManager.requestRender();
+    }
+
+    this.cdr.markForCheck();
+  }
 }

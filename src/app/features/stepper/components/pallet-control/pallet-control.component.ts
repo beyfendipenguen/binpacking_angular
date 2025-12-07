@@ -41,7 +41,7 @@ import {
   selectIsOrderDetailsDirty,
   selectUiPackages,
   allDropListIds,
-  hasPackage,
+  hasPackages,
   hasRemainingProduct,
   packageDropListIds,
   palletDropListIds,
@@ -141,7 +141,7 @@ export class PalletControlComponent
 
   public availablePallets = this.store.selectSignal(selectUiPallets);
 
-  public hasPackage = this.store.selectSignal(hasPackage);
+  public hasPackages = this.store.selectSignal(hasPackages);
   public uiPackageCount = this.store.selectSignal(uiPackageCount);
   public hasRemainingProduct = this.store.selectSignal(hasRemainingProduct);
   public remainingProductCount = this.store.selectSignal(remainingProductCount);

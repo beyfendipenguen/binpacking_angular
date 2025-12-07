@@ -176,7 +176,7 @@ export const selectUiPallets = createSelector(selectStep2State, (state) =>
 
 export const hasRemainingProduct = createSelector(selectStep2State, (state) => state.remainingProducts.length > 0)
 export const uiPackageCount = createSelector(selectStep2State, (state) => state.packages.length)
-export const hasPackage = createSelector(selectStep2State, (state) => state.packages.length > 0)
+export const hasPackages = createSelector(selectStep2State, (state) => state.packages.length > 0)
 export const remainingProductCount = createSelector(selectStep2State, (state) => state.remainingProducts.length)
 
 export const allDropListIds = createSelector(selectPackages, (packages) => {

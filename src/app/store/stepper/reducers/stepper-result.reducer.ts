@@ -62,45 +62,25 @@ export const stepperResultHandlers = [
       }
     };
   }),
+  // Set Is Dirty
+  on(StepperResultActions.setIsDirty, (state: StepperState, { isDirty }) => ({
+    ...state,
+    step3State: {
+      ...state.step3State,
+      isDirty: isDirty
+    }
+  })),
+
 
   // Result Step Submit
-  on(StepperResultActions.resultStepSubmit, (state: StepperState, { orderResult, packageNames }) => {
-    const currentPackages = state.step2State.packages;
-    let packagesToKeep = [...currentPackages];
-    if (!!packageNames && packageNames.length > 0) {
-      packagesToKeep = currentPackages.filter(
-        (pkg) => !packageNames.some((packageName) => packageName == pkg.name)
-      );
-    }
-    let mergeOrderDetails;
-    const mapperOrderDetails = mapUiPackagesToOrderDetails(packagesToKeep)
-    const changes = OrderDetailDiffCalculator.calculateDiff(
-      mapperOrderDetails,
-      state.step1State.originalOrderDetails,
-      []
-    )
-    mergeOrderDetails = [...mapperOrderDetails]
-
-
+  on(StepperResultActions.resultStepSubmit, (state: StepperState, { orderResult }) => {
     return {
       ...state,
-      step1State: {
-        ...state.step1State,
-        orderDetails: mergeOrderDetails,
-        added: changes.added.map(od => ({ ...od })),
-        modified: changes.modified.map(od => ({ ...od })),
-        deletedIds: [...changes.deletedIds],
-      },
-      step2State: {
-        ...state.step2State,
-        packages: ensureEmptyPackageAdded(packagesToKeep, state.order)
-      },
       step3State: {
         ...state.step3State,
         orderResult: orderResult,
         hasResults: true,
       }
-
     };
   }),
 
