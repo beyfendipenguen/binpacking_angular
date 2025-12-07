@@ -21,6 +21,7 @@ $white: #ffffff;
 // ========================================
 .logistics-result-screen {
   padding: 20px;
+  padding-bottom: 100px;
   margin: 0;
   background: $light-bg;
   min-height: 100vh;
@@ -352,295 +353,652 @@ $white: #ffffff;
   // ========================================
   // REPORT FILES CONTAINER
   // ========================================
-.report-files-container {
-  background: $white;
-  border-radius: 8px;
-  padding: 20px;
-  margin-bottom: 24px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  .report-files-container {
+    background: $white;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 24px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 
-  .report-files-header {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 16px;
-    padding-bottom: 12px;
-    border-bottom: 1px solid #e0e0e0;
-    flex-wrap: wrap; // ✅ EKLE - Unsaved badge varsa wrap olsun
-
-    // ✅ Header icon style
-    mat-icon {
-      color: $primary-color;
-      font-size: 24px;
-      width: 24px;
-      height: 24px;
-    }
-
-    // ✅ Header text
-    span {
-      font-size: 16px;
-      font-weight: 600;
-      color: $primary-color;
-      flex: 1; // ✅ EKLE - Boşluğu kapla
-    }
-
-    // ✅ File count badge
-    .file-count {
-      background: $primary-color;
-      color: $white;
-      font-size: 12px;
-      padding: 4px 8px;
-      border-radius: 4px;
-      font-weight: 500;
-      // margin-left: auto; ← KALDIR (flex: 1 ile gereksiz)
-    }
-
-    // ✅ Unsaved changes badge
-    .unsaved-badge {
+    .report-files-header {
       display: flex;
       align-items: center;
-      gap: 6px;
-      background: linear-gradient(135deg, $warning-amber, color.adjust($warning-amber, $lightness: -10%));
-      color: $white;
-      padding: 6px 12px;
-      border-radius: 16px;
-      font-size: 12px;
-      font-weight: 600;
-      animation: pulse-warning 2s infinite;
-      margin-left: auto; // ✅ Sağa yasla
+      gap: 12px;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid #e0e0e0;
+      flex-wrap: wrap; // ✅ EKLE - Unsaved badge varsa wrap olsun
+
+      // ✅ Header icon style
+      mat-icon {
+        color: $primary-color;
+        font-size: 24px;
+        width: 24px;
+        height: 24px;
+      }
+
+      // ✅ Header text
+      span {
+        font-size: 16px;
+        font-weight: 600;
+        color: $primary-color;
+        flex: 1; // ✅ EKLE - Boşluğu kapla
+      }
+
+      // ✅ File count badge
+      .file-count {
+        background: $primary-color;
+        color: $white;
+        font-size: 12px;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-weight: 500;
+        // margin-left: auto; ← KALDIR (flex: 1 ile gereksiz)
+      }
+
+      // ✅ Unsaved changes badge
+      .unsaved-badge {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        background: linear-gradient(135deg, $warning-amber, color.adjust($warning-amber, $lightness: -10%));
+        color: $white;
+        padding: 6px 12px;
+        border-radius: 16px;
+        font-size: 12px;
+        font-weight: 600;
+        animation: pulse-warning 2s infinite;
+        margin-left: auto; // ✅ Sağa yasla
+
+        mat-icon {
+          font-size: 16px;
+          width: 16px;
+          height: 16px;
+          color: $white;
+        }
+      }
+    }
+
+    .report-files-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+
+      .report-file-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px;
+        background: $light-bg;
+        border-radius: 4px;
+        border: 1px solid #e0e0e0;
+        transition: all 0.3s ease;
+
+        &:hover {
+          background: rgba($primary-color, 0.1);
+          border-color: $primary-color;
+        }
+
+        // ✅ Unsaved changes indicator
+        &.has-changes {
+          border-left: 4px solid $warning-amber;
+          background: linear-gradient(135deg, rgba($warning-amber, 0.05), rgba($warning-amber, 0.1));
+
+          .file-link {
+            .save-icon {
+              color: $warning-amber;
+              animation: pulse 1s infinite;
+            }
+          }
+        }
+
+        .file-icon {
+          background: $primary-color;
+          color: $white;
+          border-radius: 4px;
+          padding: 8px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+
+          mat-icon {
+            font-size: 20px;
+            width: 20px;
+            height: 20px;
+          }
+
+          &.file-type-picture_as_pdf {
+            background: #F44336;
+          }
+
+          &.file-type-image {
+            background: #4CAF50;
+          }
+
+          &.file-type-table_chart {
+            background: $secondary-color;
+          }
+
+          &.file-type-description {
+            background: $light-secondary;
+          }
+        }
+
+        .file-info {
+          flex: 1;
+
+          .file-link {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            color: inherit;
+            cursor: pointer; // ✅ EKLE
+
+            // ✅ Save icon (unsaved changes)
+            .save-icon {
+              color: $warning-amber;
+              font-size: 18px;
+              width: 18px;
+              height: 18px;
+            }
+
+            // ✅ Saving state
+            &.saving {
+              cursor: wait;
+              opacity: 0.7;
+            }
+
+            .file-name {
+              font-weight: 600;
+              color: #333333;
+              flex: 1;
+            }
+
+            .file-size {
+              font-size: 12px;
+              color: $neutral-gray;
+              background: $white;
+              padding: 4px 8px;
+              border-radius: 4px;
+            }
+
+            // ✅ Download icon (normal state)
+            .download-icon {
+              color: $primary-color;
+              font-size: 16px;
+              width: 16px;
+              height: 16px;
+            }
+
+            &:hover .file-name {
+              color: $primary-color;
+            }
+          }
+        }
+      }
+
+      .empty-files {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 32px;
+        text-align: center;
+        color: $neutral-gray;
+        font-style: italic;
+        justify-content: center;
+
+        mat-icon {
+          font-size: 24px;
+          width: 24px;
+          height: 24px;
+        }
+      }
+    }
+
+    // ✅ Auto-save info message
+    .auto-save-info {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 16px;
+      margin-top: 12px;
+      background: linear-gradient(135deg, rgba($info-blue, 0.1), rgba($info-blue, 0.15));
+      border-radius: 8px;
+      border-left: 4px solid $info-blue;
+      font-size: 13px;
+      color: $dark-primary;
+      font-weight: 500;
 
       mat-icon {
-        font-size: 16px;
-        width: 16px;
-        height: 16px;
-        color: $white;
+        color: $info-blue;
+        font-size: 20px;
+        width: 20px;
+        height: 20px;
       }
     }
   }
 
-  .report-files-list {
-    display: flex;
+  // ========================================
+  // NAVIGATION CONTROLS
+  // ========================================
+
+  /* =====================
+   NAVİGASYON KONTROLLERI - İNCE DİKEY BUTONLAR
+===================== */
+
+  /* Geri Butonu - Solda İnce Dikey */
+  .prev-button {
+    position: fixed !important;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 100;
+
+    /* İnce dikey tasarım */
+    width: 14px !important;
+    height: 120px !important;
+    min-width: 6px !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border-radius: 0 8px 8px 0 !important;
+
+    background-color: #D6BB86 !important;
+    color: #ffffff !important;
+    box-shadow: 2px 0 8px rgba(214, 187, 134, 0.3);
+
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
     flex-direction: column;
-    gap: 8px;
 
-    .report-file-item {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 12px;
-      background: $light-bg;
-      border-radius: 4px;
-      border: 1px solid #e0e0e0;
-      transition: all 0.3s ease;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    overflow: hidden;
 
-      &:hover {
-        background: rgba($primary-color, 0.1);
-        border-color: $primary-color;
-      }
+    /* Yanıp sönme animasyonu - farklı zamanda */
+    animation: pulse-edge-button-alt 2s ease-in-out infinite;
+    animation-delay: 1s;
 
-      // ✅ Unsaved changes indicator
-      &.has-changes {
-        border-left: 4px solid $warning-amber;
-        background: linear-gradient(135deg, rgba($warning-amber, 0.05), rgba($warning-amber, 0.1));
+    span {
+      opacity: 0;
+      font-size: 12px;
+      font-weight: 600;
+      writing-mode: vertical-rl;
+      text-orientation: mixed;
+      letter-spacing: 1px;
+      white-space: nowrap;
+      color: #ffffff !important;
+      transition: opacity 0.3s ease;
+      margin: 0;
+    }
 
-        .file-link {
-          .save-icon {
-            color: $warning-amber;
-            animation: pulse 1s infinite;
-          }
-        }
-      }
+    mat-icon {
+      opacity: 0;
+      color: #ffffff !important;
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
+      margin: 8px 0 !important;
+      transition: opacity 0.3s ease;
+    }
 
-      .file-icon {
-        background: $primary-color;
-        color: $white;
-        border-radius: 4px;
-        padding: 8px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+    &:hover:not([disabled]) {
+      width: 50px !important;
+      background-color: #C0A670 !important;
+      box-shadow: 4px 0 16px rgba(214, 187, 134, 0.5);
+      animation: none;
 
-        mat-icon {
-          font-size: 20px;
-          width: 20px;
-          height: 20px;
-        }
-
-        &.file-type-picture_as_pdf {
-          background: #F44336;
-        }
-
-        &.file-type-image {
-          background: #4CAF50;
-        }
-
-        &.file-type-table_chart {
-          background: $secondary-color;
-        }
-
-        &.file-type-description {
-          background: $light-secondary;
-        }
-      }
-
-      .file-info {
-        flex: 1;
-
-        .file-link {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          text-decoration: none;
-          color: inherit;
-          cursor: pointer; // ✅ EKLE
-
-          // ✅ Save icon (unsaved changes)
-          .save-icon {
-            color: $warning-amber;
-            font-size: 18px;
-            width: 18px;
-            height: 18px;
-          }
-
-          // ✅ Saving state
-          &.saving {
-            cursor: wait;
-            opacity: 0.7;
-          }
-
-          .file-name {
-            font-weight: 600;
-            color: #333333;
-            flex: 1;
-          }
-
-          .file-size {
-            font-size: 12px;
-            color: $neutral-gray;
-            background: $white;
-            padding: 4px 8px;
-            border-radius: 4px;
-          }
-
-          // ✅ Download icon (normal state)
-          .download-icon {
-            color: $primary-color;
-            font-size: 16px;
-            width: 16px;
-            height: 16px;
-          }
-
-          &:hover .file-name {
-            color: $primary-color;
-          }
-        }
+      span,
+      mat-icon {
+        opacity: 1;
       }
     }
 
-    .empty-files {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 32px;
-      text-align: center;
-      color: $neutral-gray;
-      font-style: italic;
-      justify-content: center;
+    &[disabled] {
+      background-color: rgba(214, 187, 134, 0.3) !important;
+      cursor: not-allowed;
+      opacity: 0.4;
+      animation: none;
+
+      &:hover {
+        width: 6px !important;
+      }
+    }
+
+    &:active:not([disabled]) {
+      width: 45px !important;
+    }
+  }
+
+  /* Yanıp sönme animasyonları */
+  @keyframes pulse-edge-button {
+
+    0%,
+    100% {
+      opacity: 1;
+      box-shadow: -2px 0 8px rgba(0, 106, 106, 0.3);
+    }
+
+    50% {
+      opacity: 0.6;
+      box-shadow: -2px 0 12px rgba(0, 106, 106, 0.6);
+    }
+  }
+
+  @keyframes pulse-edge-button-alt {
+
+    0%,
+    100% {
+      opacity: 1;
+      box-shadow: 2px 0 8px rgba(214, 187, 134, 0.3);
+    }
+
+    50% {
+      opacity: 0.6;
+      box-shadow: 2px 0 12px rgba(214, 187, 134, 0.6);
+    }
+  }
+
+  /* =====================
+   RESPONSIVE - İNCE DİKEY BUTONLAR
+===================== */
+
+  /* Tablet */
+  @media (max-width: 1024px) {
+    .prev-button {
+      height: 100px !important;
+
+      &:hover:not([disabled]) {
+        width: 45px !important;
+      }
+    }
+  }
+
+  /* Mobil - Alt tarafa yatay butonlar */
+  @media (max-width: 768px) {
+    .prev-button {
+      left: 12px;
+      right: auto;
+      top: auto;
+      bottom: 16px;
+      transform: none;
+
+      width: 100px !important;
+      height: 6px !important;
+      min-width: 100px !important;
+      border-radius: 8px 8px 0 0 !important;
+
+      span {
+        writing-mode: horizontal-tb;
+        font-size: 11px;
+      }
+
+      mat-icon {
+        transform: rotate(90deg);
+        font-size: 18px;
+        width: 18px;
+        height: 18px;
+        margin: 0 6px !important;
+      }
+
+      &:hover:not([disabled]) {
+        width: 100px !important;
+        height: 44px !important;
+      }
+
+      &:active:not([disabled]) {
+        height: 40px !important;
+      }
+    }
+  }
+
+  /* Küçük mobil */
+  @media (max-width: 480px) {
+    .prev-button {
+      width: 80px !important;
+      min-width: 80px !important;
+      height: 5px !important;
+
+      &:hover:not([disabled]) {
+        width: 80px !important;
+        height: 40px !important;
+      }
+    }
+
+    .prev-button {
+      left: 8px;
+      bottom: 12px;
+    }
+  }
+
+
+  /* =====================
+    SİPARİŞİ TAMAMLA BUTONU - SÜREKLİ AÇIK
+  ===================== */
+  /* =====================
+   SİPARİŞİ TAMAMLA BUTONU - SÜREKLİ AÇIK
+===================== */
+  .complete-order-button {
+    position: fixed !important;
+    right: 0;
+    top: 50%;
+    /* Next-button ile aynı pozisyon */
+    transform: translateY(-50%);
+    z-index: 101;
+
+    /* Sürekli açık - geniş durum */
+    width: 50px !important;
+    height: 200px !important;
+    min-width: 50px !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border-radius: 12px 0 0 12px !important;
+
+    background: linear-gradient(135deg, #D6BB86 0%, #E8D4A0 100%) !important;
+    color: #ffffff !important;
+    box-shadow: -3px 0 12px rgba(214, 187, 134, 0.4);
+
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex-direction: column;
+    gap: 8px;
+
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    overflow: visible;
+
+    /* Sürekli yanıp sönme animasyonu */
+    animation: pulse-complete-button 2.5s ease-in-out infinite;
+
+    /* Icon ve text her zaman görünür */
+    mat-icon {
+      color: #ffffff !important;
+      font-size: 28px;
+      width: 28px;
+      height: 28px;
+      margin: 0 !important;
+      transition: all 0.3s ease;
+      filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+    }
+
+    span {
+      font-size: 11px;
+      font-weight: 700;
+      writing-mode: vertical-rl;
+      text-orientation: mixed;
+      letter-spacing: 2px;
+      white-space: nowrap;
+      color: #ffffff !important;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+      margin: 0;
+    }
+
+    &:hover:not([disabled]) {
+      width: 60px !important;
+      background: linear-gradient(135deg, #C0A670 0%, #D6BB86 100%) !important;
+      box-shadow: -5px 0 20px rgba(192, 166, 112, 0.6);
+      animation: none;
+      transform: translateY(-50%) translateX(-2px);
+
+      mat-icon {
+        transform: scale(1.15);
+        filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.3));
+      }
+
+      span {
+        letter-spacing: 2.5px;
+      }
+    }
+
+    &[disabled] {
+      background: linear-gradient(135deg, rgba(214, 187, 134, 0.3) 0%, rgba(232, 212, 160, 0.3) 100%) !important;
+      cursor: not-allowed;
+      opacity: 0.5;
+      animation: none;
+
+      mat-icon,
+      span {
+        opacity: 0.6;
+      }
+    }
+
+    &:active:not([disabled]) {
+      width: 55px !important;
+      transform: translateY(-50%) translateX(-1px);
+    }
+  }
+
+  /* Yanıp sönme animasyonu - kasma olmadan */
+  @keyframes pulse-complete-button {
+
+    0%,
+    100% {
+      opacity: 1;
+      box-shadow: -3px 0 12px rgba(214, 187, 134, 0.4);
+    }
+
+    50% {
+      opacity: 0.85;
+      box-shadow: -3px 0 20px rgba(214, 187, 134, 0.7),
+        0 0 30px rgba(214, 187, 134, 0.3);
+    }
+  }
+
+  /* =====================
+   RESPONSIVE
+===================== */
+
+  /* Tablet */
+  @media (max-width: 1024px) {
+    .complete-order-button {
+      width: 45px !important;
+      height: 180px !important;
 
       mat-icon {
         font-size: 24px;
         width: 24px;
         height: 24px;
       }
+
+      span {
+        font-size: 10px;
+        letter-spacing: 1.5px;
+      }
+
+      &:hover:not([disabled]) {
+        width: 55px !important;
+      }
     }
   }
 
-  // ✅ Auto-save info message
-  .auto-save-info {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 12px 16px;
-    margin-top: 12px;
-    background: linear-gradient(135deg, rgba($info-blue, 0.1), rgba($info-blue, 0.15));
-    border-radius: 8px;
-    border-left: 4px solid $info-blue;
-    font-size: 13px;
-    color: $dark-primary;
-    font-weight: 500;
+  /* Mobil - Alt tarafa yatay */
+  @media (max-width: 768px) {
+    .complete-order-button {
+      right: 12px;
+      left: auto;
+      top: auto;
+      bottom: 16px;
+      transform: translateY(0);
 
-    mat-icon {
-      color: $info-blue;
-      font-size: 20px;
-      width: 20px;
-      height: 20px;
-    }
-  }
-}
+      width: 100px !important;
+      height: 6px !important;
+      min-width: 100px !important;
+      border-radius: 8px 8px 0 0 !important;
+      flex-direction: row;
+      gap: 6px;
 
-  // ========================================
-  // NAVIGATION CONTROLS
-  // ========================================
-  .navigation-controls {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    width: 100%;
-    padding: 20px 0;
+      mat-icon {
+        opacity: 0;
+        transform: rotate(90deg);
+        font-size: 18px;
+        width: 18px;
+        height: 18px;
+      }
 
-    .stepper-controls {
-      display: flex;
-      width: 100%;
-      justify-content: space-between;
+      span {
+        opacity: 0;
+        writing-mode: horizontal-tb;
+        font-size: 11px;
+        letter-spacing: 1.5px;
+      }
 
-      .prev-button {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        padding: 12px 24px;
-        background: $white !important;
-        color: $primary-color !important;
-        border: 2px solid $primary-color;
-        border-radius: 4px;
-        font-weight: 600;
-        transition: all 0.3s ease;
+      &:hover:not([disabled]) {
+        width: 100px !important;
+        height: 44px !important;
+        transform: translateY(0);
 
-        &:hover {
-          background: rgba($primary-color, 0.1) !important;
-        }
-
-        mat-icon {
-          color: $primary-color !important;
+        mat-icon,
+        span {
+          opacity: 1;
         }
       }
 
-      .next-button {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        padding: 12px 24px;
-        background: $primary-color !important;
-        color: $white !important;
-        font-weight: 600;
-        box-shadow: 0 2px 4px rgba($primary-color, 0.3);
-        transition: all 0.3s ease;
-        margin-bottom: 70px;
+      &:active:not([disabled]) {
+        height: 40px !important;
+      }
+    }
 
-        &:hover:not([disabled]) {
-          background: $dark-primary !important;
-          box-shadow: 0 4px 8px rgba($primary-color, 0.3);
-        }
+    @keyframes pulse-complete-button {
 
-        &[disabled] {
-          background: #9ca3af !important;
-          cursor: not-allowed;
-          transform: none;
-          box-shadow: none;
-        }
+      0%,
+      100% {
+        opacity: 1;
+        box-shadow: 0 -2px 12px rgba(214, 187, 134, 0.4);
+      }
 
-        mat-icon {
-          color: $white !important;
-        }
+      50% {
+        opacity: 0.85;
+        box-shadow: 0 -2px 20px rgba(214, 187, 134, 0.7),
+          0 0 30px rgba(214, 187, 134, 0.3);
+      }
+    }
+  }
+
+  /* Küçük mobil */
+  @media (max-width: 480px) {
+    .complete-order-button {
+      width: 80px !important;
+      min-width: 80px !important;
+      height: 5px !important;
+      right: 8px;
+      bottom: 12px;
+
+      mat-icon {
+        font-size: 16px;
+        width: 16px;
+        height: 16px;
+      }
+
+      span {
+        font-size: 10px;
+        letter-spacing: 1px;
+      }
+
+      &:hover:not([disabled]) {
+        width: 80px !important;
+        height: 40px !important;
       }
     }
   }
@@ -649,31 +1007,40 @@ $white: #ffffff;
   // ANIMATIONS
   // ========================================
   @keyframes pulse-save {
-  0%, 100% {
-    box-shadow: 0 2px 4px rgba($success-green, 0.3);
-  }
-  50% {
-    box-shadow: 0 4px 16px rgba($success-green, 0.5);
-  }
-}
 
-@keyframes pulse-warning {
-  0%, 100% {
-    box-shadow: 0 0 0 0 rgba($warning-amber, 0.4);
-  }
-  50% {
-    box-shadow: 0 0 0 8px rgba($warning-amber, 0);
-  }
-}
+    0%,
+    100% {
+      box-shadow: 0 2px 4px rgba($success-green, 0.3);
+    }
 
-@keyframes pulse {
-  0%, 100% {
-    transform: scale(1);
+    50% {
+      box-shadow: 0 4px 16px rgba($success-green, 0.5);
+    }
   }
-  50% {
-    transform: scale(1.1);
+
+  @keyframes pulse-warning {
+
+    0%,
+    100% {
+      box-shadow: 0 0 0 0 rgba($warning-amber, 0.4);
+    }
+
+    50% {
+      box-shadow: 0 0 0 8px rgba($warning-amber, 0);
+    }
   }
-}
+
+  @keyframes pulse {
+
+    0%,
+    100% {
+      transform: scale(1);
+    }
+
+    50% {
+      transform: scale(1.1);
+    }
+  }
 
   // ========================================
   // RESPONSIVE DESIGN
@@ -773,27 +1140,6 @@ $white: #ffffff;
         }
       }
     }
-
-    .navigation-controls {
-      flex-direction: column;
-      gap: 16px;
-      padding: 16px;
-
-      .stepper-controls {
-        flex-direction: column;
-        gap: 12px;
-
-        .prev-button,
-        .next-button {
-          width: 100%;
-          justify-content: center;
-        }
-
-        .next-button {
-          margin-bottom: 0;
-        }
-      }
-    }
   }
 
   @media (max-width: 480px) {
@@ -803,6 +1149,7 @@ $white: #ffffff;
       padding: 8px;
 
       .action-buttons {
+
         .calculate-button,
         .save-button,
         .reset-btn {
@@ -853,6 +1200,7 @@ $white: #ffffff;
       }
     }
   }
+
   // ✅ NEW: Auto-save info message
   .auto-save-info {
     display: flex;
@@ -877,17 +1225,27 @@ $white: #ffffff;
 
   // Animations
   @keyframes pulse-warning {
-    0%, 100% {
+
+    0%,
+    100% {
       box-shadow: 0 0 0 0 rgba($warning-amber, 0.4);
     }
+
     50% {
       box-shadow: 0 0 0 8px rgba($warning-amber, 0);
     }
   }
 
   @keyframes pulse {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.1); }
+
+    0%,
+    100% {
+      transform: scale(1);
+    }
+
+    50% {
+      transform: scale(1.1);
+    }
   }
 }
 

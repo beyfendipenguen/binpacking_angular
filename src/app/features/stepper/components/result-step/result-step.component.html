@@ -159,19 +159,14 @@
   </div>
   }
 
-  <!-- Enhanced Navigation Controls -->
-  <div class="navigation-controls">
-    <div class="stepper-controls">
-      <button (click)="goPreviousStep()" mat-raised-button class="prev-button">
-        <mat-icon>arrow_back</mat-icon>
-        <span>Geri</span>
-      </button>
+  <button mat-button class="prev-button" (click)="goPreviousStep()">
+    <mat-icon>arrow_back</mat-icon>
+    <span>Geri</span>
+  </button>
 
-      <button mat-raised-button class="next-button" [disabled]="!hasResults && isDirtySignal()"
-        (click)="completeShipment()">
-        <mat-icon>check_circle</mat-icon>
-        Sevkiyatı Tamamla
-      </button>
-    </div>
-  </div>
+  <button mat-button class="complete-order-button" (click)="completeShipment()"
+    [disabled]="!hasResults && isDirtySignal()">
+    <mat-icon>check_circle</mat-icon>
+    <span>Sevkiyatı Tamamla</span>
+  </button>
 </div>

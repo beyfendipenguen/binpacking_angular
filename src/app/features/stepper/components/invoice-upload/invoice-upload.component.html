@@ -214,7 +214,8 @@
         [nestedDisplayColumns]="nestedDisplayColumns" [parentId]="orderSignal()?.id " [useParentId]="true"
         [parentIdFieldName]="'order_id'" [title]="''" [showRowNumbers]="true" (addClick)="openOrderDetailAddDialog()"
         (externalDataUpdate)="updateOrderDetail($event)" (externalDataDelete)="deleteOrderDetail($event)"
-        [excludeFields]="excludeFields" [showDeleteButton]="!hasPackages()" [showAddButton]="!hasPackages()" [showUpdateButton]="!hasPackages()">
+        [excludeFields]="excludeFields" [showDeleteButton]="!hasPackages()" [showAddButton]="!hasPackages()"
+        [showUpdateButton]="!hasPackages()">
       </app-generic-table>
 
       <div class="summary-footer">
@@ -248,12 +249,8 @@
   }
 
   <!-- Navigation Controls -->
-  <div class="navigation-controls">
-    <button mat-raised-button class="next-button" (click)="submit()" [disabled]="!orderSignal() || !isFormValid()">
-      <span>{{
-        isOrderDetailsDirtySignal() || isOrderDirtySignal() ? "Kaydet" : "İleri"
-        }}</span>
-      <mat-icon>arrow_forward</mat-icon>
-    </button>
-  </div>
+  <button mat-button class="next-button" (click)="submit()" [disabled]="!orderSignal() || !isFormValid()">
+    <mat-icon>arrow_forward</mat-icon>
+    <span>{{isOrderDetailsDirtySignal() || isOrderDirtySignal() ? 'KAYDET' : 'İLERİ'}}</span>
+  </button>
 </div>

@@ -177,6 +177,7 @@ form {
 
   &:nth-child(2) {
     border-left-color: $secondary-color;
+
     .dashboard-icon {
       background-color: $secondary-color;
     }
@@ -184,6 +185,7 @@ form {
 
   &:nth-child(3) {
     border-left-color: $accent-color;
+
     .dashboard-icon {
       background-color: $accent-color;
     }
@@ -191,6 +193,7 @@ form {
 
   &:nth-child(4) {
     border-left-color: $light-accent;
+
     .dashboard-icon {
       background-color: $light-accent;
     }
@@ -495,6 +498,7 @@ form {
     }
   }
 }
+
 /* =====================
    AUTOCOMPLETE PANEL DÜZELTİLMİŞ
 ===================== */
@@ -631,6 +635,7 @@ form {
   align-items: center;
   gap: 4px;
 }
+
 // Mevcut .section-header { ... } bloğunun ALTINA ekle
 
 .header-left {
@@ -645,6 +650,7 @@ form {
   flex-direction: row;
   gap: 4px;
 }
+
 .header-action-button {
   width: 32px !important;
   height: 32px !important;
@@ -710,12 +716,14 @@ form {
     white-space: nowrap;
   }
 }
+
 .vertical-sort-checkbox {
   margin-left: 12px !important;
   display: inline-flex !important;
   align-items: center !important;
 
   ::ng-deep {
+
     // Checkbox container
     .mdc-form-field {
       display: inline-flex !important;
@@ -800,6 +808,7 @@ form {
     margin-left: 8px !important;
 
     ::ng-deep {
+
       .mdc-checkbox,
       .mdc-checkbox__background,
       .mdc-checkbox__checkmark,
@@ -898,9 +907,11 @@ form {
 
   &.heaviest {
     border-left-color: #f44336;
+
     mat-icon {
       color: #f44336;
     }
+
     &:hover {
       background-color: rgba(244, 67, 54, 0.05);
     }
@@ -908,9 +919,11 @@ form {
 
   &.lightest {
     border-left-color: #4caf50;
+
     mat-icon {
       color: #4caf50;
     }
+
     &:hover {
       background-color: rgba(76, 175, 80, 0.05);
     }
@@ -920,9 +933,11 @@ form {
     border-left-color: #ff9800;
     gap: 10px;
     left: 10px;
+
     mat-icon {
       color: #ff9800;
     }
+
     &:hover {
       background-color: rgba(255, 152, 0, 0.05);
     }
@@ -1127,6 +1142,7 @@ form {
       z-index: 3;
     }
   }
+
   .split-button {
     @include split-button-base($split-button-size);
     position: relative;
@@ -1151,6 +1167,7 @@ form {
       }
     }
   }
+
   .action-button {
     width: 20px;
     height: 20px;
@@ -1374,25 +1391,24 @@ isRemaining
   transition: all 0.3s ease;
   position: relative;
 
+
   &.remaining-package {
     border: 2px dashed #ff9800;
     background-color: rgba(255, 152, 0, 0.03);
 
     .package-header {
-      background: repeating-linear-gradient(
-        45deg,
-        #ff9800,
-        #ff9800 10px,
-        #f57c00 10px,
-        #f57c00 20px
-      );
+      background: repeating-linear-gradient(45deg,
+          #ff9800,
+          #ff9800 10px,
+          #f57c00 10px,
+          #f57c00 20px);
       position: relative;
 
       &::before {
         content: '⚠';
         position: absolute;
         top: 50%;
-        left: 50%;
+        left: 75%;
         transform: translate(-50%, -50%);
         font-size: 30px;
         z-index: 15;
@@ -1408,10 +1424,26 @@ isRemaining
 }
 
 @keyframes shake-center {
-  0%, 100% { transform: translate(-50%, -50%) rotate(0deg); }
-  10%, 30% { transform: translate(-50%, -50%) rotate(-5deg); }
-  20%, 40% { transform: translate(-50%, -50%) rotate(5deg); }
-  50%, 90% { transform: translate(-50%, -50%) rotate(0deg); }
+
+  0%,
+  100% {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+
+  10%,
+  30% {
+    transform: translate(-50%, -50%) rotate(-5deg);
+  }
+
+  20%,
+  40% {
+    transform: translate(-50%, -50%) rotate(5deg);
+  }
+
+  50%,
+  90% {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
 }
 
 /* ===============================
@@ -1594,50 +1626,324 @@ end isRemaining
 }
 
 /* =====================
-   NAVİGASYON BUTONLARI
+   NAVİGASYON KONTROLLERI - İNCE DİKEY BUTONLAR
 ===================== */
-.navigation-controls {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 20px;
-  padding-top: 16px;
-  border-top: 1px solid $border-color;
-}
 
-.stepper-controls {
-  display: flex;
-  width: 100%; /* Bu satırı ekleyin */
-  justify-content: space-between; /* Bu satırı ekleyin */
-}
-
-.save-button,
+/* İleri Butonu - Sağda İnce Dikey */
 .next-button {
-  background-color: $primary-color !important;
-  color: $white !important;
-  margin-bottom: 70px;
-  &:hover {
-    background-color: $accent-color !important;
-    box-shadow: 0 4px 8px rgba(0, 106, 106, 0.3);
+  position: fixed !important;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 100;
+
+  /* İnce dikey tasarım */
+  width: 14px !important;
+  height: 120px !important;
+  min-width: 6px !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border-radius: 8px 0 0 8px !important;
+
+  background-color: #006A6A !important;
+  color: #ffffff !important;
+  box-shadow: -2px 0 8px rgba(0, 106, 106, 0.3);
+
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-direction: column;
+
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  overflow: hidden;
+
+  /* Yanıp sönme animasyonu */
+  animation: pulse-edge-button 2s ease-in-out infinite;
+
+  /* Başlangıçta span ve icon gizli */
+  span {
+    opacity: 0;
+    font-size: 12px;
+    font-weight: 600;
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    letter-spacing: 1px;
+    white-space: nowrap;
+    color: #ffffff !important;
+    transition: opacity 0.3s ease;
+    margin: 0;
   }
 
-  mat-icon,
-  span {
-    color: $white !important;
+  mat-icon {
+    opacity: 0;
+    color: #ffffff !important;
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+    margin: 8px 0 !important;
+    transition: opacity 0.3s ease;
+  }
+
+  &:hover:not([disabled]) {
+    width: 50px !important;
+    background-color: #004A4A !important;
+    box-shadow: -4px 0 16px rgba(0, 106, 106, 0.5);
+    animation: none;
+
+    span,
+    mat-icon {
+      opacity: 1;
+    }
+  }
+
+  &[disabled] {
+    background-color: rgba(0, 106, 106, 0.3) !important;
+    cursor: not-allowed;
+    opacity: 0.4;
+    animation: none;
+
+    &:hover {
+      width: 6px !important;
+    }
+  }
+
+  &:active:not([disabled]) {
+    width: 45px !important;
   }
 }
 
-.prev-button {
-  background-color: #f5f5f5 !important;
-  color: $text-light !important;
-  margin-bottom: 40px;
-  &:hover {
-    background-color: #e0e0e0 !important;
+/* Geri Butonu - Solda İnce Dikey */
+.prev-button,
+.back-button {
+  position: fixed !important;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 100;
+
+  /* İnce dikey tasarım */
+  width: 14px !important;
+  height: 120px !important;
+  min-width: 6px !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border-radius: 0 8px 8px 0 !important;
+
+  background-color: #D6BB86 !important;
+  color: #ffffff !important;
+  box-shadow: 2px 0 8px rgba(214, 187, 134, 0.3);
+
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-direction: column;
+
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  overflow: hidden;
+
+  /* Yanıp sönme animasyonu - farklı zamanda */
+  animation: pulse-edge-button-alt 2s ease-in-out infinite;
+  animation-delay: 1s;
+
+  span {
+    opacity: 0;
+    font-size: 12px;
+    font-weight: 600;
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    letter-spacing: 1px;
+    white-space: nowrap;
+    color: #ffffff !important;
+    transition: opacity 0.3s ease;
+    margin: 0;
   }
 
-  mat-icon,
-  span {
-    color: $text-light !important;
+  mat-icon {
+    opacity: 0;
+    color: #ffffff !important;
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+    margin: 8px 0 !important;
+    transition: opacity 0.3s ease;
+  }
+
+  &:hover:not([disabled]) {
+    width: 50px !important;
+    background-color: #C0A670 !important;
+    box-shadow: 4px 0 16px rgba(214, 187, 134, 0.5);
+    animation: none;
+
+    span,
+    mat-icon {
+      opacity: 1;
+    }
+  }
+
+  &[disabled] {
+    background-color: rgba(214, 187, 134, 0.3) !important;
+    cursor: not-allowed;
+    opacity: 0.4;
+    animation: none;
+
+    &:hover {
+      width: 6px !important;
+    }
+  }
+
+  &:active:not([disabled]) {
+    width: 45px !important;
+  }
+}
+
+/* Yanıp sönme animasyonları */
+@keyframes pulse-edge-button {
+
+  0%,
+  100% {
+    opacity: 1;
+    box-shadow: -2px 0 8px rgba(0, 106, 106, 0.3);
+  }
+
+  50% {
+    opacity: 0.6;
+    box-shadow: -2px 0 12px rgba(0, 106, 106, 0.6);
+  }
+}
+
+@keyframes pulse-edge-button-alt {
+
+  0%,
+  100% {
+    opacity: 1;
+    box-shadow: 2px 0 8px rgba(214, 187, 134, 0.3);
+  }
+
+  50% {
+    opacity: 0.6;
+    box-shadow: 2px 0 12px rgba(214, 187, 134, 0.6);
+  }
+}
+
+/* =====================
+   RESPONSIVE - İNCE DİKEY BUTONLAR
+===================== */
+
+/* Tablet */
+@media (max-width: 1024px) {
+
+  .next-button,
+  .prev-button,
+  .back-button {
+    height: 100px !important;
+
+    &:hover:not([disabled]) {
+      width: 45px !important;
+    }
+  }
+}
+
+/* Mobil - Alt tarafa yatay butonlar */
+@media (max-width: 768px) {
+  .next-button {
+    right: 12px;
+    left: auto;
+    top: auto;
+    bottom: 16px;
+    transform: none;
+
+    width: 100px !important;
+    height: 6px !important;
+    min-width: 100px !important;
+    border-radius: 8px 8px 0 0 !important;
+
+    span {
+      writing-mode: horizontal-tb;
+      font-size: 11px;
+    }
+
+    mat-icon {
+      transform: rotate(90deg);
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+      margin: 0 6px !important;
+    }
+
+    &:hover:not([disabled]) {
+      width: 100px !important;
+      height: 44px !important;
+    }
+
+    &:active:not([disabled]) {
+      height: 40px !important;
+    }
+  }
+
+  .prev-button,
+  .back-button {
+    left: 12px;
+    right: auto;
+    top: auto;
+    bottom: 16px;
+    transform: none;
+
+    width: 100px !important;
+    height: 6px !important;
+    min-width: 100px !important;
+    border-radius: 8px 8px 0 0 !important;
+
+    span {
+      writing-mode: horizontal-tb;
+      font-size: 11px;
+    }
+
+    mat-icon {
+      transform: rotate(90deg);
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+      margin: 0 6px !important;
+    }
+
+    &:hover:not([disabled]) {
+      width: 100px !important;
+      height: 44px !important;
+    }
+
+    &:active:not([disabled]) {
+      height: 40px !important;
+    }
+  }
+}
+
+/* Küçük mobil */
+@media (max-width: 480px) {
+
+  .next-button,
+  .prev-button,
+  .back-button {
+    width: 80px !important;
+    min-width: 80px !important;
+    height: 5px !important;
+
+    &:hover:not([disabled]) {
+      width: 80px !important;
+      height: 40px !important;
+    }
+  }
+
+  .next-button {
+    right: 8px;
+    bottom: 12px;
+  }
+
+  .prev-button,
+  .back-button {
+    left: 8px;
+    bottom: 12px;
   }
 }
 
@@ -1723,16 +2029,7 @@ button[mat-icon-button] {
     grid-template-columns: 1fr;
   }
 
-  .navigation-controls {
-    flex-direction: column;
-    gap: 16px;
-  }
-
   .save-button {
-    width: 100%;
-  }
-
-  .stepper-controls {
     width: 100%;
   }
 
@@ -1929,12 +2226,15 @@ button[mat-icon-button] {
       &:nth-child(1) {
         opacity: 0.6;
       }
+
       &:nth-child(2) {
         opacity: 0.75;
       }
+
       &:nth-child(3) {
         opacity: 0.9;
       }
+
       &:nth-child(4) {
         opacity: 1;
       }
