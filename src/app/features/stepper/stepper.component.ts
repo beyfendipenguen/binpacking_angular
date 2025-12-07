@@ -114,7 +114,7 @@ export class StepperComponent implements OnInit {
     if (!editModeOrderId) {
       return;
     } else if (editModeOrderId && editModeOrderId === localOrderId) {
-      this.legacyToastService.info("duzenlemek istediginiz siparis yarim kalan siparisinizdi", "edit mode ve local ayni")
+      this.legacyToastService.info("Bir önceki yarım kalan siparişi düzenliyorsunuz", "Bildirim")
       return;
     } else if (editModeOrderId) {
       this.store.dispatch(StepperUiActions.enableEditMode({ orderId: editModeOrderId }));
