@@ -82,6 +82,12 @@ export class StepperPackageEffects {
     )
   );
 
+  calculatePackageDetailSuccess$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(StepperPackageActions.calculatePackageDetailSuccess),
+      map(() => StepperUiActions.setStepCompleted({ stepIndex: 2 }))
+  ))
+
   // Paket Detaylarını Kaydetme
   packageDetailsUpsertMany$ = createEffect(() =>
     this.actions$.pipe(
