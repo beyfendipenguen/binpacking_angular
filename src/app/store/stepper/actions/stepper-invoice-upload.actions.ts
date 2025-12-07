@@ -7,9 +7,9 @@ export const StepperInvoiceUploadActions = createActionGroup({
   source: 'Stepper Invoice Upload',
   events: {
     //Order Detail
-    'upsertMany': emptyProps(),
-    'upsertManySuccess': props<{ orderDetails: OrderDetailRead[] }>(),
-    'upsertManyFailure': props<{ error: any }>(),
+    'Upsert Many': emptyProps(),
+    'Upsert Many Success': props<{ orderDetails: OrderDetailRead[] }>(),
+    'Upsert Many Failure': props<{ error: any }>(),
     // Manuel Ekleme/Silme Sonrası Triggerlar
     'Add Order Detail': props<{ orderDetail: OrderDetailRead }>(),
     'Update Order Detail': props<{ orderDetail: OrderDetailRead }>(),

@@ -1,6 +1,5 @@
 import { v4 as Guid } from 'uuid';
 import { OrderDetailRead } from '../interfaces/order-detail.interface';
-import { UiProduct } from '../stepper/components/ui-models/ui-product.model';
 import { IUiPackage } from '../stepper/interfaces/ui-interfaces/ui-package.interface';
 import { PackageDetailReadDto } from '../interfaces/package-detail.interface';
 
@@ -17,7 +16,7 @@ export function mapUiPackagesToOrderDetails(
     } else {
       acc[packageDetail.product.id] = {
         ...packageDetail,
-        count: acc[packageDetail.product.id].count + packageDetail.count
+        count: +acc[packageDetail.product.id].count + +packageDetail.count
       };
     }
     return acc;
@@ -27,9 +26,9 @@ export function mapUiPackagesToOrderDetails(
     return {
       id: Guid(),
       order_id: "",
-      count: packageDetail.count,
+      count: +packageDetail.count,
       unit_price: "1",
-      remaining_count: packageDetail.count,
+      remaining_count: +packageDetail.count,
       product: packageDetail.product,
     } as OrderDetailRead;
   })

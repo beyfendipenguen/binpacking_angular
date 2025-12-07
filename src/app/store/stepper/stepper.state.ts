@@ -2,11 +2,9 @@ import { OrderDetailRead, OrderDetailWrite } from "@app/features/interfaces/orde
 import { Order } from "@app/features/interfaces/order.interface";
 import { IUiPackage } from "@app/features/stepper/interfaces/ui-interfaces/ui-package.interface";
 import { IUiPallet } from "@app/features/stepper/interfaces/ui-interfaces/ui-pallet.interface";
-import { IUiProduct } from "@app/features/stepper/interfaces/ui-interfaces/ui-product.interface";
 import { Document } from "@app/features/interfaces/file.interface";
-import { PackageDetailReadDto, PackageDetailWriteDto } from "@app/features/interfaces/package-detail.interface";
+import { PackageDetailReadDto } from "@app/features/interfaces/package-detail.interface";
 import { PackageReadDto, PackageWriteDto } from "@app/features/interfaces/package.interface";
-import { UiPackage } from "@app/features/stepper/components/ui-models/ui-package.model";
 
 export interface StepperState {
   order: Order | null;

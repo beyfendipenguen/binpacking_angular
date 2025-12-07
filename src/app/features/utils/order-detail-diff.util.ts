@@ -1,4 +1,3 @@
-import { UiProduct } from "@features/stepper/components/ui-models/ui-product.model";
 import { OrderDetailRead, OrderDetailWrite } from "@features/interfaces/order-detail.interface";
 import { Product } from "@features/interfaces/product.interface";
 import { OrderDetailChanges } from "@features/stepper/components/invoice-upload/models/invoice-upload-interfaces";
@@ -9,81 +8,51 @@ import { v4 as Guid } from "uuid";
 export class OrderDetailDiffCalculator {
 
   /**
-   * mapperOrderDetails ile originalOrderDetails'i karşılaştırır
+   * mapperOrderDetails (UI'dan gelen) ile originalOrderDetails (DB'den gelen) karşılaştırır
    * ve added, modified, deleted değişikliklerini döner
-   * 
    */
   static calculateDiff(
     mapperOrderDetails: OrderDetailRead[],
-    originalOrderDetails: OrderDetailRead[],
-    remainingPackageDetails: PackageDetailReadDto[]
+    originalOrderDetails: OrderDetailRead[]
   ): OrderDetailChanges {
 
-    let mergedRemainingPackageDetails = remainingPackageDetails.reduce((acc, packageDetail) => {
-      if (!acc.some(p => p.product.id === packageDetail.product.id)) {
-        acc.push(packageDetail);
-      } else {
-        const existingPackageDetail = acc.find(p => p.product.id === packageDetail.product.id);
-        if (existingPackageDetail) {
-          existingPackageDetail.count += packageDetail.count;
-        }
+    const changes: OrderDetailChanges = {
+      added: [],
+      modified: [],
+      deletedIds: []
+    };
+
+    mapperOrderDetails.forEach(mapperDetail => {
+      const originalDetail = originalOrderDetails.find(
+        od => od.product.id === mapperDetail.product.id
+      );
+
+      if (!originalDetail) {
+        changes.added.push(this.orderDetailReadToWrite(mapperDetail));
+      } else if (+originalDetail.count !== +mapperDetail.count) {
+        changes.modified.push({
+          ...this.orderDetailReadToWrite(originalDetail),
+          count: +mapperDetail.count
+        });
       }
-      return acc;
-    }, [] as PackageDetailReadDto[]);
-
-
-    mapperOrderDetails.map(orderDetail => {
-      const remainingPackageDetail = mergedRemainingPackageDetails.find(p => p.product.id === orderDetail.product.id)
-      return remainingPackageDetail ? { ...orderDetail, count: orderDetail.count + remainingPackageDetail.count } : orderDetail
     });
 
-    mergedRemainingPackageDetails.forEach(packageDetail => {
-      if (!mapperOrderDetails.some(orderDetail => orderDetail.product.id === packageDetail.product.id)) {
-        mapperOrderDetails.push({
-          id: Guid(),
-          count: packageDetail.count,
-          unit_price: "1",
-          remaining_count: 0,
-          product: packageDetail.product as Product,
-          order_id: "",
-        } as OrderDetailRead)
-      }
-    })
+    const mapperProductIds = new Set(
+      mapperOrderDetails.map(md => md.product.id)
+    );
 
-
-    let changes = mapperOrderDetails.reduce((acc, orderDetail) => {
-      const originalOrderDetail = originalOrderDetails.find(od => od.product.id === orderDetail.product.id)
-      if (!originalOrderDetail) {
-        acc.added.push(this.orderDetailReadToWrite(orderDetail))
-      } else {
-        if (originalOrderDetail.count !== orderDetail.count) {
-          const modifiedDetail: OrderDetailWrite = {
-            ...this.orderDetailReadToWrite(originalOrderDetail),
-            count: orderDetail.count, // Yeni count değeri
-          };
-          acc.modified.push(modifiedDetail)
-        }
-      }
-      return acc;
-
-    }, { added: [], modified: [], deletedIds: [] } as
-    OrderDetailChanges)
-
-    const mapperIds = new Set(mapperOrderDetails.map(od => od.product.id));
     changes.deletedIds = originalOrderDetails
-      .filter(od => !mapperIds.has(od.product.id))
+      .filter(od => !mapperProductIds.has(od.product.id))
       .map(od => od.id);
 
     return changes;
   }
-
 
   static orderDetailReadToWrite(orderDetail: OrderDetailRead): OrderDetailWrite {
     const { product, ...rest } = orderDetail;
     return {
       ...rest,
       product_id: product.id
-    }
+    };
   }
-
 }

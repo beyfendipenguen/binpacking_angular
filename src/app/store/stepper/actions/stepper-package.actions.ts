@@ -1,9 +1,8 @@
 import { createActionGroup, emptyProps, props } from '@ngrx/store';
 import { UiPackage } from '@features/stepper/components/ui-models/ui-package.model';
 import { UiPallet } from '@features/stepper/components/ui-models/ui-pallet.model';
-import { PackageDetailReadDto, PackageDetailWriteDto } from '@app/features/interfaces/package-detail.interface';
+import { PackageDetailReadDto } from '@app/features/interfaces/package-detail.interface';
 import { PackageReadDto } from '@app/features/interfaces/package.interface';
-import { IUiPackage } from '@app/features/stepper/interfaces/ui-interfaces/ui-package.interface';
 
 export const StepperPackageActions = createActionGroup({
   source: 'Stepper Package',

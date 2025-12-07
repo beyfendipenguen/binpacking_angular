@@ -80,8 +80,7 @@ export const stepperPackageHandlers = [
     const mapperOrderDetails = mapUiPackagesToOrderDetails(state.step2State.packages);
     const changes = OrderDetailDiffCalculator.calculateDiff(
       mapperOrderDetails,
-      state.step1State.originalOrderDetails,
-      state.step2State.remainingProducts
+      state.step1State.originalOrderDetails
     );
 
     return {
@@ -319,6 +318,7 @@ export const stepperPackageHandlers = [
     } else {
       targetPackageDetails.push({
         ...removedProduct,
+        id: Guid()
       });
     }
 
@@ -375,7 +375,8 @@ export const stepperPackageHandlers = [
     } else {
       targetPackageDetails.push({
         ...packageDetail,
-        count: maxCount
+        count: maxCount,
+        id:Guid()
       });
     }
 
@@ -556,13 +557,14 @@ export const stepperPackageHandlers = [
     }
 
     // 4. Target'a ekle
-    const existingPackageDetailIndex = targetPackageDetails.findIndex(p => p.id === packageDetail.id);
+    const existingPackageDetailIndex = targetPackageDetails.findIndex(pd =>
+      pd.product.id === packageDetail.product.id);
 
     if (existingPackageDetailIndex !== -1) {
       // ✅ Plain object kullan
       targetPackageDetails[existingPackageDetailIndex] = {
         ...targetPackageDetails[existingPackageDetailIndex],
-        count: targetPackageDetails[existingPackageDetailIndex].count + maxCount
+        count: +targetPackageDetails[existingPackageDetailIndex].count + maxCount
       };
     } else {
       // ✅ Plain object kullan
@@ -796,8 +798,7 @@ export const stepperPackageHandlers = [
     const mapperOrderDetails = mapUiPackagesToOrderDetails(state.step2State.packages);
     const changes = OrderDetailDiffCalculator.calculateDiff(
       mapperOrderDetails,
-      state.step1State.originalOrderDetails,
-      []
+      state.step1State.originalOrderDetails
     );
     mergeOrderDetails = [...mapperOrderDetails];
 

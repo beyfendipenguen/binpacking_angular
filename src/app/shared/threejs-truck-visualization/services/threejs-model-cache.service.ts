@@ -130,6 +130,9 @@ export class ThreeJSModelCacheService {
       this.gltfLoader.load(
         path,
         (gltf) => resolve(gltf),
+        (progress) => {
+          const percent = (progress.loaded / progress.total) * 100;
+        },
         (error) => reject(error)
       );
     });

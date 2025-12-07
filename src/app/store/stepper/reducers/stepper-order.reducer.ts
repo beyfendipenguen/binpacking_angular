@@ -185,8 +185,7 @@ export const stepperOrderHandlers = [
   on(StepperInvoiceUploadActions.calculateOrderDetailChanges, (state: StepperState) => {
     const changes = OrderDetailDiffCalculator.calculateDiff(
       [...state.step1State.orderDetails],
-      state.step1State.originalOrderDetails,
-      state.step2State.remainingProducts
+      state.step1State.originalOrderDetails
     );
     return {
       ...state,
