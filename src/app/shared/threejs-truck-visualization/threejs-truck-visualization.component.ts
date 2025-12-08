@@ -42,6 +42,8 @@ interface PackageData {
   originalLength?: number;
   originalWidth?: number;
   pkgId: string;
+  isForcePlaced?: boolean;
+  forcePlaceBorder?: THREE.LineSegments;
 }
 
 @Component({
@@ -179,6 +181,96 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     this.cleanup();
   }
 
+  //distane calculation
+  get selectedPackageDistanceToEnd(): number {
+    const selected = this.selectedPackageSignal();
+    if (!selected) return 0;
+
+    const truckLength = this.truckDimension()[0];
+    return truckLength - (selected.x + selected.length);
+  }
+
+  get selectedPackageDistanceToEndDisplay(): string {
+    const distance = this.selectedPackageDistanceToEnd;
+    if (distance >= 1000) {
+      return `${(distance / 1000).toFixed(2)} m`;
+    }
+    return `${distance.toFixed(0)} mm`;
+  }
+
+  // Zorla yerleştir
+  forcePlacePackage(): void {
+    const selected = this.selectedPackageSignal();
+    if (!selected?.mesh) return;
+
+    // Flag'i set et
+    selected.isForcePlaced = true;
+
+    // Görsel feedback - Kalın siyah border
+    this.addForcePlaceBorder(selected);
+
+    // Hafif glow ekle
+    const material = selected.mesh.material as THREE.MeshLambertMaterial;
+    material.emissive.setHex(0x222222);
+
+    this.orderResultChange();
+    this.renderManager.requestRender();
+    this.cdr.detectChanges();
+  }
+
+  // Normal hale getir
+  unforcePlacePackage(): void {
+    const selected = this.selectedPackageSignal();
+    if (!selected?.mesh) return;
+
+    // Flag'i kaldır
+    selected.isForcePlaced = false;
+
+    // Border'ı kaldır
+    this.removeForcePlaceBorder(selected);
+
+    // Glow'u kaldır
+    const material = selected.mesh.material as THREE.MeshLambertMaterial;
+    material.emissive.setHex(0x000000);
+
+    this.orderResultChange();
+    this.renderManager.requestRender();
+    this.cdr.detectChanges();
+  }
+
+  // Border ekleme
+  private addForcePlaceBorder(packageData: PackageData): void {
+    if (!packageData.mesh || packageData.forcePlaceBorder) return;
+
+    const geometry = packageData.mesh.geometry;
+    const edges = new THREE.EdgesGeometry(geometry);
+
+    const borderMaterial = new THREE.LineBasicMaterial({
+      color: 0x000000,      // Siyah
+      linewidth: 4,         // Kalın
+      transparent: true,
+      opacity: 1.0
+    });
+
+    const border = new THREE.LineSegments(edges, borderMaterial);
+    packageData.forcePlaceBorder = border;
+    packageData.mesh.add(border);
+  }
+
+  // Border kaldırma
+  private removeForcePlaceBorder(packageData: PackageData): void {
+    if (!packageData.mesh || !packageData.forcePlaceBorder) return;
+
+    packageData.mesh.remove(packageData.forcePlaceBorder);
+    packageData.forcePlaceBorder.geometry.dispose();
+    (packageData.forcePlaceBorder.material as THREE.Material).dispose();
+    packageData.forcePlaceBorder = undefined;
+  }
+
+  //end
+
+
+
   // ========================================
   // INITIALIZATION
   // ========================================
@@ -229,7 +321,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
       );
 
       // Models loaded
-      this.modelsLoaded.truck = true;
+      this.modelsLoaded.truck = false;
       this.modelsLoaded.trailerWheel = true;
 
       // Loading complete
@@ -302,7 +394,8 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
         originalColor: pkg.originalColor,
         rotation: pkg.rotation || 0,
         originalLength: pkg.originalLength,
-        originalWidth: pkg.originalWidth
+        originalWidth: pkg.originalWidth,
+        isForcePlaced: pkg.isForcePlaced || false // ⭐ State'i koru
       });
     });
 
@@ -357,7 +450,8 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
         originalWidth,
         dimensions: `${length}×${width}×${piece[5] || 0}mm`,
         isBeingDragged: false,
-        pkgId: piece[8]
+        pkgId: piece[8],
+        isForcePlaced: saved?.isForcePlaced || false // ⭐ State'i ata
       };
 
       if (piece[0] === -1 && piece[1] === -1 && piece[2] === -1) {
@@ -370,7 +464,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
 
     this.processedPackagesSignal.set(processed);
     if (deleted.length !== 0) {
-      this.store.dispatch(StepperResultActions.addDeletedPackageIdList({packageIds:deleted.map(p=>p.pkgId)}))
+      this.store.dispatch(StepperResultActions.addDeletedPackageIdList({ packageIds: deleted.map(p => p.pkgId) }))
       this.deletedPackagesSignal.set(deleted);
     }
   }
@@ -416,6 +510,9 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     mesh.userData = { packageData };
 
     packageData.mesh = mesh;
+    if (packageData.isForcePlaced) {
+      this.addForcePlaceBorder(packageData);
+    }
     this.packagesGroup.add(mesh);
   }
 
@@ -779,6 +876,10 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     packageToCheck: PackageData,
     newPos: { x: number, y: number, z: number }
   ): boolean {
+
+    if (packageToCheck.isForcePlaced) {
+      return false;
+    }
     const checkLength = packageToCheck.length;
     const checkWidth = packageToCheck.width;
 
@@ -1011,7 +1112,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
 
 
       this.deletedPackagesSignal.update(arr => [...arr, deletedPackage]);
-      this.store.dispatch(StepperResultActions.addDeletedPackageIdList({packageIds:this.deletedPackagesSignal().map(p=>p.pkgId)}))
+      this.store.dispatch(StepperResultActions.addDeletedPackageIdList({ packageIds: this.deletedPackagesSignal().map(p => p.pkgId) }))
       if (deletedPackage.originalColor) {
         this.releaseColor(deletedPackage.originalColor);
       }
@@ -1030,7 +1131,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
 
   restorePackage(packageData: PackageData): void {
     this.deletedPackagesSignal.update(arr => arr.filter(pkg => pkg.id !== packageData.id));
-    this.store.dispatch(StepperResultActions.addDeletedPackageIdList({packageIds:this.deletedPackagesSignal().map(p=>p.pkgId)}))
+    this.store.dispatch(StepperResultActions.addDeletedPackageIdList({ packageIds: this.deletedPackagesSignal().map(p => p.pkgId) }))
 
     let validPosition = this.findValidPosition(packageData);
 
@@ -1076,7 +1177,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
       this.renderManager.requestRender();
     } else {
       this.deletedPackagesSignal.update(arr => [...arr, packageData]);
-      this.store.dispatch(StepperResultActions.addDeletedPackageIdList({packageIds:this.deletedPackagesSignal().map(p=>p.pkgId)}))
+      this.store.dispatch(StepperResultActions.addDeletedPackageIdList({ packageIds: this.deletedPackagesSignal().map(p => p.pkgId) }))
     }
   }
 
@@ -1092,9 +1193,20 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
   }
 
   private recreatePackageMesh(packageData: PackageData): void {
+    const wasForcePlaced = packageData.isForcePlaced;
+    const border = packageData.forcePlaceBorder;
+
     if (packageData.mesh) {
       const material = packageData.mesh.material as THREE.MeshLambertMaterial;
       material.emissive.setHex(0x000000);
+
+      // Border'ı kaldır
+      if (border) {
+        packageData.mesh.remove(border);
+        border.geometry.dispose();
+        (border.material as THREE.Material).dispose();
+        packageData.forcePlaceBorder = undefined;
+      }
 
       this.packagesGroup.remove(packageData.mesh);
       packageData.mesh.geometry.dispose();
@@ -1103,6 +1215,12 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     }
 
     this.createPackageMesh(packageData);
+
+    // Border'ı geri ekle
+    if (wasForcePlaced) {
+      packageData.isForcePlaced = true;
+      this.addForcePlaceBorder(packageData);
+    }
   }
 
   private findValidPosition(packageData: PackageData): { x: number, y: number, z: number } | null {
@@ -1352,6 +1470,17 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
 
     // Dispose packages
     this.processedPackagesSignal().forEach(pkg => {
+      if (pkg.mesh) {
+        pkg.mesh.geometry.dispose();
+        (pkg.mesh.material as THREE.Material).dispose();
+      }
+    });
+
+    this.processedPackagesSignal().forEach(pkg => {
+      if (pkg.forcePlaceBorder) {
+        pkg.forcePlaceBorder.geometry.dispose();
+        (pkg.forcePlaceBorder.material as THREE.Material).dispose();
+      }
       if (pkg.mesh) {
         pkg.mesh.geometry.dispose();
         (pkg.mesh.material as THREE.Material).dispose();

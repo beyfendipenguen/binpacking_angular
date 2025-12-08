@@ -89,16 +89,22 @@ $white: #ffffff;
 
   &.drag-mode canvas {
     cursor: grab;
-    &:active { cursor: grabbing; }
+
+    &:active {
+      cursor: grabbing;
+    }
   }
+
   &.loading {
     filter: blur(5px);
     pointer-events: none;
   }
 }
+
 .loading-overlay {
   backdrop-filter: blur(3px); // Arkayı bulanıklaştır
 }
+
 // ========================================
 // WEIGHT DISPLAY PANEL (Top Center)
 // ========================================
@@ -193,6 +199,37 @@ $white: #ffffff;
         margin-bottom: 0.75rem;
         font-size: 0.85rem;
 
+        &.distance-row {
+          margin-top: 0.5rem;
+          padding-top: 0.5rem;
+          border-top: 1px solid rgba($primary-color, 0.2);
+
+          .distance-value {
+            background: linear-gradient(135deg, rgba($warning-amber, 0.2), rgba($warning-amber, 0.3));
+            border-color: rgba($warning-amber, 0.4);
+            font-size: 0.9rem;
+            font-weight: 800;
+          }
+        }
+
+        &.force-status {
+          justify-content: center;
+          margin-top: 0.75rem;
+
+          .warning-badge {
+            background: linear-gradient(135deg, rgba($warning-amber, 0.2), rgba($error-red, 0.2));
+            color: $error-red;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            border: 2px solid rgba($error-red, 0.3);
+            text-align: center;
+            width: 100%;
+            box-shadow: 0 2px 8px rgba($error-red, 0.2);
+          }
+        }
+
         .label {
           color: $gray;
           font-weight: 600;
@@ -220,6 +257,21 @@ $white: #ffffff;
       padding-top: 1rem;
       border-top: 2px solid rgba($primary-color, 0.2);
 
+      &:has(.force-place-btn, .rotate-btn, .delete-btn),
+      &:has(.unforce-btn, .rotate-btn, .delete-btn) {
+        grid-template-columns: 1fr; // Tek sütun yap, alt alta
+
+        .rotate-btn,
+        .force-place-btn,
+        .unforce-btn {
+          grid-column: 1;
+        }
+
+        .delete-btn {
+          grid-column: 1;
+        }
+      }
+
       .action-btn {
         padding: 0.75rem;
         border: 2px solid;
@@ -230,6 +282,33 @@ $white: #ffffff;
         font-weight: 700;
         transition: var(--transition-base);
         box-shadow: var(--shadow-sm);
+
+        &.force-place-btn {
+          color: $warning-amber;
+          border-color: $warning-amber;
+          background: $white;
+
+          &:hover:not(:disabled) {
+            background: $warning-amber;
+            color: $white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba($warning-amber, 0.4);
+          }
+        }
+
+        // ⭐ YENİ: Normal hale getir butonu
+        &.unforce-btn {
+          color: $success-green;
+          border-color: $success-green;
+          background: $white;
+
+          &:hover:not(:disabled) {
+            background: $success-green;
+            color: $white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba($success-green, 0.4);
+          }
+        }
 
         &:disabled {
           opacity: 0.5;
@@ -514,7 +593,9 @@ $white: #ffffff;
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 // ========================================
@@ -592,13 +673,35 @@ $white: #ffffff;
 }
 
 @keyframes shake {
-  0%, 20%, 40%, 60%, 80%, 100% { transform: translate(-50%, -50%); }
-  10%, 30%, 50%, 70%, 90% { transform: translate(-48%, -52%); }
+
+  0%,
+  20%,
+  40%,
+  60%,
+  80%,
+  100% {
+    transform: translate(-50%, -50%);
+  }
+
+  10%,
+  30%,
+  50%,
+  70%,
+  90% {
+    transform: translate(-48%, -52%);
+  }
 }
 
 @keyframes pulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.1); }
+
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.1);
+  }
 }
 
 // ========================================
@@ -609,6 +712,7 @@ $white: #ffffff;
     opacity: 0;
     transform: translateX(30px);
   }
+
   to {
     opacity: 1;
     transform: translateX(0);
@@ -620,6 +724,7 @@ $white: #ffffff;
     opacity: 0;
     transform: translateY(30px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -657,6 +762,10 @@ $white: #ffffff;
 // RESPONSIVE DESIGN
 // ========================================
 @media (max-width: 768px) {
+  .package-actions {
+    grid-template-columns: 1fr !important; // Mobilde her zaman tek sütun
+  }
+
   .threejs-visualization-container {
     height: 600px;
 
@@ -700,9 +809,17 @@ $white: #ffffff;
       padding: 0.5rem 1rem;
 
       .weight-content {
-        h4 { font-size: 0.65rem; }
-        .weight-value { font-size: 1.1rem; }
-        .weight-description { font-size: 0.6rem; }
+        h4 {
+          font-size: 0.65rem;
+        }
+
+        .weight-value {
+          font-size: 1.1rem;
+        }
+
+        .weight-description {
+          font-size: 0.6rem;
+        }
       }
     }
 
@@ -724,9 +841,17 @@ $white: #ffffff;
           padding: 0.5rem;
 
           .deleted-info {
-            .deleted-id { font-size: 0.75rem; }
-            .deleted-dims { font-size: 0.65rem; }
-            .deleted-weight { font-size: 0.6rem; }
+            .deleted-id {
+              font-size: 0.75rem;
+            }
+
+            .deleted-dims {
+              font-size: 0.65rem;
+            }
+
+            .deleted-weight {
+              font-size: 0.6rem;
+            }
           }
 
           .restore-btn {
@@ -767,13 +892,16 @@ $white: #ffffff;
       color: #f3f4f6;
       border-color: rgba($primary-color, 0.4);
 
-      h4 { color: color.adjust($primary-color, $lightness: 20%); }
+      h4 {
+        color: color.adjust($primary-color, $lightness: 20%);
+      }
     }
   }
 }
 
 // Print Styles
 @media print {
+
   .package-info-panel,
   .deleted-packages-panel,
   .weight-display-panel,

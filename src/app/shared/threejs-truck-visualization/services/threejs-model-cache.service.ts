@@ -12,7 +12,7 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
  */
 
 interface CachedModel {
-  truck: THREE.Group;
+  // truck: THREE.Group;
   wheel: THREE.Group;
   timestamp: number;
 }
@@ -106,13 +106,13 @@ export class ThreeJSModelCacheService {
     const wheelPath = `${baseUrl}/assets/models/truck/truck-wheels.gltf`;
 
     try {
-      const [truckGltf, wheelGltf] = await Promise.all([
-        this.loadGLTF(truckPath),
+      const [wheelGltf] = await Promise.all([
+        // this.loadGLTF(truckPath),
         this.loadGLTF(wheelPath)
       ]);
 
       return {
-        truck: truckGltf.scene,
+        // truck: truckGltf.scene,
         wheel: wheelGltf.scene,
         timestamp: Date.now()
       };
@@ -141,9 +141,9 @@ export class ThreeJSModelCacheService {
   /**
    * Clone cached models for use
    */
-  cloneModels(models: CachedModel): { truck: THREE.Group; wheel: THREE.Group } {
+  cloneModels(models: CachedModel): {wheel: THREE.Group } {
     return {
-      truck: models.truck.clone(true),
+      // truck: models.truck.clone(true),
       wheel: models.wheel.clone(true)
     };
   }
@@ -155,7 +155,7 @@ export class ThreeJSModelCacheService {
 
     // Dispose geometries and materials
     if (ThreeJSModelCacheService.modelCache) {
-      this.disposeModel(ThreeJSModelCacheService.modelCache.truck);
+      // this.disposeModel(ThreeJSModelCacheService.modelCache.truck);
       this.disposeModel(ThreeJSModelCacheService.modelCache.wheel);
     }
 

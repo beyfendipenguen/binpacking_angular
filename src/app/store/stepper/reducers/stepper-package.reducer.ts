@@ -307,7 +307,7 @@ export const stepperPackageHandlers = [
     const removedProduct = sourcePackageDetails.splice(previousIndex, 1)[0];
 
     const existingProductIndex = targetPackageDetails.findIndex(p =>
-      p.id === removedProduct.id
+      p.product.id === removedProduct.product.id
     );
 
     if (existingProductIndex !== -1) {

@@ -68,14 +68,14 @@ export class ThreeJSInitializationService {
 
     // 5. Load models from cache
     const models = await this.modelCacheService.getModels();
-    const { truck: truckModel, wheel: wheelModel } = this.modelCacheService.cloneModels(models);
+    const {wheel: wheelModel } = this.modelCacheService.cloneModels(models);
 
     // 6. Apply transforms
-    this.applyTruckTransforms(truckModel, config.truckDimensions);
+    // this.applyTruckTransforms(truckModel, config.truckDimensions);
     this.applyWheelTransforms(wheelModel, config.truckDimensions);
 
     // 7. Add to scene
-    truckGroup.add(truckModel);
+    // truckGroup.add(truckModel);
     truckGroup.add(wheelModel);
 
     // 8. Create wireframe for truck container
@@ -87,7 +87,7 @@ export class ThreeJSInitializationService {
       renderer,
       truckGroup,
       packagesGroup,
-      truckModel,
+      // truckModel,
       wheelModel,
       platformMesh
     };

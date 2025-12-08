@@ -1,16 +1,13 @@
 <div class="threejs-visualization-container" [class.loading]="isLoadingModels || isLoadingData">
   <!-- Three.js Canvas Container -->
 
-    <div #threeContainer
-        class="threejs-canvas-container"
-        [class.drag-mode]="dragModeEnabled"
-        [class.loading]="isLoadingModels"
-        (contextmenu)="$event.preventDefault()">
-    </div>
+  <div #threeContainer class="threejs-canvas-container" [class.drag-mode]="dragModeEnabled"
+    [class.loading]="isLoadingModels" (contextmenu)="$event.preventDefault()">
+  </div>
 
 
   <!-- No Data Message -->
-  <div class="no-data-message"  *ngIf="!isLoadingModels && !isLoadingData && (!piecesData || piecesData.length === 0)">
+  <div class="no-data-message" *ngIf="!isLoadingModels && !isLoadingData && (!piecesData || piecesData.length === 0)">
     <div class="no-data-content">
       <div class="empty-icon">🚛</div>
       <h4>Henüz Yükleme Verisi Yok</h4>
@@ -20,8 +17,8 @@
 
   <!-- Weight Display Panel (Top Center) -->
   <div class="weight-display-panel"
-       *ngIf="showWeightDisplay && !isLoadingModels && !isLoadingData && piecesData && piecesData.length > 0"
-       title="İlk {{ (weightCalculationDepth / 1000).toFixed(1) }}m bölgesindeki toplam ağırlık">
+    *ngIf="showWeightDisplay && !isLoadingModels && !isLoadingData && piecesData && piecesData.length > 0"
+    title="İlk {{ (weightCalculationDepth / 1000).toFixed(1) }}m bölgesindeki toplam ağırlık">
     <div class="weight-content">
       <h4>İlk {{ (weightCalculationDepth / 1000).toFixed(1) }}m Ağırlık</h4>
       <div class="weight-value">{{ frontSectionWeightDisplay }}</div>
@@ -30,7 +27,7 @@
   </div>
 
   <!-- Package Info Panel (Top Right) -->
-   @if(selectedPackageSignal(); as selected){
+  @if(selectedPackageSignal(); as selected){
   <div class="package-info-panel" *ngIf="!isLoadingModels && !isLoadingData">
     <div class="info-content">
       <h4>📦 Seçili Paket</h4>
@@ -39,6 +36,10 @@
         <div class="detail-row">
           <span class="label">ID:</span>
           <span class="value">#{{ selected.id }}</span>
+        </div>
+        <div class="detail-row distance-row">
+          <span class="label">Tır sonuna:</span>
+          <span class="value distance-value">{{ selectedPackageDistanceToEndDisplay }}</span>
         </div>
         <div class="detail-row">
           <span class="label">Boyutlar:</span>
@@ -52,9 +53,12 @@
           <span class="label">Pozisyon:</span>
           <span class="value">
             ({{ selected.x | number:'1.0-0' }},
-             {{ selected.y | number:'1.0-0' }},
-             {{ selected.z | number:'1.0-0' }})
+            {{ selected.y | number:'1.0-0' }},
+            {{ selected.z | number:'1.0-0' }})
           </span>
+        </div>
+        <div class="detail-row force-status" *ngIf="selected.isForcePlaced">
+          <span class="warning-badge">⚠️ Tolerans dışı yerleştirildi</span>
         </div>
         <div class="detail-row" *ngIf="selected.rotation">
           <span class="label">Döndürülme:</span>
@@ -64,32 +68,33 @@
 
       <!-- Package Actions -->
       <div class="package-actions">
-        <button class="action-btn rotate-btn"
-                (click)="rotateSelectedPackage()"
-                title="90° Döndür (Kısayol: R)"
-                [disabled]="!selectedPackageSignal()">
+        <button class="action-btn force-place-btn" *ngIf="!selected.isForcePlaced" (click)="forcePlacePackage()"
+          title="Paketi sınırları aşarak yerleştir" [disabled]="!selectedPackageSignal()">
+          💪 Zorla Yerleştir
+        </button>
+        <button class="action-btn unforce-btn" *ngIf="selected.isForcePlaced" (click)="unforcePlacePackage()"
+          title="Paketi normal duruma getir" [disabled]="!selectedPackageSignal()">
+          ↩️ Normal Hale Getir
+        </button>
+        <button class="action-btn rotate-btn" (click)="rotateSelectedPackage()" title="90° Döndür (Kısayol: R)"
+          [disabled]="!selectedPackageSignal()">
           🔄 Döndür
         </button>
-        <button class="action-btn delete-btn"
-                (click)="deleteSelectedPackage()"
-                title="Paketi Sil (Kısayol: Delete)"
-                [disabled]="!selectedPackageSignal()">
+        <button class="action-btn delete-btn" (click)="deleteSelectedPackage()" title="Paketi Sil (Kısayol: Delete)"
+          [disabled]="!selectedPackageSignal()">
           🗑️ Sil
         </button>
       </div>
 
-      <button class="close-btn"
-              (click)="clearSelection()"
-              title="Seçimi Kaldır (Kısayol: Esc)">
+      <button class="close-btn" (click)="clearSelection()" title="Seçimi Kaldır (Kısayol: Esc)">
         ✖
       </button>
     </div>
   </div>
-}
+  }
   <!-- Deleted Packages Panel (Bottom Right) -->
-  <div class="deleted-packages-panel"
-       *ngIf="deletedPackagesSignal().length > 0 && !isLoadingModels && !isLoadingData"
-       [class.below-selection]="selectedPackageSignal()">
+  <div class="deleted-packages-panel" *ngIf="deletedPackagesSignal().length > 0 && !isLoadingModels && !isLoadingData"
+    [class.below-selection]="selectedPackageSignal()">
     <div class="deleted-content">
       <h4>
         🗑️ Yerleşmeyen Paketler
@@ -97,16 +102,14 @@
       </h4>
 
       <div class="deleted-list">
-        <div class="deleted-item"
-             *ngFor="let pkg of deletedPackagesSignal(); trackBy: trackDeletedPackage">
+        <div class="deleted-item" *ngFor="let pkg of deletedPackagesSignal(); trackBy: trackDeletedPackage">
           <div class="deleted-info">
             <span class="deleted-id">#{{ pkg.id }}</span>
             <span class="deleted-dims">{{ pkg.dimensions }}</span>
             <span class="deleted-weight">{{ pkg.weight }} kg</span>
           </div>
-          <button class="restore-btn"
-                  (click)="restorePackage(pkg)"
-                  title="Paketi geri ekle (normal veya 90° döndürülmüş halde)">
+          <button class="restore-btn" (click)="restorePackage(pkg)"
+            title="Paketi geri ekle (normal veya 90° döndürülmüş halde)">
             ➕ Ekle
           </button>
         </div>
@@ -114,14 +117,12 @@
 
       <!-- Bulk Actions -->
       <div class="bulk-actions">
-        <button class="bulk-btn restore-all-btn"
-                (click)="restoreAllPackages()"
-                title="Tüm paketleri geri eklemeyi dene">
+        <button class="bulk-btn restore-all-btn" (click)="restoreAllPackages()"
+          title="Tüm paketleri geri eklemeyi dene">
           ↩️ Hepsini Ekle
         </button>
-        <button class="bulk-btn clear-all-btn"
-                (click)="clearDeletedPackages()"
-                title="Tüm silinen paketleri temizle" [disabled]="true">
+        <button class="bulk-btn clear-all-btn" (click)="clearDeletedPackages()" title="Tüm silinen paketleri temizle"
+          [disabled]="true">
           🗑️ Temizle
         </button>
       </div>

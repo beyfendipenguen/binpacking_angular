@@ -8,27 +8,18 @@
     </div>
   </div>
 
-  <div class="loading-overlay" *ngIf="isLoading">
+  @if(isLoading){
+  <div class="loading-overlay">
     <mat-spinner diameter="50"></mat-spinner>
     <p>İlişkili veriler yükleniyor...</p>
   </div>
+  }
 
   <div class="content-section" [class.loading]="isLoading">
-    <div class="intro-section">
-      <p>
-        Bu sayfada tüm ürünleri görüntüleyebilir veya silebilirsiniz.
-        Ürünlerin ürün tipi, boyut ve ağırlık özellikleri API'den gelen detaylarıyla görüntülenmektedir.
-      </p>
-    </div>
 
-    <app-generic-table
-      [service]="productService"
-      [displayedColumns]="displayedColumns"
-      [filterableColumns]="filterableColumns"
-      [nestedDisplayColumns]="nestedDisplayColumns"
-      [title]="'Ürünler'"
-      [showRowNumbers]="true"
-      [excludeFields]="['name']">
+    <app-generic-table [service]="productService" [displayedColumns]="displayedColumns"
+      [filterableColumns]="filterableColumns" [nestedDisplayColumns]="nestedDisplayColumns" [title]="'Ürünler'"
+      [showRowNumbers]="true" [excludeFields]="['name']">
     </app-generic-table>
   </div>
 </div>
