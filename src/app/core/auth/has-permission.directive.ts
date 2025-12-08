@@ -1,27 +1,68 @@
-import { Directive, Input, OnInit, TemplateRef, ViewContainerRef } from '@angular/core';
+import { Directive, Input, isDevMode, TemplateRef, ViewContainerRef } from '@angular/core';
 import { PermissionService } from '../services/permission.service';
-import { IRequiredPermission } from './permission.interface';
+import { PERMISSION_FORMAT_REGEX, PermissionType } from './permission.interface';
 
 @Directive({
   selector: '[appHasPermission]'
 })
-export class HasPermissionDirective implements OnInit {
-  @Input() canPermissions: IRequiredPermission[] = [];
-  @Input() cantPermission: IRequiredPermission[] = [];
+export class HasPermissionDirective {
+  private _canPermissions: PermissionType[] = [];
+  private _cantPermission: PermissionType[] = [];
 
 
-  constructor(private templateRef: TemplateRef<any>,
+  constructor(
+    private templateRef: TemplateRef<any>,
     private viewContainer: ViewContainerRef,
     private permissionService: PermissionService
   ) { }
 
-  ngOnInit(): void {
-    if (!this.permissionService.hasPermission(this.cantPermission)) {
-      if (this.permissionService.hasPermission(this.canPermissions))
-        this.viewContainer.createEmbeddedView(this.templateRef);
+  @Input()
+  set appHasPermission(value: PermissionType | PermissionType[]) {
+    const permissions = Array.isArray(value) ? value : [value];
+
+    if (isDevMode()) [
+      this.validatePermissions(permissions)
+    ]
+
+    this._canPermissions = permissions;
+    this.updateView();
+  }
+
+  @Input()
+  set appHasPermissionCant(value: PermissionType | PermissionType[]) {
+    const permissions = Array.isArray(value) ? value : [value];
+
+    if (isDevMode()) [
+      this.validatePermissions(permissions)
+    ]
+
+    this._cantPermission = permissions;
+    this.updateView();
+  }
+
+
+  private updateView(): void {
+    const isBanned = this.permissionService.hasPermission(this._cantPermission);
+    const hasAccess = this.permissionService.hasPermission(this._canPermissions)
+
+    if (!isBanned && hasAccess) {
+      this.viewContainer.createEmbeddedView(this.templateRef);
     } else {
       this.viewContainer.clear();
     }
   }
 
+  private validatePermissions(permissions: PermissionType[]) {
+    permissions.forEach(permission => {
+      if (!PERMISSION_FORMAT_REGEX.test(permission)) {
+        console.error(
+          `%c[hasPermissionDirective] Hata: "${permission}" gecerli bir yetki degil!
+          Beklenen format: 'app_label.codename' (örn: core.add_order)
+          `,
+          `color: red; font-weight: bold;`
+        );
+
+      }
+    })
+  }
 }

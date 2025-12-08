@@ -4,7 +4,7 @@ import { ChangePasswordRequest, User } from '../../core/interfaces/user.interfac
 // Load User
 export const loadUser = createAction(
   '[User] Load User',
-  props<{ redirectUrl?: string }>()
+  props<{ redirectUrl?: string, forceRefresh?: boolean }>()
 );
 
 export const loadUserSuccess = createAction(

@@ -6,9 +6,13 @@ import {
 } from '@angular/common/http';
 import { throwError, switchMap, catchError } from 'rxjs';
 import { AuthService } from '../services/auth.service';
+import { Store } from '@ngrx/store';
+import { loadUser } from '@app/store';
 
 export const AuthInterceptor = (req: HttpRequest<any>, next: HttpHandlerFn) => {
   const authService = inject(AuthService);
+  const store = inject(Store);
+
 
   const token = authService.getAccessToken();
   const authReq = req.clone({
@@ -62,6 +66,9 @@ export const AuthInterceptor = (req: HttpRequest<any>, next: HttpHandlerFn) => {
             return throwError(() => refreshErr);
           })
         );
+      }
+      if (err instanceof HttpErrorResponse && err.status === 403) {
+        store.dispatch(loadUser({ forceRefresh: true }));
       }
       return throwError(() => err);
     })

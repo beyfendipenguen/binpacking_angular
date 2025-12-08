@@ -25,9 +25,9 @@ export class UserEffects {
   loadUser$ = createEffect(() =>
     this.actions$.pipe(
       ofType(UserActions.loadUser),
-      switchMap(({ redirectUrl }) => {
+      switchMap(({ redirectUrl, forceRefresh }) => {
         const stored = localStorage.getItem('user');
-        if (stored) {
+        if (stored && !forceRefresh) {
           try {
             const user = JSON.parse(stored);
             return of(UserActions.loadUserSuccess({ user, redirectUrl }));

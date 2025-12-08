@@ -1,4 +1,5 @@
 import { Company } from "@app/features/interfaces/company.interface";
+import { PermissionType } from "../auth/permission.interface";
 
 export interface User {
   password: string;
@@ -17,6 +18,7 @@ export interface User {
   phone: string | null;
   address: string;
   profile_picture: string;
+  permissions: PermissionType[];
 }
 
 export interface ChangePasswordRequest {
