@@ -1,22 +1,21 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { GenericTableComponent } from '@shared/generic-table/generic-table.component';
 import { ProductService } from '../services/product.service';
+import { BulkUploadConfig } from '@app/shared/bulk-upload-dialog/bulk-upload.config';
+import { createProductBulkConfig } from './config/product-bulk.config';
+import { BulkUploadButtonDirective } from '@app/shared/bulk-upload-dialog/bulk-upload-button.directive';
 
 @Component({
   selector: 'app-products',
   imports: [CommonModule,
     GenericTableComponent,
-    MatSnackBarModule,
-    MatProgressSpinnerModule,
     MatButtonModule,
     MatIconModule,
-    MatDialogModule],
+    BulkUploadButtonDirective],
   templateUrl: './products.component.html',
   styleUrl: './products.component.scss'
 })
@@ -24,8 +23,8 @@ export class ProductsComponent implements OnInit {
 
   // Servis enjeksiyonları
   productService = inject(ProductService);
+  productBulkConfig: BulkUploadConfig = createProductBulkConfig();
   snackBar = inject(MatSnackBar);
-  dialog = inject(MatDialog);
 
   // Loading durumu
   isLoading = false;
@@ -73,13 +72,5 @@ export class ProductsComponent implements OnInit {
 
   ngOnInit(): void {
 
-  }
-
-  // Yeni ürün ekleme formunu açma
-  openAddProductForm(): void {
-    // Dialog component oluşturulana kadar basit bir bildirim gösterelim
-    this.snackBar.open('Yeni ürün ekleme özelliği hazırlanıyor...', 'Tamam', {
-      duration: 3000
-    });
   }
 }

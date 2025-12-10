@@ -5,7 +5,7 @@ import { SKIP_LOADING } from "@app/shared/loading/skip-loading.token";
 import { AppState, selectOrderDetails } from "@app/store";
 import { Store } from "@ngrx/store";
 import { Observable, map, catchError, of, take, switchMap } from "rxjs";
-import { Product } from "../interfaces/product.interface";
+import { BulkUploadResponse, Product } from "../interfaces/product.interface";
 
 @Injectable({
   providedIn: 'root',
@@ -15,6 +15,18 @@ export class ProductService extends GenericCrudService<Product> {
   constructor(http: HttpClient) {
     super(http, 'products/products');
   }
+
+  bulkUpload(file: File): Observable<BulkUploadResponse> {
+    this.ensureApiUrl();
+    const formData = new FormData();
+    formData.append('file', file);
+
+    return this.http.post<BulkUploadResponse>(
+      `${this.apiUrl}bulk-upload/`,
+      formData
+    );
+  }
+
   /**
    * Ürün arama metodu - Backend'den gelen sonuçları sınırlandırır
    * @param query Arama sorgusu
