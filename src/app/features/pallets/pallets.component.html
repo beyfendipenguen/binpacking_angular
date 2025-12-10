@@ -1,0 +1,32 @@
+<div class="pallet-container">
+  <div class="page-header">
+    <div class="header-content">
+      <div class="header-left">
+        <h1>Palet Yönetimi</h1>
+        <div class="breadcrumb">
+          <span>Ana Sayfa</span>
+          <span class="separator">/</span>
+          <span class="active">Paletler</span>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button
+          mat-raised-button
+          color="primary"
+          [appBulkUploadButton]="palletBulkConfig"
+          class="bulk-add-btn">
+          <mat-icon>add_box</mat-icon>
+          Toplu Palet Ekle
+        </button>
+      </div>
+    </div>
+  </div>
+
+
+  <div class="content-section" [class.loading]="isLoading">
+    <app-generic-table [service]="palletService" [displayedColumns]="displayedColumns"
+      [filterableColumns]="filterableColumns" [nestedDisplayColumns]="nestedDisplayColumns" [title]="'Ürünler'"
+      [showRowNumbers]="true" [excludeFields]="['name']">
+    </app-generic-table>
+  </div>
+</div>

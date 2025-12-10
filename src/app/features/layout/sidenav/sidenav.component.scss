@@ -1,54 +1,343 @@
-.example-tree-invisible {
-    display: none;
+// Theme Colors
+$primary-color: #006a6a;
+$secondary-color: #d6bb86;
+$accent-color: #004a4a;
+$light-accent: #c0a670;
+$background-color: #f8f9fa;
+$text-dark: #333333;
+$text-light: #666666;
+$border-color: #e0e0e0;
+$white: #ffffff;
+
+.sidenav-wrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
 }
 
-.example-tree ul,
-.example-tree li {
+.sidenav-container {
+  flex: 1;
+  background-color: $background-color;
+}
+
+.sidenav {
+  min-width: 260px;
+  background-color: $white;
+  border-right: 1px solid $border-color;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.05);
+
+  // Header Section
+  .sidenav-header {
+    padding: 20px 50px;
+    background: linear-gradient(135deg, $primary-color 0%, $accent-color 100%);
+
+    .logo {
+      display: flex;
+      align-items: center;
+
+      .logo-png {
+        align-items: center;
+        height: 32px; // Daha büyük boyut
+        width: auto;
+      }
+    }
+  }
+}
+
+// Navigation List
+.nav-list {
+  padding: 8px 0;
+}
+
+.nav-tree {
+  padding: 0;
+
+  ul,
+  li {
+    margin: 0;
+    padding: 0;
+    list-style-type: none;
+  }
+
+  // Nested children padding
+  .mat-nested-tree-node div[role=group] {
+    padding-left: 0;
+  }
+
+  div[role=group]>.mat-tree-node {
+    padding-left: 0;
+  }
+}
+
+// Navigation Items
+.nav-item {
+  margin: 4px 8px;
+  border-radius: 8px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  height: 48px;
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 4px;
+    background-color: $primary-color;
+    transform: scaleY(0);
+    transition: transform 0.3s ease;
+  }
+
+  .nav-icon {
+    color: $text-light;
+    transition: all 0.3s ease;
+    margin-right: 12px;
+  }
+
+  .nav-title {
+    color: $text-dark;
+    font-size: 0.95rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+  }
+
+  // Hover State
+  &:hover {
+    background-color: rgba($primary-color, 0.08);
+
+    .nav-icon {
+      color: $primary-color;
+      transform: scale(1.1);
+    }
+
+    .nav-title {
+      color: $primary-color;
+    }
+  }
+
+  // Active State
+  &.active {
+    background-color: rgba($primary-color, 0.12);
+
+    &::before {
+      transform: scaleY(1);
+    }
+
+    .nav-icon {
+      color: $primary-color;
+    }
+
+    .nav-title {
+      color: $primary-color;
+      font-weight: 600;
+    }
+  }
+}
+
+// Parent Item (with children)
+.parent-item {
+  position: relative;
+
+  .expand-icon {
+    position: absolute;
+    right: 12px;
+    color: $text-light;
+    transition: all 0.3s ease;
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+  }
+
+  &.is-expanded {
+    background-color: rgba($secondary-color, 0.1);
+
+    .expand-icon {
+      color: $primary-color;
+      transform: rotate(0deg);
+    }
+
+    .nav-icon {
+      color: $primary-color;
+    }
+
+    .nav-title {
+      color: $primary-color;
+      font-weight: 600;
+    }
+  }
+
+  &:hover .expand-icon {
+    color: $primary-color;
+  }
+}
+
+// Children Container
+.children-container {
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  max-height: 500px;
+  opacity: 1;
+  margin-left: 16px;
+  border-left: 2px solid rgba($primary-color, 0.2);
+  padding-left: 8px;
+  margin-top: 4px;
+  margin-bottom: 4px;
+
+  &.children-invisible {
+    max-height: 0;
+    opacity: 0;
     margin-top: 0;
     margin-bottom: 0;
-    list-style-type: none;
+  }
+
+  .nav-item {
+    height: 44px;
+    font-size: 0.9rem;
+
+    .nav-icon {
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
+    }
+
+    .nav-title {
+      font-size: 0.9rem;
+    }
+  }
 }
 
-/*
- * This padding sets alignment of the nested nodes.
- */
-.example-tree .mat-nested-tree-node div[role=group] {
-    padding-left: 1em;
+// Slide text animation
+.slide-text {
+  display: inline-block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 150px;
+
+  &:hover {
+    animation: slide 3s linear infinite;
+  }
 }
-
-/*
- * Padding for leaf nodes.
- * Leaf nodes need to have padding so as to align with other non-leaf nodes
- * under the same parent.
- */
-.example-tree div[role=group]>.mat-tree-node {
-    padding-left: 1em;
-}
-
-.slide-text:hover {
-    position: relative;
-    animation: slide 5s none;
-}
-
-mat-list-item {
-    max-width: 15em;
-}
-
-//.is-expanded{
-//    background-color: #EF9A9A;
-//}
-
-mat-divider[vertical] {
-  margin: 0 8px;
-}
-
 
 @keyframes slide {
-    0% {
-        right: 0em;
-    }
-    100% {
-        right: 10em;
-    }
+  0% {
+    transform: translateX(0);
+  }
+
+  50% {
+    transform: translateX(-50%);
+  }
+
+  100% {
+    transform: translateX(0);
+  }
 }
 
+// Footer Section
+.sidenav-footer {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: $white;
+
+  .footer-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 16px;
+    color: $text-light;
+    font-size: 0.85rem;
+
+    .footer-icon {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+      color: $secondary-color;
+    }
+  }
+}
+
+// Main Content
+.main-content {
+  background-color: $background-color;
+}
+
+// Custom Scrollbar
+.sidenav {
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: $secondary-color;
+    border-radius: 3px;
+
+    &:hover {
+      background: $light-accent;
+    }
+  }
+}
+
+// Responsive
+@media (max-width: 768px) {
+  .sidenav {
+    min-width: 240px;
+
+    .sidenav-header .logo {
+      .logo-text {
+        font-size: 1rem;
+      }
+    }
+
+    .nav-item {
+      height: 44px;
+
+      .nav-title {
+        font-size: 0.9rem;
+      }
+    }
+  }
+}
+
+.children-container {
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  max-height: 1000px;
+  opacity: 1;
+  margin-left: 16px;
+  border-left: 2px solid rgba($primary-color, 0.2);
+  padding-left: 8px;
+  margin-top: 4px;
+  margin-bottom: 4px;
+
+  &.level-2 {
+    border-left-color: rgba($primary-color, 0.2);
+  }
+
+  &.level-3 {
+    margin-left: 12px;
+    border-left-color: rgba($secondary-color, 0.3);
+
+    .nav-item {
+      height: 40px;
+
+      .nav-icon {
+        font-size: 18px;
+        width: 18px;
+        height: 18px;
+      }
+
+      .nav-title {
+        font-size: 0.85rem;
+      }
+    }
+  }
+}

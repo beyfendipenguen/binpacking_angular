@@ -4,6 +4,8 @@ import { OrdersComponent } from './orders/orders.component';
 import { ProductsComponent } from './products/products.component';
 import { ProfileComponent } from './profile/profile.component';
 import { StepperComponent } from './stepper/stepper.component';
+import { PalletsComponent } from './pallets/pallets.component';
+import { TrucksComponent } from './trucks/trucks.component';
 
 const ADMIN_ROUTES: Routes = [
   {
@@ -19,8 +21,16 @@ const ADMIN_ROUTES: Routes = [
     component: OrdersComponent
   },
   {
+    path: 'pallets',
+    component: PalletsComponent
+  },
+  {
     path: 'products',
     component: ProductsComponent
+  },
+  {
+    path: 'trucks',
+    component: TrucksComponent
   },
   {
     path: 'profile',

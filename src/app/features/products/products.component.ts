@@ -1,6 +1,5 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { GenericTableComponent } from '@shared/generic-table/generic-table.component';
@@ -24,7 +23,6 @@ export class ProductsComponent implements OnInit {
   // Servis enjeksiyonları
   productService = inject(ProductService);
   productBulkConfig: BulkUploadConfig = createProductBulkConfig();
-  snackBar = inject(MatSnackBar);
 
   // Loading durumu
   isLoading = false;
