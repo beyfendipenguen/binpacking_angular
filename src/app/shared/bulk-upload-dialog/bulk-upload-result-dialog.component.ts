@@ -194,7 +194,7 @@ styles: [`
       padding: 16px 0;
 
       mat-icon {
-        color: #006a6a; /* primary-color */
+        color: #006a6a;
       }
     }
 
@@ -207,6 +207,26 @@ styles: [`
     padding: 24px;
     margin: 0;
     max-height: 70vh;
+    overflow-y: auto; /* ✅ Eklendi */
+
+    /* ✅ Custom scrollbar */
+    &::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 4px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: #006a6a;
+      border-radius: 4px;
+    }
+
+    &::-webkit-scrollbar-thumb:hover {
+      background: #004a4a;
+    }
 
     .dialog-content {
       .summary-cards {
@@ -225,11 +245,11 @@ styles: [`
           transition: all 0.3s ease;
 
           &.total {
-            border-color: #006a6a; /* primary-color */
-            background-color: #e6f2f2; /* light primary bg */
+            border-color: #006a6a;
+            background-color: #e6f2f2;
 
             .card-icon {
-              background-color: #006a6a; /* primary-color */
+              background-color: #006a6a;
             }
           }
 
@@ -243,11 +263,11 @@ styles: [`
           }
 
           &.warning {
-            border-color: #d6bb86; /* secondary-color */
-            background-color: #faf7f0; /* light secondary bg */
+            border-color: #d6bb86;
+            background-color: #faf7f0;
 
             .card-icon {
-              background-color: #d6bb86; /* secondary-color */
+              background-color: #d6bb86;
             }
           }
 
@@ -284,14 +304,14 @@ styles: [`
             .card-value {
               font-size: 1.5rem;
               font-weight: 600;
-              color: #333333; /* text-dark */
+              color: #333333;
               line-height: 1;
               margin-bottom: 4px;
             }
 
             .card-label {
               font-size: 0.85rem;
-              color: #666666; /* text-light */
+              color: #666666;
             }
           }
         }
@@ -340,33 +360,56 @@ styles: [`
         }
 
         &.error-section {
-          border: 2px solid #d6bb86; /* secondary-color for warnings */
+          border: 2px solid #d6bb86;
 
           .section-header {
-            background-color: #faf7f0; /* light secondary bg */
-            border-color: #d6bb86; /* secondary-color */
+            background-color: #faf7f0;
+            border-color: #d6bb86;
 
             mat-icon {
-              color: #c0a670; /* light-accent */
+              color: #c0a670;
             }
 
             h3 {
-              color: #8b7d5a; /* darker secondary */
+              color: #8b7d5a;
             }
           }
         }
 
         .table-container {
           max-height: 400px;
-          overflow-y: auto;
+          overflow-y: auto; /* ✅ Zaten vardı */
+          position: relative; /* ✅ Eklendi */
+
+          /* ✅ Custom scrollbar for table */
+          &::-webkit-scrollbar {
+            width: 8px;
+          }
+
+          &::-webkit-scrollbar-track {
+            background: #f8f9fa;
+            border-radius: 4px;
+          }
+
+          &::-webkit-scrollbar-thumb {
+            background: #006a6a;
+            border-radius: 4px;
+          }
+
+          &::-webkit-scrollbar-thumb:hover {
+            background: #004a4a;
+          }
 
           .result-table {
             width: 100%;
 
             th {
-              background-color: #f8f9fa; /* background-color */
+              background-color: #f8f9fa;
               font-weight: 600;
-              color: #333333; /* text-dark */
+              color: #333333;
+              position: sticky; /* ✅ Eklendi - Header sabit kalır */
+              top: 0; /* ✅ Eklendi */
+              z-index: 10; /* ✅ Eklendi */
             }
 
             td, th {
@@ -394,11 +437,11 @@ styles: [`
               }
 
               &.warning {
-                background-color: #faf7f0; /* light secondary bg */
-                color: #8b7d5a; /* darker secondary */
+                background-color: #faf7f0;
+                color: #8b7d5a;
 
                 mat-icon {
-                  color: #c0a670; /* light-accent */
+                  color: #c0a670;
                 }
               }
 
@@ -438,7 +481,7 @@ styles: [`
 
   mat-dialog-actions {
     padding: 16px 24px;
-    border-top: 1px solid #e0e0e0; /* border-color */
+    border-top: 1px solid #e0e0e0;
     margin-top: 0;
 
     button {
