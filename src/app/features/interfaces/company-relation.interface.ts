@@ -11,57 +11,47 @@ export enum RelationType {
 }
 
 export interface CompanyRelation {
-  id?: number;
+  id?: string;
 
-  // İlişkinin başlangıç noktası olan şirket (kaynak şirket)
-  source_company: string;
-
-  // İlişkinin hedef şirketi
-  target_company: string;
-
-  // İlişkinin başlangıç noktası olan şirketin adı
-  source_company_name: string;
-
-  target_company_country_name: string;
-
-  // İlişkinin hedef şirketinin adı
-  target_company_name: string;
+  // Backend'den nested Company objesi gelecek
+  target_company: Company;
 
   // İlişki türü
   relation_type: RelationType;
 
-  // iliski turu gorunumu
+  // İlişki türü görünümü
   relation_type_display: string;
 
   // İlişkinin aktif olup olmadığı
   is_active: boolean;
 
-  // İlişkinin başlangıç tarihi
-  start_date: Date;
-
-  // İlişkinin bitiş tarihi (opsiyonel)
-  end_date?: Date | null;
-
-  // Ödeme vadesi (gün cinsinden)
-  payment_term: number;
-
-  // Kredi limiti (opsiyonel)
-  credit_limit?: number | null;
-
-  // Varsayılan tedarikçi/müşteri mi?
-  is_default: boolean;
-
   // İlişki hakkında notlar
   notes?: string | null;
 
-  // İlişkiye özel ek bilgiler
-  extra_data?: any | null;
+  // İlişkiye özel ek bilgiler (settings)
+  extra_data?: ExtraData | null;
 
   // Meta-veriler
   created_at?: Date;
   updated_at?: Date;
-  created_by?: number | null;
-  updated_by?: number | null;
+}
+
+// Extra Data yapısı
+export interface ExtraData {
+  _schema_version?: string;
+  is_multi_pallet?: boolean;
+  max_pallet_height?: number;
+  truck_weight_limit?: number;
+  default_pallet_group_id?: string | null;
+}
+
+// Create/Update için DTO
+export interface CompanyRelationDto {
+  target_company: Company; // UUID
+  relation_type: RelationType;
+  is_active: boolean;
+  notes?: string | null;
+  extra_data?: ExtraData | null;
 }
 
 // İlişki türlerinin görünür isimlerini getiren yardımcı fonksiyon
@@ -78,13 +68,29 @@ export const getRelationTypeLabel = (type: RelationType): string => {
   return labels[type] || 'Bilinmeyen İlişki Türü';
 };
 
+// Relation types için dropdown options
+export const RELATION_TYPE_OPTIONS = [
+  { value: RelationType.CUSTOMER, label: 'Müşteri' },
+  { value: RelationType.SUPPLIER, label: 'Tedarikçi' },
+  { value: RelationType.PARTNER, label: 'İş Ortağı' },
+  { value: RelationType.CONTRACTOR, label: 'Yüklenici' },
+  { value: RelationType.DISTRIBUTOR, label: 'Distribütör' },
+  { value: RelationType.SUBSIDIARY, label: 'Bağlı Kuruluş' },
+  { value: RelationType.OTHER, label: 'Diğer' }
+];
+
 // Yeni bir CompanyRelation oluşturmak için varsayılan değerler
-export const createDefaultCompanyRelation = (): Partial<CompanyRelation> => {
+export const createDefaultCompanyRelation = (): Partial<CompanyRelationDto> => {
   return {
-    relation_type: RelationType.OTHER,
+    relation_type: RelationType.CUSTOMER,
     is_active: true,
-    payment_term: 30,
-    is_default: false,
-    start_date: new Date()
+    notes: '',
+    extra_data: {
+      _schema_version: '1.0',
+      is_multi_pallet: false,
+      max_pallet_height: 2400,
+      truck_weight_limit: 25000,
+      default_pallet_group_id: null
+    }
   };
 };

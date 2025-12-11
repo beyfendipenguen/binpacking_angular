@@ -1,0 +1,98 @@
+.add-company-dialog {
+  .dialog-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px;
+    border-bottom: 1px solid #e0e0e0;
+
+    h2 {
+      margin: 0;
+      font-size: 1.5rem;
+      font-weight: 500;
+      color: #1a1a1a;
+    }
+
+    .close-btn {
+      margin: -8px -8px -8px 0;
+    }
+  }
+
+  .dialog-content {
+    padding: 24px;
+
+    .company-form {
+      .form-row {
+        margin-bottom: 20px;
+
+        &:last-child {
+          margin-bottom: 0;
+        }
+
+        .full-width {
+          width: 100%;
+        }
+      }
+
+      .info-box {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 16px;
+        background: #e3f2fd;
+        border-radius: 8px;
+        border-left: 4px solid #1976d2;
+        margin-top: 20px;
+
+        mat-icon {
+          color: #1976d2;
+          font-size: 20px;
+          width: 20px;
+          height: 20px;
+          flex-shrink: 0;
+          margin-top: 2px;
+        }
+
+        p {
+          margin: 0;
+          color: #0d47a1;
+          font-size: 0.9rem;
+          line-height: 1.5;
+        }
+      }
+    }
+  }
+
+  .dialog-actions {
+    padding: 16px 24px;
+    border-top: 1px solid #e0e0e0;
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+
+    button {
+      min-width: 100px;
+      height: 42px;
+
+      .button-spinner {
+        display: inline-block;
+        margin-right: 8px;
+      }
+    }
+  }
+}
+
+// Material overrides
+::ng-deep {
+  .add-company-dialog {
+    .mat-mdc-dialog-container {
+      --mdc-dialog-container-shape: 12px;
+    }
+
+    .mat-mdc-form-field {
+      .mat-mdc-text-field-wrapper {
+        padding: 0;
+      }
+    }
+  }
+}

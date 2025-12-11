@@ -1,0 +1,361 @@
+.customers-container {
+  padding: 24px;
+  padding-bottom: 100px;
+  max-width: 1400px;
+  margin: 0 auto;
+
+  .page-header {
+    margin-bottom: 32px;
+
+    .header-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 20px;
+      flex-wrap: wrap;
+
+      .header-left {
+        flex: 1;
+        min-width: 250px;
+
+        h1 {
+          margin: 0 0 8px 0;
+          font-size: 2rem;
+          font-weight: 500;
+          color: #1a1a1a;
+        }
+
+        .breadcrumb {
+          display: flex;
+          align-items: center;
+          color: #666;
+          font-size: 0.9rem;
+
+          .separator {
+            margin: 0 8px;
+            color: #999;
+          }
+
+          .active {
+            color: #1976d2;
+            font-weight: 500;
+          }
+        }
+      }
+
+      .header-actions {
+        .add-btn {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          padding: 0 24px;
+          height: 44px;
+          font-weight: 500;
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+          transition: all 0.3s ease;
+
+          mat-icon {
+            font-size: 20px;
+            height: 20px;
+            width: 20px;
+          }
+
+          &:hover {
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+            transform: translateY(-1px);
+          }
+
+          &:active {
+            transform: translateY(0);
+          }
+        }
+      }
+    }
+  }
+
+  .content-section {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+
+    .search-bar {
+      padding: 20px 24px;
+      border-bottom: 1px solid #e0e0e0;
+      background: #fafafa;
+
+      .search-field {
+        width: 100%;
+        max-width: 500px;
+
+        ::ng-deep .mat-mdc-form-field-infix {
+          padding: 12px 0;
+        }
+      }
+    }
+
+    .table-container {
+      position: relative;
+      min-height: 400px;
+
+      &.loading {
+        opacity: 0.6;
+        pointer-events: none;
+      }
+
+      .loading-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(255, 255, 255, 0.9);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        z-index: 10;
+
+        p {
+          margin-top: 16px;
+          color: #666;
+          font-weight: 500;
+        }
+      }
+
+      .customers-table {
+        width: 100%;
+
+        // Header styles
+        th {
+          background: #f5f5f5;
+          color: #333;
+          font-weight: 600;
+          font-size: 0.9rem;
+          padding: 16px 24px;
+          border-bottom: 2px solid #e0e0e0;
+        }
+
+        // Cell styles
+        td {
+          padding: 16px 24px;
+          color: #555;
+          border-bottom: 1px solid #e0e0e0;
+        }
+
+        // Row hover effect
+        .table-row {
+          cursor: pointer;
+          transition: background-color 0.2s ease;
+
+          &:hover {
+            background-color: #f9f9f9;
+          }
+        }
+
+        // Company name cell with logo
+        .company-name-cell {
+          .company-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+
+            .company-logo {
+              width: 40px;
+              height: 40px;
+              border-radius: 8px;
+              object-fit: cover;
+              border: 1px solid #e0e0e0;
+            }
+
+            .company-logo-placeholder {
+              width: 40px;
+              height: 40px;
+              border-radius: 8px;
+              background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              color: white;
+
+              mat-icon {
+                font-size: 24px;
+                width: 24px;
+                height: 24px;
+              }
+            }
+
+            .company-name {
+              font-weight: 500;
+              color: #1a1a1a;
+            }
+          }
+        }
+
+        // Relation type chips
+        .relation-chip {
+          font-size: 0.85rem;
+          font-weight: 500;
+          border-radius: 12px;
+          padding: 4px 12px;
+          height: auto;
+
+          &.relation-customer {
+            background-color: #e3f2fd;
+            color: #1976d2;
+          }
+
+          &.relation-supplier {
+            background-color: #f3e5f5;
+            color: #7b1fa2;
+          }
+
+          &.relation-partner {
+            background-color: #e8f5e9;
+            color: #388e3c;
+          }
+
+          &.relation-contractor {
+            background-color: #fff3e0;
+            color: #f57c00;
+          }
+
+          &.relation-distributor {
+            background-color: #fce4ec;
+            color: #c2185b;
+          }
+
+          &.relation-subsidiary {
+            background-color: #e0f2f1;
+            color: #00796b;
+          }
+
+          &.relation-other {
+            background-color: #f5f5f5;
+            color: #616161;
+          }
+        }
+
+        // Status chips
+        .status-active {
+          background-color: #e8f5e9;
+          color: #2e7d32;
+          font-weight: 500;
+          font-size: 0.85rem;
+        }
+
+        .status-inactive {
+          background-color: #ffebee;
+          color: #c62828;
+          font-weight: 500;
+          font-size: 0.85rem;
+        }
+
+        // Notes cell
+        .notes-cell {
+          max-width: 300px;
+
+          .notes-text {
+            display: block;
+            color: #666;
+            font-size: 0.9rem;
+          }
+
+          .no-notes {
+            color: #bbb;
+          }
+        }
+
+        // Actions cell
+        .actions-cell {
+          white-space: nowrap;
+
+          button {
+            margin-right: 4px;
+          }
+        }
+
+        // No data row
+        .no-data-row {
+          height: 400px;
+
+          .no-data {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 60px 20px;
+            color: #999;
+
+            mat-icon {
+              font-size: 64px;
+              width: 64px;
+              height: 64px;
+              margin-bottom: 16px;
+              color: #ccc;
+            }
+
+            p {
+              margin: 0 0 20px 0;
+              font-size: 1.1rem;
+              color: #666;
+            }
+
+            button {
+              mat-icon {
+                font-size: 20px;
+                width: 20px;
+                height: 20px;
+                margin: 0 4px 0 0;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // Responsive styles
+  @media (max-width: 768px) {
+    padding: 16px;
+
+    .page-header {
+      .header-content {
+        .header-left h1 {
+          font-size: 1.5rem;
+        }
+
+        .header-actions {
+          width: 100%;
+
+          .add-btn {
+            width: 100%;
+            justify-content: center;
+          }
+        }
+      }
+    }
+
+    .content-section {
+      .table-container {
+        overflow-x: auto;
+
+        .customers-table {
+          min-width: 800px;
+        }
+      }
+    }
+  }
+}
+
+// Material overrides
+::ng-deep {
+  .mat-mdc-paginator {
+    background: transparent;
+    border-top: 1px solid #e0e0e0;
+  }
+
+  .mat-mdc-chip {
+    --mdc-chip-elevated-container-color: transparent;
+  }
+}

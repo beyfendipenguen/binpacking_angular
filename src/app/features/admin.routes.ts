@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { EmployeesComponent } from './employees/employees.component';
+import { CustomersComponent } from './customers/customers.component';
 import { OrdersComponent } from './orders/orders.component';
 import { ProductsComponent } from './products/products.component';
 import { ProfileComponent } from './profile/profile.component';
@@ -11,10 +11,6 @@ const ADMIN_ROUTES: Routes = [
   {
     path: '',
     component: StepperComponent
-  },
-  {
-    path: 'employees',
-    component: EmployeesComponent
   },
   {
     path: 'orders',
@@ -31,6 +27,10 @@ const ADMIN_ROUTES: Routes = [
   {
     path: 'trucks',
     component: TrucksComponent
+  },
+  {
+    path: 'customers',
+    component: CustomersComponent
   },
   {
     path: 'profile',

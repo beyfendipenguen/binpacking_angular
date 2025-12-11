@@ -186,7 +186,7 @@ export class OrdersComponent implements OnInit {
       data: {
         orderId: order.id,
         orderName: order.name,
-        companyName: order.company_relation?.target_company_name || 'N/A'
+        companyName: order.company_relation?.target_company.company_name || 'N/A'
       }
     });
   }
@@ -202,7 +202,7 @@ export class OrdersComponent implements OnInit {
       data: {
         orderId: order.id,
         orderName: order.name,
-        companyName: order.company_relation?.target_company_name || 'N/A'
+        companyName: order.company_relation?.target_company.company_name || 'N/A'
       }
     });
   }
@@ -217,7 +217,7 @@ export class OrdersComponent implements OnInit {
       data: {
         orderId: order.id,
         orderName: order.name,
-        companyName: order.company_relation?.target_company_name || 'N/A'
+        companyName: order.company_relation?.target_company.company_name || 'N/A'
       }
     });
   }

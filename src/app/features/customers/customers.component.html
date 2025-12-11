@@ -1,0 +1,193 @@
+<div class="customers-container">
+  <!-- Header -->
+  <div class="page-header">
+    <div class="header-content">
+      <div class="header-left">
+        <h1>Müşteri Yönetimi</h1>
+        <div class="breadcrumb">
+          <span>Ana Sayfa</span>
+          <span class="separator">/</span>
+          <span class="active">Müşteriler</span>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button mat-raised-button color="primary" (click)="openAddDialog()" class="add-btn">
+          <mat-icon>add</mat-icon>
+          Yeni Müşteri Ekle
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Content Section -->
+  <div class="content-section">
+    <!-- Search Bar -->
+    <div class="search-bar">
+      <mat-form-field appearance="outline" class="search-field">
+        <mat-label>Müşteri Ara</mat-label>
+        <input
+          matInput
+          placeholder="Müşteri adı, ülke veya ilişki türü ile ara..."
+          (ngModel)="searchTerm"
+          (input)="onSearch($event)"
+        />
+        <mat-icon matPrefix>search</mat-icon>
+        @if (searchTerm) {
+          <button mat-icon-button matSuffix (click)="clearSearch()">
+            <mat-icon>clear</mat-icon>
+          </button>
+        }
+      </mat-form-field>
+    </div>
+
+    <!-- Table Container -->
+    <div class="table-container" [class.loading]="isLoading">
+      @if (isLoading) {
+        <div class="loading-overlay">
+          <mat-spinner diameter="50"></mat-spinner>
+          <p>Yükleniyor...</p>
+        </div>
+      }
+
+      <table mat-table [dataSource]="dataSource" matSort class="customers-table">
+
+        <!-- Company Name Column -->
+        <ng-container matColumnDef="target_company_name">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>
+            {{ getColumnName('target_company_name') }}
+          </th>
+          <td mat-cell *matCellDef="let row" class="company-name-cell">
+            <div class="company-info">
+              @if (row.target_company.logo) {
+                <img [src]="row.target_company.logo" alt="Logo" class="company-logo" />
+              } @else {
+                <div class="company-logo-placeholder">
+                  <mat-icon>business</mat-icon>
+                </div>
+              }
+              <span class="company-name">{{ row.target_company.company_name }}</span>
+            </div>
+          </td>
+        </ng-container>
+
+        <!-- Country Column -->
+        <ng-container matColumnDef="target_company_country">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>
+            {{ getColumnName('target_company_country') }}
+          </th>
+          <td mat-cell *matCellDef="let row">
+            {{ row.target_company.country }}
+          </td>
+        </ng-container>
+
+        <!-- Relation Type Column -->
+        <ng-container matColumnDef="relation_type_display">
+          <th mat-header-cell *matHeaderCellDef>
+            {{ getColumnName('relation_type_display') }}
+          </th>
+          <td mat-cell *matCellDef="let row">
+            <mat-chip class="relation-chip" [class]="'relation-' + row.relation_type">
+              {{ row.relation_type_display }}
+            </mat-chip>
+          </td>
+        </ng-container>
+
+        <!-- Status Column -->
+        <ng-container matColumnDef="is_active">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>
+            {{ getColumnName('is_active') }}
+          </th>
+          <td mat-cell *matCellDef="let row">
+            <mat-chip [class]="row.is_active ? 'status-active' : 'status-inactive'">
+              {{ row.is_active ? 'Aktif' : 'Pasif' }}
+            </mat-chip>
+          </td>
+        </ng-container>
+
+        <!-- Notes Column -->
+        <ng-container matColumnDef="notes">
+          <th mat-header-cell *matHeaderCellDef>
+            {{ getColumnName('notes') }}
+          </th>
+          <td mat-cell *matCellDef="let row" class="notes-cell">
+            @if (row.notes && row.notes.length > 0) {
+              <span [matTooltip]="row.notes" class="notes-text">
+                {{ row.notes.length > 50 ? (row.notes.substring(0, 50) + '...') : row.notes }}
+              </span>
+            } @else {
+              <span class="no-notes">-</span>
+            }
+          </td>
+        </ng-container>
+
+        <!-- Actions Column -->
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef>
+            {{ getColumnName('actions') }}
+          </th>
+          <td mat-cell *matCellDef="let row" class="actions-cell">
+            <button
+              mat-icon-button
+              color="primary"
+              (click)="openEditDialog(row); $event.stopPropagation()"
+              matTooltip="Düzenle"
+            >
+              <mat-icon>edit</mat-icon>
+            </button>
+            <button
+              mat-icon-button
+              color="warn"
+              (click)="deleteCustomer(row, $event)"
+              matTooltip="Sil"
+            >
+              <mat-icon>delete</mat-icon>
+            </button>
+          </td>
+        </ng-container>
+
+        <!-- Table Rows -->
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr
+          mat-row
+          *matRowDef="let row; columns: displayedColumns;"
+          class="table-row"
+          (click)="onRowClick(row)"
+        ></tr>
+
+        <!-- No Data Row -->
+        <tr class="mat-row no-data-row" *matNoDataRow>
+          <td class="mat-cell" [attr.colspan]="displayedColumns.length">
+            @if (searchTerm) {
+              <div class="no-data">
+                <mat-icon>search_off</mat-icon>
+                <p>Arama sonucu bulunamadı</p>
+                <button mat-button color="primary" (click)="clearSearch()">
+                  Aramayı Temizle
+                </button>
+              </div>
+            } @else {
+              <div class="no-data">
+                <mat-icon>inbox</mat-icon>
+                <p>Henüz müşteri eklenmemiş</p>
+                <button mat-raised-button color="primary" (click)="openAddDialog()">
+                  <mat-icon>add</mat-icon>
+                  İlk Müşteriyi Ekle
+                </button>
+              </div>
+            }
+          </td>
+        </tr>
+      </table>
+
+      <!-- Paginator -->
+      <mat-paginator
+        [length]="totalItems"
+        [pageSize]="pageSize"
+        [pageSizeOptions]="[5, 10, 25, 50, 100]"
+        (page)="onPageChange($event)"
+        showFirstLastButtons
+      >
+      </mat-paginator>
+    </div>
+  </div>
+</div>

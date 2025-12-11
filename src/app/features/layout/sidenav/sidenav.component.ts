@@ -50,7 +50,12 @@ const NAV_LIST_ITEM: INavListItem[] = [
         routerLink: ['/trucks'],
         title: 'Sevkiyat Aracı Yönetimi',
         icon: 'local_shipping'
-      }
+      },
+      {
+        routerLink: ['/customers'],
+        title: 'Müşteri Yönetimi',
+        icon: 'assignment_ind'
+      },
     ]
   }
 ];
