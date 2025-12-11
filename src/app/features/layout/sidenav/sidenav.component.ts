@@ -31,20 +31,9 @@ const NAV_LIST_ITEM: INavListItem[] = [
         icon: 'inventory_2'
       },
       {
+        routerLink: ['/pallets'],
         title: 'Palet Yönetimi',
         icon: 'view_module',
-        children: [
-          {
-            routerLink: ['/pallets'],
-            title: 'Palet Listesi',
-            icon: 'list'
-          },
-          {
-            routerLink: ['/pallet-groups'],
-            title: 'Palet Grupları',
-            icon: 'group_work'
-          }
-        ]
       },
       {
         routerLink: ['/trucks'],

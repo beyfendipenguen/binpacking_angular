@@ -1,0 +1,233 @@
+<div class="dialog-container">
+  <div class="dialog-header">
+    <h2 mat-dialog-title>Palet Grupları Yönetimi</h2>
+    <button mat-icon-button (click)="close()" class="close-btn">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <mat-dialog-content class="dialog-content">
+    <div class="content-wrapper">
+      <!-- Sol Panel: Grup Listesi -->
+      <div class="groups-panel">
+        <div class="panel-header">
+          <h3>Gruplar</h3>
+          <button mat-mini-fab color="primary" (click)="createNewGroup()" [disabled]="isLoadingGroups"
+            matTooltip="Yeni Grup">
+            <mat-icon>add</mat-icon>
+          </button>
+        </div>
+
+        <div class="groups-list" *ngIf="!isLoadingGroups; else loadingGroups">
+          <mat-list>
+            <mat-list-item *ngFor="let group of groups" [class.selected]="selectedGroup?.id === group.id"
+              [class.global-group]="group.is_global" (click)="selectGroup(group)">
+              <div class="group-item">
+                <div class="group-info">
+                  <span class="group-name">{{ group.name }}</span>
+                  <span class="group-badge" *ngIf="group.is_global">
+                    <mat-icon>lock</mat-icon> Global
+                  </span>
+                </div>
+                <span class="group-count">{{ group.pallet_count }} palet</span>
+              </div>
+            </mat-list-item>
+          </mat-list>
+
+          <div class="empty-state" *ngIf="groups.length === 0">
+            <mat-icon>folder_open</mat-icon>
+            <p>Henüz grup yok</p>
+            <p class="hint">Yeni grup oluşturmak için + butonuna tıklayın</p>
+          </div>
+        </div>
+
+        <ng-template #loadingGroups>
+          <div class="loading-state">
+            <mat-spinner diameter="40"></mat-spinner>
+            <p>Gruplar yükleniyor...</p>
+          </div>
+        </ng-template>
+      </div>
+
+      <!-- Sağ Panel: Grup Detayları -->
+      <div class="details-panel">
+        <div *ngIf="selectedGroup || isNewGroup; else noSelection">
+          <div class="panel-header">
+            <h3>{{ isNewGroup ? 'Yeni Grup' : 'Grup Detayları' }}</h3>
+            <span class="global-warning" *ngIf="isGlobalGroup()">
+              <mat-icon>lock</mat-icon>
+              Sadece Görüntüleme
+            </span>
+          </div>
+
+          <form [formGroup]="groupForm" class="group-form">
+            <!-- Grup Adı -->
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Grup Adı</mat-label>
+              <input matInput formControlName="name" placeholder="Örn: Standart Euro Paletler">
+              <mat-error *ngIf="groupForm.get('name')?.hasError('required')">
+                Grup adı zorunludur
+              </mat-error>
+            </mat-form-field>
+
+            <!-- Açıklama -->
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Açıklama</mat-label>
+              <textarea matInput formControlName="description" rows="2"
+                placeholder="Grup hakkında kısa açıklama"></textarea>
+            </mat-form-field>
+
+            <!-- Global Checkbox -->
+            <mat-checkbox formControlName="is_global" class="global-checkbox">
+              Global Grup (Tüm firmalar kullanabilir)
+            </mat-checkbox>
+
+            <!-- Paletler Bölümü -->
+            <div class="pallets-section">
+              <div class="section-header">
+                <h4>Paletler</h4>
+                <span class="selection-count">
+                  {{ selectedPallets.length }} / {{ allPallets.length }} seçili
+                </span>
+              </div>
+
+              <div class="dual-list-container" *ngIf="!isLoadingPallets; else loadingPallets">
+                <!-- Sol Liste: Mevcut Paletler -->
+                <div class="pallet-list-box">
+                  <div class="list-header">
+                    <span class="list-title">Mevcut Paletler</span>
+                    <span class="list-count">{{ availablePallets.length }}</span>
+                  </div>
+                  <div class="search-box">
+                    <mat-icon class="search-icon">search</mat-icon>
+                    <input type="text" class="search-input" placeholder="Palet ara (ör: 120x80x145, 500)"
+                      [formControl]="searchAvailableControl">
+                    <button mat-icon-button class="clear-btn" *ngIf="searchAvailableControl.value"
+                      (click)="clearAvailableSearch()">
+                      <mat-icon>close</mat-icon>
+                    </button>
+                  </div>
+                  <div class="pallet-items">
+                    <div class="pallet-item" *ngFor="let pallet of availablePallets"
+                      [class.selected]="tempSelectedAvailable.has(pallet.id)"
+                      (click)="toggleAvailableSelection(pallet.id)" (dblclick)="addSinglePallet(pallet.id)">
+                      <mat-checkbox [checked]="tempSelectedAvailable.has(pallet.id)" [disabled]="isGlobalGroup()"
+                        (click)="$event.stopPropagation()" (change)="toggleAvailableSelection(pallet.id)">
+                      </mat-checkbox>
+                      <div class="pallet-info">
+                        <span class="pallet-dimensions">
+                          {{ pallet.dimension.width }} x {{ pallet.dimension.depth }} x {{ pallet.dimension.height }} cm
+                        </span>
+                        <span class="pallet-weight">{{ pallet.weight }} kg</span>
+                      </div>
+                    </div>
+
+                    <div class="empty-list" *ngIf="availablePallets.length === 0">
+                      <mat-icon>{{ searchAvailableControl.value ? 'search_off' : 'check_circle' }}</mat-icon>
+                      <p>{{ searchAvailableControl.value ? 'Sonuç bulunamadı' : 'Tüm paletler eklendi' }}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Ortada: Transfer Butonları -->
+                <div class="transfer-buttons">
+                  <button mat-icon-button class="transfer-btn" (click)="addSelectedToGroup()"
+                    [disabled]="tempSelectedAvailable.size === 0 || isGlobalGroup()" matTooltip="Seçilenleri ekle">
+                    <mat-icon>arrow_forward</mat-icon>
+                  </button>
+
+                  <button mat-icon-button class="transfer-btn" (click)="addAllToGroup()"
+                    [disabled]="availablePallets.length === 0 || isGlobalGroup()" matTooltip="Tümünü ekle">
+                    <mat-icon>double_arrow</mat-icon>
+                  </button>
+
+                  <button mat-icon-button class="transfer-btn" (click)="removeSelectedFromGroup()"
+                    [disabled]="tempSelectedInGroup.size === 0 || isGlobalGroup()" matTooltip="Seçilenleri çıkar">
+                    <mat-icon>arrow_back</mat-icon>
+                  </button>
+
+                  <button mat-icon-button class="transfer-btn" (click)="removeAllFromGroup()"
+                    [disabled]="selectedPallets.length === 0 || isGlobalGroup()" matTooltip="Tümünü çıkar">
+                    <mat-icon>first_page</mat-icon>
+                  </button>
+                </div>
+
+                <!-- Sağ Liste: Seçili Paletler -->
+                <div class="pallet-list-box">
+                  <div class="list-header">
+                    <span class="list-title">Gruptaki Paletler</span>
+                    <span class="list-count">{{ selectedPallets.length }}</span>
+                  </div>
+
+                  <!-- ARAMA KUTUSU - SAĞ -->
+                  <div class="search-box">
+                    <mat-icon class="search-icon">search</mat-icon>
+                    <input type="text" class="search-input" placeholder="Palet ara (ör: 120x80x145, 500)"
+                      [formControl]="searchSelectedControl">
+                    <button mat-icon-button class="clear-btn" *ngIf="searchSelectedControl.value"
+                      (click)="clearSelectedSearch()">
+                      <mat-icon>close</mat-icon>
+                    </button>
+                  </div>
+
+                  <div class="pallet-items">
+                    <div class="pallet-item" *ngFor="let pallet of selectedPallets"
+                      [class.selected]="tempSelectedInGroup.has(pallet.id)" (click)="toggleSelectedSelection(pallet.id)"
+                      (dblclick)="removeSinglePallet(pallet.id)">
+                      <mat-checkbox [checked]="tempSelectedInGroup.has(pallet.id)" [disabled]="isGlobalGroup()"
+                        (click)="$event.stopPropagation()" (change)="toggleSelectedSelection(pallet.id)">
+                      </mat-checkbox>
+                      <div class="pallet-info">
+                        <span class="pallet-dimensions">
+                          {{ pallet.dimension.width }} x {{ pallet.dimension.depth }} x {{ pallet.dimension.height }} cm
+                        </span>
+                        <span class="pallet-weight">{{ pallet.weight }} kg</span>
+                      </div>
+                    </div>
+
+                    <div class="empty-list" *ngIf="selectedPallets.length === 0">
+                      <mat-icon>{{ searchSelectedControl.value ? 'search_off' : 'inbox' }}</mat-icon>
+                      <p>{{ searchSelectedControl.value ? 'Sonuç bulunamadı' : 'Henüz palet eklenmedi' }}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <ng-template #loadingPallets>
+                <div class="loading-state small">
+                  <mat-spinner diameter="30"></mat-spinner>
+                  <p>Paletler yükleniyor...</p>
+                </div>
+              </ng-template>
+            </div>
+          </form>
+        </div>
+
+        <ng-template #noSelection>
+          <div class="no-selection">
+            <mat-icon>touch_app</mat-icon>
+            <p>Düzenlemek için bir grup seçin</p>
+            <p class="hint">veya yeni grup oluşturun</p>
+          </div>
+        </ng-template>
+      </div>
+    </div>
+  </mat-dialog-content>
+
+  <mat-dialog-actions class="dialog-actions" *ngIf="selectedGroup || isNewGroup">
+    <div class="actions-left">
+      <button mat-stroked-button color="warn" (click)="deleteGroup()"
+        *ngIf="!isNewGroup && selectedGroup && !isGlobalGroup()" [disabled]="isSaving">
+        <mat-icon>delete</mat-icon>
+        Sil
+      </button>
+    </div>
+    <div class="actions-right">
+      <button mat-button (click)="close()" [disabled]="isSaving">İptal</button>
+      <button mat-raised-button color="primary" (click)="saveGroup()"
+        [disabled]="groupForm.invalid || isSaving || isGlobalGroup()">
+        <span *ngIf="!isSaving">{{ isNewGroup ? 'Oluştur' : 'Güncelle' }}</span>
+      </button>
+    </div>
+  </mat-dialog-actions>
+</div>

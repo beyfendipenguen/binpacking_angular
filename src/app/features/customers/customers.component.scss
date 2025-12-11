@@ -1,3 +1,13 @@
+$primary-color: #006a6a;
+$secondary-color: #d6bb86;
+$accent-color: #004a4a;
+$light-accent: #c0a670;
+$background-color: #f8f9fa;
+$text-dark: #333333;
+$text-light: #666666;
+$border-color: #e0e0e0;
+$white: #ffffff;
+
 .customers-container {
   padding: 24px;
   padding-bottom: 100px;
@@ -21,14 +31,14 @@
         h1 {
           margin: 0 0 8px 0;
           font-size: 2rem;
-          font-weight: 500;
-          color: #1a1a1a;
+          font-weight: 600;
+          color: $primary-color;
         }
 
         .breadcrumb {
           display: flex;
           align-items: center;
-          color: #666;
+          color: $text-light;
           font-size: 0.9rem;
 
           .separator {
@@ -37,7 +47,7 @@
           }
 
           .active {
-            color: #1976d2;
+            color: $secondary-color;
             font-weight: 500;
           }
         }
@@ -51,6 +61,8 @@
           padding: 0 24px;
           height: 44px;
           font-weight: 500;
+          background-color: $primary-color;
+          color: $white;
           box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
           transition: all 0.3s ease;
 
@@ -61,7 +73,8 @@
           }
 
           &:hover {
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+            background-color: $accent-color;
+            box-shadow: 0 4px 8px rgba(0, 106, 106, 0.3);
             transform: translateY(-1px);
           }
 
@@ -74,22 +87,56 @@
   }
 
   .content-section {
-    background: white;
+    background: $white;
     border-radius: 8px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
     overflow: hidden;
 
     .search-bar {
       padding: 20px 24px;
-      border-bottom: 1px solid #e0e0e0;
-      background: #fafafa;
+      border-bottom: 2px solid $border-color;
+      background: rgba(0, 106, 106, 0.05);
 
       .search-field {
         width: 100%;
         max-width: 500px;
 
-        ::ng-deep .mat-mdc-form-field-infix {
-          padding: 12px 0;
+        ::ng-deep {
+          .mat-mdc-form-field-infix {
+            padding: 12px 0;
+          }
+
+          .mat-mdc-text-field-wrapper {
+            .mdc-notched-outline {
+              .mdc-notched-outline__leading,
+              .mdc-notched-outline__notch,
+              .mdc-notched-outline__trailing {
+                border-color: $border-color;
+              }
+            }
+
+            &:hover .mdc-notched-outline {
+              .mdc-notched-outline__leading,
+              .mdc-notched-outline__notch,
+              .mdc-notched-outline__trailing {
+                border-color: $primary-color;
+              }
+            }
+          }
+
+          &.mat-focused {
+            .mat-mdc-text-field-wrapper .mdc-notched-outline {
+              .mdc-notched-outline__leading,
+              .mdc-notched-outline__notch,
+              .mdc-notched-outline__trailing {
+                border-color: $primary-color;
+              }
+            }
+          }
+
+          .mat-mdc-form-field-icon-prefix {
+            color: $primary-color;
+          }
         }
       }
     }
@@ -116,9 +163,15 @@
         align-items: center;
         z-index: 10;
 
+        mat-spinner {
+          ::ng-deep circle {
+            stroke: $primary-color;
+          }
+        }
+
         p {
           margin-top: 16px;
-          color: #666;
+          color: $text-light;
           font-weight: 500;
         }
       }
@@ -128,28 +181,30 @@
 
         // Header styles
         th {
-          background: #f5f5f5;
-          color: #333;
+          background: rgba(0, 106, 106, 0.1);
+          color: $primary-color;
           font-weight: 600;
           font-size: 0.9rem;
           padding: 16px 24px;
-          border-bottom: 2px solid #e0e0e0;
+          border-bottom: 2px solid $primary-color;
         }
 
         // Cell styles
         td {
           padding: 16px 24px;
-          color: #555;
-          border-bottom: 1px solid #e0e0e0;
+          color: $text-dark;
+          border-bottom: 1px solid $border-color;
         }
 
         // Row hover effect
         .table-row {
           cursor: pointer;
-          transition: background-color 0.2s ease;
+          transition: all 0.3s ease;
 
           &:hover {
-            background-color: #f9f9f9;
+            background-color: rgba(0, 106, 106, 0.05);
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0, 106, 106, 0.1);
           }
         }
 
@@ -165,18 +220,20 @@
               height: 40px;
               border-radius: 8px;
               object-fit: cover;
-              border: 1px solid #e0e0e0;
+              border: 1px solid $border-color;
+              box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
             }
 
             .company-logo-placeholder {
               width: 40px;
               height: 40px;
               border-radius: 8px;
-              background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+              background: linear-gradient(135deg, $primary-color 0%, $accent-color 100%);
               display: flex;
               align-items: center;
               justify-content: center;
-              color: white;
+              color: $white;
+              box-shadow: 0 2px 4px rgba(0, 106, 106, 0.2);
 
               mat-icon {
                 font-size: 24px;
@@ -186,8 +243,8 @@
             }
 
             .company-name {
-              font-weight: 500;
-              color: #1a1a1a;
+              font-weight: 600;
+              color: $text-dark;
             }
           }
         }
@@ -199,56 +256,67 @@
           border-radius: 12px;
           padding: 4px 12px;
           height: auto;
+          transition: all 0.3s ease;
 
           &.relation-customer {
-            background-color: #e3f2fd;
-            color: #1976d2;
+            background-color: rgba(0, 106, 106, 0.15);
+            color: $primary-color;
           }
 
           &.relation-supplier {
-            background-color: #f3e5f5;
-            color: #7b1fa2;
+            background-color: rgba(214, 187, 134, 0.2);
+            color: $light-accent;
           }
 
           &.relation-partner {
-            background-color: #e8f5e9;
-            color: #388e3c;
+            background-color: rgba(76, 175, 80, 0.15);
+            color: #2e7d32;
           }
 
           &.relation-contractor {
-            background-color: #fff3e0;
+            background-color: rgba(255, 152, 0, 0.15);
             color: #f57c00;
           }
 
           &.relation-distributor {
-            background-color: #fce4ec;
+            background-color: rgba(233, 30, 99, 0.15);
             color: #c2185b;
           }
 
           &.relation-subsidiary {
-            background-color: #e0f2f1;
+            background-color: rgba(0, 121, 107, 0.15);
             color: #00796b;
           }
 
           &.relation-other {
-            background-color: #f5f5f5;
-            color: #616161;
+            background-color: rgba(0, 0, 0, 0.05);
+            color: $text-light;
           }
         }
 
         // Status chips
         .status-active {
-          background-color: #e8f5e9;
+          background-color: rgba(76, 175, 80, 0.15);
           color: #2e7d32;
-          font-weight: 500;
+          font-weight: 600;
           font-size: 0.85rem;
+          transition: all 0.3s ease;
+
+          &:hover {
+            background-color: rgba(76, 175, 80, 0.25);
+          }
         }
 
         .status-inactive {
-          background-color: #ffebee;
+          background-color: rgba(244, 67, 54, 0.15);
           color: #c62828;
-          font-weight: 500;
+          font-weight: 600;
           font-size: 0.85rem;
+          transition: all 0.3s ease;
+
+          &:hover {
+            background-color: rgba(244, 67, 54, 0.25);
+          }
         }
 
         // Notes cell
@@ -257,12 +325,12 @@
 
           .notes-text {
             display: block;
-            color: #666;
+            color: $text-light;
             font-size: 0.9rem;
           }
 
           .no-notes {
-            color: #bbb;
+            color: #ccc;
           }
         }
 
@@ -272,6 +340,25 @@
 
           button {
             margin-right: 4px;
+            transition: all 0.3s ease;
+
+            &:hover {
+              transform: scale(1.1);
+            }
+
+            &[color="primary"] {
+              color: $primary-color;
+
+              &:hover {
+                background-color: rgba(0, 106, 106, 0.1);
+              }
+            }
+
+            &[color="warn"] {
+              &:hover {
+                background-color: rgba(244, 67, 54, 0.1);
+              }
+            }
           }
         }
 
@@ -285,28 +372,36 @@
             align-items: center;
             justify-content: center;
             padding: 60px 20px;
-            color: #999;
 
             mat-icon {
               font-size: 64px;
               width: 64px;
               height: 64px;
               margin-bottom: 16px;
-              color: #ccc;
+              color: $secondary-color;
+              opacity: 0.5;
             }
 
             p {
               margin: 0 0 20px 0;
               font-size: 1.1rem;
-              color: #666;
+              color: $text-light;
             }
 
             button {
+              transition: all 0.3s ease;
+
+              &:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 4px 8px rgba(0, 106, 106, 0.2);
+              }
+
               mat-icon {
                 font-size: 20px;
                 width: 20px;
                 height: 20px;
                 margin: 0 4px 0 0;
+                color: $white;
               }
             }
           }
@@ -352,7 +447,20 @@
 ::ng-deep {
   .mat-mdc-paginator {
     background: transparent;
-    border-top: 1px solid #e0e0e0;
+    border-top: 2px solid $border-color;
+
+    .mat-mdc-paginator-page-size-label,
+    .mat-mdc-paginator-range-label {
+      color: $text-light;
+    }
+
+    .mat-mdc-icon-button {
+      color: $primary-color;
+
+      &[disabled] {
+        color: $border-color;
+      }
+    }
   }
 
   .mat-mdc-chip {

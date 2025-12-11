@@ -1,0 +1,847 @@
+$primary-color: #006a6a;
+$secondary-color: #d6bb86;
+$accent-color: #004a4a;
+$light-accent: #c0a670;
+$background-color: #f8f9fa;
+$text-dark: #333333;
+$text-light: #666666;
+$border-color: #e0e0e0;
+$white: #ffffff;
+
+.dialog-container {
+  display: flex;
+  flex-direction: column;
+  height: 80vh;
+  min-height: 600px;
+
+  .dialog-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 24px;
+    background-color: rgba(0, 106, 106, 0.1);
+    border-bottom: 2px solid $primary-color;
+
+    h2 {
+      margin: 0;
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: $primary-color;
+    }
+
+    .close-btn {
+      margin-right: -8px;
+      color: $text-light;
+      transition: all 0.3s ease;
+
+      &:hover {
+        color: $primary-color;
+        background-color: rgba(0, 106, 106, 0.1);
+        transform: rotate(90deg);
+      }
+    }
+  }
+
+  .dialog-content {
+    flex: 1;
+    padding: 0;
+    overflow: hidden;
+
+    .content-wrapper {
+      display: flex;
+      height: 100%;
+      gap: 0;
+
+      // Sol Panel: Gruplar
+      .groups-panel {
+        width: 320px;
+        border-right: 2px solid $border-color;
+        display: flex;
+        flex-direction: column;
+        background-color: $background-color;
+
+        .panel-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 16px 20px;
+          background-color: $white;
+          border-bottom: 1px solid $border-color;
+
+          h3 {
+            margin: 0;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: $primary-color;
+          }
+
+          button[mat-mini-fab] {
+            background-color: $primary-color;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+
+            &:hover:not([disabled]) {
+              background-color: $accent-color;
+              transform: translateY(-1px);
+              box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+            }
+
+            &:active {
+              transform: translateY(0);
+            }
+
+            mat-icon {
+              color: $white;
+            }
+          }
+        }
+
+        .groups-list {
+          flex: 1;
+          overflow-y: auto;
+
+          mat-list {
+            padding: 0;
+
+            mat-list-item {
+              height: auto;
+              padding: 0;
+              border-bottom: 1px solid $border-color;
+              cursor: pointer;
+              transition: all 0.3s ease;
+
+              &:hover:not(.global-group) {
+                background-color: rgba(0, 106, 106, 0.05);
+              }
+
+              &.selected {
+                background-color: rgba(0, 106, 106, 0.15);
+                border-left: 4px solid $primary-color;
+
+                .group-item {
+                  padding-left: 16px;
+                }
+              }
+
+              &.global-group {
+                background-color: rgba(214, 187, 134, 0.05);
+                cursor: default;
+
+                &.selected {
+                  background-color: rgba(214, 187, 134, 0.15);
+                  border-left: 4px solid $secondary-color;
+                }
+
+                .group-name {
+                  color: $text-light;
+                }
+              }
+
+              .group-item {
+                padding: 16px 20px;
+                width: 100%;
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+
+                .group-info {
+                  display: flex;
+                  align-items: center;
+                  gap: 8px;
+
+                  .group-name {
+                    font-weight: 500;
+                    color: $text-dark;
+                    flex: 1;
+                    font-size: 14px;
+                  }
+
+                  .group-badge {
+                    display: flex;
+                    align-items: center;
+                    gap: 4px;
+                    font-size: 0.7rem;
+                    color: $secondary-color;
+                    background-color: rgba(214, 187, 134, 0.2);
+                    padding: 2px 8px;
+                    border-radius: 12px;
+                    font-weight: 500;
+
+                    mat-icon {
+                      font-size: 12px;
+                      height: 12px;
+                      width: 12px;
+                    }
+                  }
+                }
+
+                .group-count {
+                  font-size: 0.8rem;
+                  color: $text-light;
+                }
+              }
+            }
+          }
+
+          .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+            text-align: center;
+
+            mat-icon {
+              font-size: 48px;
+              height: 48px;
+              width: 48px;
+              margin-bottom: 16px;
+              color: $secondary-color;
+              opacity: 0.5;
+            }
+
+            p {
+              margin: 8px 0;
+              font-size: 0.95rem;
+              color: $text-light;
+
+              &.hint {
+                font-size: 0.85rem;
+                color: #bbb;
+              }
+            }
+          }
+        }
+
+        .loading-state {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          padding: 40px 20px;
+
+          mat-spinner {
+            ::ng-deep circle {
+              stroke: $primary-color;
+            }
+          }
+
+          p {
+            margin-top: 16px;
+            color: $text-light;
+            font-size: 0.9rem;
+          }
+        }
+      }
+
+      // Sağ Panel: Detaylar
+      .details-panel {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        overflow-y: auto;
+        padding: 20px 24px;
+        background-color: $white;
+
+        .panel-header {
+          margin-bottom: 20px;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+
+          h3 {
+            margin: 0;
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: $primary-color;
+          }
+
+          .global-warning {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background-color: rgba(214, 187, 134, 0.2);
+            color: $secondary-color;
+            padding: 6px 12px;
+            border-radius: 16px;
+            font-size: 0.85rem;
+            font-weight: 500;
+
+            mat-icon {
+              font-size: 16px;
+              width: 16px;
+              height: 16px;
+            }
+          }
+        }
+
+        .group-form {
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+
+          .full-width {
+            width: 100%;
+          }
+
+          ::ng-deep {
+            .mat-mdc-form-field {
+              .mat-mdc-text-field-wrapper {
+                .mat-mdc-form-field-flex {
+                  .mat-mdc-floating-label {
+                    color: $text-light;
+                  }
+
+                  .mat-mdc-form-field-infix {
+
+                    input,
+                    textarea {
+                      color: $text-dark;
+                    }
+                  }
+                }
+
+                .mdc-text-field--focused {
+                  .mdc-floating-label {
+                    color: $primary-color;
+                  }
+                }
+
+                .mdc-notched-outline {
+
+                  .mdc-notched-outline__leading,
+                  .mdc-notched-outline__notch,
+                  .mdc-notched-outline__trailing {
+                    border-color: $border-color;
+                  }
+                }
+
+                &:hover .mdc-notched-outline {
+
+                  .mdc-notched-outline__leading,
+                  .mdc-notched-outline__notch,
+                  .mdc-notched-outline__trailing {
+                    border-color: $primary-color;
+                  }
+                }
+              }
+
+              &.mat-focused {
+                .mat-mdc-text-field-wrapper .mdc-notched-outline {
+
+                  .mdc-notched-outline__leading,
+                  .mdc-notched-outline__notch,
+                  .mdc-notched-outline__trailing {
+                    border-color: $primary-color;
+                  }
+                }
+              }
+            }
+          }
+
+          .global-checkbox {
+            margin: 8px 0;
+            color: $text-dark;
+
+            ::ng-deep {
+              .mdc-checkbox__background {
+                border-color: $primary-color;
+              }
+
+              .mdc-checkbox--selected .mdc-checkbox__background {
+                background-color: $primary-color;
+                border-color: $primary-color;
+              }
+
+              .mdc-label {
+                color: $text-dark;
+                font-weight: 500;
+              }
+            }
+          }
+
+          .pallets-section {
+            margin-top: 24px;
+
+            .section-header {
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              margin-bottom: 16px;
+              padding-bottom: 8px;
+              border-bottom: 2px solid $border-color;
+
+              h4 {
+                margin: 0;
+                font-size: 1rem;
+                font-weight: 600;
+                color: $primary-color;
+              }
+
+              .selection-count {
+                font-size: 0.85rem;
+                color: $secondary-color;
+                font-weight: 600;
+                background-color: rgba(214, 187, 134, 0.1);
+                padding: 4px 12px;
+                border-radius: 12px;
+              }
+            }
+
+            .dual-list-container {
+              display: flex;
+              gap: 16px;
+              align-items: stretch;
+              min-height: 350px;
+
+              .pallet-list-box {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                border: 1px solid $border-color;
+                border-radius: 8px;
+                background-color: $background-color;
+                overflow: hidden;
+
+                .search-box {
+                  display: flex;
+                  align-items: center;
+                  padding: 8px 12px;
+                  background-color: $white;
+                  border-bottom: 1px solid $border-color;
+                  gap: 8px;
+
+                  .search-icon {
+                    font-size: 18px;
+                    width: 18px;
+                    height: 18px;
+                    color: $primary-color;
+                    flex-shrink: 0;
+                  }
+
+                  .search-input {
+                    flex: 1;
+                    border: none;
+                    outline: none;
+                    background: transparent;
+                    font-size: 0.85rem;
+                    color: $text-dark;
+                    padding: 4px 0;
+
+                    &::placeholder {
+                      color: $text-light;
+                      font-size: 0.8rem;
+                    }
+
+                    &:focus {
+                      &::placeholder {
+                        color: $primary-color;
+                        opacity: 0.6;
+                      }
+                    }
+                  }
+
+                  .clear-btn {
+                    width: 24px;
+                    height: 24px;
+                    padding: 0;
+                    flex-shrink: 0;
+                    color: $text-light;
+                    transition: all 0.3s ease;
+
+                    mat-icon {
+                      font-size: 16px;
+                      width: 16px;
+                      height: 16px;
+                    }
+
+                    &:hover {
+                      color: $primary-color;
+                      background-color: rgba(0, 106, 106, 0.1);
+                      transform: rotate(90deg);
+                    }
+                  }
+
+                  // Focus efekti
+                  &:focus-within {
+                    background-color: rgba(0, 106, 106, 0.02);
+
+                    .search-icon {
+                      color: $accent-color;
+                    }
+                  }
+                }
+
+                .list-header {
+                  display: flex;
+                  justify-content: space-between;
+                  align-items: center;
+                  padding: 10px 12px;
+                  background-color: rgba(0, 106, 106, 0.1);
+                  border-bottom: 1px solid $border-color;
+
+                  .list-title {
+                    font-size: 0.9rem;
+                    font-weight: 600;
+                    color: $primary-color;
+                  }
+
+                  .list-count {
+                    font-size: 0.85rem;
+                    font-weight: 600;
+                    color: $text-light;
+                    background-color: $white;
+                    padding: 2px 8px;
+                    border-radius: 10px;
+                  }
+                }
+
+                .pallet-items {
+                  flex: 1;
+                  overflow-y: auto;
+                  padding: 8px;
+                  max-height: 300px;
+
+                  .pallet-item {
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                    padding: 10px;
+                    margin-bottom: 6px;
+                    border-radius: 6px;
+                    border: 1px solid transparent;
+                    background-color: $white;
+                    cursor: pointer;
+                    transition: all 0.3s ease;
+
+                    &:hover {
+                      background-color: rgba(0, 106, 106, 0.05);
+                      border-color: $primary-color;
+                    }
+
+                    &.selected {
+                      background-color: rgba(0, 106, 106, 0.15);
+                      border-color: $primary-color;
+                    }
+
+                    mat-checkbox {
+                      flex-shrink: 0;
+
+                      ::ng-deep {
+                        .mdc-checkbox__background {
+                          border-color: $primary-color;
+                        }
+
+                        .mdc-checkbox--selected .mdc-checkbox__background {
+                          background-color: $primary-color;
+                          border-color: $primary-color;
+                        }
+                      }
+                    }
+
+                    .pallet-info {
+                      flex: 1;
+                      display: flex;
+                      justify-content: space-between;
+                      align-items: center;
+                      min-width: 0;
+
+                      .pallet-dimensions {
+                        font-size: 0.85rem;
+                        font-weight: 500;
+                        color: $text-dark;
+                        white-space: nowrap;
+                        overflow: hidden;
+                        text-overflow: ellipsis;
+                      }
+
+                      .pallet-weight {
+                        font-size: 0.75rem;
+                        color: $text-light;
+                        background-color: rgba(214, 187, 134, 0.2);
+                        padding: 2px 8px;
+                        border-radius: 10px;
+                        font-weight: 600;
+                        white-space: nowrap;
+                      }
+                    }
+                  }
+
+                  .empty-list {
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: center;
+                    padding: 40px 20px;
+                    color: $text-light;
+
+                    mat-icon {
+                      font-size: 36px;
+                      height: 36px;
+                      width: 36px;
+                      margin-bottom: 12px;
+                      color: $secondary-color;
+                      opacity: 0.5;
+                    }
+
+                    p {
+                      margin: 0;
+                      font-size: 0.9rem;
+                    }
+                  }
+
+                  // Scrollbar
+                  &::-webkit-scrollbar {
+                    width: 6px;
+                  }
+
+                  &::-webkit-scrollbar-track {
+                    background: $background-color;
+                  }
+
+                  &::-webkit-scrollbar-thumb {
+                    background: $secondary-color;
+                    border-radius: 3px;
+
+                    &:hover {
+                      background: $light-accent;
+                    }
+                  }
+                }
+              }
+
+              .transfer-buttons {
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                gap: 12px;
+                padding: 0 8px;
+
+                .transfer-btn {
+                  width: 40px;
+                  height: 40px;
+                  background-color: $primary-color;
+                  color: $white;
+                  transition: all 0.3s ease;
+
+                  mat-icon {
+                    color: $white;
+                  }
+
+                  &:hover:not([disabled]) {
+                    background-color: $accent-color;
+                    transform: scale(1.1);
+                    box-shadow: 0 2px 8px rgba(0, 106, 106, 0.3);
+                  }
+
+                  &:active {
+                    transform: scale(1.05);
+                  }
+
+                  &[disabled] {
+                    background-color: $border-color;
+                    color: $text-light;
+                    cursor: not-allowed;
+
+                    mat-icon {
+                      color: $text-light;
+                    }
+                  }
+                }
+              }
+            }
+
+            .loading-state.small {
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              justify-content: center;
+              padding: 60px 20px;
+
+              mat-spinner {
+                ::ng-deep circle {
+                  stroke: $primary-color;
+                }
+              }
+
+              p {
+                margin-top: 16px;
+                color: $text-light;
+              }
+            }
+          }
+        }
+
+        .no-selection {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          height: 100%;
+
+          mat-icon {
+            font-size: 64px;
+            height: 64px;
+            width: 64px;
+            margin-bottom: 20px;
+            color: $secondary-color;
+            opacity: 0.3;
+          }
+
+          p {
+            margin: 8px 0;
+            font-size: 1rem;
+            color: $text-light;
+
+            &.hint {
+              font-size: 0.9rem;
+              color: #bbb;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  .dialog-actions {
+    padding: 16px 24px;
+    border-top: 2px solid $border-color;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: $background-color;
+
+    .actions-left {
+      button {
+        color: #f44336;
+        border-color: #f44336;
+        transition: all 0.3s ease;
+
+        mat-icon {
+          margin-right: 4px;
+        }
+
+        &:hover:not([disabled]) {
+          background-color: rgba(244, 67, 54, 0.1);
+          transform: translateY(-1px);
+          box-shadow: 0 2px 4px rgba(244, 67, 54, 0.2);
+        }
+
+        &:active {
+          transform: translateY(0);
+        }
+      }
+    }
+
+    .actions-right {
+      display: flex;
+      gap: 12px;
+
+      button {
+        min-width: 100px;
+        transition: all 0.3s ease;
+
+        &[mat-raised-button] {
+          background-color: $primary-color;
+          color: $white;
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+          &:hover:not([disabled]) {
+            background-color: $accent-color;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+          }
+
+          &:active {
+            transform: translateY(0);
+          }
+
+          &[disabled] {
+            background-color: rgba(0, 106, 106, 0.3);
+          }
+        }
+
+        &[mat-button] {
+          color: $text-light;
+
+          &:hover {
+            background-color: rgba(0, 0, 0, 0.05);
+          }
+        }
+
+        .btn-spinner {
+          display: inline-block;
+          margin-right: 8px;
+
+          ::ng-deep circle {
+            stroke: $white;
+          }
+        }
+      }
+    }
+  }
+
+
+  // Responsive
+  @media (max-width: 968px) {
+    .pallets-section {
+      .dual-list-container {
+        flex-direction: column;
+        gap: 12px;
+
+        .transfer-buttons {
+          flex-direction: row;
+          justify-content: center;
+          padding: 8px 0;
+
+          .transfer-btn mat-icon {
+            transform: rotate(90deg);
+          }
+        }
+
+        .pallet-list-box .pallet-items {
+          max-height: 200px;
+        }
+      }
+    }
+  }
+
+  // Responsive
+  @media (max-width: 768px) {
+    .dialog-content .content-wrapper {
+      flex-direction: column;
+
+      .groups-panel {
+        width: 100%;
+        max-height: 200px;
+        border-right: none;
+        border-bottom: 2px solid $border-color;
+      }
+
+      .details-panel {
+        flex: 1;
+      }
+    }
+  }
+}
+
+// Scrollbar stilleri
+.groups-list,
+.pallets-list {
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: $background-color;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: $secondary-color;
+    border-radius: 3px;
+
+    &:hover {
+      background: $light-accent;
+    }
+  }
+}

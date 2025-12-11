@@ -6,21 +6,30 @@ import { GenericTableComponent } from "@app/shared/generic-table/generic-table.c
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { MatMenuModule } from '@angular/material/menu';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { BulkUploadButtonDirective } from '@app/shared/bulk-upload-dialog/bulk-upload-button.directive';
+import { PalletGroupDialogComponent } from './pallet-group-dialog/pallet-group-dialog.component';
 
 @Component({
   selector: 'app-pallets',
-  imports: [CommonModule,
+  imports: [
+    CommonModule,
     GenericTableComponent,
     MatButtonModule,
     MatIconModule,
-    BulkUploadButtonDirective],
+    MatMenuModule,
+    MatDialogModule,
+    BulkUploadButtonDirective
+  ],
   templateUrl: './pallets.component.html',
   styleUrl: './pallets.component.scss'
 })
 export class PalletsComponent {
   // Servis enjeksiyonları
   palletService = inject(PalletService);
+  private dialog = inject(MatDialog);
+
   palletBulkConfig: BulkUploadConfig = createPalletBulkConfig();
 
   // Loading durumu
@@ -52,5 +61,26 @@ export class PalletsComponent {
   };
 
   ngOnInit(): void {
+  }
+
+  /**
+   * Palet Grupları Dialog'unu aç
+   */
+  openPalletGroupsDialog(): void {
+    const dialogRef = this.dialog.open(PalletGroupDialogComponent, {
+      width: '1200px',
+      maxWidth: '95vw',
+      height: '80vh',
+      maxHeight: '90vh',
+      disableClose: false,
+      panelClass: 'pallet-group-dialog'
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      // Dialog kapandıktan sonra işlem yapılacaksa buraya eklenebilir
+      if (result) {
+        // Örneğin tabloyu yenile vs.
+      }
+    });
   }
 }

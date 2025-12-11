@@ -1,20 +1,39 @@
+$primary-color: #006a6a;
+$secondary-color: #d6bb86;
+$accent-color: #004a4a;
+$light-accent: #c0a670;
+$background-color: #f8f9fa;
+$text-dark: #333333;
+$text-light: #666666;
+$border-color: #e0e0e0;
+$white: #ffffff;
+
 .add-company-dialog {
   .dialog-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 20px 24px;
-    border-bottom: 1px solid #e0e0e0;
+    background-color: rgba(0, 106, 106, 0.1);
+    border-bottom: 2px solid $primary-color;
 
     h2 {
       margin: 0;
       font-size: 1.5rem;
-      font-weight: 500;
-      color: #1a1a1a;
+      font-weight: 600;
+      color: $primary-color;
     }
 
     .close-btn {
       margin: -8px -8px -8px 0;
+      color: $text-light;
+      transition: all 0.3s ease;
+
+      &:hover {
+        color: $primary-color;
+        background-color: rgba(0, 106, 106, 0.1);
+        transform: rotate(90deg);
+      }
     }
   }
 
@@ -39,13 +58,13 @@
         align-items: flex-start;
         gap: 12px;
         padding: 16px;
-        background: #e3f2fd;
+        background: rgba(214, 187, 134, 0.15);
         border-radius: 8px;
-        border-left: 4px solid #1976d2;
+        border-left: 4px solid $secondary-color;
         margin-top: 20px;
 
         mat-icon {
-          color: #1976d2;
+          color: $secondary-color;
           font-size: 20px;
           width: 20px;
           height: 20px;
@@ -55,9 +74,10 @@
 
         p {
           margin: 0;
-          color: #0d47a1;
+          color: $light-accent;
           font-size: 0.9rem;
           line-height: 1.5;
+          font-weight: 500;
         }
       }
     }
@@ -65,7 +85,8 @@
 
   .dialog-actions {
     padding: 16px 24px;
-    border-top: 1px solid #e0e0e0;
+    border-top: 2px solid $border-color;
+    background-color: $background-color;
     display: flex;
     justify-content: flex-end;
     gap: 12px;
@@ -73,10 +94,43 @@
     button {
       min-width: 100px;
       height: 42px;
+      font-weight: 500;
+      transition: all 0.3s ease;
+
+      &[mat-raised-button] {
+        background-color: $primary-color;
+        color: $white;
+
+        &:hover:not([disabled]) {
+          background-color: $accent-color;
+          transform: translateY(-1px);
+          box-shadow: 0 4px 8px rgba(0, 106, 106, 0.3);
+        }
+
+        &:active {
+          transform: translateY(0);
+        }
+
+        &[disabled] {
+          background-color: rgba(0, 106, 106, 0.3);
+        }
+      }
+
+      &[mat-button] {
+        color: $text-light;
+
+        &:hover {
+          background-color: rgba(0, 0, 0, 0.05);
+        }
+      }
 
       .button-spinner {
         display: inline-block;
         margin-right: 8px;
+
+        ::ng-deep circle {
+          stroke: $white;
+        }
       }
     }
   }
@@ -92,6 +146,36 @@
     .mat-mdc-form-field {
       .mat-mdc-text-field-wrapper {
         padding: 0;
+
+        .mdc-notched-outline {
+          .mdc-notched-outline__leading,
+          .mdc-notched-outline__notch,
+          .mdc-notched-outline__trailing {
+            border-color: $border-color;
+          }
+        }
+
+        &:hover .mdc-notched-outline {
+          .mdc-notched-outline__leading,
+          .mdc-notched-outline__notch,
+          .mdc-notched-outline__trailing {
+            border-color: $primary-color;
+          }
+        }
+      }
+
+      &.mat-focused {
+        .mat-mdc-text-field-wrapper .mdc-notched-outline {
+          .mdc-notched-outline__leading,
+          .mdc-notched-outline__notch,
+          .mdc-notched-outline__trailing {
+            border-color: $primary-color;
+          }
+        }
+      }
+
+      .mat-mdc-form-field-icon-prefix {
+        color: $primary-color;
       }
     }
   }
