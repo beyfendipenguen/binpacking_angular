@@ -6,6 +6,7 @@ import { ProfileComponent } from './profile/profile.component';
 import { StepperComponent } from './stepper/stepper.component';
 import { PalletsComponent } from './pallets/pallets.component';
 import { TrucksComponent } from './trucks/trucks.component';
+import { PermissionsComponent } from './permissions/permissions.component';
 
 const ADMIN_ROUTES: Routes = [
   {
@@ -31,6 +32,10 @@ const ADMIN_ROUTES: Routes = [
   {
     path: 'customers',
     component: CustomersComponent
+  },
+  {
+    path: 'permissions',
+    component: PermissionsComponent
   },
   {
     path: 'profile',

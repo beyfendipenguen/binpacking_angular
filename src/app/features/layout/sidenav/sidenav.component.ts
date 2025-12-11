@@ -45,6 +45,11 @@ const NAV_LIST_ITEM: INavListItem[] = [
         title: 'Müşteri Yönetimi',
         icon: 'assignment_ind'
       },
+      {
+        routerLink: ['/permissions'],
+        title: 'Yetki Yönetimi',
+        icon: 'lock_person'
+      },
     ]
   }
 ];

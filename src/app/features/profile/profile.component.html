@@ -172,9 +172,6 @@
                   [disabled]="isLoading || profileForm.invalid  || !formChanged "
                   class="submit-button"
                 >
-                  @if (isLoading) {
-                    <mat-spinner diameter="20"></mat-spinner>
-                  }
                   @if (!isLoading) {
                     <span>Profili Güncelle</span>
                   }
@@ -191,6 +188,123 @@
                 </button>
               </div>
             </form>
+          </div>
+        </mat-tab>
+
+        <!-- Company Information Tab -->
+        <mat-tab>
+          <ng-template mat-tab-label>
+            <mat-icon class="tab-icon">business</mat-icon>
+            <span>Şirket Bilgileri</span>
+          </ng-template>
+
+          <div class="tab-content">
+            @if (userCompany) {
+              <form [formGroup]="companyForm" (ngSubmit)="onUpdateCompany()" class="profile-form">
+
+                <!-- Company Logo Section -->
+                <div class="form-section">
+                  <h3 class="section-title">Şirket Logosu</h3>
+
+                  <div class="company-logo-section">
+                    <div class="company-logo-container">
+                      <img
+                        [src]="companyLogoUrl"
+                        alt="Şirket logosu"
+                        class="company-logo"
+                        [class.loading]="isLoadingCompanyLogo"
+                      >
+                      @if (isLoadingCompanyLogo) {
+                        <div class="logo-overlay">
+                          <mat-spinner diameter="30"></mat-spinner>
+                        </div>
+                      }
+                      <button
+                        mat-mini-fab
+                        class="upload-button"
+                        (click)="companyLogoInput.click()"
+                        [disabled]="isSavingCompany"
+                        type="button"
+                      >
+                        <mat-icon>photo_camera</mat-icon>
+                      </button>
+                      <input
+                        #companyLogoInput
+                        type="file"
+                        accept="image/*"
+                        (change)="onCompanyLogoSelected($event)"
+                        style="display: none"
+                      >
+                    </div>
+                    <div class="company-logo-info">
+                      <p class="info-text">Şirket logonuzu yükleyin veya değiştirin</p>
+                      <p class="hint-text">Önerilen boyut: 512x512px, maksimum 2MB</p>
+                    </div>
+                  </div>
+                </div>
+
+                <mat-divider></mat-divider>
+
+                <!-- Company Details Section -->
+                <div class="form-section">
+                  <h3 class="section-title">Şirket Detayları</h3>
+
+                  <mat-form-field appearance="outline" class="form-field full-width">
+                    <mat-label>Şirket Adı</mat-label>
+                    <input matInput formControlName="company_name" placeholder="Şirket adını girin">
+                    <mat-icon matSuffix>business</mat-icon>
+                    @if (companyForm.get('company_name')?.hasError('required')) {
+                      <mat-error>Şirket adı zorunludur</mat-error>
+                    }
+                    @if (companyForm.get('company_name')?.hasError('minlength')) {
+                      <mat-error>Şirket adı en az 2 karakter olmalıdır</mat-error>
+                    }
+                  </mat-form-field>
+
+                  <mat-form-field appearance="outline" class="form-field full-width">
+                    <mat-label>Ülke</mat-label>
+                    <input matInput formControlName="country" placeholder="Ülke adını girin">
+                    <mat-icon matSuffix>flag</mat-icon>
+                    @if (companyForm.get('country')?.hasError('required')) {
+                      <mat-error>Ülke zorunludur</mat-error>
+                    }
+                    @if (companyForm.get('country')?.hasError('minlength')) {
+                      <mat-error>Ülke en az 2 karakter olmalıdır</mat-error>
+                    }
+                  </mat-form-field>
+                </div>
+
+                <div class="form-actions">
+                  <button
+                    mat-raised-button
+                    color="primary"
+                    type="submit"
+                    [disabled]="isSavingCompany || companyForm.invalid || !companyFormChanged"
+                    class="submit-button"
+                  >
+                    @if (!isSavingCompany) {
+                      <span>Şirket Bilgilerini Güncelle</span>
+                    }
+                  </button>
+
+                  <button
+                    mat-stroked-button
+                    type="button"
+                    (click)="resetCompanyForm()"
+                    [disabled]="isSavingCompany"
+                    class="cancel-button"
+                  >
+                    Sıfırla
+                  </button>
+                </div>
+              </form>
+            } @else {
+              <div class="no-company-section">
+                <mat-icon class="large-icon">business_center</mat-icon>
+                <h3>Şirket Bilgisi Bulunamadı</h3>
+                <p>Hesabınıza henüz bir şirket atanmamış.</p>
+              </div>
+            }
           </div>
         </mat-tab>
 
@@ -262,9 +376,6 @@
                   [disabled]="isLoading || passwordForm.invalid"
                   class="submit-button"
                 >
-                  @if (isLoading) {
-                    <mat-spinner diameter="20"></mat-spinner>
-                  }
                   @if (!isLoading) {
                     <span>Parolayı Değiştir</span>
                   }
@@ -324,7 +435,7 @@
                     <mat-icon>business</mat-icon>
                     <div>
                       <p class="info-label">Şirket</p>
-                      <p class="info-value">{{userProfile?.company?.company_name}}</p>
+                      <p class="info-value">{{userCompany?.company_name || 'Yükleniyor...'}}</p>
                     </div>
                   </div>
                 }
