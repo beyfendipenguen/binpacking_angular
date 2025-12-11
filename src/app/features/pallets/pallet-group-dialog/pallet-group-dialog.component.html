@@ -77,11 +77,6 @@
                 placeholder="Grup hakkında kısa açıklama"></textarea>
             </mat-form-field>
 
-            <!-- Global Checkbox -->
-            <mat-checkbox formControlName="is_global" class="global-checkbox">
-              Global Grup (Tüm firmalar kullanabilir)
-            </mat-checkbox>
-
             <!-- Paletler Bölümü -->
             <div class="pallets-section">
               <div class="section-header">
@@ -138,7 +133,7 @@
 
                   <button mat-icon-button class="transfer-btn" (click)="addAllToGroup()"
                     [disabled]="availablePallets.length === 0 || isGlobalGroup()" matTooltip="Tümünü ekle">
-                    <mat-icon>double_arrow</mat-icon>
+                    <mat-icon>keyboard_double_arrow_right</mat-icon>
                   </button>
 
                   <button mat-icon-button class="transfer-btn" (click)="removeSelectedFromGroup()"
@@ -148,7 +143,7 @@
 
                   <button mat-icon-button class="transfer-btn" (click)="removeAllFromGroup()"
                     [disabled]="selectedPallets.length === 0 || isGlobalGroup()" matTooltip="Tümünü çıkar">
-                    <mat-icon>first_page</mat-icon>
+                    <mat-icon>keyboard_double_arrow_left</mat-icon>
                   </button>
                 </div>
 

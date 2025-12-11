@@ -12,7 +12,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { CompanyRelationService } from '../services/company-relation.service';
-import { CompanyRelation } from '../interfaces/company-relation.interface';
+import { CompanyRelation, RELATION_TYPE_OPTIONS } from '../interfaces/company-relation.interface';
 import { ConfirmDialogComponent } from '@app/shared/generic-table/confirm-dialog/confirm-dialog.component';
 import { ToastService } from '@app/core/services/toast.service';
 import { CustomerDialogComponent } from './dialogs/customer-dialog/customer-dialog.component';
@@ -84,6 +84,15 @@ export class CustomersComponent implements OnInit {
         this.loadData();
       });
     }
+  }
+
+
+  /**
+   * İlişki türünü Türkçe label'a çevir
+   */
+  getRelationTypeLabel(relationType: string): string {
+    const option = RELATION_TYPE_OPTIONS.find(opt => opt.value === relationType);
+    return option ? option.label : relationType;
   }
 
   /**

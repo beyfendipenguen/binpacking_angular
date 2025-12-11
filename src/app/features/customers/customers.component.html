@@ -87,7 +87,7 @@
           </th>
           <td mat-cell *matCellDef="let row">
             <mat-chip class="relation-chip" [class]="'relation-' + row.relation_type">
-              {{ row.relation_type_display }}
+              {{ getRelationTypeLabel(row.relation_type) }}
             </mat-chip>
           </td>
         </ng-container>
