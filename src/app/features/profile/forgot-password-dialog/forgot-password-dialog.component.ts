@@ -57,7 +57,7 @@ export class ForgotPasswordDialogComponent {
       error: (error) => {
         this.isLoading = false;
 
-        let errorMessage = 'Error sending password reset email';
+        let errorMessage = 'Şifre sıfırlama e-postası gönderilemedi';
 
         if (error.error && typeof error.error === 'object') {
           const firstError = Object.entries(error.error).map(([field, messages]) => {

@@ -19,7 +19,7 @@ export class ErrorComponent implements OnInit {
 
   ngOnInit(): void {
     this.route.queryParams.subscribe((params) => {
-      this.errorMessage.set(params['message'] || 'Unkown error occurred.')
+      this.errorMessage.set(params['message'] || 'Bilinmeyen kaynaklı bir hata oluştu.')
     })
   }
 }

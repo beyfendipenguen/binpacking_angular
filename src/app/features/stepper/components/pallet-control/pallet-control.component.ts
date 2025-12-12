@@ -792,22 +792,22 @@ export class PalletControlComponent
   }
 
 
-  submitForm(): void {
-    if (this.remainingProductCount() > 0) {
-      const dialogRef = this.dialog.open(CancelConfirmationDialogComponent, {
-        width: '400px',
-        maxWidth: '95vw',
-        disableClose: true,
-        panelClass: 'cancel-confirmation-dialog',
-        data: {
-          header: "Yerleştirilmeyen  Ürünler Var!",
-          title: "Kalan ürünleri yerleştirmeniz gerekmektedir",
-          info: "Eğer bu şekide devam etmek isterseniz yerleştirilmeyen ürünler siparişten kaldırılacaktır.",
-          confirmButtonText: "Yine de devam et.",
-          showYesButton: true,
-          rejectButtonText:"Geri dön."
-        }
-      });
+    submitForm(): void {
+      if (this.remainingProductCount() > 0) {
+        const dialogRef = this.dialog.open(CancelConfirmationDialogComponent, {
+          width: '400px',
+          maxWidth: '95vw',
+          disableClose: true,
+          panelClass: 'cancel-confirmation-dialog',
+          data: {
+            header: "Yerleştirilmeyen  Ürünler Var!",
+            title: "Kalan ürünleri yerleştirmeniz gerekmektedir",
+            info: "Eğer bu şekide devam etmek isterseniz yerleştirilmeyen ürünler siparişten kaldırılacaktır.",
+            confirmButtonText: "Yine de devam et.",
+            showYesButton: true,
+            rejectButtonText:"Geri dön."
+          }
+        });
 
       dialogRef.afterClosed().subscribe(result => {
         if (result === true) {

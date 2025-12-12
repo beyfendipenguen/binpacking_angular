@@ -6,7 +6,6 @@ import { of } from 'rxjs';
 
 import { StepperInvoiceUploadActions } from '../actions/stepper-invoice-upload.actions';
 import { StepperUiActions } from '../actions/stepper-ui.actions';
-import { StepperPackageActions } from '../actions/stepper-package.actions';
 
 import {
   AppState,
@@ -46,7 +45,7 @@ export class StepperInvoiceUploadEffects {
       withLatestFrom(this.store.select(selectOrder), this.store.select(selectFileExists)),
       filter(([_, __, fileExists]) => fileExists),
       switchMap(([_, order]) => {
-        if (!order) return of(StepperUiActions.setGlobalError({ error: { message: 'Order not found' } }));
+        if (!order) return of(StepperUiActions.setGlobalError({ error: { message: 'Sipariş bulunamadı' } }));
         return this.fileUploadManager.uploadFileToOrder(order.id).pipe(
           map(() => StepperInvoiceUploadActions.uploadFileToOrderSuccess()),
           catchError((error) => of(StepperUiActions.setGlobalError({ error: { message: error.message } })))

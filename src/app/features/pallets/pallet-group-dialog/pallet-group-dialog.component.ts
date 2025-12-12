@@ -284,7 +284,6 @@ export class PalletGroupDialogComponent implements OnInit {
         this.isLoadingGroups = false;
       },
       error: (error) => {
-        console.error('Gruplar yüklenirken hata:', error);
         this.toastService.error('Gruplar yüklenirken hata oluştu', 'Tamam');
         this.isLoadingGroups = false;
       }
@@ -302,7 +301,6 @@ export class PalletGroupDialogComponent implements OnInit {
         this.isLoadingPallets = false;
       },
       error: (error) => {
-        console.error('Paletler yüklenirken hata:', error);
         this.toastService.error('Paletler yüklenirken hata oluştu', 'Tamam');
         this.isLoadingPallets = false;
       }
@@ -376,7 +374,6 @@ export class PalletGroupDialogComponent implements OnInit {
         }
       },
       error: (error) => {
-        console.error('Grup kaydedilirken hata:', error);
         this.toastService.error('Grup kaydedilirken hata oluştu', 'Tamam');
         this.isSaving = false;
       }

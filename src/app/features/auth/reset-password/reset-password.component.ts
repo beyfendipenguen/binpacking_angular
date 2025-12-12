@@ -7,10 +7,11 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import {MatProgressBarModule} from '@angular/material/progress-bar';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
+import { ActivatedRoute, RouterModule } from '@angular/router';
 import { UserService } from '../user.service';
+import { ToastService } from '@app/core/services/toast.service';
 
 @Component({
   selector: 'app-reset-password',
@@ -33,10 +34,10 @@ import { UserService } from '../user.service';
 })
 export class ResetPasswordComponent implements OnInit {
   private route = inject(ActivatedRoute);
-  private router = inject(Router);
   private fb = inject(FormBuilder);
-  private snackBar = inject(MatSnackBar);
   private userService = inject(UserService);
+  private toastService = inject(ToastService);
+
 
   // Form state
   resetForm: FormGroup;
@@ -175,11 +176,6 @@ export class ResetPasswordComponent implements OnInit {
   }
 
   private showError(message: string) {
-    this.snackBar.open(message, 'Kapat', {
-      duration: 5000,
-      horizontalPosition: 'center',
-      verticalPosition: 'top',
-      panelClass: ['error-snackbar']
-    });
+    this.toastService.error(message, 'Kapat');
   }
 }

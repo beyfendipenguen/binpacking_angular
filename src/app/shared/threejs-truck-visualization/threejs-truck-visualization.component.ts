@@ -159,7 +159,6 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     try {
       await this.initializeThreeJS();
     } catch (error) {
-      console.error('[Component] Three.js başlatma hatası:', error);
       this.hasThreeJSError = true;
       this.isLoadingSignal.set(false);
       this.cdr.detectChanges();
@@ -340,7 +339,6 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
       this.cdr.detectChanges();
 
     } catch (error) {
-      console.error('[Component] Initialization hatası:', error);
       this.hasThreeJSError = true;
       this.isLoadingSignal.set(false);
       throw error;
@@ -363,7 +361,6 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
 
       this.renderManager.requestRender();
     } catch (error) {
-      console.error('[Component] Data processing hatası:', error);
     } finally {
       this.isLoadingData = false;
       this.isDataLoadingSignal.set(false);

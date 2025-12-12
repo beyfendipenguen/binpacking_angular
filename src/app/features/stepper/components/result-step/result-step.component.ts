@@ -169,8 +169,6 @@ export class ResultStepComponent implements OnInit, OnDestroy {
           this.cdr.markForCheck();
         },
         error: (error) => {
-          console.error('[ResultStep] Calculation error:', error);
-
           this.store.dispatch(StepperUiActions.setGlobalError({
             error: {
               message: 'Optimizasyon hesaplaması sırasında hata oluştu: ' + (error.message || error),
@@ -291,7 +289,6 @@ export class ResultStepComponent implements OnInit, OnDestroy {
         this.submitOrderResult(orderResult, resetStepper);
       }
     } catch (error) {
-      console.error('[ResultStep] Complete order error:', error);
       this.toastService.error('Sipariş tamamlama sırasında hata oluştu');
     }
   }
@@ -322,10 +319,6 @@ export class ResultStepComponent implements OnInit, OnDestroy {
     orderResult: string,
     resetStepper: boolean
   ): void {
-    console.log('[ResultStep] Submitting order result:', {
-      orderResult,
-      resetStepper
-    });
 
     // Reset UI state if needed
     if (resetStepper) {
@@ -349,7 +342,6 @@ export class ResultStepComponent implements OnInit, OnDestroy {
   // ========================================
 
   onThreeJSError(error: any): void {
-    console.error('[ResultStep] Three.js error:', error);
     this.hasThreeJSError = true;
     this.toastService.error('3D görselleştirmede hata oluştu');
     this.cdr.detectChanges();

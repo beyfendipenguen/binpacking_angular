@@ -86,7 +86,6 @@ export function arePackagesEqual(pkg1: IUiPackage, pkg2: PackageReadDto): boolea
 
   // Her ikisi de null ise eşit sayma (belirsiz durum)
   if (!palletId1 && !palletId2) {
-    console.warn('[arePackagesEqual] Her iki pakette de pallet yok, eşit sayılmaz');
     return false;
   }
 

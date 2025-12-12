@@ -60,13 +60,6 @@ export class ResultStepService {
             reportFiles: Array.isArray(reportResponse?.files) ? reportResponse.files : []
           }))
         );
-      }),
-      tap(result => {
-        console.log('[ResultStepService] Calculation complete:', {
-          orderResultId: result.orderResultId,
-          piecesCount: result.piecesData.length,
-          filesCount: result.reportFiles.length
-        });
       })
     );
   }
@@ -82,7 +75,6 @@ export class ResultStepService {
         try {
           packingData = JSON.parse(rawData);
         } catch (parseError) {
-          console.error('[ResultStepService] Parse error:', parseError);
           packingData = null;
         }
       } else if (rawData?.data) {
@@ -97,7 +89,6 @@ export class ResultStepService {
 
       return [];
     } catch (error) {
-      console.error('[ResultStepService] Process data error:', error);
       return [];
     }
   }
@@ -108,13 +99,11 @@ export class ResultStepService {
   private validateAndCleanPackingData(rawData: any[]): any[] {
     return rawData.filter((piece, index) => {
       if (!Array.isArray(piece) || piece.length < 6) {
-        console.warn(`[ResultStepService] Invalid piece at index ${index}:`, piece);
         return false;
       }
 
       const [x, y, z, length, width, height] = piece;
       if ([x, y, z, length, width, height].some(val => typeof val !== 'number' || isNaN(val))) {
-        console.warn(`[ResultStepService] Invalid numbers at index ${index}`);
         return false;
       }
 
@@ -169,7 +158,6 @@ export class ResultStepService {
       window.open(file.file, '_blank');
       this.toastService.success('Dosya açılıyor...');
     } catch (error) {
-      console.error('[ResultStepService] File open error:', error);
       this.toastService.error('Dosya açılırken hata oluştu');
     }
   }
@@ -228,12 +216,5 @@ export class ResultStepService {
     }
 
     return 'insert_drive_file';
-  }
-
-  /**
-   * Utility delay function
-   */
-  private delay(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
   }
 }

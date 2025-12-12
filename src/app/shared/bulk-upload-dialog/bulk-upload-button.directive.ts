@@ -16,7 +16,6 @@ export class BulkUploadButtonDirective {
   @HostListener('click')
   onClick(): void {
     if (!this.config) {
-      console.error('BulkUploadConfig is required!');
       return;
     }
     (this.elementRef.nativeElement as HTMLElement).blur();

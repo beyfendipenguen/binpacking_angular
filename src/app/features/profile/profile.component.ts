@@ -224,7 +224,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
       },
       error: (error) => {
         this.isLoading = false;
-        this.showError('Error loading profile');
+        this.showError('Profil Yuklenirken hata olustu');
       },
     });
   }
@@ -302,12 +302,12 @@ export class ProfileComponent implements OnInit, OnDestroy {
           this.isLoading = false;
           this.formChanged = false;
           this.changedFields = {};
-          this.showSuccess('Profile updated successfully');
+          this.showSuccess('Profil bilgileri başarıyla güncellendi');
         },
         error: (error) => {
           this.isLoading = false;
 
-          let errorMessage = 'Error updating profile';
+          let errorMessage = 'Profil güncellenirken hata oluştu';
 
           if (error.error) {
             if (typeof error.error === 'object') {
@@ -384,11 +384,11 @@ export class ProfileComponent implements OnInit, OnDestroy {
         next: (user) => {
           this.profilePictureUrl = user.profile_picture;
           this.isLoadingPicture = false;
-          this.showSuccess('Profile picture updated successfully');
+          this.showSuccess('Profil fotoğrafı başarıyla güncellendi');
         },
         error: (error) => {
           this.isLoadingPicture = false;
-          this.showError('Error updating profile picture');
+          this.showError('Profil fotoğrafı güncellenirken hata oluştu');
         },
       });
     }
@@ -430,13 +430,13 @@ export class ProfileComponent implements OnInit, OnDestroy {
     this.userService.changePassword(passwords).subscribe({
       next: () => {
         this.isLoading = false;
-        this.showSuccess('Password changed successfully');
+        this.showSuccess('Parola başarıyla değiştirildi');
         this.passwordForm.reset();
       },
       error: (error) => {
         this.isLoading = false;
 
-        let errorMessage = 'Error changing password';
+        let errorMessage = 'Parola değiştirilirken hata oluştu';
 
         if (error.error) {
           if (typeof error.error === 'object') {
@@ -545,9 +545,9 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
     if (/[^A-Za-z0-9]/.test(password)) strength++;
 
-    if (strength <= 2) return 'weak';
-    if (strength <= 4) return 'medium';
-    return 'strong';
+    if (strength <= 2) return 'zayif';
+    if (strength <= 4) return 'orta';
+    return 'guclu';
   }
 
   private showSuccess(message: string) {

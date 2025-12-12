@@ -45,7 +45,6 @@ export class ThreeJSRenderManagerService {
     onFrameCallback?: () => void
   ): void {
     if (this.isRendering) {
-      console.warn('[RenderManager] Render loop already running');
       return;
     }
 
@@ -96,7 +95,6 @@ export class ThreeJSRenderManagerService {
    */
   requestRender(): void {
     if (!this.isRendering) {
-      console.warn('[RenderManager] Cannot request render - loop not running');
       return;
     }
     this.needsRender = true;

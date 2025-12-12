@@ -56,7 +56,6 @@ export class ThreeJSModelCacheService {
         this.clearCache();
       }
     } catch (error) {
-      console.error('[ModelCache] Initialization error:', error);
       this.clearCache();
     }
   }
@@ -117,7 +116,6 @@ export class ThreeJSModelCacheService {
         timestamp: Date.now()
       };
     } catch (error) {
-      console.error('[ModelCache] Model loading failed:', error);
       throw error;
     }
   }
@@ -199,7 +197,6 @@ export class ThreeJSModelCacheService {
 
       localStorage.setItem(this.CACHE_KEY, JSON.stringify(metadata));
     } catch (error) {
-      console.error('[ModelCache] Failed to save metadata:', error);
     }
   }
 
@@ -213,7 +210,6 @@ export class ThreeJSModelCacheService {
 
       return JSON.parse(data) as ModelMetadata;
     } catch (error) {
-      console.error('[ModelCache] Failed to parse metadata:', error);
       return null;
     }
   }

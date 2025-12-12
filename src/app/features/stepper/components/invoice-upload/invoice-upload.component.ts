@@ -245,8 +245,7 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
           .then(response => response.blob())
           .then(download)
           .catch(error => {
-            this.toastService.error('Template download failed.');
-            console.error('Error downloading template file:', error);
+            this.toastService.error('Şablon indirilemedi');
           });
       } else if (templateFile.file instanceof File) {
         // If it's a File object, use it directly

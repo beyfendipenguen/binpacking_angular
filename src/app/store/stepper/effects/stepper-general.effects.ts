@@ -77,7 +77,6 @@ export class StepperGeneralEffects {
               ? `Step ${error.stepIndex + 1} Hatası`
               : 'Sistem Hatası'
           );
-          console.error('[Stepper Error]', error.message);
         })
       ),
     { dispatch: false }

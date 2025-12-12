@@ -18,7 +18,6 @@ import {
 
 import { RepositoryService } from '@features/stepper/services/repository.service';
 import { UiPallet } from '@features/stepper/components/ui-models/ui-pallet.model';
-import { mapPackageReadDtoListToIUiPackageList } from '@app/features/mappers/package.mapper';
 
 @Injectable()
 export class StepperPackageEffects {
@@ -156,12 +155,11 @@ export class StepperPackageEffects {
         // Product Count Güncellemeleri
         StepperPackageActions.upsertPackageDetailCount,
       ),
-      tap(() => console.log('[packageChanges$] Değişiklik tespit edildi, hesaplanıyor...')),
       map(() => StepperPackageActions.calculatePackageChanges()),
       catchError((error) => {
         console.error('[packageChanges$] Hata:', error);
         return of(StepperUiActions.setGlobalError({
-          error: { message: 'Package changes calculation error', stepIndex: 2 }
+          error: { message: 'Paketleme işlemi sırasında bir hata oluştu.', stepIndex: 2 }
         }));
       })
     )
