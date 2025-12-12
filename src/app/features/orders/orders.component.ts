@@ -13,6 +13,7 @@ import { Order } from '../interfaces/order.interface';
 import { OrderDetailService } from '../services/order-detail.service';
 import { OrderService } from '../services/order.service';
 import { PackageDetailService } from '../services/package-detail.service';
+import { HasPermissionDirective } from "@app/core/auth/has-permission.directive";
 
 @Component({
   selector: 'app-orders',
@@ -22,7 +23,8 @@ import { PackageDetailService } from '../services/package-detail.service';
     MatButtonModule,
     MatIconModule,
     MatDialogModule,
-    GenericTableComponent
+    GenericTableComponent,
+    HasPermissionDirective
   ],
   templateUrl: './orders.component.html',
   styleUrl: './orders.component.scss'
