@@ -11,6 +11,7 @@ export class OrderService extends GenericCrudService<Order> {
   constructor(http: HttpClient, api: ApiService) {
     super(http, 'orders/orders');
   }
+
   createOrder() {
     this.ensureApiUrl();
     return this.http.post<any>(this.apiUrl, {})

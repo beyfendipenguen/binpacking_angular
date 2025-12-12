@@ -1,27 +1,24 @@
-import { NestedTreeControl } from '@angular/cdk/tree';
 import { Component, ViewChild, Input } from '@angular/core';
-import { MatIconRegistry } from '@angular/material/icon';
 import { MatSidenav, MatSidenavContent, MatSidenavModule } from '@angular/material/sidenav';
 import { MatDrawerMode } from '@angular/material/sidenav';
-import { MatNestedTreeNode, MatTreeModule, MatTreeNestedDataSource } from '@angular/material/tree';
-import { DomSanitizer } from '@angular/platform-browser';
-import { RouterModule } from '@angular/router';
+import { RouterModule, Router, NavigationEnd } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { MatListModule, MatNavList } from "@angular/material/list";
+import { MatListModule } from "@angular/material/list";
 import { MatButtonModule } from '@angular/material/button';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatIconModule } from '@angular/material/icon';
 import { INavListItem } from './inav-list-item';
+import { filter } from 'rxjs/operators';
 
 const NAV_LIST_ITEM: INavListItem[] = [
   {
     routerLink: [''],
-    title: 'Yerlestirme Hesaplama',
-    icon: 'home'
+    title: 'Yerleştirme Hesaplama',
+    icon: 'calculate'
   },
   {
     title: 'İşlemler',
-    icon: 'home',
+    icon: 'pending_actions',
     children: [
       {
         routerLink: ['/orders'],
@@ -31,10 +28,30 @@ const NAV_LIST_ITEM: INavListItem[] = [
       {
         routerLink: ['/products'],
         title: 'Ürün Yönetimi',
-        icon: 'inventory'
-      }
+        icon: 'inventory_2'
+      },
+      {
+        routerLink: ['/pallets'],
+        title: 'Palet Yönetimi',
+        icon: 'view_module',
+      },
+      {
+        routerLink: ['/trucks'],
+        title: 'Sevkiyat Aracı Yönetimi',
+        icon: 'local_shipping'
+      },
+      {
+        routerLink: ['/customers'],
+        title: 'Müşteri Yönetimi',
+        icon: 'assignment_ind'
+      },
+      {
+        routerLink: ['/permissions'],
+        title: 'Yetki Yönetimi',
+        icon: 'lock_person'
+      },
     ]
-  },
+  }
 ];
 
 @Component({
@@ -50,10 +67,7 @@ const NAV_LIST_ITEM: INavListItem[] = [
     MatSidenavContent,
     RouterModule,
     MatIconModule,
-    MatNestedTreeNode,
-    CommonModule,
-    MatTreeModule,
-    MatNavList
+    CommonModule
   ]
 })
 export class SidenavComponent {
@@ -61,34 +75,69 @@ export class SidenavComponent {
   @Input() isOpen!: boolean;
   @ViewChild('sidenav', { static: true, read: MatSidenav }) sidenav!: MatSidenav;
 
-  treeControl = new NestedTreeControl<INavListItem>(node => node.children);
-  dataSource = new MatTreeNestedDataSource<INavListItem>();
+  navItems = NAV_LIST_ITEM;
+  expandedItems: Set<string> = new Set();
+  currentUrl: string = '';
 
-  constructor(private matIconRegistry: MatIconRegistry, private domSanitizer: DomSanitizer) {
-    // this.matIconRegistry.addSvgIcon(
-    //   'productIcon',
-    //   this.domSanitizer.bypassSecurityTrustResourceUrl('assets/icons/product.svg'))
-    //   .addSvgIcon(
-    //     'shelfIcon',
-    //     this.domSanitizer.bypassSecurityTrustResourceUrl('assets/icons/shelf.svg')
-    //   ).addSvgIcon(
-    //     'shelf2Icon',
-    //     this.domSanitizer.bypassSecurityTrustResourceUrl('assets/icons/shelf2.svg')
-    //   ).addSvgIcon(
-    //     'shelf3Icon',
-    //     this.domSanitizer.bypassSecurityTrustResourceUrl('assets/icons/shelf3.svg')
-    //   );
-    this.dataSource.data = NAV_LIST_ITEM;
+  constructor(private router: Router) {
+    this.router.events.pipe(
+      filter(event => event instanceof NavigationEnd)
+    ).subscribe((event: any) => {
+      this.currentUrl = event.url;
+      // Auto-expand parent if child is active
+      this.autoExpandActive();
+    });
   }
 
-  hasChild = (_: number, node: INavListItem) => !!node.children && node.children.length > 0;
+  toggleExpand(title: string): void {
+    if (this.expandedItems.has(title)) {
+      this.expandedItems.delete(title);
+    } else {
+      this.expandedItems.add(title);
+    }
+  }
+
+  isExpanded(title: string): boolean {
+    return this.expandedItems.has(title);
+  }
 
   open() {
     this.sidenav.open();
   }
 
-  listItemClasses(title: string) {
-    return { 'slide-text': title.length > 12 };
+  isActive(node: INavListItem): boolean {
+    if (!node.routerLink) return false;
+    const routePath = '/' + node.routerLink.join('/');
+    return this.currentUrl === routePath || this.currentUrl.startsWith(routePath + '/');
   }
 
+  hasChildren(node: INavListItem): boolean {
+    return !!node.children && node.children.length > 0;
+  }
+
+  // Auto-expand parent menus when child is active
+  private autoExpandActive(): void {
+    this.navItems.forEach(item => {
+      if (item.children) {
+        const hasActiveChild = this.checkActiveChildren(item.children);
+        if (hasActiveChild) {
+          this.expandedItems.add(item.title);
+        }
+      }
+    });
+  }
+
+  private checkActiveChildren(children: INavListItem[]): boolean {
+    return children.some(child => {
+      if (this.isActive(child)) return true;
+      if (child.children) {
+        const hasActiveGrandchild = this.checkActiveChildren(child.children);
+        if (hasActiveGrandchild) {
+          this.expandedItems.add(child.title);
+        }
+        return hasActiveGrandchild;
+      }
+      return false;
+    });
+  }
 }

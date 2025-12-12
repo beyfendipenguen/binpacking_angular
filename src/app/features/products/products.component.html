@@ -1,22 +1,29 @@
 <div class="product-container">
   <div class="page-header">
-    <h1>Ürün Yönetimi</h1>
-    <div class="breadcrumb">
-      <span>Ana Sayfa</span>
-      <span class="separator">/</span>
-      <span class="active">Ürünler</span>
+    <div class="header-content">
+      <div class="header-left">
+        <h1>Ürün Yönetimi</h1>
+        <div class="breadcrumb">
+          <span>Ana Sayfa</span>
+          <span class="separator">/</span>
+          <span class="active">Ürünler</span>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button
+          mat-raised-button
+          color="primary"
+          [appBulkUploadButton]="productBulkConfig"
+          class="bulk-add-btn">
+          <mat-icon>add_box</mat-icon>
+          Toplu Ürün Ekle
+        </button>
+      </div>
     </div>
   </div>
 
-  @if(isLoading){
-  <div class="loading-overlay">
-    <mat-spinner diameter="50"></mat-spinner>
-    <p>İlişkili veriler yükleniyor...</p>
-  </div>
-  }
 
   <div class="content-section" [class.loading]="isLoading">
-
     <app-generic-table [service]="productService" [displayedColumns]="displayedColumns"
       [filterableColumns]="filterableColumns" [nestedDisplayColumns]="nestedDisplayColumns" [title]="'Ürünler'"
       [showRowNumbers]="true" [excludeFields]="['name']">

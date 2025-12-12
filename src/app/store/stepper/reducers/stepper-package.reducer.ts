@@ -11,6 +11,7 @@ import { PackageDetailReadDto } from '@app/features/interfaces/package-detail.in
 import { toInteger } from 'lodash';
 import { mapPackageReadDtoListToIUiPackageList } from '@app/features/mappers/package.mapper';
 import { IUiPackage } from '@app/features/stepper/interfaces/ui-interfaces/ui-package.interface';
+import { PackageReadDto } from '@app/features/interfaces/package.interface';
 
 // Helper Functions
 const consolidatePackageDetails = (packageDetails: PackageDetailReadDto[]): PackageDetailReadDto[] => {
@@ -365,7 +366,7 @@ export const stepperPackageHandlers = [
       sourcePackageDetails.splice(previousIndex, 1);
     }
 
-    const existingPackageDetailIndex = targetPackageDetails.findIndex(p => p.id === packageDetail.id);
+    const existingPackageDetailIndex = targetPackageDetails.findIndex(p => p.product.id === packageDetail.product.id);
 
     if (existingPackageDetailIndex !== -1) {
       targetPackageDetails[existingPackageDetailIndex] = {
@@ -868,3 +869,70 @@ export const stepperPackageHandlers = [
     };
   }),
 ];
+
+function sortPackagesByPriority(
+  packages: PackageReadDto[],
+  truckDepth: number,
+  mapToUIPackage: (packages: PackageReadDto[]) => IUiPackage[]
+): IUiPackage[] {
+  const priority1Packages: PackageReadDto[] = []; // Eşleşenler
+  const priority2Packages: PackageReadDto[] = []; // Tek başına toplam uygun olanlar
+  const regularPackages: PackageReadDto[] = [];
+
+  packages.forEach(pkg => {
+    const pallet = pkg.pallet;
+    if (!pallet) {
+      regularPackages.push(pkg);
+      return;
+    }
+
+    const pkgDepth = pallet.dimension.depth;
+    const pkgWidth = pallet.dimension.width;
+
+    // Öncelik 1: Başka bir package ile eşleşiyor mu?
+    const hasMatch = packages.some(otherPkg => {
+      if (pkg.id === otherPkg.id) return false;
+
+      const otherPallet = otherPkg.pallet;
+      if (!otherPallet) return false;
+
+      const otherDepth = otherPallet.dimension.depth;
+      const otherWidth = otherPallet.dimension.width;
+
+      // Depth'ler eşit mi?
+      if (pkgDepth === otherDepth) {
+        const widthSum = pkgWidth + otherWidth;
+        if (widthSum <= truckDepth) return true;
+      }
+
+      // Width'ler eşit mi?
+      if (pkgWidth === otherWidth) {
+        const depthSum = pkgDepth + otherDepth;
+        if (depthSum <= truckDepth) return true;
+      }
+
+      return false;
+    });
+
+    if (hasMatch) {
+      priority1Packages.push(pkg);
+    } else {
+      // Öncelik 2: Tek başına iki kenar toplamı truck.depth'e uygun mu?
+      const dimensionSum = pkgDepth + pkgWidth;
+      if (dimensionSum <= truckDepth) {
+        priority2Packages.push(pkg);
+      } else {
+        regularPackages.push(pkg);
+      }
+    }
+  });
+
+  // Sıralama YAPMA, sadece öncelik sırasına göre birleştir
+  const sortedPackages = [
+    ...priority1Packages,
+    ...priority2Packages,
+    ...regularPackages
+  ];
+
+  return mapToUIPackage(sortedPackages);
+}

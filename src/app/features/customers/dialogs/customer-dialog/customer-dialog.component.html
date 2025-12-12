@@ -1,0 +1,229 @@
+<div class="customer-dialog">
+  <div class="dialog-header">
+    <h2 mat-dialog-title>{{ getTitle() }}</h2>
+    <button mat-icon-button (click)="onCancel()" class="close-btn">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <mat-dialog-content class="dialog-content">
+    @if (isLoading) {
+      <div class="loading-container">
+        <mat-spinner diameter="40"></mat-spinner>
+        <p>Yükleniyor...</p>
+      </div>
+    } @else {
+      <form [formGroup]="form" class="customer-form">
+
+        <!-- Company Selection Section -->
+        <div class="form-section">
+          <h3 class="section-title">Şirket Bilgileri</h3>
+
+          <div class="company-field-row">
+            <mat-form-field appearance="outline" class="company-field">
+              <mat-label>Müşteri Şirketi</mat-label>
+              <input
+                type="text"
+                matInput
+                formControlName="target_company_search"
+                [matAutocomplete]="companyAuto"
+                placeholder="Şirket ara veya yeni ekle..."
+              />
+              <mat-icon matPrefix>business</mat-icon>
+              @if (selectedCompany) {
+                <button
+                  mat-icon-button
+                  matSuffix
+                  (click)="form.patchValue({target_company_search: '', target_company: null}); selectedCompany = null; $event.stopPropagation()"
+                  type="button"
+                >
+                  <mat-icon>clear</mat-icon>
+                </button>
+              }
+              <mat-autocomplete
+                #companyAuto="matAutocomplete"
+                [displayWith]="displayCompanyFn"
+                (optionSelected)="onCompanySelected($event.option.value)"
+              >
+                @for (company of filteredCompanies$ | async; track company.id) {
+                  <mat-option [value]="company">
+                    <div class="company-option">
+                      <span class="company-name">{{ company.company_name }}</span>
+                      <span class="company-country">{{ company.country }}</span>
+                    </div>
+                  </mat-option>
+                }
+              </mat-autocomplete>
+              @if (form.get('target_company')?.hasError('required') && form.get('target_company')?.touched) {
+                <mat-error>Müşteri şirketi seçimi zorunludur</mat-error>
+              }
+            </mat-form-field>
+
+            <button
+              mat-raised-button
+              color="accent"
+              type="button"
+              (click)="openAddCompanyDialog()"
+              class="add-company-btn"
+              [disabled]="!palletGroups.length"
+            >
+              <mat-icon>add</mat-icon>
+              Yeni Şirket
+            </button>
+          </div>
+
+          @if (selectedCompany) {
+            <div class="selected-company-info">
+              <mat-icon>check_circle</mat-icon>
+              <span>Seçili: <strong>{{ selectedCompany.company_name }}</strong> ({{ selectedCompany.country }})</span>
+            </div>
+          }
+        </div>
+
+        <!-- Relation Details Section -->
+        <div class="form-section">
+          <h3 class="section-title">İlişki Detayları</h3>
+
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>İlişki Türü</mat-label>
+              <mat-select formControlName="relation_type">
+                @for (option of relationTypeOptions; track option.value) {
+                  <mat-option [value]="option.value">
+                    {{ option.label }}
+                  </mat-option>
+                }
+              </mat-select>
+              <mat-icon matPrefix>category</mat-icon>
+              @if (form.get('relation_type')?.hasError('required') && form.get('relation_type')?.touched) {
+                <mat-error>İlişki türü seçimi zorunludur</mat-error>
+              }
+            </mat-form-field>
+          </div>
+
+          <div class="form-row">
+            <mat-slide-toggle formControlName="is_active" color="primary">
+              İlişki Aktif
+            </mat-slide-toggle>
+          </div>
+
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Notlar</mat-label>
+              <textarea
+                matInput
+                formControlName="notes"
+                rows="3"
+                placeholder="İlişki hakkında notlar (opsiyonel)..."
+              ></textarea>
+              <mat-icon matPrefix>notes</mat-icon>
+            </mat-form-field>
+          </div>
+        </div>
+
+        <!-- Settings Section (Extra Data) -->
+        <div class="form-section">
+          <h3 class="section-title">Ayarlar</h3>
+
+          <div class="form-row form-row-2-cols">
+            <mat-form-field appearance="outline">
+              <mat-label>Maksimum Palet Yüksekliği (mm)</mat-label>
+              <input
+                matInput
+                type="number"
+                formControlName="max_pallet_height"
+                placeholder="2400"
+              />
+              <mat-icon matPrefix>height</mat-icon>
+              <span matSuffix>mm</span>
+              @if (form.get('max_pallet_height')?.hasError('required') && form.get('max_pallet_height')?.touched) {
+                <mat-error>Bu alan zorunludur</mat-error>
+              }
+              @if (form.get('max_pallet_height')?.hasError('min')) {
+                <mat-error>Minimum değer 1 olmalıdır</mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Kamyon Ağırlık Limiti (kg)</mat-label>
+              <input
+                matInput
+                type="number"
+                formControlName="truck_weight_limit"
+                placeholder="25000"
+              />
+              <mat-icon matPrefix>local_shipping</mat-icon>
+              <span matSuffix>kg</span>
+              @if (form.get('truck_weight_limit')?.hasError('required') && form.get('truck_weight_limit')?.touched) {
+                <mat-error>Bu alan zorunludur</mat-error>
+              }
+              @if (form.get('truck_weight_limit')?.hasError('min')) {
+                <mat-error>Minimum değer 1 olmalıdır</mat-error>
+              }
+            </mat-form-field>
+          </div>
+
+          <div class="form-row pallet-group-row">
+            <mat-form-field appearance="outline" class="pallet-group-field">
+              <mat-label>Varsayılan Palet Grubu</mat-label>
+              <mat-select formControlName="default_pallet_group_id" placeholder="Palet grubu seçin...">
+                <mat-option [value]="null">
+                  <span class="empty-option">Palet grubu seçilmedi</span>
+                </mat-option>
+                @for (group of palletGroups; track group.id) {
+                  <mat-option [value]="group.id">
+                    <div class="pallet-group-option">
+                      <span class="group-name">{{ group.name }} </span>
+                      <span class="pallet-count">{{ group.pallet_count }} Palet</span>
+                    </div>
+                  </mat-option>
+                }
+              </mat-select>
+              <mat-icon matPrefix>inventory_2</mat-icon>
+              @if (isLoadingPalletGroups) {
+                <mat-spinner matSuffix diameter="20"></mat-spinner>
+              }
+              <mat-hint>Opsiyonel - Müşteri için varsayılan palet grubu</mat-hint>
+            </mat-form-field>
+
+            @if (palletGroups.length === 0 && !isLoadingPalletGroups) {
+              <button
+                mat-raised-button
+                color="accent"
+                type="button"
+                (click)="navigateToPalletGroups()"
+                class="add-pallet-group-btn"
+                matTooltip="Henüz palet grubu yok, yeni eklemek için tıklayın"
+              >
+                <mat-icon>add</mat-icon>
+                Palet Grubu Ekle
+              </button>
+            }
+          </div>
+        </div>
+
+      </form>
+    }
+  </mat-dialog-content>
+
+  <mat-dialog-actions class="dialog-actions">
+    <button
+      mat-button
+      (click)="onCancel()"
+      [disabled]="isSaving"
+    >
+      İptal
+    </button>
+    <button
+      mat-raised-button
+      color="primary"
+      (click)="onSave()"
+      [disabled]="form.invalid || isSaving"
+    >
+      @if (isSaving) {
+        <mat-spinner diameter="20" class="button-spinner"></mat-spinner>
+      }
+      {{ data.mode === 'create' ? 'Ekle' : 'Güncelle' }}
+    </button>
+  </mat-dialog-actions>
+</div>

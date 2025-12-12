@@ -1,5 +1,5 @@
 
-import { Base } from "../core/interfaces/base.interface";
+import { Base } from "@app/core/interfaces/base.interface";
 import { Pallet } from "./pallet.interface";
 
 export interface PalletGroup extends Base {

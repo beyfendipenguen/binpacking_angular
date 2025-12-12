@@ -1,8 +1,8 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { GenericCrudService } from '../../../core/services/generic-crud.service';
-import { Company } from '@core/models/company.interface';
+import { GenericCrudService } from '@app/core/services/generic-crud.service';
 import { Observable } from 'rxjs';
+import { Company } from '../interfaces/company.interface';
 
 @Injectable({
   providedIn: 'root'

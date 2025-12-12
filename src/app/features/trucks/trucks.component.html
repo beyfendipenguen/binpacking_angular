@@ -1,0 +1,22 @@
+<div class="truck-container">
+  <div class="page-header">
+    <div class="header-content">
+      <div class="header-left">
+        <h1>Sevkiyat Aracı Yönetimi</h1>
+        <div class="breadcrumb">
+          <span>Ana Sayfa</span>
+          <span class="separator">/</span>
+          <span class="active">Sevkiyat Araçları</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <div class="content-section" [class.loading]="isLoading">
+    <app-generic-table [service]="truckService" [displayedColumns]="displayedColumns"
+      [filterableColumns]="filterableColumns" [nestedDisplayColumns]="nestedDisplayColumns" [title]="'Sevkiyat Araçları'"
+      [showRowNumbers]="true">
+    </app-generic-table>
+  </div>
+</div>

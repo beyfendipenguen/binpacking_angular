@@ -129,6 +129,7 @@
             <div class="product-count-container">
               <input matInput class="product-count-input" type="number" min="1" [value]="packageDetail.count"
                 (keydown.enter)="$event.preventDefault()" inputmode="numeric"
+                (focus)="$event.target.select()"
                 (change)="updatePackageDetailCount(packageDetail, $event)" id="productCount-{{packageDetail.id}}"
                 name="productCount-{{packageDetail.id}}" />
               <span class="count-label">Adet</span>

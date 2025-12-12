@@ -1,0 +1,469 @@
+$primary-color: #006a6a;
+$secondary-color: #d6bb86;
+$accent-color: #004a4a;
+$light-accent: #c0a670;
+$background-color: #f8f9fa;
+$text-dark: #333333;
+$text-light: #666666;
+$border-color: #e0e0e0;
+$white: #ffffff;
+
+.customers-container {
+  padding: 24px;
+  padding-bottom: 100px;
+  max-width: 1400px;
+  margin: 0 auto;
+
+  .page-header {
+    margin-bottom: 32px;
+
+    .header-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 20px;
+      flex-wrap: wrap;
+
+      .header-left {
+        flex: 1;
+        min-width: 250px;
+
+        h1 {
+          margin: 0 0 8px 0;
+          font-size: 2rem;
+          font-weight: 600;
+          color: $primary-color;
+        }
+
+        .breadcrumb {
+          display: flex;
+          align-items: center;
+          color: $text-light;
+          font-size: 0.9rem;
+
+          .separator {
+            margin: 0 8px;
+            color: #999;
+          }
+
+          .active {
+            color: $secondary-color;
+            font-weight: 500;
+          }
+        }
+      }
+
+      .header-actions {
+        .add-btn {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          padding: 0 24px;
+          height: 44px;
+          font-weight: 500;
+          background-color: $primary-color;
+          color: $white;
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+          transition: all 0.3s ease;
+
+          mat-icon {
+            font-size: 20px;
+            height: 20px;
+            width: 20px;
+          }
+
+          &:hover {
+            background-color: $accent-color;
+            box-shadow: 0 4px 8px rgba(0, 106, 106, 0.3);
+            transform: translateY(-1px);
+          }
+
+          &:active {
+            transform: translateY(0);
+          }
+        }
+      }
+    }
+  }
+
+  .content-section {
+    background: $white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+
+    .search-bar {
+      padding: 20px 24px;
+      border-bottom: 2px solid $border-color;
+      background: rgba(0, 106, 106, 0.05);
+
+      .search-field {
+        width: 100%;
+        max-width: 500px;
+
+        ::ng-deep {
+          .mat-mdc-form-field-infix {
+            padding: 12px 0;
+          }
+
+          .mat-mdc-text-field-wrapper {
+            .mdc-notched-outline {
+              .mdc-notched-outline__leading,
+              .mdc-notched-outline__notch,
+              .mdc-notched-outline__trailing {
+                border-color: $border-color;
+              }
+            }
+
+            &:hover .mdc-notched-outline {
+              .mdc-notched-outline__leading,
+              .mdc-notched-outline__notch,
+              .mdc-notched-outline__trailing {
+                border-color: $primary-color;
+              }
+            }
+          }
+
+          &.mat-focused {
+            .mat-mdc-text-field-wrapper .mdc-notched-outline {
+              .mdc-notched-outline__leading,
+              .mdc-notched-outline__notch,
+              .mdc-notched-outline__trailing {
+                border-color: $primary-color;
+              }
+            }
+          }
+
+          .mat-mdc-form-field-icon-prefix {
+            color: $primary-color;
+          }
+        }
+      }
+    }
+
+    .table-container {
+      position: relative;
+      min-height: 400px;
+
+      &.loading {
+        opacity: 0.6;
+        pointer-events: none;
+      }
+
+      .loading-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(255, 255, 255, 0.9);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        z-index: 10;
+
+        mat-spinner {
+          ::ng-deep circle {
+            stroke: $primary-color;
+          }
+        }
+
+        p {
+          margin-top: 16px;
+          color: $text-light;
+          font-weight: 500;
+        }
+      }
+
+      .customers-table {
+        width: 100%;
+
+        // Header styles
+        th {
+          background: rgba(0, 106, 106, 0.1);
+          color: $primary-color;
+          font-weight: 600;
+          font-size: 0.9rem;
+          padding: 16px 24px;
+          border-bottom: 2px solid $primary-color;
+        }
+
+        // Cell styles
+        td {
+          padding: 16px 24px;
+          color: $text-dark;
+          border-bottom: 1px solid $border-color;
+        }
+
+        // Row hover effect
+        .table-row {
+          cursor: pointer;
+          transition: all 0.3s ease;
+
+          &:hover {
+            background-color: rgba(0, 106, 106, 0.05);
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0, 106, 106, 0.1);
+          }
+        }
+
+        // Company name cell with logo
+        .company-name-cell {
+          .company-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+
+            .company-logo {
+              width: 40px;
+              height: 40px;
+              border-radius: 8px;
+              object-fit: cover;
+              border: 1px solid $border-color;
+              box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            }
+
+            .company-logo-placeholder {
+              width: 40px;
+              height: 40px;
+              border-radius: 8px;
+              background: linear-gradient(135deg, $primary-color 0%, $accent-color 100%);
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              color: $white;
+              box-shadow: 0 2px 4px rgba(0, 106, 106, 0.2);
+
+              mat-icon {
+                font-size: 24px;
+                width: 24px;
+                height: 24px;
+              }
+            }
+
+            .company-name {
+              font-weight: 600;
+              color: $text-dark;
+            }
+          }
+        }
+
+        // Relation type chips
+        .relation-chip {
+          font-size: 0.85rem;
+          font-weight: 500;
+          border-radius: 12px;
+          padding: 4px 12px;
+          height: auto;
+          transition: all 0.3s ease;
+
+          &.relation-customer {
+            background-color: rgba(0, 106, 106, 0.15);
+            color: $primary-color;
+          }
+
+          &.relation-supplier {
+            background-color: rgba(214, 187, 134, 0.2);
+            color: $light-accent;
+          }
+
+          &.relation-partner {
+            background-color: rgba(76, 175, 80, 0.15);
+            color: #2e7d32;
+          }
+
+          &.relation-contractor {
+            background-color: rgba(255, 152, 0, 0.15);
+            color: #f57c00;
+          }
+
+          &.relation-distributor {
+            background-color: rgba(233, 30, 99, 0.15);
+            color: #c2185b;
+          }
+
+          &.relation-subsidiary {
+            background-color: rgba(0, 121, 107, 0.15);
+            color: #00796b;
+          }
+
+          &.relation-other {
+            background-color: rgba(0, 0, 0, 0.05);
+            color: $text-light;
+          }
+        }
+
+        // Status chips
+        .status-active {
+          background-color: rgba(76, 175, 80, 0.15);
+          color: #2e7d32;
+          font-weight: 600;
+          font-size: 0.85rem;
+          transition: all 0.3s ease;
+
+          &:hover {
+            background-color: rgba(76, 175, 80, 0.25);
+          }
+        }
+
+        .status-inactive {
+          background-color: rgba(244, 67, 54, 0.15);
+          color: #c62828;
+          font-weight: 600;
+          font-size: 0.85rem;
+          transition: all 0.3s ease;
+
+          &:hover {
+            background-color: rgba(244, 67, 54, 0.25);
+          }
+        }
+
+        // Notes cell
+        .notes-cell {
+          max-width: 300px;
+
+          .notes-text {
+            display: block;
+            color: $text-light;
+            font-size: 0.9rem;
+          }
+
+          .no-notes {
+            color: #ccc;
+          }
+        }
+
+        // Actions cell
+        .actions-cell {
+          white-space: nowrap;
+
+          button {
+            margin-right: 4px;
+            transition: all 0.3s ease;
+
+            &:hover {
+              transform: scale(1.1);
+            }
+
+            &[color="primary"] {
+              color: $primary-color;
+
+              &:hover {
+                background-color: rgba(0, 106, 106, 0.1);
+              }
+            }
+
+            &[color="warn"] {
+              &:hover {
+                background-color: rgba(244, 67, 54, 0.1);
+              }
+            }
+          }
+        }
+
+        // No data row
+        .no-data-row {
+          height: 400px;
+
+          .no-data {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 60px 20px;
+
+            mat-icon {
+              font-size: 64px;
+              width: 64px;
+              height: 64px;
+              margin-bottom: 16px;
+              color: $secondary-color;
+              opacity: 0.5;
+            }
+
+            p {
+              margin: 0 0 20px 0;
+              font-size: 1.1rem;
+              color: $text-light;
+            }
+
+            button {
+              transition: all 0.3s ease;
+
+              &:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 4px 8px rgba(0, 106, 106, 0.2);
+              }
+
+              mat-icon {
+                font-size: 20px;
+                width: 20px;
+                height: 20px;
+                margin: 0 4px 0 0;
+                color: $white;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // Responsive styles
+  @media (max-width: 768px) {
+    padding: 16px;
+
+    .page-header {
+      .header-content {
+        .header-left h1 {
+          font-size: 1.5rem;
+        }
+
+        .header-actions {
+          width: 100%;
+
+          .add-btn {
+            width: 100%;
+            justify-content: center;
+          }
+        }
+      }
+    }
+
+    .content-section {
+      .table-container {
+        overflow-x: auto;
+
+        .customers-table {
+          min-width: 800px;
+        }
+      }
+    }
+  }
+}
+
+// Material overrides
+::ng-deep {
+  .mat-mdc-paginator {
+    background: transparent;
+    border-top: 2px solid $border-color;
+
+    .mat-mdc-paginator-page-size-label,
+    .mat-mdc-paginator-range-label {
+      color: $text-light;
+    }
+
+    .mat-mdc-icon-button {
+      color: $primary-color;
+
+      &[disabled] {
+        color: $border-color;
+      }
+    }
+  }
+
+  .mat-mdc-chip {
+    --mdc-chip-elevated-container-color: transparent;
+  }
+}

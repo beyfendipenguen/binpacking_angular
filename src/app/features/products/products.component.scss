@@ -6,26 +6,91 @@
   .page-header {
     margin-bottom: 24px;
 
-    h1 {
-      margin: 0 0 8px 0;
-      font-size: 2rem;
-      font-weight: 500;
-      color: #333;
-    }
-
-    .breadcrumb {
+    .header-content {
       display: flex;
-      align-items: center;
-      color: #666;
-      font-size: 0.9rem;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 20px;
+      flex-wrap: wrap;
 
-      .separator {
-        margin: 0 8px;
+      .header-left {
+        flex: 1;
+        min-width: 250px;
+
+        h1 {
+          margin: 0 0 8px 0;
+          font-size: 2rem;
+          font-weight: 500;
+          color: #333;
+        }
+
+        .breadcrumb {
+          display: flex;
+          align-items: center;
+          color: #666;
+          font-size: 0.9rem;
+
+          .separator {
+            margin: 0 8px;
+          }
+
+          .active {
+            color: #1976d2;
+            font-weight: 500;
+          }
+        }
       }
 
-      .active {
-        color: #1976d2;
-        font-weight: 500;
+      .header-actions {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+
+        .bulk-add-btn {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          padding: 0 24px;
+          height: 42px;
+          font-weight: 500;
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+          transition: all 0.3s ease;
+
+          mat-icon {
+            font-size: 20px;
+            height: 20px;
+            width: 20px;
+          }
+
+          &:hover {
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+            transform: translateY(-1px);
+          }
+
+          &:active {
+            transform: translateY(0);
+          }
+        }
+      }
+    }
+
+    // Responsive
+    @media (max-width: 768px) {
+      .header-content {
+        .header-left {
+          h1 {
+            font-size: 1.5rem;
+          }
+        }
+
+        .header-actions {
+          width: 100%;
+
+          .bulk-add-btn {
+            width: 100%;
+            justify-content: center;
+          }
+        }
       }
     }
   }
