@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Dimension } from '@core/models/dimension.interface';
-import { GenericCrudService } from '../../../core/services/generic-crud.service';
+import { GenericCrudService } from '@app/core/services/generic-crud.service';
+import { Dimension } from '../interfaces/dimension.interface';
 
 @Injectable({
   providedIn: 'root'

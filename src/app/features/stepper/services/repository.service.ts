@@ -105,7 +105,7 @@ export class RepositoryService {
 
   companyRelations(company_id: string): Observable<any> {
     return this.http.get<CompanyRelation>(
-      `${this.api.getApiUrl()}/logistics/companies/${company_id}/relations/`
+      `${this.api.getApiUrl()}/organizations/companies/${company_id}/relations/`
     );
   }
 

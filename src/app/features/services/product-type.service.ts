@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
-import { ProductType } from '@core/models/product-type.interface';
-import { GenericCrudService } from '../../../core/services/generic-crud.service';
 import { HttpClient } from '@angular/common/http';
+import { GenericCrudService } from '@app/core/services/generic-crud.service';
+import { ProductType } from '../interfaces/product-type.interface';
 
 @Injectable({
   providedIn: 'root'

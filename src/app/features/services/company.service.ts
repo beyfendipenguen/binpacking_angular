@@ -10,7 +10,7 @@ import { Company } from '../interfaces/company.interface';
 export class CompanyService extends GenericCrudService<Company> {
 
   constructor(http: HttpClient) {
-    super(http, 'orders/companies');
+    super(http, 'organizations/companies');
   }
 
   getTargetCompanies(companyId?: number): Observable<Company[]> {
