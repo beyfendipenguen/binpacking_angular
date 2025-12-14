@@ -1,4 +1,5 @@
 import { CommonModule } from '@angular/common';
+import { TranslateService } from '@ngx-translate/core';
 import { Component, inject, OnDestroy, OnInit } from '@angular/core';
 import {
   ReactiveFormsModule,
@@ -46,6 +47,8 @@ import { ToastService } from '@app/core/services/toast.service';
   styleUrl: './profile.component.scss',
 })
 export class ProfileComponent implements OnInit, OnDestroy {
+
+  private translate = inject(TranslateService);
   private userService = inject(UserService);
   private companyService = inject(CompanyService);
   private fb = inject(FormBuilder);
@@ -75,16 +78,16 @@ export class ProfileComponent implements OnInit, OnDestroy {
   hideNewPassword = true;
   hideConfirmPassword = true;
   countryCodes = [
-    { code: '+90', country: 'Türkiye' },
-    { code: '+1', country: 'ABD/Kanada' },
-    { code: '+44', country: 'Birleşik Krallık' },
-    { code: '+49', country: 'Almanya' },
-    { code: '+33', country: 'Fransa' },
-    { code: '+39', country: 'İtalya' },
-    { code: '+31', country: 'Hollanda' },
-    { code: '+7', country: 'Rusya' },
-    { code: '+86', country: 'Çin' },
-    { code: '+81', country: 'Japonya' },
+    { code: '+90', country: this.translate.instant('COUNTRIES.TURKEY') },
+    { code: '+1', country: this.translate.instant('COUNTRIES.USA_CANADA') },
+    { code: '+44', country: this.translate.instant('COUNTRIES.UK') },
+    { code: '+49', country: this.translate.instant('COUNTRIES.GERMANY') },
+    { code: '+33', country: this.translate.instant('COUNTRIES.FRANCE') },
+    { code: '+39', country: this.translate.instant('COUNTRIES.ITALY') },
+    { code: '+31', country: this.translate.instant('COUNTRIES.NETHERLANDS') },
+    { code: '+7', country: this.translate.instant('COUNTRIES.RUSSIA') },
+    { code: '+86', country: this.translate.instant('COUNTRIES.CHINA') },
+    { code: '+81', country: this.translate.instant('COUNTRIES.JAPAN') },
   ];
   selectedCountryCode = '+90';
 
@@ -242,7 +245,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
           this.trackCompanyFormChanges();
         },
         error: (error) => {
-          this.showError('Şirket bilgileri yüklenirken hata oluştu');
+          this.showError(this.translate.instant('PROFILE_MESSAGES.COMPANY_LOAD_ERROR'));
         }
       });
     } else {
@@ -302,12 +305,12 @@ export class ProfileComponent implements OnInit, OnDestroy {
           this.isLoading = false;
           this.formChanged = false;
           this.changedFields = {};
-          this.showSuccess('Profil bilgileri başarıyla güncellendi');
+          this.showSuccess(this.translate.instant('PROFILE_MESSAGES.PROFILE_UPDATED'));
         },
         error: (error) => {
           this.isLoading = false;
 
-          let errorMessage = 'Profil güncellenirken hata oluştu';
+          let errorMessage = this.translate.instant('PROFILE_MESSAGES.PROFILE_UPDATE_ERROR');
 
           if (error.error) {
             if (typeof error.error === 'object') {
@@ -345,12 +348,12 @@ export class ProfileComponent implements OnInit, OnDestroy {
         this.isSavingCompany = false;
         this.companyFormChanged = false;
         this.changedCompanyFields = {};
-        this.showSuccess('Şirket bilgileri başarıyla güncellendi');
+        this.showSuccess(this.translate.instant('PROFILE_MESSAGES.COMPANY_UPDATED'));
       },
       error: (error) => {
         this.isSavingCompany = false;
 
-        let errorMessage = 'Şirket güncellenirken hata oluştu';
+        let errorMessage = this.translate.instant('PROFILE_MESSAGES.COMPANY_UPDATE_ERROR');
 
         if (error.error) {
           if (typeof error.error === 'object') {
@@ -384,11 +387,11 @@ export class ProfileComponent implements OnInit, OnDestroy {
         next: (user) => {
           this.profilePictureUrl = user.profile_picture;
           this.isLoadingPicture = false;
-          this.showSuccess('Profil fotoğrafı başarıyla güncellendi');
+          this.showSuccess(this.translate.instant('PROFILE_MESSAGES.PHOTO_UPDATED'));
         },
         error: (error) => {
           this.isLoadingPicture = false;
-          this.showError('Profil fotoğrafı güncellenirken hata oluştu');
+          this.showError(this.translate.instant('PROFILE_MESSAGES.PHOTO_UPDATE_ERROR'));
         },
       });
     }
@@ -411,11 +414,11 @@ export class ProfileComponent implements OnInit, OnDestroy {
             this.companyLogoUrl = updatedCompany.logo;
           }
           this.isLoadingCompanyLogo = false;
-          this.showSuccess('Şirket logosu başarıyla güncellendi');
+          this.showSuccess(this.translate.instant('PROFILE_MESSAGES.LOGO_UPDATED'));
         },
         error: (error) => {
           this.isLoadingCompanyLogo = false;
-          this.showError('Şirket logosu güncellenirken hata oluştu');
+          this.showError(this.translate.instant('PROFILE_MESSAGES.LOGO_UPDATE_ERROR'));
         },
       });
     }
@@ -430,13 +433,13 @@ export class ProfileComponent implements OnInit, OnDestroy {
     this.userService.changePassword(passwords).subscribe({
       next: () => {
         this.isLoading = false;
-        this.showSuccess('Parola başarıyla değiştirildi');
+        this.showSuccess(this.translate.instant('PROFILE_MESSAGES.PASSWORD_CHANGED'));
         this.passwordForm.reset();
       },
       error: (error) => {
         this.isLoading = false;
 
-        let errorMessage = 'Parola değiştirilirken hata oluştu';
+        let errorMessage = this.translate.instant('PROFILE_MESSAGES.PASSWORD_CHANGE_ERROR');
 
         if (error.error) {
           if (typeof error.error === 'object') {
@@ -551,10 +554,10 @@ export class ProfileComponent implements OnInit, OnDestroy {
   }
 
   private showSuccess(message: string) {
-    this.toastService.success(message, 'Başarılı');
+    this.toastService.success(message);
   }
 
   private showError(message: string) {
-    this.toastService.error(message, 'Hata');
+    this.toastService.error(message);
   }
 }

@@ -1,4 +1,5 @@
 import { CommonModule } from '@angular/common';
+import { TranslateService } from '@ngx-translate/core';
 import { Component, inject } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -28,6 +29,8 @@ import { UserService } from '@app/features/auth/user.service';
   styleUrl: './forgot-password-dialog.component.scss'
 })
 export class ForgotPasswordDialogComponent {
+
+  private translate = inject(TranslateService);
   private fb = inject(FormBuilder);
   private snackBar = inject(MatSnackBar);
   private userService = inject(UserService);
@@ -57,7 +60,7 @@ export class ForgotPasswordDialogComponent {
       error: (error) => {
         this.isLoading = false;
 
-        let errorMessage = 'Şifre sıfırlama e-postası gönderilemedi';
+        let errorMessage = this.translate.instant('PASSWORD.RESET_EMAIL_ERROR');
 
         if (error.error && typeof error.error === 'object') {
           const firstError = Object.entries(error.error).map(([field, messages]) => {

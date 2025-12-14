@@ -497,7 +497,39 @@
     "ITEM": "Item",
     "PRODUCTS_COUNT": "products",
     "SAVE_NEXT": "SAVE & NEXT",
-    "TEMPLATE_DOWNLOAD_ERROR": "Template could not be downloaded"
+    "TEMPLATE_DOWNLOAD_ERROR": "Template could not be downloaded",
+    "TABLE": {
+      "PRODUCT_NAME": "Product Name",
+      "PRODUCT_TYPE": "Product Type",
+      "PRODUCT_CODE": "Product Code",
+      "WIDTH": "Width",
+      "DEPTH": "Depth",
+      "COUNT": "Count"
+    },
+    "SUCCESS": {
+      "FILE_PROCESSED": "File Processed",
+      "ORDER_DETAIL_ADDED": "Order detail successfully added",
+      "CHANGES_SAVED": "Changes saved successfully",
+      "DATA_RESTORED": "Your previous data has been restored",
+      "FORCE_SAVED": "Data force saved"
+    },
+    "WARNING": {
+      "FILL_REQUIRED_FIELDS": "Please fill all required fields (Order No, Date, Customer, Truck, Weight Type, Layer Count, Weight Limit)",
+      "MISSING_ORDER_DETAILS": "Order details are missing. Please check"
+    },
+    "ERROR": {
+      "INVALID_FILE_TYPE": "Invalid file type. Please upload an appropriate Excel file or download the sample ISB report",
+      "FILE_TOO_LARGE": "File size exceeds 10 MB limit",
+      "FILE_PROCESSING": "An error occurred while processing the file",
+      "COMPANY_LOADING": "Error loading profile information CompanyRelation",
+      "TRUCK_LOADING": "Error loading truck information",
+      "OPERATION_ERROR": "An error occurred during the operation: "
+    },
+    "INFO": {
+      "FILE_UPLOADING": "File uploading...",
+      "FILE_PROCESSING": "Processing file...",
+      "OPERATION_IN_PROGRESS": "Operation in progress..."
+    }
   },
 
   "RESULT_STEP": {

@@ -8,6 +8,7 @@ import {
   OnDestroy,
   WritableSignal,
 } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import {
   FormBuilder,
   FormControl,
@@ -115,6 +116,8 @@ import { Product } from '@app/features/interfaces/product.interface';
 })
 export class PalletControlComponent
   implements OnInit, AfterViewInit, OnDestroy {
+
+  private translate = inject(TranslateService);
   private readonly dialog = inject(MatDialog);
   searchControl = new FormControl('');
   isSearching = false;
@@ -537,15 +540,15 @@ export class PalletControlComponent
               targetPackage.package_details
             );
             this.toastService.error(
-              `Ürün bu palete sığmıyor. Palet doluluk: %${fillPercentage}`,
-              'Boyut Hatası'
+              `${this.translate.instant('PALLET_CONTROL.PRODUCT_WONT_FIT')} %${fillPercentage}`,
+              this.translate.instant('PALLET_CONTROL.SIZE_ERROR')
             );
             return;
           } else if (fitResult.maxCount < packageDetail.count) {
             // Kısmi sığıyor - YENİ DURUM
             this.toastService.warning(
-              `${packageDetail.count} adetten ${fitResult.maxCount} tanesi palete eklendi`,
-              'Kısmi Transfer'
+              `${packageDetail.count} ${this.translate.instant('PALLET_CONTROL.FROM')} ${fitResult.maxCount} ${this.translate.instant('PALLET_CONTROL.ADDED_TO_PALLET')}`,
+              this.translate.instant('PALLET_CONTROL.PARTIAL_TRANSFER')
             );
             this.store.dispatch(
               StepperPackageActions.movePartialPackageDetailBetweenPackages({
@@ -584,15 +587,15 @@ export class PalletControlComponent
           targetPackage.package_details
         );
         this.toastService.error(
-          `Ürün bu palete sığmıyor. Palet doluluk: %${fillPercentage}`,
-          'Boyut Hatası'
+          `${this.translate.instant('PALLET_CONTROL.PRODUCT_WONT_FIT')} %${fillPercentage}`,
+          this.translate.instant('PALLET_CONTROL.SIZE_ERROR')
         );
         return;
       } else if (fitResult.maxCount < packageDetail.count) {
         // Kısmi sığıyor
         this.toastService.warning(
-          `${packageDetail.count} adetten ${fitResult.maxCount} tanesi palete eklendi`,
-          'Kısmi Transfer'
+          `${packageDetail.count} ${this.translate.instant('PALLET_CONTROL.FROM')} ${fitResult.maxCount} ${this.translate.instant('PALLET_CONTROL.ADDED_TO_PALLET')}`,
+          this.translate.instant('PALLET_CONTROL.PARTIAL_TRANSFER')
         );
         this.store.dispatch(
           StepperPackageActions.movePartialRemainingProductToPackage({
@@ -631,7 +634,7 @@ export class PalletControlComponent
     const palletElements = new Map<string, HTMLElement>();
 
     if (!packageDetail?.product.dimension) {
-      this.toastService.error('Ürün boyut bilgisi eksik');
+      this.toastService.error(this.translate.instant('PALLET_CONTROL.MISSING_SIZE_INFO'));
       return;
     }
 
@@ -660,7 +663,7 @@ export class PalletControlComponent
             palletElement.classList.remove('can-drop', 'partial-drop');
 
             const fillPercentage = this.getPalletFillPercentage(pkg.pallet, pkg.package_details);
-            palletElement.title = `❌ Sığmaz - Palet doluluk: %${fillPercentage}`;
+            palletElement.title = `${this.translate.instant('PALLET_CONTROL.WONT_FIT')} %${fillPercentage}`;
 
           } else if (fitResult.maxCount < packageDetail.count) {
             // Kısmi sığıyor
@@ -668,14 +671,14 @@ export class PalletControlComponent
             palletElement.classList.remove('can-drop', 'cannot-drop');
 
             const fillPercentage = this.getPalletFillPercentage(pkg.pallet, pkg.package_details);
-            palletElement.title = `⚠️ Sadece ${fitResult.maxCount} adet sığar (${packageDetail.count} adetten) - Doluluk: %${fillPercentage}`;
+            palletElement.title = `${this.translate.instant('PALLET_CONTROL.ONLY')} ${fitResult.maxCount} ${this.translate.instant('PALLET_CONTROL.PIECES_FIT')}`;
 
           } else {
             // Tamamen sığıyor - YEŞİL
             palletElement.classList.add('can-drop');
             palletElement.classList.remove('cannot-drop', 'partial-drop');
 
-            palletElement.title = `✅ Bu palete maksimum ${fitResult.maxCount} adet sığabilir`;
+            palletElement.title = `${this.translate.instant('PALLET_CONTROL.MAX_FIT')} ${fitResult.maxCount} ${this.translate.instant('PALLET_CONTROL.PIECES_CAN_FIT')}`;
           }
         }
       }
@@ -792,22 +795,22 @@ export class PalletControlComponent
   }
 
 
-    submitForm(): void {
-      if (this.remainingProductCount() > 0) {
-        const dialogRef = this.dialog.open(CancelConfirmationDialogComponent, {
-          width: '400px',
-          maxWidth: '95vw',
-          disableClose: true,
-          panelClass: 'cancel-confirmation-dialog',
-          data: {
-            header: "Yerleştirilmeyen  Ürünler Var!",
-            title: "Kalan ürünleri yerleştirmeniz gerekmektedir",
-            info: "Eğer bu şekide devam etmek isterseniz yerleştirilmeyen ürünler siparişten kaldırılacaktır.",
-            confirmButtonText: "Yine de devam et.",
-            showYesButton: true,
-            rejectButtonText:"Geri dön."
-          }
-        });
+  submitForm(): void {
+    if (this.remainingProductCount() > 0) {
+      const dialogRef = this.dialog.open(CancelConfirmationDialogComponent, {
+        width: '400px',
+        maxWidth: '95vw',
+        disableClose: true,
+        panelClass: 'cancel-confirmation-dialog',
+        data: {
+          header: this.translate.instant('PALLET_CONTROL.UNPLACED_PRODUCTS_WARNING'),
+          title: this.translate.instant('PALLET_CONTROL.MUST_PLACE_REMAINING'),
+          info: this.translate.instant('PALLET_CONTROL.CONTINUE_WARNING'),
+          confirmButtonText: this.translate.instant('PALLET_CONTROL.CONTINUE_ANYWAY'),
+          showYesButton: true,
+          rejectButtonText: this.translate.instant('PALLET_CONTROL.GO_BACK')
+        }
+      });
 
       dialogRef.afterClosed().subscribe(result => {
         if (result === true) {

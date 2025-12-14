@@ -1,4 +1,5 @@
 import { Component, OnInit, inject } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -20,6 +21,8 @@ import { BulkUploadButtonDirective } from '@app/shared/bulk-upload-dialog/bulk-u
 })
 export class ProductsComponent implements OnInit {
 
+
+  private translate = inject(TranslateService);
   // Servis enjeksiyonları
   productService = inject(ProductService);
   productBulkConfig: BulkUploadConfig = createProductBulkConfig();
@@ -57,12 +60,12 @@ export class ProductsComponent implements OnInit {
 
   // İlişkili nesne sütunları için özel görüntüleme ayarları
   nestedDisplayColumns: { [key: string]: string } = {
-    'name': 'Ürün Adı',
-    'product_type.code': 'Ürün Kodu',
-    'product_type.type': 'Ürün Tipi',
-    'dimension.width': 'Genişlik',
-    'dimension.height': 'Yükseklik',
-    'dimension.depth': 'Derinlik',
+    'name': this.translate.instant('DIMENSIONS.PRODUCT_NAME'),
+    'product_type.code': this.translate.instant('DIMENSIONS.PRODUCT_CODE'),
+    'product_type.type': this.translate.instant('DIMENSIONS.PRODUCT_TYPE'),
+    'dimension.width': this.translate.instant('DIMENSIONS.WIDTH'),
+    'dimension.height': this.translate.instant('DIMENSIONS.HEIGHT'),
+    'dimension.depth': this.translate.instant('DIMENSIONS.DEPTH'),
     'weight_type.std': 'Std',
     'weight_type.eco': 'Eco',
     'weight_type.pre': 'Pre'

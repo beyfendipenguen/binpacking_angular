@@ -1,4 +1,5 @@
 import { Component, inject, OnInit } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import { CommonModule } from '@angular/common';
 import { MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
@@ -35,6 +36,8 @@ import { ToastService } from '@app/core/services/toast.service';
   styleUrls: ['./pallet-group-dialog.component.scss']
 })
 export class PalletGroupDialogComponent implements OnInit {
+
+  private translate = inject(TranslateService);
   // Servisler
   private palletGroupService = inject(PalletGroupService);
   private palletService = inject(PalletService);
@@ -284,7 +287,7 @@ export class PalletGroupDialogComponent implements OnInit {
         this.isLoadingGroups = false;
       },
       error: (error) => {
-        this.toastService.error('Gruplar yüklenirken hata oluştu', 'Tamam');
+        this.toastService.error(this.translate.instant('PALLET_MESSAGES.GROUPS_LOAD_ERROR'));
         this.isLoadingGroups = false;
       }
     });
@@ -301,7 +304,7 @@ export class PalletGroupDialogComponent implements OnInit {
         this.isLoadingPallets = false;
       },
       error: (error) => {
-        this.toastService.error('Paletler yüklenirken hata oluştu', 'Tamam');
+        this.toastService.error(this.translate.instant('PALLET_MESSAGES.PALLETS_LOAD_ERROR'));
         this.isLoadingPallets = false;
       }
     });
@@ -335,12 +338,12 @@ export class PalletGroupDialogComponent implements OnInit {
    */
   saveGroup(): void {
     if (this.groupForm.invalid) {
-      this.toastService.warning('Lütfen tüm zorunlu alanları doldurun', 'Tamam');
+      this.toastService.warning(this.translate.instant('PALLET_MESSAGES.FILL_REQUIRED_FIELDS'));
       return;
     }
 
     if (this.isGlobalGroup()) {
-      this.toastService.info('Global gruplar düzenlenemez', 'Tamam');
+      this.toastService.info(this.translate.instant('PALLET_MESSAGES.CANNOT_EDIT_GLOBAL'));
       return;
     }
 
@@ -361,8 +364,8 @@ export class PalletGroupDialogComponent implements OnInit {
 
     operation.subscribe({
       next: (savedGroup) => {
-        const message = this.isNewGroup ? 'Grup başarıyla oluşturuldu' : 'Grup başarıyla güncellendi';
-        this.toastService.success(message, 'Tamam');
+        const message = this.isNewGroup ? this.translate.instant('PALLET_MESSAGES.GROUP_CREATED') : this.translate.instant('PALLET_MESSAGES.GROUP_UPDATED');
+        this.toastService.success(message);
         this.isSaving = false;
         this.loadGroups();
 
@@ -374,7 +377,7 @@ export class PalletGroupDialogComponent implements OnInit {
         }
       },
       error: (error) => {
-        this.toastService.error('Grup kaydedilirken hata oluştu', 'Tamam');
+        this.toastService.error(this.translate.instant('PALLET_MESSAGES.GROUP_SAVE_ERROR'));
         this.isSaving = false;
       }
     });
@@ -386,27 +389,26 @@ export class PalletGroupDialogComponent implements OnInit {
   deleteGroup(): void {
     if (!this.selectedGroup) return;
 
-    if (!confirm(`"${this.selectedGroup.name}" grubunu silmek istediğinize emin misiniz?`)) {
+    if (!confirm(`"${this.selectedGroup.name}" ${this.translate.instant('PALLET_MESSAGES.DELETE_CONFIRM')}`)) {
       return;
     }
 
     if (this.isGlobalGroup()) {
-      this.toastService.info('Global gruplar silinemez', 'Tamam');
+      this.toastService.info(this.translate.instant('PALLET_MESSAGES.CANNOT_DELETE_GLOBAL'));
       return;
     }
 
     this.isSaving = true;
     this.palletGroupService.delete(this.selectedGroup.id).subscribe({
       next: () => {
-        this.toastService.success('Grup başarıyla silindi', 'Tamam');
+        this.toastService.success(this.translate.instant('PALLET_MESSAGES.GROUP_DELETED'));
         this.isSaving = false;
         this.selectedGroup = null;
         this.isNewGroup = false;
         this.loadGroups();
       },
       error: (error) => {
-        console.error('Grup silinirken hata:', error);
-        this.toastService.error('Grup silinirken hata oluştu', 'Tamam');
+        this.toastService.error(this.translate.instant('PALLET_MESSAGES.GROUP_DELETE_ERROR'));
         this.isSaving = false;
       }
     });

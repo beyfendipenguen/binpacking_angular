@@ -9,6 +9,7 @@ import {
   AfterViewInit,
   SimpleChanges,
 } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
@@ -98,6 +99,8 @@ export interface CellButtonClickEvent<T> {
   styleUrl: './generic-table.component.scss',
 })
 export class GenericTableComponent<T> implements OnInit, AfterViewInit {
+
+  private translate = inject(TranslateService);
   @Input() service?: GenericCrudService<T>; // Optional now
   @Input() displayedColumns: string[] = [];
   @Input() columnTypes: { [key: string]: string } = {};
@@ -442,10 +445,10 @@ export class GenericTableComponent<T> implements OnInit, AfterViewInit {
       this.externalDataFetcher(params).subscribe({
         next: (result: ExternalDataResult<T>) => {
           this.updateDataFromExternalSource(result.results, result.count);
-          this.toastService.success('Veri yüklendi', 'Başarılı');
+          this.toastService.success(this.translate.instant('GENERIC_TABLE.DATA_LOADED'), this.translate.instant('COMMON.SUCCESS'));
         },
         error: (error) => {
-          this.toastService.error('Veri yüklenirken hata', 'Uyarı');
+          this.toastService.error(this.translate.instant('GENERIC_TABLE.DATA_LOAD_ERROR'), this.translate.instant('COMMON.WARNING'));
           this.dataSource.data = [];
           this.totalItems = 0;
           this.isLoading = false;
@@ -463,24 +466,24 @@ export class GenericTableComponent<T> implements OnInit, AfterViewInit {
             }, 0);
           } else {
             this.toastService.error(
-              'API yanıtı beklenen formatta değil',
-              'Uyarı'
+              this.translate.instant('GENERIC_TABLE.UNEXPECTED_RESPONSE'),
+              this.translate.instant('COMMON.WARNING')
             );
             this.dataSource.data = [];
             this.totalItems = 0;
           }
-          this.toastService.success('Veri yüklendi', 'Başarılı');
+          this.toastService.success(this.translate.instant('GENERIC_TABLE.DATA_LOADED'));
           this.isLoading = false;
         },
         error: (error) => {
-          this.toastService.error('Veri yüklenirken hata', 'Uyarı');
+          this.toastService.error(this.translate.instant('GENERIC_TABLE.DATA_LOAD_ERROR'));
           this.isLoading = false;
           this.dataSource.data = [];
           this.totalItems = 0;
         },
       });
     } else if (this.externalData && this.externalData.length > 0) {
-      this.toastService.success('Veri Yüklendi', "Başarılı")
+      this.toastService.success(this.translate.instant('GENERIC_TABLE.DATA_LOADED'))
       this.isLoading = false;
     }
     else {
@@ -543,7 +546,6 @@ export class GenericTableComponent<T> implements OnInit, AfterViewInit {
           if (this.isExternalMode) {
             // Emit event for external update
             this.externalDataUpdate.emit({ item: row, data: result });
-            this.toastService.success('Güncelleme isteği gönderildi', 'Bilgi');
             this.isLoading = false;
           } else if (this.service) {
             // Use the service (original behavior)
@@ -551,14 +553,14 @@ export class GenericTableComponent<T> implements OnInit, AfterViewInit {
               next: (updatedItem) => {
                 this.updateItem.emit(updatedItem); // Güncellenmiş nesneyi bildir
                 this.toastService.success(
-                  'Başarı ile güncellendi',
-                  'Güncellendi'
+                  this.translate.instant('GENERIC_TABLE.UPDATE_SUCCESS'),
+                  this.translate.instant('GENERIC_TABLE.UPDATED')
                 );
                 this.loadData(); // Tabloyu yenile
                 this.isLoading = false;
               },
               error: (error) => {
-                this.toastService.error('Hata oluştu', 'Güncellenemedi');
+                this.toastService.error(this.translate.instant('GENERIC_TABLE.ADD_ERROR'), this.translate.instant('GENERIC_TABLE.UPDATE_FAILED'));
                 this.isLoading = false;
               },
             });
@@ -576,19 +578,19 @@ export class GenericTableComponent<T> implements OnInit, AfterViewInit {
           if (this.isExternalMode) {
             // Emit event for external create
             this.externalDataCreate.emit(result);
-            this.toastService.success('Ekleme isteği gönderildi', 'Bilgi');
+            this.toastService.success(this.translate.instant('GENERIC_TABLE.ADD_REQUEST_SENT'));
             this.isLoading = false;
           } else if (this.service) {
             // Use the service (original behavior)
             this.service.create(result).subscribe({
               next: (createdItem) => {
                 this.itemAdded.emit(createdItem); // Yeni eklenen öğeyi bildir
-                this.toastService.success('Başarı ile eklendi', 'Eklendi');
+                this.toastService.success(this.translate.instant('GENERIC_TABLE.ADDED_SUCCESS'), this.translate.instant('GENERIC_TABLE.ADDED'));
                 this.dataSource.data.unshift(createdItem);
                 this.isLoading = false;
               },
               error: (error) => {
-                this.toastService.error('Hata oluştu', 'Eklenemedi');
+                this.toastService.error(this.translate.instant('GENERIC_TABLE.ADD_ERROR'), this.translate.instant('GENERIC_TABLE.ADD_FAILED'));
                 this.isLoading = false;
               },
             });
@@ -601,7 +603,7 @@ export class GenericTableComponent<T> implements OnInit, AfterViewInit {
   confirmDelete(id: any): void {
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       width: '350px',
-      data: { message: 'Bu öğeyi silmek istediğinizden emin misiniz?' },
+      data: { message: this.translate.instant('GENERIC_TABLE.DELETE_CONFIRMATION') },
     });
 
     dialogRef.afterClosed().subscribe((result) => {
@@ -628,7 +630,7 @@ export class GenericTableComponent<T> implements OnInit, AfterViewInit {
         this.dataSource.data = newData;
       }
 
-      this.toastService.success('Silme isteği gönderildi', 'Bilgi');
+      this.toastService.success(this.translate.instant('GENERIC_TABLE.DELETE_REQUEST_SENT'), this.translate.instant('COMMON.INFO'));
       this.isLoading = false;
     } else if (this.service) {
       // Use the service (original behavior)
@@ -641,16 +643,16 @@ export class GenericTableComponent<T> implements OnInit, AfterViewInit {
             newData.splice(index, 1);
             this.dataSource.data = newData;
           }
-          this.toastService.success('Başari ile silindi', 'Silindi');
+          this.toastService.success('Başari ile silindi', this.translate.instant('GENERIC_TABLE.DELETED'));
           this.isLoading = false;
         },
         error: (error) => {
-          this.toastService.error('Silinemedi', 'Hata');
+          this.toastService.error(this.translate.instant('GENERIC_TABLE.DELETE_FAILED'), this.translate.instant('COMMON.ERROR'));
           this.isLoading = false;
         },
       });
     } else {
-      this.toastService.error('Silme işlemi için geçerli bir kaynak bulunamadı', 'Hata');
+      this.toastService.error(this.translate.instant('GENERIC_TABLE.NO_VALID_RESOURCE'), this.translate.instant('COMMON.ERROR'));
       this.isLoading = false;
     }
   }
@@ -694,7 +696,7 @@ export class GenericTableComponent<T> implements OnInit, AfterViewInit {
 
     //  is_completed special format
     if (column === 'is_completed') {
-      return value === true || value === 'true' ? 'Tamamlandı' : 'Eksik Sipariş';
+      return value === true || value === 'true' ? this.translate.instant('COMMON.COMPLETED') : this.translate.instant('ORDER.INCOMPLETE_ORDER');
     }
 
     // Date check

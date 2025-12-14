@@ -1,4 +1,5 @@
 import { Component, inject, OnInit } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import { CommonModule } from '@angular/common';
 import {
   ReactiveFormsModule,
@@ -47,7 +48,9 @@ import { generateUUID } from 'three/src/math/MathUtils.js';
   styleUrl: './order-detail-add-dialog.component.scss',
 })
 export class OrderDetailAddDialogComponent implements OnInit {
-  orderDetailForm: FormGroup;
+  
+  private translate = inject(TranslateService);
+orderDetailForm: FormGroup;
   dimensionSearchForm: FormGroup;
   prod!: Product;
 
@@ -99,7 +102,7 @@ export class OrderDetailAddDialogComponent implements OnInit {
               .pipe(
                 catchError((error) => {
                   this.hasError = true;
-                  this.errorMessage = 'Ürün arama sırasında bir hata oluştu.';
+                  this.errorMessage = this.translate.instant('INVOICE_UPLOAD.SEARCH_ERROR');
                   return of([]);
                 }),
                 finalize(() => {

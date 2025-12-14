@@ -1,4 +1,5 @@
 import { CommonModule } from '@angular/common';
+import { TranslateService } from '@ngx-translate/core';
 import { Component, inject } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -7,7 +8,7 @@ import { TruckService } from '../services/truck.service';
 
 @Component({
   selector: 'app-trucks',
-    imports: [CommonModule,
+  imports: [CommonModule,
     GenericTableComponent,
     MatButtonModule,
     MatIconModule],
@@ -16,6 +17,8 @@ import { TruckService } from '../services/truck.service';
 })
 export class TrucksComponent {
 
+
+  private translate = inject(TranslateService);
   truckService = inject(TruckService)
   // Loading durumu
   isLoading = false;
@@ -40,10 +43,10 @@ export class TrucksComponent {
 
   // İlişkili nesne sütunları için özel görüntüleme ayarları
   nestedDisplayColumns: { [key: string]: string } = {
-    'name': 'Sevkiyat Aracı Tipi',
-    'dimension.width': 'Uzunluk',
-    'dimension.height': 'Yükseklik',
-    'dimension.depth': 'Genişlik'
+    'name': this.translate.instant('TRUCK.VEHICLE_TYPE'),
+    'dimension.width': this.translate.instant('DIMENSIONS.LENGTH'),
+    'dimension.height': this.translate.instant('DIMENSIONS.HEIGHT'),
+    'dimension.depth': this.translate.instant('DIMENSIONS.WIDTH')
   };
 
   ngOnInit(): void {

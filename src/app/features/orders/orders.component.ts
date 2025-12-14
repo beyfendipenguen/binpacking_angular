@@ -1,4 +1,5 @@
 import { Component, inject, OnInit, ViewChild } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
@@ -30,6 +31,8 @@ import { HasPermissionDirective } from "@app/core/auth/has-permission.directive"
   styleUrl: './orders.component.scss'
 })
 export class OrdersComponent implements OnInit {
+
+  private translate = inject(TranslateService);
   // Services
   orderService = inject(OrderService);
   orderDetailService = inject(OrderDetailService);
@@ -62,88 +65,88 @@ export class OrdersComponent implements OnInit {
   columnDefinitions: ColumnDefinition[] = [
     {
       key: 'name',
-      label: 'Sipariş Adı',
+      label: this.translate.instant('ORDER.ORDER_NAME'),
       type: 'text',
       required: true
     },
     {
       key: 'date',
-      label: 'Sipariş Tarihi',
+      label: this.translate.instant('INVOICE_UPLOAD.ORDER_DATE'),
       type: 'text',
       required: true
     },
     {
       key: 'created_at',
-      label: 'Oluşturma Tarihi',
+      label: this.translate.instant('ORDER.CREATION_DATE'),
       type: 'text',
       required: true
     },
     {
       key: 'company_relation.target_company.company_name',
-      label: 'Firma Adı',
+      label: this.translate.instant('ORDER.COMPANY_NAME'),
       type: 'text',
       required: false
     },
     {
       key: 'company_relation.target_company.country',
-      label: 'Ülke',
+      label: this.translate.instant('COMMON.COUNTRY'),
       type: 'text',
       required: false
     },
     {
       key: 'order_details',
-      label: 'Ürün Detayları',
+      label: this.translate.instant('ORDER_DETAILS.TITLE'),
       type: 'button',
       required: false,
       buttonConfig: {
         icon: 'list_alt',
         color: 'primary',
-        tooltip: 'Ürün Detaylarını Görüntüle',
+        tooltip: this.translate.instant('ORDER.VIEW_PRODUCT_DETAILS'),
         class: 'details-button'
       }
     },
     {
       key: 'package',
-      label: 'Paletler',
+      label: this.translate.instant('PALLET.PALLETS'),
       type: 'button',
       required: false,
       buttonConfig: {
         icon: 'inventory_2',
         color: 'primary',
-        tooltip: 'Palet Detaylarını Görüntüle',
+        tooltip: this.translate.instant('ORDER.VIEW_PALLET_DETAILS'),
         class: 'package-button'
       }
     },
     {
       key: 'files',
-      label: 'Dosyalar',
+      label: this.translate.instant('ORDER.FILES'),
       type: 'button',
       required: false,
       buttonConfig: {
         icon: 'folder',
         color: 'accent',
-        tooltip: 'Dosyaları Görüntüle',
+        tooltip: this.translate.instant('ORDER.VIEW_FILES'),
         class: 'files-button'
       }
     },
     {
       key: 'is_completed',
-      label: 'Durum',
+      label: this.translate.instant('COMMON.STATUS'),
       type: 'status',
       required: false,
     }
   ];
 
   nestedDisplayColumns: { [key: string]: string } = {
-    'company_relation.target_company.company_name': 'Firma Adı',
-    'company_relation.target_company.country': 'Ülke',
-    'order_details': 'Ürün Detayları',
-    'package': 'Paletler',
-    'files': 'Dosyalar',
-    'date': 'Sipariş Tarihi',
-    'created_at': 'Oluşturma Tarihi',
-    'name': 'Sipariş Adı',
-    'is_completed': 'Durum',
+    'company_relation.target_company.company_name': this.translate.instant('ORDER.COMPANY_NAME'),
+    'company_relation.target_company.country': this.translate.instant('COMMON.COUNTRY'),
+    'order_details': this.translate.instant('ORDER_DETAILS.TITLE'),
+    'package': this.translate.instant('PALLET.PALLETS'),
+    'files': this.translate.instant('ORDER.FILES'),
+    'date': this.translate.instant('INVOICE_UPLOAD.ORDER_DATE'),
+    'created_at': this.translate.instant('ORDER.CREATION_DATE'),
+    'name': this.translate.instant('ORDER.ORDER_NAME'),
+    'is_completed': this.translate.instant('COMMON.STATUS'),
   };
 
   filterableColumns: string[] = [

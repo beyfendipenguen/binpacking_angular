@@ -9,6 +9,7 @@ import {
   effect,
   signal
 } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import { FormControl, FormGroup } from '@angular/forms';
 import { MatStepperModule } from '@angular/material/stepper';
 import { MatButtonModule } from '@angular/material/button';
@@ -81,6 +82,8 @@ import { StepperUiActions } from '@app/store/stepper/actions/stepper-ui.actions'
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class InvoiceUploadComponent implements OnInit, OnDestroy {
+
+  private translate = inject(TranslateService);
   @ViewChild(GenericTableComponent) genericTable!: GenericTableComponent<any>;
 
   // Inject managers and services
@@ -245,7 +248,7 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
           .then(response => response.blob())
           .then(download)
           .catch(error => {
-            this.toastService.error('Şablon indirilemedi');
+            this.toastService.error(this.translate.instant('INVOICE_UPLOAD.TEMPLATE_DOWNLOAD_ERROR'));
           });
       } else if (templateFile.file instanceof File) {
         // If it's a File object, use it directly

@@ -1,4 +1,5 @@
 import { Component, Inject, OnInit, inject } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef, MatDialog, MatDialogModule } from '@angular/material/dialog';
@@ -52,9 +53,10 @@ export interface CustomerDialogData {
   styleUrl: './customer-dialog.component.scss'
 })
 export class CustomerDialogComponent implements OnInit {
+
+  private translate = inject(TranslateService);
   private fb = inject(FormBuilder);
   private companyRelationService = inject(CompanyRelationService);
-  private companyService = inject(CompanyService);
   private palletGroupService = inject(PalletGroupService);
   private toastService = inject(ToastService);
   private dialog = inject(MatDialog);
@@ -77,7 +79,7 @@ export class CustomerDialogComponent implements OnInit {
   constructor(
     public dialogRef: MatDialogRef<CustomerDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: CustomerDialogData
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.initForm();
@@ -133,7 +135,7 @@ export class CustomerDialogComponent implements OnInit {
         this.isLoading = false;
       },
       error: (error) => {
-        this.toastService.error('Şirketler yüklenirken hata oluştu', 'Hata');
+        this.toastService.error(this.translate.instant('CUSTOMER_MESSAGES.COMPANIES_LOAD_ERROR'));
         this.isLoading = false;
       }
     });
@@ -150,7 +152,7 @@ export class CustomerDialogComponent implements OnInit {
         this.isLoadingPalletGroups = false;
       },
       error: (error) => {
-        this.toastService.error('Palet grupları yüklenirken hata oluştu', 'Hata');
+        this.toastService.error(this.translate.instant('CUSTOMER_MESSAGES.OPERATION_ERROR'));
         this.isLoadingPalletGroups = false;
       }
     });
@@ -246,7 +248,7 @@ export class CustomerDialogComponent implements OnInit {
           target_company_search: newCompany
         });
 
-        this.toastService.success('Yeni şirket eklendi ve seçildi', 'Başarılı');
+        this.toastService.success(this.translate.instant('CUSTOMER_MESSAGES.NEW_COMPANY_SELECTED'));
       }
     });
   }
@@ -255,7 +257,7 @@ export class CustomerDialogComponent implements OnInit {
    * Get title based on mode
    */
   getTitle(): string {
-    return this.data.mode === 'create' ? 'Yeni Müşteri Ekle' : 'Müşteri Düzenle';
+    return this.data.mode === 'create' ? this.translate.instant('CUSTOMER.ADD_NEW') : this.translate.instant('CUSTOMER.EDIT');
   }
 
   /**
@@ -264,7 +266,7 @@ export class CustomerDialogComponent implements OnInit {
   onSave(): void {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
-      this.toastService.error('Lütfen tüm gerekli alanları doldurun', 'Uyarı');
+      this.toastService.error(this.translate.instant('CUSTOMER.FILL_ALL_FIELDS'));
       return;
     }
 
@@ -292,16 +294,16 @@ export class CustomerDialogComponent implements OnInit {
     request$.subscribe({
       next: (result) => {
         const message = this.data.mode === 'create'
-          ? 'Müşteri başarıyla eklendi'
-          : 'Müşteri başarıyla güncellendi';
-        this.toastService.success(message, 'Başarılı');
+          ? this.translate.instant('CUSTOMER_MESSAGES.CUSTOMER_ADDED')
+          : this.translate.instant('CUSTOMER_MESSAGES.CUSTOMER_UPDATED');
+        this.toastService.success(message, this.translate.instant('COMMON.SUCCESS'));
         this.dialogRef.close(result);
       },
       error: (error) => {
         if (error.error?.non_field_errors) {
-          this.toastService.error(error.error.non_field_errors[0], 'Hata');
+          this.toastService.error(error.error.non_field_errors[0]);
         } else {
-          this.toastService.error('İşlem sırasında hata oluştu', 'Hata');
+          this.toastService.error(this.translate.instant('CUSTOMER_MESSAGES.OPERATION_ERROR'));
         }
         this.isSaving = false;
       }

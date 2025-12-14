@@ -17,12 +17,12 @@
   <mat-dialog-actions>
     <button mat-stroked-button (click)="onNoClick()" class="no-button">
       <mat-icon>close</mat-icon>
-      <span>{{data.rejectButtonText}}</span>
+      <span>{{data.rejectButtonText | translate}}</span>
     </button>
     @if(data.showYesButton){
       <button mat-raised-button (click)="onYesClick()" class="yes-button" cdkFocusInitial>
         <mat-icon>check</mat-icon>
-        <span>{{data.confirmButtonText}}</span>
+        <span>{{data.confirmButtonText | translate}}</span>
       </button>
     }
   </mat-dialog-actions>

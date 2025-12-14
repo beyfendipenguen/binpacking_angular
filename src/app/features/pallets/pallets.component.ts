@@ -1,4 +1,5 @@
 import { Component, inject } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import { PalletService } from '../services/pallet.service';
 import { BulkUploadConfig } from '@app/shared/bulk-upload-dialog/bulk-upload.config';
 import { createPalletBulkConfig } from './config/pallet-bulk.config';
@@ -26,6 +27,8 @@ import { PalletGroupDialogComponent } from './pallet-group-dialog/pallet-group-d
   styleUrl: './pallets.component.scss'
 })
 export class PalletsComponent {
+
+  private translate = inject(TranslateService);
   // Servis enjeksiyonları
   palletService = inject(PalletService);
   private dialog = inject(MatDialog);
@@ -54,10 +57,10 @@ export class PalletsComponent {
 
   // İlişkili nesne sütunları için özel görüntüleme ayarları
   nestedDisplayColumns: { [key: string]: string } = {
-    'dimension.width': 'Genişlik',
-    'dimension.height': 'Yükseklik ( Palet üst sınırı )',
-    'dimension.depth': 'Derinlik',
-    'weight': 'Ağırlık'
+    'dimension.width': this.translate.instant('DIMENSIONS.WIDTH'),
+    'dimension.height': this.translate.instant('CUSTOMER.MAX_PALLET_HEIGHT'),
+    'dimension.depth': this.translate.instant('DIMENSIONS.DEPTH'),
+    'weight': this.translate.instant('DIMENSIONS.WEIGHT')
   };
 
   ngOnInit(): void {

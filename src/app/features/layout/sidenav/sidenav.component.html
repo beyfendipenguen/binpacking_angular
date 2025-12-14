@@ -22,7 +22,7 @@
             [class.active]="isActive(item)"
             class="nav-item">
             <mat-icon matListItemIcon class="nav-icon">{{ item.icon }}</mat-icon>
-            <span matListItemTitle class="nav-title">{{ item.title }}</span>
+            <span matListItemTitle class="nav-title">{{ item.title | translate  }}</span>
           </mat-list-item>
 
           <!-- Level 1 - Parent Item (Has Children) -->
@@ -32,7 +32,7 @@
               [class.is-expanded]="isExpanded(item.title)"
               class="nav-item parent-item">
               <mat-icon matListItemIcon class="nav-icon">{{ item.icon }}</mat-icon>
-              <span matListItemTitle class="nav-title">{{ item.title }}</span>
+              <span matListItemTitle class="nav-title">{{ item.title | translate }}</span>
               <mat-icon class="expand-icon">
                 {{ isExpanded(item.title) ? 'expand_less' : 'expand_more' }}
               </mat-icon>
@@ -49,7 +49,7 @@
                   [class.active]="isActive(child)"
                   class="nav-item">
                   <mat-icon matListItemIcon class="nav-icon">{{ child.icon }}</mat-icon>
-                  <span matListItemTitle class="nav-title">{{ child.title }}</span>
+                  <span matListItemTitle class="nav-title">{{ child.title | translate }}</span>
                 </mat-list-item>
 
                 <!-- Level 2 - Parent Item (Has Children) -->
@@ -59,7 +59,7 @@
                     [class.is-expanded]="isExpanded(child.title)"
                     class="nav-item parent-item">
                     <mat-icon matListItemIcon class="nav-icon">{{ child.icon }}</mat-icon>
-                    <span matListItemTitle class="nav-title">{{ child.title }}</span>
+                    <span matListItemTitle class="nav-title">{{ child.title | translate }}</span>
                     <mat-icon class="expand-icon">
                       {{ isExpanded(child.title) ? 'expand_less' : 'expand_more' }}
                     </mat-icon>
@@ -73,7 +73,7 @@
                       [class.active]="isActive(grandchild)"
                       class="nav-item">
                       <mat-icon matListItemIcon class="nav-icon">{{ grandchild.icon }}</mat-icon>
-                      <span matListItemTitle class="nav-title">{{ grandchild.title }}</span>
+                      <span matListItemTitle class="nav-title">{{ grandchild.title | translate }}</span>
                     </mat-list-item>
                   </div>
                 </ng-container>

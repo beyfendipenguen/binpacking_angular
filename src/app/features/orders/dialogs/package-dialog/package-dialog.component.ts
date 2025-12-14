@@ -1,4 +1,5 @@
 import { Component, Inject, OnInit, inject } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import { CommonModule } from '@angular/common';
 import { MAT_DIALOG_DATA, MatDialogRef, MatDialogModule } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
@@ -30,6 +31,8 @@ interface GroupedPackage {
   styleUrl: './package-dialog.component.scss'
 })
 export class PackageDialogComponent implements OnInit {
+
+  private translate = inject(TranslateService);
   packageDetailService = inject(PackageDetailService);
 
   // Grouped packages for display
@@ -45,20 +48,20 @@ export class PackageDialogComponent implements OnInit {
   columnDefinitions: ColumnDefinition[] = [
     {
       key: 'product.name',
-      label: 'Ürün Adı',
+      label: this.translate.instant('DIMENSIONS.PRODUCT_NAME'),
       type: 'text',
       required: true
     },
     {
       key: 'count',
-      label: 'Adet',
+      label: this.translate.instant('DIMENSIONS.QUANTITY'),
       type: 'number',
       required: true
     }
   ];
 
   nestedDisplayColumns: { [key: string]: string } = {
-    'product.name': 'Ürün Adı'
+    'product.name': this.translate.instant('DIMENSIONS.PRODUCT_NAME')
   };
 
   constructor(
@@ -116,12 +119,12 @@ export class PackageDialogComponent implements OnInit {
       if (!packageMap.has(packageId)) {
         const dimension = detail.package?.pallet?.dimension;
         const dimensionStr = dimension
-          ? `${dimension.width} × ${dimension.depth} ${dimension.unit || 'mm'}`
+          ? `${dimension.width} × ${dimension.depth} ${dimension.unit || this.translate.instant('DIMENSIONS.MM')}`
           : 'N/A';
 
         packageMap.set(packageId, {
           id: packageId,
-          palletName: detail.package?.pallet?.name || 'Palet',
+          palletName: detail.package?.pallet?.name || this.translate.instant('PALLET_CONTROL.PALLET'),
           dimension: dimensionStr,
           itemCount: 0,
           items: [],

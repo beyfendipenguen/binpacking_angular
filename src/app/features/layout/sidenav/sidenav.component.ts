@@ -1,4 +1,5 @@
-import { Component, ViewChild, Input } from '@angular/core';
+import { Component, ViewChild, Input, inject } from '@angular/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { MatSidenav, MatSidenavContent, MatSidenavModule } from '@angular/material/sidenav';
 import { MatDrawerMode } from '@angular/material/sidenav';
 import { RouterModule, Router, NavigationEnd } from '@angular/router';
@@ -13,41 +14,41 @@ import { filter } from 'rxjs/operators';
 const NAV_LIST_ITEM: INavListItem[] = [
   {
     routerLink: [''],
-    title: 'Yerleştirme Hesaplama',
+    title: 'MENU.PLACEMENT_CALCULATION',
     icon: 'calculate'
   },
   {
-    title: 'İşlemler',
+    title: 'MENU.OPERATIONS',
     icon: 'pending_actions',
     children: [
       {
         routerLink: ['/orders'],
-        title: 'Sipariş Yönetimi',
+        title: 'MENU.ORDER_MANAGEMENT',
         icon: 'assignment'
       },
       {
         routerLink: ['/products'],
-        title: 'Ürün Yönetimi',
+        title: 'PRODUCT.TITLE',
         icon: 'inventory_2'
       },
       {
         routerLink: ['/pallets'],
-        title: 'Palet Yönetimi',
+        title: 'PALLET.TITLE',
         icon: 'view_module',
       },
       {
         routerLink: ['/trucks'],
-        title: 'Sevkiyat Aracı Yönetimi',
+        title: 'TRUCK.TITLE',
         icon: 'local_shipping'
       },
       {
         routerLink: ['/customers'],
-        title: 'Müşteri Yönetimi',
+        title: 'CUSTOMER.TITLE',
         icon: 'assignment_ind'
       },
       {
         routerLink: ['/permissions'],
-        title: 'Yetki Yönetimi',
+        title: 'MENU.PERMISSION_MANAGEMENT',
         icon: 'lock_person'
       },
     ]
@@ -67,10 +68,12 @@ const NAV_LIST_ITEM: INavListItem[] = [
     MatSidenavContent,
     RouterModule,
     MatIconModule,
-    CommonModule
+    CommonModule,
+    TranslateModule
   ]
 })
 export class SidenavComponent {
+
   @Input('mode') sidenavMode!: MatDrawerMode;
   @Input() isOpen!: boolean;
   @ViewChild('sidenav', { static: true, read: MatSidenav }) sidenav!: MatSidenav;

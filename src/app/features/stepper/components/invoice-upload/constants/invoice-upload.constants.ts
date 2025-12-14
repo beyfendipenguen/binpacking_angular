@@ -36,12 +36,12 @@ export const INVOICE_UPLOAD_CONSTANTS = {
     ] as string[],
 
     NESTED_DISPLAY_COLUMNS: {
-      'product.name': 'Ürün Adı',
-      'product.product_type.type': 'Ürün Tipi',
-      'product.product_type.code': 'Ürün Kodu',
-      'product.dimension.width': 'Genişlik',
-      'product.dimension.depth': 'Derinlik',
-      'count': 'Adet',
+      'product.name': 'INVOICE_UPLOAD.TABLE.PRODUCT_NAME',
+      'product.product_type.type': 'INVOICE_UPLOAD.TABLE.PRODUCT_TYPE',
+      'product.product_type.code': 'INVOICE_UPLOAD.TABLE.PRODUCT_CODE',
+      'product.dimension.width': 'INVOICE_UPLOAD.TABLE.WIDTH',
+      'product.dimension.depth': 'INVOICE_UPLOAD.TABLE.DEPTH',
+      'count': 'INVOICE_UPLOAD.TABLE.COUNT',
     },
 
     EXCLUDE_FIELDS: [
@@ -59,28 +59,28 @@ export const INVOICE_UPLOAD_CONSTANTS = {
 
   MESSAGES: {
     SUCCESS: {
-      FILE_PROCESSED: 'Dosya İşlendi',
-      ORDER_DETAIL_ADDED: 'Sipariş detayı başarıyla eklendi.',
-      CHANGES_SAVED: 'Değişiklikler başarıyla kaydedildi',
-      DATA_RESTORED: 'Önceki verileriniz restore edildi',
-      FORCE_SAVED: 'Veriler zorla kaydedildi',
+      FILE_PROCESSED: 'INVOICE_UPLOAD.SUCCESS.FILE_PROCESSED',
+      ORDER_DETAIL_ADDED: 'INVOICE_UPLOAD.SUCCESS.ORDER_DETAIL_ADDED',
+      CHANGES_SAVED: 'INVOICE_UPLOAD.SUCCESS.CHANGES_SAVED',
+      DATA_RESTORED: 'INVOICE_UPLOAD.SUCCESS.DATA_RESTORED',
+      FORCE_SAVED: 'INVOICE_UPLOAD.SUCCESS.FORCE_SAVED',
     },
     WARNING: {
-      FILL_REQUIRED_FIELDS: 'Lütfen tüm zorunlu alanları doldurun (Sipariş No, Tarih, Müşteri, Tır, Ağırlık Tipi, Kat Adedi, Ağırlık Limiti)',
-      MISSING_ORDER_DETAILS: 'Sipariş detayları eksik. Lütfen kontrol ediniz.',
+      FILL_REQUIRED_FIELDS: 'INVOICE_UPLOAD.WARNING.FILL_REQUIRED_FIELDS',
+      MISSING_ORDER_DETAILS: 'INVOICE_UPLOAD.WARNING.MISSING_ORDER_DETAILS',
     },
     ERROR: {
-      INVALID_FILE_TYPE: 'Geçersiz dosya türü. Lütfen uygun formatta Excel dosyası yükleyin ya da örnek ISB raporunu indirin.',
-      FILE_TOO_LARGE: 'Dosya boyutu 10 MB sınırını aşıyor.',
-      FILE_PROCESSING: 'Dosya işlenirken bir hata oluştu.',
-      COMPANY_LOADING: 'Profil bilgisi yüklenirken hata oluştu CompanyRelation',
-      TRUCK_LOADING: 'Tır bilgisi yüklenirken hata oluştu',
-      OPERATION_ERROR: 'İşlem sırasında hata oluştu: ',
+      INVALID_FILE_TYPE: 'INVOICE_UPLOAD.ERROR.INVALID_FILE_TYPE',
+      FILE_TOO_LARGE: 'INVOICE_UPLOAD.ERROR.FILE_TOO_LARGE',
+      FILE_PROCESSING: 'INVOICE_UPLOAD.ERROR.FILE_PROCESSING',
+      COMPANY_LOADING: 'INVOICE_UPLOAD.ERROR.COMPANY_LOADING',
+      TRUCK_LOADING: 'INVOICE_UPLOAD.ERROR.TRUCK_LOADING',
+      OPERATION_ERROR: 'INVOICE_UPLOAD.ERROR.OPERATION_ERROR',
     },
     INFO: {
-      FILE_UPLOADING: 'Dosya yükleniyor...',
-      FILE_PROCESSING: 'Dosya işleniyor...',
-      OPERATION_IN_PROGRESS: 'İşlem gerçekleştiriliyor...',
+      FILE_UPLOADING: 'INVOICE_UPLOAD.INFO.FILE_UPLOADING',
+      FILE_PROCESSING: 'INVOICE_UPLOAD.INFO.FILE_PROCESSING',
+      OPERATION_IN_PROGRESS: 'INVOICE_UPLOAD.INFO.OPERATION_IN_PROGRESS',
     },
   },
 } as const;

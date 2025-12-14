@@ -74,8 +74,8 @@ export class StepperGeneralEffects {
           this.toastService.error(
             error.message,
             error.stepIndex !== undefined
-              ? `Step ${error.stepIndex + 1} Hatası`
-              : 'Sistem Hatası'
+              ? `Step ${error.stepIndex + 1} Error`
+              : 'Error'
           );
         })
       ),

@@ -13,6 +13,7 @@ import {
   untracked,
   computed
 } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import { MatButton } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { CommonModule } from '@angular/common';
@@ -44,6 +45,8 @@ import { ReportFile, ResultStepService } from './result-step.service';
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ResultStepComponent implements OnInit, OnDestroy {
+
+  private translate = inject(TranslateService);
   @ViewChild('threeJSComponent') threeJSComponent!: ThreeJSTruckVisualizationComponent;
   @Output() shipmentCompleted = new EventEmitter<void>();
 
@@ -162,8 +165,8 @@ export class ResultStepComponent implements OnInit, OnDestroy {
             data: { orderResultId: this.orderResultId }
           }));
 
-          this.toastService.success('Paketleme ve rapor başarıyla oluşturuldu');
-          if(this.originalPiecesData.find(pkg => pkg[0] === -1 && pkg[1] === -1 && pkg[2] === -1)){
+          this.toastService.success(this.translate.instant('RESULT_STEP.PACKAGING_SUCCESS'));
+          if (this.originalPiecesData.find(pkg => pkg[0] === -1 && pkg[1] === -1 && pkg[2] === -1)) {
             this.store.dispatch(StepperResultActions.setIsDirty({ isDirty: true }))
           }
           this.cdr.markForCheck();
@@ -171,7 +174,7 @@ export class ResultStepComponent implements OnInit, OnDestroy {
         error: (error) => {
           this.store.dispatch(StepperUiActions.setGlobalError({
             error: {
-              message: 'Optimizasyon hesaplaması sırasında hata oluştu: ' + (error.message || error),
+              message: this.translate.instant('RESULT_STEP.OPTIMIZATION_ERROR') + (error.message || error),
               code: error.status?.toString(),
               stepIndex: 2
             }
@@ -217,7 +220,7 @@ export class ResultStepComponent implements OnInit, OnDestroy {
     event.preventDefault(); // Link'in default davranışını engelle
 
     if (!file?.file) {
-      this.toastService.warning('Dosya bulunamadı');
+      this.toastService.warning(this.translate.instant('RESULT_STEP.FILE_NOT_FOUND'));
       return;
     }
 
@@ -228,7 +231,7 @@ export class ResultStepComponent implements OnInit, OnDestroy {
         this.completeOrder(false);
 
       } catch (error) {
-        this.toastService.error('Kayıt sırasında hata oluştu');
+        this.toastService.error(this.translate.instant('RESULT_STEP.SAVE_ERROR'));
       }
     } else {
       // Değişiklik yok, direkt aç
@@ -254,7 +257,7 @@ export class ResultStepComponent implements OnInit, OnDestroy {
 
   goPreviousStep(): void {
     const deletedPackages = this.threeJSComponent?.deletedPackagesSignal() || [];
-    if(deletedPackages.length > 0){
+    if (deletedPackages.length > 0) {
       this.resetComponent()
     }
     this.store.dispatch(StepperUiActions.navigateToStep({ stepIndex: 1 }));
@@ -262,7 +265,7 @@ export class ResultStepComponent implements OnInit, OnDestroy {
 
   completeShipment(): void {
     if (!this.hasResults) {
-      this.toastService.warning('Önce optimizasyonu tamamlayın');
+      this.toastService.warning(this.translate.instant('RESULT_STEP.COMPLETE_OPTIMIZATION_FIRST'));
       return;
     }
 
@@ -289,7 +292,7 @@ export class ResultStepComponent implements OnInit, OnDestroy {
         this.submitOrderResult(orderResult, resetStepper);
       }
     } catch (error) {
-      this.toastService.error('Sipariş tamamlama sırasında hata oluştu');
+      this.toastService.error(this.translate.instant('RESULT_STEP.ORDER_COMPLETE_ERROR'));
     }
   }
 
@@ -303,11 +306,11 @@ export class ResultStepComponent implements OnInit, OnDestroy {
       disableClose: true,
       panelClass: 'cancel-confirmation-dialog',
       data: {
-        header: 'Yerleştirilmeyen paketler var!',
-        title: 'Bütün paketler yerleştirilmemiş veya sığmıyor olabilir.',
-        info: 'Lütfen devam edebilmek için paketleri 2. adıma dönerek kontrol edin veya silin',
-        rejectButtonText: 'Tamam',
-        showYesButton:false
+        header: this.translate.instant('RESULT_STEP.UNPLACED_PACKAGES'),
+        title: this.translate.instant('RESULT_STEP.UNPLACED_PACKAGES_MESSAGE'),
+        info: this.translate.instant('RESULT_STEP.CHECK_PACKAGES_MESSAGE'),
+        rejectButtonText: this.translate.instant('COMMON.OK'),
+        showYesButton: false
       }
     });
   }
@@ -328,13 +331,13 @@ export class ResultStepComponent implements OnInit, OnDestroy {
     }
 
     // Submit order result
-    this.store.dispatch(StepperResultActions.resultStepSubmit({ orderId: this.orderIdSignal(), orderResult, resetStepper}))
+    this.store.dispatch(StepperResultActions.resultStepSubmit({ orderId: this.orderIdSignal(), orderResult, resetStepper }))
 
 
     // Emit completion
     this.shipmentCompleted.emit();
 
-    this.toastService.success('Sipariş başarıyla tamamlandı');
+    this.toastService.success(this.translate.instant('RESULT_STEP.ORDER_COMPLETED'));
   }
 
   // ========================================
@@ -343,7 +346,7 @@ export class ResultStepComponent implements OnInit, OnDestroy {
 
   onThreeJSError(error: any): void {
     this.hasThreeJSError = true;
-    this.toastService.error('3D görselleştirmede hata oluştu');
+    this.toastService.error(this.translate.instant('RESULT_STEP.VISUALIZATION_3D_ERROR'));
     this.cdr.detectChanges();
   }
 
@@ -353,13 +356,13 @@ export class ResultStepComponent implements OnInit, OnDestroy {
 
   private getErrorMessage(error: any): string {
     if (error?.status === 0) {
-      return 'Sunucuya bağlanılamıyor. İnternet bağlantınızı kontrol edin.';
+      return this.translate.instant('RESULT_STEP.CONNECTION_ERROR');
     } else if (error?.status >= 400 && error?.status < 500) {
-      return 'İstek hatası. Lütfen parametreleri kontrol edin.';
+      return this.translate.instant('RESULT_STEP.REQUEST_ERROR');
     } else if (error?.status >= 500) {
-      return 'Sunucu hatası. Lütfen daha sonra tekrar deneyin.';
+      return this.translate.instant('RESULT_STEP.SERVER_ERROR');
     } else {
-      return error?.message || 'Beklenmeyen bir hata oluştu.';
+      return error?.message || this.translate.instant('RESULT_STEP.UNEXPECTED_ERROR');
     }
   }
 

@@ -1,4 +1,5 @@
 import { Component, inject, OnInit, Inject } from '@angular/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { CommonModule } from '@angular/common';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef, MatDialog } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
@@ -20,7 +21,8 @@ import { GenericBulkUploadResultDialogComponent } from './bulk-upload-result-dia
     MatDialogModule,
     MatButtonModule,
     MatIconModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    TranslateModule
   ],
   template: `
     <div class="dialog-container">
@@ -67,7 +69,7 @@ import { GenericBulkUploadResultDialogComponent } from './bulk-upload-result-dia
                     [disabled]="isDownloading"
                     class="download-btn">
                     <mat-icon>{{ isDownloading ? 'hourglass_empty' : 'download' }}</mat-icon>
-                    {{ isDownloading ? 'İndiriliyor...' : 'Şablonu İndir' }}
+                    {{ (isDownloading ? 'BULK_ADD.DOWNLOADING' : 'BULK_ADD.DOWNLOAD_TEMPLATE') | translate }}
                   </button>
                 </div>
               </div>
@@ -95,8 +97,8 @@ import { GenericBulkUploadResultDialogComponent } from './bulk-upload-result-dia
                     <div class="upload-icon">
                       <mat-icon>{{ isDragOver ? 'file_download' : 'cloud_upload' }}</mat-icon>
                     </div>
-                    <h3>{{ isDragOver ? 'Dosyayı Bırakın' : 'Doldurulmuş Excel Dosyasını Yükleyin' }}</h3>
-                    <p>{{ isDragOver ? 'Dosya yükleme alanına bırakın' : 'Dosyayı sürükleyip bırakın veya tıklayarak seçin' }}</p>
+                    <h3>{{ (isDragOver ? 'BULK_ADD.DROP_FILE' : 'BULK_ADD.UPLOAD_EXCEL') | translate }}</h3>
+                    <p>{{ (isDragOver ? 'BULK_ADD.DROP_HERE' : 'BULK_ADD.DRAG_OR_CLICK') | translate}}</p>
                     @if(!isDragOver) {
                       <button mat-raised-button color="primary" type="button">
                         <mat-icon>folder_open</mat-icon>
@@ -139,7 +141,7 @@ import { GenericBulkUploadResultDialogComponent } from './bulk-upload-result-dia
                   [disabled]="isDownloading"
                   class="link-button">
                   <mat-icon>download</mat-icon>
-                  {{ isDownloading ? 'İndiriliyor...' : 'Şablonu tekrar indir' }}
+                  {{ (isDownloading ? 'BULK_ADD.DOWNLOADING' :'BULK_ADD.REDOWNLOAD_TEMPLATE') | translate }}
                 </button>
               </div>
             </div>
@@ -494,6 +496,8 @@ import { GenericBulkUploadResultDialogComponent } from './bulk-upload-result-dia
 `]
 })
 export class GenericBulkUploadDialogComponent implements OnInit {
+
+  private translate = inject(TranslateService);
   isTemplateDownloaded = false;
   selectedFile: File | null = null;
   isDownloading = false;
@@ -510,7 +514,7 @@ export class GenericBulkUploadDialogComponent implements OnInit {
   constructor(
     private dialogRef: MatDialogRef<GenericBulkUploadDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public config: BulkUploadConfig
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.getTemplateFile();
@@ -518,10 +522,10 @@ export class GenericBulkUploadDialogComponent implements OnInit {
 
   getInstructions(): string[] {
     return this.config.instructions || [
-      '1️⃣  Aşağıdaki tabloda belirtilen sütunları doldurun',
-      '2️⃣  Sütun isimlerini kesinlikle değiştirmeyin',
-      '3️⃣  Tüm zorunlu alanları eksiksiz doldurun',
-      '4️⃣  Dosyayı kaydedip sisteme yükleyin'
+      `1️⃣  this.translate.instant('BULK_ADD.STEP_1')`,
+      `2️⃣  this.translate.instant('BULK_ADD.STEP_2')`,
+      `3️⃣  this.translate.instant('BULK_ADD.STEP_3')`,
+      `4️⃣  this.translate.instant('BULK_ADD.STEP_4')`
     ];
   }
 
@@ -531,7 +535,7 @@ export class GenericBulkUploadDialogComponent implements OnInit {
 
   downloadTemplate(): void {
     if (!this.templateFile) {
-      this.toastService.error('Şablon dosyası bulunamadı.');
+      this.toastService.error(this.translate.instant('BULK_ADD.TEMPLATE_NOT_FOUND'));
       return;
     }
 
@@ -554,18 +558,18 @@ export class GenericBulkUploadDialogComponent implements OnInit {
     if (typeof this.templateFile.file === 'string') {
       fetch(this.templateFile.file)
         .then(response => {
-          if (!response.ok) throw new Error('Dosya indirilemedi');
+          if (!response.ok) throw new Error(this.translate.instant('BULK_ADD.FILE_NOT_DOWNLOAD'));
           return response.blob();
         })
         .then(download)
         .catch(error => {
-          this.toastService.error('Şablon indirilemedi.');
+          this.toastService.error(this.translate.instant('BULK_ADD.TEMPLATE_DOWNLOAD_ERROR'));
           this.isDownloading = false;
         });
     } else if (this.templateFile.file instanceof File) {
       download(this.templateFile.file);
     } else {
-      this.toastService.error('Geçersiz dosya formatı.');
+      this.toastService.error(this.translate.instant('BULK_ADD.INVALID_FILE_FORMAT'));
       this.isDownloading = false;
     }
   }
@@ -581,11 +585,11 @@ export class GenericBulkUploadDialogComponent implements OnInit {
         if (response.results && response.results.length > 0) {
           this.templateFile = response.results[0];
         } else {
-          this.toastService.error('Şablon dosyası bulunamadı.');
+          this.toastService.error(this.translate.instant('BULK_ADD.TEMPLATE_NOT_FOUND'));
         }
       },
       error: (error) => {
-        this.toastService.error('Şablon dosyası yüklenemedi.');
+        this.toastService.error(this.translate.instant('BULK_ADD.TEMPLATE_LOAD_ERROR'));
       }
     });
   }
@@ -617,7 +621,7 @@ export class GenericBulkUploadDialogComponent implements OnInit {
       if (fileExtension && allowedExtensions.includes(fileExtension)) {
         this.selectedFile = file;
       } else {
-        this.toastService.error(`Lütfen sadece ${allowedExtensions.join(', ')} dosyası yükleyin.`);
+        this.toastService.error(`${this.translate.instant('BULK_ADD.UPLOAD_ONLY')} ${allowedExtensions.join(', ')} ${this.translate.instant('BULK_ADD.FILE_TYPE')}`);
       }
     }
   }
@@ -680,8 +684,8 @@ export class GenericBulkUploadDialogComponent implements OnInit {
         this.isUploading = false;
 
         const errorMessage = error.error?.error ||
-                            error.error?.message ||
-                            'Dosya yüklenirken bir hata oluştu.';
+          error.error?.message ||
+          this.translate.instant('BULK_ADD.FILE_UPLOAD_ERROR');
 
         this.toastService.error(errorMessage);
       }

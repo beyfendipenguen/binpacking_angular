@@ -446,7 +446,7 @@
     "ONLY": "Sadece",
     "PIECES_FIT": "adet sığar",
     "FROM_PIECES": "adetten) - Doluluk:",
-    "MAX_FIT": "Bu palete maksimum",
+    "MAX_FIT": "Palete maksimum",
     "PIECES_CAN_FIT": "adet sığabilir",
     "UNPLACED_PRODUCTS_WARNING": "Yerleştirilmeyen Ürünler Var!",
     "MUST_PLACE_REMAINING": "Kalan ürünleri yerleştirmeniz gerekmektedir",
@@ -497,7 +497,39 @@
     "ITEM": "Kalem",
     "PRODUCTS_COUNT": "adet ürün",
     "SAVE_NEXT": "KAYDET & İLERİ",
-    "TEMPLATE_DOWNLOAD_ERROR": "Şablon indirilemedi"
+    "TEMPLATE_DOWNLOAD_ERROR": "Şablon indirilemedi",
+    "TABLE": {
+      "PRODUCT_NAME": "Ürün Adı",
+      "PRODUCT_TYPE": "Ürün Tipi",
+      "PRODUCT_CODE": "Ürün Kodu",
+      "WIDTH": "Genişlik",
+      "DEPTH": "Derinlik",
+      "COUNT": "Adet"
+    },
+    "SUCCESS": {
+      "FILE_PROCESSED": "Dosya İşlendi",
+      "ORDER_DETAIL_ADDED": "Sipariş detayı başarıyla eklendi",
+      "CHANGES_SAVED": "Değişiklikler başarıyla kaydedildi",
+      "DATA_RESTORED": "Önceki verileriniz restore edildi",
+      "FORCE_SAVED": "Veriler zorla kaydedildi"
+    },
+    "WARNING": {
+      "FILL_REQUIRED_FIELDS": "Lütfen tüm zorunlu alanları doldurun (Sipariş No, Tarih, Müşteri, Tır, Ağırlık Tipi, Kat Adedi, Ağırlık Limiti)",
+      "MISSING_ORDER_DETAILS": "Sipariş detayları eksik. Lütfen kontrol ediniz"
+    },
+    "ERROR": {
+      "INVALID_FILE_TYPE": "Geçersiz dosya türü. Lütfen uygun formatta Excel dosyası yükleyin ya da örnek ISB raporunu indirin",
+      "FILE_TOO_LARGE": "Dosya boyutu 10 MB sınırını aşıyor",
+      "FILE_PROCESSING": "Dosya işlenirken bir hata oluştu",
+      "COMPANY_LOADING": "Profil bilgisi yüklenirken hata oluştu CompanyRelation",
+      "TRUCK_LOADING": "Tır bilgisi yüklenirken hata oluştu",
+      "OPERATION_ERROR": "İşlem sırasında hata oluştu: "
+    },
+    "INFO": {
+      "FILE_UPLOADING": "Dosya yükleniyor...",
+      "FILE_PROCESSING": "Dosya işleniyor...",
+      "OPERATION_IN_PROGRESS": "İşlem gerçekleştiriliyor..."
+    }
   },
 
   "RESULT_STEP": {
@@ -522,6 +554,7 @@
     "OPTIMIZATION_ERROR": "Optimizasyon hesaplaması sırasında hata oluştu:",
     "PACKAGING_SUCCESS": "Paketleme ve rapor başarıyla oluşturuldu",
     "FILE_NOT_FOUND": "Dosya bulunamadı",
+    "FILE_NOT_DOWNLOAD": "Dosya indirilemedi",
     "SAVE_ERROR": "Kayıt sırasında hata oluştu",
     "COMPLETE_OPTIMIZATION_FIRST": "Önce optimizasyonu tamamlayın",
     "ORDER_COMPLETE_ERROR": "Sipariş tamamlama sırasında hata oluştu",
@@ -561,6 +594,7 @@
     "DRAG_OR_CLICK": "Dosyayı sürükleyip bırakın veya tıklayarak seçin",
     "SELECT_FILE": "Dosya Seç",
     "CHANGE_FILE": "Dosyayı Değiştir",
+    "FILE_NOT_DOWNLOAD": "Dosya indirilemedi",
     "REDOWNLOAD_TEMPLATE": "Şablonu tekrar indir",
     "SAVE_AND_IMPORT": "Kaydet ve İçe Aktar",
     "TEMPLATE_LOAD_ERROR": "Şablon dosyası yüklenemedi.",

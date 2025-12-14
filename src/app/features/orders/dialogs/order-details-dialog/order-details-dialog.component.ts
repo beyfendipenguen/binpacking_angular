@@ -1,4 +1,5 @@
 import { Component, Inject, OnInit, inject } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import { CommonModule } from '@angular/common';
 import { MAT_DIALOG_DATA, MatDialogRef, MatDialogModule } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
@@ -23,6 +24,8 @@ import { GenericTableComponent, ColumnDefinition, ExternalDataParams, ExternalDa
   styleUrl: './order-details-dialog.component.scss'
 })
 export class OrderDetailsDialogComponent implements OnInit {
+
+  private translate = inject(TranslateService);
   orderDetailService = inject(OrderDetailService);
 
   // Table configuration
@@ -37,42 +40,42 @@ export class OrderDetailsDialogComponent implements OnInit {
   columnDefinitions: ColumnDefinition[] = [
     {
       key: 'product.name',
-      label: 'Ürün Adı',
+      label: this.translate.instant('DIMENSIONS.PRODUCT_NAME'),
       type: 'text',
       required: true
     },
     {
       key: 'count',
-      label: 'Adet',
+      label: this.translate.instant('DIMENSIONS.QUANTITY'),
       type: 'number',
       required: true
     },
     {
       key: 'product.dimension.width',
-      label: 'Genişlik (mm)',
+      label: this.translate.instant('DIMENSIONS.WIDTH_MM'),
       type: 'number',
       required: false
     },
     {
       key: 'product.dimension.depth',
-      label: 'Derinlik (mm)',
+      label: this.translate.instant('DIMENSIONS.DEPTH_MM'),
       type: 'number',
       required: false
     },
     {
       key: 'product.dimension.height',
-      label: 'Yükseklik (mm)',
+      label: this.translate.instant('DIMENSIONS.HEIGHT_MM'),
       type: 'number',
       required: false
     }
   ];
 
   nestedDisplayColumns: { [key: string]: string } = {
-    'product.name': 'Ürün Adı',
-    'product.dimension.width': 'Genişlik (mm)',
-    'product.dimension.depth': 'Derinlik (mm)',
-    'product.dimension.height': 'Yükseklik (mm)',
-    'count': 'Adet'
+    'product.name': this.translate.instant('DIMENSIONS.PRODUCT_NAME'),
+    'product.dimension.width': this.translate.instant('DIMENSIONS.WIDTH_MM'),
+    'product.dimension.depth': this.translate.instant('DIMENSIONS.DEPTH_MM'),
+    'product.dimension.height': this.translate.instant('DIMENSIONS.HEIGHT_MM'),
+    'count': this.translate.instant('DIMENSIONS.QUANTITY')
   };
 
   filterableColumns: string[] = [

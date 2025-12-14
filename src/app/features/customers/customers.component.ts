@@ -1,4 +1,5 @@
 import { Component, OnInit, ViewChild, inject } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import { CommonModule } from '@angular/common';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatPaginator, MatPaginatorModule, PageEvent } from '@angular/material/paginator';
@@ -38,6 +39,8 @@ import { CustomerDialogComponent } from './dialogs/customer-dialog/customer-dial
   styleUrl: './customers.component.scss'
 })
 export class CustomersComponent implements OnInit {
+
+  private translate = inject(TranslateService);
   private companyRelationService = inject(CompanyRelationService);
   private dialog = inject(MatDialog);
   private toastService = inject(ToastService);
@@ -123,7 +126,7 @@ export class CustomersComponent implements OnInit {
         this.isLoading = false;
       },
       error: (error) => {
-        this.toastService.error('Veriler yüklenirken hata oluştu', 'Hata');
+        this.toastService.error(this.translate.instant('CUSTOMER_MESSAGES.DATA_LOAD_ERROR'));
         this.isLoading = false;
         this.dataSource.data = [];
         this.totalItems = 0;
@@ -215,7 +218,7 @@ export class CustomersComponent implements OnInit {
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       width: '400px',
       data: {
-        message: `"${row.target_company.company_name}" müşterisini silmek istediğinizden emin misiniz?`
+        message: `"${row.target_company.company_name}" ${this.translate.instant('CUSTOMER_MESSAGES.DELETE_CONFIRM')}`
       }
     });
 
@@ -224,11 +227,11 @@ export class CustomersComponent implements OnInit {
         this.isLoading = true;
         this.companyRelationService.delete(row.id).subscribe({
           next: () => {
-            this.toastService.success('Müşteri başarıyla silindi', 'Başarılı');
+            this.toastService.success(this.translate.instant('CUSTOMER_MESSAGES.CUSTOMER_DELETED'));
             this.loadData();
           },
           error: (error) => {
-            this.toastService.error('Müşteri silinirken hata oluştu', 'Hata');
+            this.toastService.error(this.translate.instant('CUSTOMER_MESSAGES.DELETE_ERROR'));
             this.isLoading = false;
           }
         });
@@ -241,12 +244,12 @@ export class CustomersComponent implements OnInit {
    */
   getColumnName(column: string): string {
     const names: { [key: string]: string } = {
-      'target_company_name': 'Müşteri Adı',
-      'target_company_country': 'Ülke',
-      'relation_type_display': 'İlişki Türü',
-      'is_active': 'Durum',
-      'notes': 'Notlar',
-      'actions': 'İşlemler'
+      'target_company_name': this.translate.instant('CUSTOMER.CUSTOMER_NAME'),
+      'target_company_country': this.translate.instant('COMMON.COUNTRY'),
+      'relation_type_display': this.translate.instant('CUSTOMER.RELATIONSHIP_TYPE_LABEL'),
+      'is_active': this.translate.instant('COMMON.STATUS'),
+      'notes': this.translate.instant('COMMON.NOTES'),
+      'actions': this.translate.instant('MENU.OPERATIONS')
     };
     return names[column] || column;
   }

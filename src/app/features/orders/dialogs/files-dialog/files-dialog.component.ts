@@ -1,4 +1,5 @@
 import { Component, Inject, OnInit, inject } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import { CommonModule } from '@angular/common';
 import { MAT_DIALOG_DATA, MatDialogRef, MatDialogModule } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
@@ -31,6 +32,8 @@ interface FileItem {
   styleUrl: './files-dialog.component.scss'
 })
 export class FilesDialogComponent implements OnInit {
+
+  private translate = inject(TranslateService);
   fileService = inject(FileService);
 
   files: FileItem[] = [];
@@ -111,20 +114,20 @@ export class FilesDialogComponent implements OnInit {
    * Get file type label
    */
   getFileTypeLabel(type: string | null): string {
-    if (!type) return 'Dosya';
+    if (!type) return this.translate.instant('FILE.FILE');
 
     const typeStr = type.toLowerCase();
 
     if (typeStr.includes('pdf')) return 'PDF';
-    if (typeStr.includes('image')) return 'Resim';
+    if (typeStr.includes('image')) return this.translate.instant('FILE.IMAGE');
     if (typeStr.includes('excel') || typeStr.includes('sheet')) return 'Excel';
     if (typeStr.includes('word') || typeStr.includes('doc')) return 'Word';
-    if (typeStr.includes('zip') || typeStr.includes('rar')) return 'Arşiv';
-    if (typeStr.includes('text')) return 'Metin';
-    if (typeStr.includes('video')) return 'Video';
-    if (typeStr.includes('audio')) return 'Ses';
+    if (typeStr.includes('zip') || typeStr.includes('rar')) return this.translate.instant('FILE.ARCHIVE');
+    if (typeStr.includes('text')) return this.translate.instant('FILE.TEXT');
+    if (typeStr.includes('video')) return this.translate.instant('FILE.VIDEO');
+    if (typeStr.includes('audio')) return this.translate.instant('FILE.AUDIO');
 
-    return 'Dosya';
+    return this.translate.instant('FILE.FILE');
   }
 
   /**

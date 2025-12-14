@@ -1,9 +1,9 @@
 import { Injectable, inject } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import { Store } from '@ngrx/store';
-import { firstValueFrom, Observable, of } from 'rxjs';
-import { map, switchMap, take, tap } from 'rxjs/operators';
+import { firstValueFrom, Observable } from 'rxjs';
+import { map, switchMap, take } from 'rxjs/operators';
 import { AppState, selectOrderId, selectPackages, selectStep3IsDirty } from '@app/store';
-import { StepperResultActions } from '@app/store/stepper/actions/stepper-result.actions';
 import { ToastService } from '@core/services/toast.service';
 import { RepositoryService } from '@features/stepper/services/repository.service';
 
@@ -35,6 +35,8 @@ export interface ReportFile {
   providedIn: 'root'
 })
 export class ResultStepService {
+
+  private translate = inject(TranslateService);
   private readonly store = inject(Store<AppState>);
   private readonly repositoryService = inject(RepositoryService);
   private readonly toastService = inject(ToastService);
@@ -150,15 +152,15 @@ export class ResultStepService {
    */
   openFile(file: ReportFile): void {
     if (!file?.file) {
-      this.toastService.warning('Dosya bulunamadı');
+      this.toastService.warning(this.translate.instant('RESULT_STEP.FILE_NOT_FOUND'));
       return;
     }
 
     try {
       window.open(file.file, '_blank');
-      this.toastService.success('Dosya açılıyor...');
+      this.toastService.success(this.translate.instant('FILE.FILE_OPENING'));
     } catch (error) {
-      this.toastService.error('Dosya açılırken hata oluştu');
+      this.toastService.error(this.translate.instant('FILE.FILE_OPEN_ERROR'));
     }
   }
 

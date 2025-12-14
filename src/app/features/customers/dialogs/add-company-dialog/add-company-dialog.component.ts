@@ -1,4 +1,5 @@
 import { Component, OnInit, inject } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { MatDialogRef, MatDialogModule } from '@angular/material/dialog';
@@ -28,6 +29,8 @@ import { Company } from '../../../interfaces/company.interface';
   styleUrl: './add-company-dialog.component.scss'
 })
 export class AddCompanyDialogComponent implements OnInit {
+
+  private translate = inject(TranslateService);
   private fb = inject(FormBuilder);
   private companyService = inject(CompanyService);
   private toastService = inject(ToastService);
@@ -37,7 +40,7 @@ export class AddCompanyDialogComponent implements OnInit {
 
   constructor(
     public dialogRef: MatDialogRef<AddCompanyDialogComponent>
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.initForm();
@@ -59,7 +62,7 @@ export class AddCompanyDialogComponent implements OnInit {
   onSave(): void {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
-      this.toastService.error('Lütfen tüm gerekli alanları doldurun', 'Uyarı');
+      this.toastService.error(this.translate.instant('CUSTOMER.FILL_ALL_FIELDS'));
       return;
     }
 
@@ -72,16 +75,16 @@ export class AddCompanyDialogComponent implements OnInit {
 
     this.companyService.create(companyData).subscribe({
       next: (createdCompany: Company) => {
-        this.toastService.success('Yeni şirket başarıyla eklendi', 'Başarılı');
+        this.toastService.success(this.translate.instant('CUSTOMER_MESSAGES.COMPANY_ADDED'));
         this.dialogRef.close(createdCompany);
       },
       error: (error) => {
         if (error.error?.company_name) {
-          this.toastService.error(error.error.company_name[0], 'Hata');
+          this.toastService.error(error.error.company_name[0]);
         } else if (error.error?.country) {
-          this.toastService.error(error.error.country[0], 'Hata');
+          this.toastService.error(error.error.country[0]);
         } else {
-          this.toastService.error('Şirket eklenirken hata oluştu', 'Hata');
+          this.toastService.error(this.translate.instant('CUSTOMER_MESSAGES.COMPANY_ADD_ERROR'));
         }
         this.isSaving = false;
       }
