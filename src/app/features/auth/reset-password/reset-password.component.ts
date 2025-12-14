@@ -12,6 +12,7 @@ import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { UserService } from '../user.service';
 import { ToastService } from '@app/core/services/toast.service';
+import { TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-reset-password',
@@ -37,7 +38,7 @@ export class ResetPasswordComponent implements OnInit {
   private fb = inject(FormBuilder);
   private userService = inject(UserService);
   private toastService = inject(ToastService);
-
+  private translate = inject(TranslateService)
 
   // Form state
   resetForm: FormGroup;
@@ -92,16 +93,16 @@ export class ResetPasswordComponent implements OnInit {
       (hasLowercase ? 1 : 0) +
       (hasSpecial ? 1 : 0);
 
-    if (strength >= 4) return 'Strong';
-    if (strength >= 3) return 'Medium';
-    return 'weak';
+    if (strength >= 4) return this.translate.instant('AUTH.PASSWORD_STRENGTH_STRONG');
+    if (strength >= 3) return this.translate.instant('AUTH.PASSWORD_STRENGTH_MEDIUM');
+    return this.translate.instant('AUTH.PASSWORD_STRENGTH_WEAK');
   }
 
   getPasswordStrengthText(): string {
     const strength = this.getPasswordStrength();
-    if (strength === 'strong') return 'Güçlü';
-    if (strength === 'medium') return 'Orta';
-    return 'Zayıf';
+    if (strength === 'strong') return this.translate.instant('AUTH.PASSWORD_STRENGTH_STRONG');
+    if (strength === 'medium') return this.translate.instant('AUTH.PASSWORD_STRENGTH_MEDIUM');
+    return this.translate.instant('AUTH.PASSWORD_STRENGTH_WEAK');
   }
 
   getStrengthIcon(): string {
@@ -153,7 +154,7 @@ export class ResetPasswordComponent implements OnInit {
         error: (error) => {
           this.isLoading = false;
 
-          let errorMessage = 'Şifre sıfırlama başarısız oldu';
+          let errorMessage = this.translate.instant('AUTH.RESET_FAILED');
 
           if (error.error && typeof error.error === 'object') {
             const firstError = Object.entries(error.error).map(([field, messages]) => {
@@ -176,6 +177,6 @@ export class ResetPasswordComponent implements OnInit {
   }
 
   private showError(message: string) {
-    this.toastService.error(message, 'Kapat');
+    this.toastService.error(message, this.translate.instant('AUTH.CLOSE'));
   }
 }

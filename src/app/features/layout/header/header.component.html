@@ -13,7 +13,6 @@
       <img
         routerLink="/"
         [src]="companyLogo"
-        alt="Bin Packing Logo"
         class="logo"
       />
     </div>
@@ -34,16 +33,54 @@
         (click)="onCancelClick()"
       >
         <mat-icon>close</mat-icon>
-        <span class="cancel-text">İptal</span>
+        <span class="cancel-text">{{ 'HEADER.CANCEL' | translate }}</span>
       </button>
     }
+
+    <!-- Profil Menüsü -->
     <div mat-button [matMenuTriggerFor]="profileMenu" class="profile-menu">
       <img [src]="this.profilePhoto" class="profile-photo" alt="" />
     </div>
   </mat-toolbar-row>
 </mat-toolbar>
 
-<mat-menu #profileMenu="matMenu">
-  <button mat-menu-item [routerLink]="['/profile']">Profil</button>
-  <button mat-menu-item (click)="logout()">Çıkış Yap</button>
+<!-- Ana Profil Menüsü -->
+<mat-menu #profileMenu="matMenu" class="profile-main-menu">
+  <!-- Profil -->
+  <button mat-menu-item [routerLink]="['/profile']" class="profile-menu-item">
+    <mat-icon class="menu-icon">person</mat-icon>
+    <span>{{ 'HEADER.PROFILE' | translate }}</span>
+  </button>
+
+  <mat-divider></mat-divider>
+
+  <!-- Dil Seçimi - Submenu Trigger - ✅ SVG KULLANIMI -->
+  <button mat-menu-item [matMenuTriggerFor]="languageMenu" class="profile-menu-item language-trigger">
+    <img [src]="getCurrentLanguage().flag" class="flag-icon-img" alt="flag" />
+    <span style="padding-left : 10px;">{{ getCurrentLanguage().name }}</span>
+    <mat-icon class="arrow-icon">chevron_right</mat-icon>
+  </button>
+
+  <mat-divider></mat-divider>
+
+  <!-- Çıkış -->
+  <button mat-menu-item (click)="logout()" class="profile-menu-item">
+    <mat-icon class="menu-icon">logout</mat-icon>
+    <span>{{ 'HEADER.LOGOUT' | translate }}</span>
+  </button>
+</mat-menu>
+
+<!-- Dil Alt Menüsü (Submenu) - ✅ SVG KULLANIMI -->
+<mat-menu #languageMenu="matMenu" class="language-submenu">
+  <button
+    mat-menu-item
+    *ngFor="let lang of languages"
+    (click)="onLanguageChange(lang.code)"
+    [class.active-language]="(currentLanguage$ | async) === lang.code"
+    class="language-submenu-item"
+  >
+    <img [src]="lang.flag" class="flag-icon-img" alt="{{ lang.name }}" />
+    <span class="language-name">{{ lang.name }}</span>
+    <mat-icon *ngIf="(currentLanguage$ | async) === lang.code" class="check-icon">check_circle</mat-icon>
+  </button>
 </mat-menu>

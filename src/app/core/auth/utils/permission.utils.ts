@@ -1,5 +1,5 @@
 import { Injectable } from "@angular/core";
-import { IPermission, IRequiredPermission } from '@core/interfaces/permission.interface';
+import { IPermission, IRequiredPermission } from "../permission.interface";
 
 @Injectable()
 export class PermissionUtils {

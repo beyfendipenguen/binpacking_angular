@@ -24,6 +24,8 @@
     "@ngrx/effects": "^20.0.0",
     "@ngrx/store": "^20.0.0",
     "@ngrx/store-devtools": "^20.0.0",
+    "@ngx-translate/core": "^16.0.3",
+    "@ngx-translate/http-loader": "^16.0.0",
     "@popperjs/core": "^2.11.8",
     "@types/d3": "^7.4.3",
     "@types/plotly.js": "^3.0.0",

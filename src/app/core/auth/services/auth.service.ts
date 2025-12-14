@@ -11,6 +11,7 @@ import { ToastService } from '@core/services/toast.service';
 import { Store } from '@ngrx/store';
 import { AppState, loadUser, StepperUiActions } from '../../../store';
 import { User } from '@app/core/interfaces/user.interface';
+import { TranslateService } from '@ngx-translate/core';
 
 @Injectable({
   providedIn: 'root',
@@ -21,7 +22,7 @@ export class AuthService {
   private apiService = inject(ApiService);
   private toastService = inject(ToastService);
   private store = inject(Store<AppState>);
-
+  private translate = inject(TranslateService);
   constructor(private http: HttpClient, private router: Router) { }
 
   // Sign-up
@@ -47,13 +48,13 @@ export class AuthService {
             localStorage.getItem('redirectUrlAfterLogin') || '/';
           localStorage.removeItem('redirectUrlAfterLogin');
 
-          this.toastService.success('Giriş Başarılı', 'Başarılı');
+          this.toastService.success(this.translate.instant('AUTH.LOGIN_SUCCESS'));
 
           this.store.dispatch(loadUser({ redirectUrl: redirectUrlAfterLogin }));
         },
         error: (err) => {
           this.handleError(err);
-          this.toastService.error('Kullanıcı adı veya parola yanlış', 'Hata');
+          this.toastService.error(this.translate.instant('AUTH.LOGIN_ERROR'));
         },
       });
   }

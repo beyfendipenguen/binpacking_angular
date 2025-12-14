@@ -13,16 +13,13 @@
     margin-left: 15px;
     height: 2em;
     width: 2em;
-}
-.profile-image {
-  width: 150px;
-  height: 150px;
-  object-fit: cover;
-  object-position: center;
-  /* Image loading optimizasyonu */
-  image-rendering: -webkit-optimize-contrast;
+    transition: all 0.3s ease;
 }
 
+.profile-photo:hover {
+    transform: scale(1.1);
+    box-shadow: 0 0 15px rgba(214, 187, 134, 0.5);
+}
 
 /* Logo Styles */
 .logo-container {
@@ -37,53 +34,13 @@
     max-width: 150px;
     object-fit: contain;
     transition: all 0.3s ease;
-
-    /* Logo rengini beyaza çevir */
     filter: brightness(0) saturate(100%) invert(100%);
+    cursor: pointer;
 }
 
 .logo:hover {
     transform: scale(1.05);
-    /* Hover'da hafif altın rengi ton */
     filter: brightness(0) saturate(100%) invert(85%) sepia(15%) saturate(300%) hue-rotate(10deg);
-}
-
-/* Alternatif: Tema rengine uygun logo */
-.logo-theme-color {
-    height: 2.5rem;
-    width: auto;
-    max-width: 150px;
-    object-fit: contain;
-    transition: all 0.3s ease;
-
-    /* Altın rengine çevir (#D6BB86) */
-    filter: brightness(0) saturate(100%) invert(85%) sepia(15%) saturate(300%) hue-rotate(10deg) brightness(1.1);
-}
-
-.logo-theme-color:hover {
-    transform: scale(1.05);
-    filter: brightness(0) saturate(100%) invert(100%);
-}
-
-/* Dark mode için */
-.dark-theme .logo {
-    filter: brightness(0) saturate(100%) invert(100%);
-}
-
-.dark-theme .logo:hover {
-    filter: brightness(0) saturate(100%) invert(85%) sepia(15%) saturate(300%) hue-rotate(10deg);
-}
-
-@keyframes profile {
-    0% {}
-    50% {
-        height: 3em;
-        width: 3em;
-    }
-    100% {
-        height: 2.4em;
-        width: 2.4em;
-    }
 }
 
 .navbar-cancel-button {
@@ -140,5 +97,237 @@
     box-shadow:
       0 4px 12px rgba(214, 187, 134, 0.3),
       inset 0 1px 1px rgba(255, 255, 255, 0.2);
+  }
+}
+
+/* =========================
+   MODERN PROFIL MENÜSÜ
+   ========================= */
+
+::ng-deep .mat-mdc-menu-panel.profile-main-menu,
+::ng-deep .mat-mdc-menu-panel.language-submenu {
+  background: transparent !important;
+  box-shadow: none !important;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+::ng-deep .profile-main-menu,
+::ng-deep .language-submenu {
+  .mat-mdc-menu-content {
+    padding: 8px 0;
+    background: linear-gradient(145deg,
+      rgba(0, 106, 106, 0.97) 0%,
+      rgba(0, 90, 90, 0.97) 50%,
+      rgba(0, 80, 80, 0.97) 100%
+    );
+    backdrop-filter: blur(20px) saturate(150%);
+    border: 1px solid rgba(214, 187, 134, 0.25);
+    border-radius: 12px;
+    box-shadow:
+      0 12px 40px rgba(0, 0, 0, 0.4),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.2);
+    min-width: 240px;
+  }
+}
+
+/* Profil Menü Item'ları */
+.profile-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 20px;
+  min-height: 48px;
+  color: rgba(255, 255, 255, 0.95);
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 4px;
+    height: 100%;
+    background: linear-gradient(180deg, #d6bb86 0%, #c9a96e 100%);
+    transform: scaleY(0);
+    transition: transform 0.25s ease;
+  }
+
+  .menu-icon {
+    color: #d6bb86;
+    font-size: 22px;
+    width: 22px;
+    height: 22px;
+    transition: all 0.25s ease;
+  }
+
+  &:hover {
+    background: rgba(214, 187, 134, 0.15);
+    color: #ffffff;
+    padding-left: 24px;
+
+    &::before {
+      transform: scaleY(1);
+    }
+
+    .menu-icon {
+      transform: scale(1.15);
+      filter: drop-shadow(0 0 8px rgba(214, 187, 134, 0.6));
+    }
+  }
+}
+
+/* ✅ SVG BAYRAK İKONU STİLİ */
+.flag-icon-img {
+  display: inline-block;
+  width: 28px;
+  height: 20px;
+  object-fit: cover;
+  border-radius: 3px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  transition: all 0.25s ease;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+
+}
+
+/* Dil Seçim Trigger */
+.language-trigger {
+  .arrow-icon {
+    margin-left: auto;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 20px;
+    transition: all 0.25s ease;
+  }
+
+  &:hover {
+    .flag-icon-img {
+      transform: scale(1.15) translateY(-1px);
+      box-shadow: 0 4px 10px rgba(214, 187, 134, 0.5);
+      border-color: rgba(214, 187, 134, 0.3);
+    }
+
+    .arrow-icon {
+      color: #d6bb86;
+      transform: translateX(4px);
+    }
+  }
+}
+
+/* Dil Alt Menüsü Item'ları */
+.language-submenu-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  min-height: 44px;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  position: relative;
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 3px;
+    height: 100%;
+    background: #d6bb86;
+    transform: scaleY(0);
+    transition: transform 0.2s ease;
+  }
+
+  .language-name {
+    flex: 1;
+    letter-spacing: 0.3px;
+    padding-left: 10px;
+  }
+
+  .check-icon {
+    color: #d6bb86;
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+    filter: drop-shadow(0 0 6px rgba(214, 187, 134, 0.6));
+  }
+
+  &:hover {
+    background: rgba(214, 187, 134, 0.12);
+    color: #ffffff;
+    padding-left: 20px;
+
+    &::before {
+      transform: scaleY(1);
+    }
+
+    .flag-icon-img {
+      transform: scale(1.15) translateY(-1px);
+      box-shadow: 0 3px 8px rgba(214, 187, 134, 0.4);
+      border-color: rgba(214, 187, 134, 0.3);
+    }
+  }
+
+  &.active-language {
+    background: rgba(214, 187, 134, 0.2);
+    color: #ffffff;
+    font-weight: 600;
+
+    &::before {
+      transform: scaleY(1);
+    }
+
+    .flag-icon-img {
+      box-shadow:
+        0 2px 6px rgba(214, 187, 134, 0.5),
+        0 0 12px rgba(214, 187, 134, 0.3);
+      border-color: rgba(214, 187, 134, 0.4);
+    }
+  }
+}
+
+/* Divider Styling */
+::ng-deep .profile-main-menu .mat-divider,
+::ng-deep .language-submenu .mat-divider {
+  border-top-color: rgba(214, 187, 134, 0.2);
+  margin: 4px 0;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  ::ng-deep .profile-main-menu,
+  ::ng-deep .language-submenu {
+    .mat-mdc-menu-content {
+      min-width: 200px;
+    }
+  }
+
+  .profile-menu-item {
+    padding: 10px 16px;
+    min-height: 44px;
+    font-size: 13px;
+
+    .menu-icon {
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
+    }
+  }
+
+  .flag-icon-img {
+    width: 24px;
+    height: 16px;
+  }
+
+  .language-submenu-item {
+    padding: 8px 12px;
+    min-height: 40px;
+    font-size: 13px;
   }
 }

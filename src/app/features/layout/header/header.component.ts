@@ -9,16 +9,27 @@ import { MatDividerModule } from '@angular/material/divider';
 import { Store } from '@ngrx/store';
 import { MatDialog } from '@angular/material/dialog';
 import { filter } from 'rxjs';
+import { TranslateModule } from '@ngx-translate/core'; // ✅ Comment'i kaldır
 import { AuthService } from '@app/core/auth/services/auth.service';
 import { OrderService } from '@app/features/services/order.service';
 import { CancelConfirmationDialogComponent } from '@app/shared/cancel-confirmation-dialog/cancel-confirmation-dialog.component';
 import { AppState, selectOrderId, selectUser } from '@app/store';
+import { LanguageService, Language } from '@app/core/services/language.service'; // ✅ Comment'i kaldır
 
 @Component({
   selector: 'app-header',
   templateUrl: './header.component.html',
   styleUrls: ['./header.component.scss'],
-  imports: [MatButtonModule, MatMenuModule, MatToolbarModule, MatIconModule, CommonModule, RouterLink, MatDividerModule],
+  imports: [
+    MatButtonModule,
+    MatMenuModule,
+    MatToolbarModule,
+    MatIconModule,
+    CommonModule,
+    RouterLink,
+    MatDividerModule,
+    TranslateModule
+  ],
   standalone: true,
 })
 export class HeaderComponent implements OnInit {
@@ -34,15 +45,16 @@ export class HeaderComponent implements OnInit {
   private readonly orderService = inject(OrderService);
   private readonly router = inject(Router);
   private readonly dialog = inject(MatDialog);
+  private readonly languageService = inject(LanguageService);
 
-  orderId = this.store.selectSignal(selectOrderId)
+  orderId = this.store.selectSignal(selectOrderId);
   user$ = this.store.select(selectUser);
 
+  languages = this.languageService.LANGUAGES;
+  currentLanguage$ = this.languageService.currentLanguage$;
 
-  // Current URL'i signal olarak tut
   private currentUrl = signal(this.router.url);
 
-  // Computed signal ile otomatik hesaplama
   showCancelButton = computed(() => {
     const url = this.currentUrl();
     const cleanUrl = url.split('?')[0];
@@ -52,7 +64,6 @@ export class HeaderComponent implements OnInit {
   ngOnInit(): void {
     this.getProfilePhoto();
 
-    // Router değişikliklerini dinle ve signal'i güncelle
     this.router.events.pipe(
       filter(event => event instanceof NavigationEnd)
     ).subscribe((event: NavigationEnd) => {
@@ -75,6 +86,15 @@ export class HeaderComponent implements OnInit {
     this.authService.doLogout();
   }
 
+  onLanguageChange(langCode: string): void {
+    this.languageService.setLanguage(langCode); // ✅ Implement et
+  }
+
+  getCurrentLanguage(): Language {
+    const currentLang = this.languageService.getCurrentLanguage();
+    return this.languageService.getLanguageByCode(currentLang) || this.languages[0];
+  }
+
   onCancelClick(): void {
     const dialogRef = this.dialog.open(CancelConfirmationDialogComponent, {
       width: '400px',
@@ -82,13 +102,12 @@ export class HeaderComponent implements OnInit {
       disableClose: true,
       panelClass: 'cancel-confirmation-dialog',
       data: {
-        header: "İşlemi İptal Et",
-        title: "İşlemi iptal etmek istediğinizden emin misiniz?",
-        info: "Girdiğiniz tüm bilgiler kaybolacaktır.",
-        confirmButtonText: "Evet, İptal Et",
+        header: 'DIALOG.CANCEL_OPERATION',
+        title: 'DIALOG.CANCEL_CONFIRMATION_TITLE',
+        info: 'DIALOG.CANCEL_CONFIRMATION_INFO',
+        confirmButtonText: 'DIALOG.YES_CANCEL',
         showYesButton: true,
-        rejectButtonText: "Hayır"
-
+        rejectButtonText: 'DIALOG.NO'
       }
     });
 
@@ -102,10 +121,10 @@ export class HeaderComponent implements OnInit {
   private handleCancellation(): void {
     this.orderService.delete(this.orderId()).subscribe({
       next: () => {
-        this.authService.clearLocalAndStore()
+        this.authService.clearLocalAndStore();
       },
       error: (error) => {
-        this.authService.clearLocalAndStore()
+        this.authService.clearLocalAndStore();
       }
     });
   }

@@ -45,8 +45,8 @@ export class OrdersComponent implements OnInit {
     'name',
     'date',
     'created_at',
-    'company_relation.target_company_name',
-    'company_relation.target_company_country_name',
+    'company_relation.target_company.company_name',
+    'company_relation.target_company.country',
     'order_details',
     'package',
     'files',
@@ -79,13 +79,13 @@ export class OrdersComponent implements OnInit {
       required: true
     },
     {
-      key: 'company_relation.target_company_name',
+      key: 'company_relation.target_company.company_name',
       label: 'Firma Adı',
       type: 'text',
       required: false
     },
     {
-      key: 'company_relation.target_company_country_name',
+      key: 'company_relation.target_company.country',
       label: 'Ülke',
       type: 'text',
       required: false
@@ -135,8 +135,8 @@ export class OrdersComponent implements OnInit {
   ];
 
   nestedDisplayColumns: { [key: string]: string } = {
-    'company_relation.target_company_name': 'Firma Adı',
-    'company_relation.target_company_country_name': 'Ülke',
+    'company_relation.target_company.company_name': 'Firma Adı',
+    'company_relation.target_company.country': 'Ülke',
     'order_details': 'Ürün Detayları',
     'package': 'Paletler',
     'files': 'Dosyalar',
@@ -150,8 +150,8 @@ export class OrdersComponent implements OnInit {
     'name',
     'date',
     'created_at',
-    'company_relation.target_company_name',
-    'company_relation.target_company_country_name',
+    'company_relation.target_company.company_name',
+    'company_relation.target_company.country_name',
   ];
 
   ngOnInit(): void {
