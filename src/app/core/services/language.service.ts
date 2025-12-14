@@ -37,23 +37,15 @@ export class LanguageService {
     const defaultLang = savedLang || browserLang;
     const finalLang = supportedLangs.includes(defaultLang) ? defaultLang : 'tr';
 
-    console.log('🌍 Dil ayarları:', {
-      savedLang,
-      browserLang,
-      finalLang
-    });
-
     // 4. Dili ayarla
     this.translate.setDefaultLang('tr'); // ✅ Fallback dil
     this.translate.use(finalLang).subscribe({
       next: () => {
-        console.log('✅ Dil yüklendi:', finalLang);
         this.currentLang$.next(finalLang);
         localStorage.setItem('selectedLanguage', finalLang);
         document.documentElement.lang = finalLang;
       },
       error: (err) => {
-        console.error('❌ Dil yükleme hatası:', err);
         // Hata olursa Türkçe'ye fall back
         this.translate.use('tr').subscribe(() => {
           this.currentLang$.next('tr');
