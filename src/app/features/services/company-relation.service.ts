@@ -17,7 +17,7 @@ export interface CompanyRelationSettings {
 })
 export class CompanyRelationService extends GenericCrudService<CompanyRelation> {
   constructor(http: HttpClient) {
-    super(http, 'orders/company-relations');
+    super(http, 'organizations/company-relations');
   }
 
   /**
