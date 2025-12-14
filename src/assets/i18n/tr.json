@@ -43,9 +43,11 @@
     "COUNTRY": "Ülke",
     "COMPANY": "Şirket",
     "NOTES": "Notlar",
-    "DESCRIPTION": "Açıklama"
+    "DESCRIPTION": "Açıklama",
+    "PROCESS_FINISH": "İşlem Tamamlandı",
+    "DIALOG_FORM_NOT_CREATED": "Form oluşturulamadı. Geçerli alan bulunamadı.",
+    "FIELD_REQUIRED": "Bu alan zorunludur."
   },
-
   "MENU": {
     "PLACEMENT_CALCULATION": "Yerleştirme Hesaplama",
     "OPERATIONS": "İşlemler",
@@ -57,7 +59,6 @@
     "PERMISSION_MANAGEMENT": "Yetki Yönetimi",
     "HOME": "Ana Sayfa"
   },
-
   "HEADER": {
     "LOGO_ALT": "Bin Packing Logo",
     "CANCEL": "İptal",
@@ -65,7 +66,6 @@
     "LOGOUT": "Çıkış Yap",
     "LANGUAGE": "Dil"
   },
-
   "DIALOG": {
     "CANCEL_OPERATION": "İşlemi İptal Et",
     "CANCEL_CONFIRMATION_TITLE": "İşlemi iptal etmek istediğinizden emin misiniz?",
@@ -73,7 +73,6 @@
     "YES_CANCEL": "Evet, İptal Et",
     "NO": "Hayır"
   },
-
   "AUTH": {
     "SIGN_IN": "Giriş Yap",
     "LOGOUT": "Çıkış Yap",
@@ -112,7 +111,6 @@
     "LOGIN_ERROR": "Kullanıcı adı veya parola yanlış",
     "LOGIN_SUCCESS": "Giriş Başarılı"
   },
-
   "PASSWORD": {
     "RESET_TITLE": "Parola Sıfırlama",
     "RESET_SUBTITLE": "Güvenlik kodunuzu sıfırlamak için sisteme kayıtlı e-posta adresinizi girin. Sıfırlama talimatları bu adrese gönderilecektir.",
@@ -122,9 +120,11 @@
     "SECURITY_TIP": "Güvenliğiniz için güçlü bir Parola belirleyin. Parolanız en az 8 karakter olmalı ve rakam, büyük harf ve özel karakter içermelidir.",
     "CHANGE_PASSWORD": "Parola Değiştir",
     "FORGOT_PASSWORD_QUESTION": "Parolanızı mı unuttunuz?",
-    "RESET_EMAIL_ERROR": "Şifre sıfırlama e-postası gönderilemedi"
+    "RESET_EMAIL_ERROR": "Şifre sıfırlama e-postası gönderilemedi",
+    "NEW_WRITE_PASSWORD": "Yeni Parola Oluşturunuz",
+    "MAIL": "E-Posta",
+    "SEND_MAIL": "adresine gönderildi."
   },
-
   "SIGNIN": {
     "TITLE": "Lojistik Yönetim Sistemi",
     "SUBTITLE": "Palet ve TIR yükleme optimizasyonu",
@@ -132,7 +132,6 @@
     "PASSWORD_LABEL": "Parola",
     "PASSWORD_PLACEHOLDER": "Şifrenizi girin"
   },
-
   "CUSTOMER": {
     "TITLE": "Müşteri Yönetimi",
     "ADD_NEW": "Yeni Müşteri Ekle",
@@ -172,9 +171,12 @@
     "ADD_PALLET_GROUP": "Palet Grubu Ekle",
     "FILL_ALL_FIELDS": "Lütfen tüm gerekli alanları doldurun",
     "CUSTOMER_NAME": "Müşteri Adı",
-    "RELATIONSHIP_TYPE_LABEL": "İlişki Türü"
+    "RELATIONSHIP_TYPE_LABEL": "İlişki Türü",
+    "CUSTOMERS": "Müşteriler",
+    "CUSTOMER_COMPANY": "Müşteri Şirketi",
+    "SELECTED": "Seçili: ",
+    "NEW_COMPANY": "Yeni Şirket"
   },
-
   "CUSTOMER_MESSAGES": {
     "COMPANY_ADDED": "Yeni şirket başarıyla eklendi",
     "COMPANY_ADD_ERROR": "Şirket eklenirken hata oluştu",
@@ -190,7 +192,6 @@
     "CUSTOMER_DELETED": "Müşteri başarıyla silindi",
     "DELETE_ERROR": "Müşteri silinirken hata oluştu"
   },
-
   "DIMENSIONS": {
     "PRODUCT_NAME": "Ürün Adı",
     "PRODUCT_CODE": "Ürün Kodu",
@@ -210,7 +211,6 @@
     "MM": "mm",
     "VOLUME": "Hacim"
   },
-
   "FILE": {
     "ORDER_FILES": "Sipariş Dosyaları",
     "LOADING_FILES": "Dosyalar yükleniyor...",
@@ -226,7 +226,6 @@
     "FILE_OPENING": "Dosya açılıyor...",
     "FILE_OPEN_ERROR": "Dosya açılırken hata oluştu"
   },
-
   "ORDER": {
     "TITLE": "Sevkiyat Yönetimi",
     "SUBTITLE": "Aktif siparişleri görüntüleyin ve detaylı bilgilere erişin",
@@ -245,18 +244,15 @@
     "NO_ORDER_INFO": "Sipariş Bilgisi Bulunamadı",
     "INCOMPLETE_ORDER": "Eksik Sipariş"
   },
-
   "ORDER_DETAILS": {
     "TITLE": "Ürün Detayları",
     "PRODUCTS": "Sipariş Ürünleri"
   },
-
   "PACKAGE": {
     "CONFIGURATION": "Palet Yapılandırması",
     "LOADING_PALLETS": "Paletler yükleniyor...",
     "NO_PACKAGE_INFO": "Bu sipariş için paket bilgisi bulunamadı."
   },
-
   "PALLET": {
     "TITLE": "Palet Yönetimi",
     "PALLET": "Pallet",
@@ -297,7 +293,6 @@
     "BULK_ADD": "Toplu Palet Ekle",
     "MANAGE_GROUPS": "Palet Grupları Yönet"
   },
-
   "PALLET_MESSAGES": {
     "GROUPS_LOAD_ERROR": "Gruplar yüklenirken hata oluştu",
     "PALLETS_LOAD_ERROR": "Paletler yüklenirken hata oluştu",
@@ -311,7 +306,6 @@
     "GROUP_DELETED": "Grup başarıyla silindi",
     "GROUP_DELETE_ERROR": "Grup silinirken hata oluştu"
   },
-
   "PRODUCT": {
     "TITLE": "Ürün Yönetimi",
     "PRODUCT": "Ürün",
@@ -323,7 +317,6 @@
     "WEIGHT_INFO": "Ürünün farklı kalitedeki ağırlıklarını temsil eder",
     "BULK_ADD": "Toplu Ürün Ekle"
   },
-
   "PROFILE": {
     "TITLE": "Profil",
     "PHOTO": "Profil fotoğrafı",
@@ -372,7 +365,6 @@
     "DANGER_ZONE": "Tehlikeli Bölge",
     "DELETE_ACCOUNT": "Hesabı Sil"
   },
-
   "COUNTRIES": {
     "TURKEY": "Türkiye",
     "USA_CANADA": "ABD/Kanada",
@@ -385,7 +377,6 @@
     "CHINA": "Çin",
     "JAPAN": "Japonya"
   },
-
   "PROFILE_MESSAGES": {
     "LOAD_ERROR": "Profil yüklenirken hata oluştu",
     "COMPANY_LOAD_ERROR": "Şirket bilgileri yüklenirken hata oluştu",
@@ -400,7 +391,6 @@
     "PASSWORD_CHANGED": "Parola başarıyla değiştirildi",
     "PASSWORD_CHANGE_ERROR": "Parola değiştirilirken hata oluştu"
   },
-
   "PALLET_CONTROL": {
     "TITLE": "Palet Yerleştirme",
     "SUBTITLE": "Ürünleri paletlere yerleştirin ve yük dağılımını optimize edin",
@@ -454,7 +444,6 @@
     "CONTINUE_ANYWAY": "Yine de devam et.",
     "GO_BACK": "Geri dön."
   },
-
   "INVOICE_UPLOAD": {
     "ADD_ORDER_DETAIL": "Sipariş Detayı Ekle",
     "SEARCH_PRODUCT": "Ürün Ara",
@@ -496,7 +485,6 @@
     "ORDER_DETAILS": "Sipariş Detayları",
     "ITEM": "Kalem",
     "PRODUCTS_COUNT": "adet ürün",
-    "SAVE_NEXT": "KAYDET & İLERİ",
     "TEMPLATE_DOWNLOAD_ERROR": "Şablon indirilemedi",
     "TABLE": {
       "PRODUCT_NAME": "Ürün Adı",
@@ -531,7 +519,6 @@
       "OPERATION_IN_PROGRESS": "İşlem gerçekleştiriliyor..."
     }
   },
-
   "RESULT_STEP": {
     "PROCESSING": "İşlem Devam Ediyor...",
     "RUN_OPTIMIZATION": "Optimizasyonu Çalıştır",
@@ -566,26 +553,25 @@
     "CONNECTION_ERROR": "Sunucuya bağlanılamıyor. İnternet bağlantınızı kontrol edin.",
     "REQUEST_ERROR": "İstek hatası. Lütfen parametreleri kontrol edin.",
     "SERVER_ERROR": "Sunucu hatası. Lütfen daha sonra tekrar deneyin.",
-    "UNEXPECTED_ERROR": "Beklenmeyen bir hata oluştu."
+    "UNEXPECTED_ERROR": "Beklenmeyen bir hata oluştu.",
+    "DRAG_DROP": "Sürükle & Bırak"
   },
-
   "TRUCK": {
     "TITLE": "Sevkiyat Aracı Yönetimi",
     "VEHICLES": "Sevkiyat Araçları",
     "VEHICLE_TYPE": "Sevkiyat Aracı Tipi"
   },
-
   "BULK_ADD": {
     "BULK": "Toplu",
     "ADD": "Ekleme",
-    "HOW_IT_WORKS": "ekleme nasıl çalışır?",
+    "HOW_IT_WORKS": "Toplu Ekleme nasıl çalışır?",
     "STEP_1": "Aşağıdaki tabloda belirtilen sütunları doldurun",
     "STEP_2": "Sütun isimlerini kesinlikle değiştirmeyin",
     "STEP_3": "Tüm zorunlu alanları eksiksiz doldurun",
     "STEP_4": "Dosyayı kaydedip sisteme yükleyin",
     "TEMPLATE_NOT_FOUND": "Şablon dosyası bulunamadı.",
     "EXCEL_TEMPLATE": "Excel Şablonu",
-    "DOWNLOAD_FIRST": "eklemek için önce Excel şablonunu indirin",
+    "DOWNLOAD_FIRST": " ",
     "DOWNLOADING": "İndiriliyor...",
     "DOWNLOAD_TEMPLATE": "Şablonu İndir",
     "DROP_FILE": "Dosyayı Bırakın",
@@ -604,12 +590,10 @@
     "FILE_TYPE": "dosyası yükleyin.",
     "FILE_UPLOAD_ERROR": "Dosya yüklenirken bir hata oluştu."
   },
-
   "ERROR_PAGE": {
     "GO_HOME": "Ana Sayfaya Git",
     "UNKNOWN_ERROR": "Bilinmeyen kaynaklı bir hata oluştu."
   },
-
   "GENERIC_TABLE": {
     "REQUIRED_FIELD": "Bu alan zorunludur",
     "UPDATE_RECORD": "Kayıt Güncelle",
@@ -646,7 +630,6 @@
     "DATA_LOADED": "Veri yüklendi",
     "DATA_LOAD_ERROR": "Veri yüklenirken hata"
   },
-
   "TRUCK_VISUALIZATION": {
     "NO_DATA": "Henüz Yükleme Verisi Yok",
     "NO_DATA_MESSAGE": "Tır yükleme algoritması çalıştırıldıktan sonra 3D görselleştirme burada görünecek.",
@@ -682,11 +665,26 @@
     "WHEEL_MODEL": "Tekerlek Modeli",
     "PLACING_PACKAGES": "Paketler yerleştiriliyor..."
   },
-
   "STEPPER": {
     "ERROR": "Hatası",
     "SYSTEM_ERROR": "Sistem Hatası",
     "ORDER_NOT_FOUND": "Sipariş bulunamadı",
-    "PACKAGING_ERROR": "Paketleme işlemi sırasında bir hata oluştu."
+    "PACKAGING_ERROR": "Paketleme işlemi sırasında bir hata oluştu.",
+    "STEP_1_LABEL": "Sipariş Kontrolü",
+    "STEP_2_LABEL": "Palet Kontrolü",
+    "STEP_3_LABEL": "Sonuç Ekranı",
+    "EDIT_MODE": "DÜZENLEME"
+  },
+  "COMPANY_RELATION": {
+    "TYPE": {
+      "CUSTOMER": "Müşteri",
+      "SUPPLIER": "Tedarikçi",
+      "PARTNER": "İş Ortağı",
+      "CONTRACTOR": "Yüklenici",
+      "DISTRIBUTOR": "Distribütör",
+      "SUBSIDIARY": "Bağlı Kuruluş",
+      "OTHER": "Diğer",
+      "UNKNOWN": "Bilinmeyen İlişki Türü"
+    }
   }
 }

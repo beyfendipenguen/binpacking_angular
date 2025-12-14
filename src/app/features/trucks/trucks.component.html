@@ -2,11 +2,11 @@
   <div class="page-header">
     <div class="header-content">
       <div class="header-left">
-        <h1>Sevkiyat Aracı Yönetimi</h1>
+        <h1>{{ 'TRUCK.TITLE' | translate }}</h1>
         <div class="breadcrumb">
-          <span>Ana Sayfa</span>
+          <span>{{ 'MENU.HOME' | translate }}</span>
           <span class="separator">/</span>
-          <span class="active">Sevkiyat Araçları</span>
+          <span class="active">{{ 'TRUCK.VEHICLES' | translate }}</span>
         </div>
       </div>
     </div>
@@ -15,7 +15,7 @@
 
   <div class="content-section" [class.loading]="isLoading">
     <app-generic-table [service]="truckService" [displayedColumns]="displayedColumns"
-      [filterableColumns]="filterableColumns" [nestedDisplayColumns]="nestedDisplayColumns" [title]="'Sevkiyat Araçları'"
+      [filterableColumns]="filterableColumns" [nestedDisplayColumns]="nestedDisplayColumns" [title]="'TRUCK.VEHICLES' | translate"
       [showRowNumbers]="true">
     </app-generic-table>
   </div>

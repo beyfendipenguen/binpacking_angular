@@ -2,29 +2,27 @@
   <div class="page-header">
     <div class="header-content">
       <div class="header-left">
-        <h1>Palet Yönetimi</h1>
+        <h1>{{ 'PALLET.TITLE' | translate }}</h1>
         <div class="breadcrumb">
-          <span>Ana Sayfa</span>
+          <span>{{ 'MENU.HOME' | translate }}</span>
           <span class="separator">/</span>
-          <span class="active">Paletler</span>
+          <span class="active">{{ 'PALLET.PALLETS' | translate }}</span>
         </div>
       </div>
       <div class="header-actions">
         <!-- İşlemler Menüsü -->
         <button mat-raised-button color="primary" [matMenuTriggerFor]="actionsMenu" class="actions-btn">
-          <mat-icon>settings</mat-icon>
-          İşlemler
-          <mat-icon class="dropdown-icon">arrow_drop_down</mat-icon>
+          <mat-icon>settings</mat-icon>{{ 'MENU.OPERATIONS' | translate }}<mat-icon class="dropdown-icon">arrow_drop_down</mat-icon>
         </button>
 
         <mat-menu #actionsMenu="matMenu" class="actions-menu">
           <button mat-menu-item [appBulkUploadButton]="palletBulkConfig">
             <mat-icon>add_box</mat-icon>
-            <span>Toplu Palet Ekle</span>
+            <span>{{ 'PALLET.BULK_ADD' | translate }}</span>
           </button>
           <button mat-menu-item (click)="openPalletGroupsDialog()">
             <mat-icon>folder</mat-icon>
-            <span>Palet Grupları Yönet</span>
+            <span>{{ 'PALLET.MANAGE_GROUPS' | translate }}</span>
           </button>
         </mat-menu>
       </div>
@@ -37,7 +35,7 @@
       [displayedColumns]="displayedColumns"
       [filterableColumns]="filterableColumns"
       [nestedDisplayColumns]="nestedDisplayColumns"
-      [title]="'Ürünler'"
+      [title]="'PRODUCT.PRODUCTS' | translate"
       [showRowNumbers]="true"
       [excludeFields]="['name']">
     </app-generic-table>

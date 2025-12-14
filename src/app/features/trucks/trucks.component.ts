@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { Component, inject } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -11,7 +11,9 @@ import { TruckService } from '../services/truck.service';
   imports: [CommonModule,
     GenericTableComponent,
     MatButtonModule,
-    MatIconModule],
+    MatIconModule,
+    TranslateModule
+  ],
   templateUrl: './trucks.component.html',
   styleUrl: './trucks.component.scss'
 })

@@ -5,10 +5,8 @@
       <mat-icon>assignment</mat-icon>
     </div>
     <div class="header-titles">
-      <h1>İhracat Sipariş Bildirimi</h1>
-      <p class="header-subtitle">
-        Siparişlerin detaylarını yönetin ve takip edin
-      </p>
+      <h1>{{ 'INVOICE_UPLOAD.TITLE' | translate }}</h1>
+      <p class="header-subtitle">{{ 'INVOICE_UPLOAD.SUBTITLE' | translate }}</p>
     </div>
   </div>
 
@@ -17,13 +15,11 @@
   <div class="logistics-card">
     <!-- Template Info Button - Sağ üst köşe -->
     <button mat-icon-button class="template-info-floating" (click)="downloadTemplate()"
-      matTooltip="İSB Raporu şablonunu indir" matTooltipPosition="left">
+      [matTooltip]="'INVOICE_UPLOAD.DOWNLOAD_TEMPLATE' | translate" matTooltipPosition="left">
       <mat-icon>info</mat-icon>
       @if(showMessageBalloon()) {
       <div class="message-balloon">
-        <div class="balloon-content">
-          Şablonu indirmek için buraya tıklayın!
-        </div>
+        <div class="balloon-content">{{ 'INVOICE_UPLOAD.CLICK_TO_DOWNLOAD' | translate }}</div>
         <div class="balloon-arrow"></div>
       </div>
       }
@@ -33,26 +29,25 @@
       <div class="empty-icon">
         <mat-icon>description</mat-icon>
       </div>
-      <h3>Sipariş Bilgisi Bulunamadı</h3>
+      <h3>{{ 'INVOICE_UPLOAD.NO_ORDER_INFO' | translate }}</h3>
       <p>
-        Mevcut bir sipariş bilgisi bulunmuyor. Excel dosyası yükleyebilir veya
-        manuel olarak sipariş detayı ekleyebilirsiniz.
+        {{ 'INVOICE_UPLOAD.NO_ORDER_MESSAGE' | translate }}
       </p>
 
       <div class="action-options">
         <button mat-raised-button class="action-button" (click)="createOrder()">
           <mat-icon>add</mat-icon>
-          <span>Manuel Giriş</span>
+          <span>{{ 'INVOICE_UPLOAD.MANUAL_ENTRY' | translate }}</span>
         </button>
 
         <div class="divider">
-          <span>veya</span>
+          <span>{{ 'INVOICE_UPLOAD.OR' | translate }}</span>
         </div>
 
         <div class="file-upload-container">
           <button mat-raised-button class="action-button secondary" (click)="fileInput.click()">
             <mat-icon>file_upload</mat-icon>
-            <span>{{ file?.name || "Excel Dosyası Seç" }}</span>
+            <span>{{ file?.name || 'INVOICE_UPLOAD.SELECT_EXCEL' | translate}}</span>
           </button>
           <input (change)="onFileSelected($event)" #fileInput type="file" accept=".xlsx" hidden />
         </div>
@@ -71,15 +66,15 @@
           <mat-icon>event</mat-icon>
         </div>
         <div class="dashboard-info">
-          <span class="dashboard-label">Sipariş Tarihi</span>
+          <span class="dashboard-label">{{ 'INVOICE_UPLOAD.ORDER_DATE' | translate }}</span>
           <div class="dashboard-value-container">
             <mat-form-field class="edit-field" appearance="outline">
               <input readonly matInput [matDatepicker]="picker" [value]="orderSignal()?.date"
-                (dateChange)="onOrderFieldChange('date', $event.value)" placeholder="Tarih seçin" required />
+                (dateChange)="onOrderFieldChange('date', $event.value)" [placeholder]="'INVOICE_UPLOAD.SELECT_DATE' | translate" required />
               <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
               <mat-datepicker #picker></mat-datepicker>
               @if(!orderSignal()?.date){
-              <mat-error> Sipariş tarihi zorunludur </mat-error>}
+              <mat-error>{{ 'INVOICE_UPLOAD.ORDER_DATE_REQUIRED' | translate }}</mat-error>}
             </mat-form-field>
           </div>
         </div>
@@ -91,17 +86,17 @@
           <mat-icon>business</mat-icon>
         </div>
         <div class="dashboard-info">
-          <span class="dashboard-label">Müşteri</span>
+          <span class="dashboard-label">{{ 'INVOICE_UPLOAD.CUSTOMER' | translate }}</span>
           <div class="dashboard-value-container">
             <mat-form-field class="edit-field" appearance="outline">
               <mat-select [value]="orderSignal()?.company_relation" (selectionChange)="onCompanyChange($event.value)"
-                placeholder="Müşteri seçin" [compareWith]="compareCompanies" required>
+                [placeholder]="'INVOICE_UPLOAD.SELECT_CUSTOMER' | translate" [compareWith]="compareCompanies" required>
                 @for (company of targetCompanies; track company.id) {
                 <mat-option [value]="company">
                   {{ company.target_company_name }} </mat-option>}
               </mat-select>
               @if(!orderSignal()?.company_relation){
-              <mat-error> Müşteri seçimi zorunludur </mat-error>}
+              <mat-error>{{ 'INVOICE_UPLOAD.CUSTOMER_REQUIRED' | translate }}</mat-error>}
             </mat-form-field>
           </div>
         </div>
@@ -113,16 +108,16 @@
           <mat-icon>local_shipping</mat-icon>
         </div>
         <div class="dashboard-info">
-          <span class="dashboard-label">Tır</span>
+          <span class="dashboard-label">{{ 'INVOICE_UPLOAD.TRUCK' | translate }}</span>
           <div class="dashboard-value-container">
             <mat-form-field class="edit-field" appearance="outline">
               <mat-select [value]="orderSignal()?.truck" (selectionChange)="onTruckChange($event.value)"
-                placeholder="Tır seçin" [compareWith]="compareObjects" required>
+                [placeholder]="'INVOICE_UPLOAD.SELECT_TRUCK' | translate" [compareWith]="compareObjects" required>
                 @for(truck of trucks; track truck.id){
                 <mat-option [value]="truck"> {{ truck.name }} </mat-option>}
               </mat-select>
               @if(!orderSignal()?.truck){
-              <mat-error> Tır seçimi zorunludur </mat-error>}
+              <mat-error>{{ 'INVOICE_UPLOAD.TRUCK_REQUIRED' | translate }}</mat-error>}
             </mat-form-field>
           </div>
         </div>
@@ -134,17 +129,17 @@
           <mat-icon>category</mat-icon>
         </div>
         <div class="dashboard-info">
-          <span class="dashboard-label">Ağırlık Tipi</span>
+          <span class="dashboard-label">{{ 'INVOICE_UPLOAD.WEIGHT_TYPE' | translate }}</span>
           <div class="dashboard-value-container">
             <mat-form-field class="edit-field" appearance="outline">
               <mat-select [value]="orderSignal()?.weight_type" (selectionChange)="onWeightTypeChange($event.value)"
-                placeholder="Ağırlık tipi seçin" [compareWith]="compareWeightTypes" required>
+                [placeholder]="'INVOICE_UPLOAD.SELECT_WEIGHT_TYPE' | translate" [compareWith]="compareWeightTypes" required>
                 <mat-option value="eco">Eco</mat-option>
                 <mat-option value="std">Std</mat-option>
                 <mat-option value="pre">Pre</mat-option>
               </mat-select>
               @if(!orderSignal()?.weight_type) {
-              <mat-error> Ağırlık tipi seçimi zorunludur </mat-error>}
+              <mat-error>{{ 'INVOICE_UPLOAD.WEIGHT_TYPE_REQUIRED' | translate }}</mat-error>}
             </mat-form-field>
           </div>
         </div>
@@ -156,7 +151,7 @@
           <mat-icon>layers</mat-icon>
         </div>
         <div class="dashboard-info">
-          <span class="dashboard-label">Maksimum Kat Adedi</span>
+          <span class="dashboard-label">{{ 'INVOICE_UPLOAD.MAX_STACK_COUNT' | translate }}</span>
           <div class="dashboard-value-container">
             <div class="units-input-container">
               <!-- Azaltma butonu -->
@@ -168,7 +163,7 @@
               <!-- Input alanı - FormControl'e bağlı -->
               <mat-form-field class="units-field" appearance="outline">
                 <input matInput type="number" [formControl]="unitsControl" readonly min="1" step="1"
-                  placeholder="Kat adedi" />
+                  [placeholder]="'INVOICE_UPLOAD.STACK_COUNT' | translate" />
               </mat-form-field>
 
               <!-- Artırma butonu -->
@@ -186,14 +181,14 @@
           <mat-icon>scale</mat-icon>
         </div>
         <div class="dashboard-info">
-          <span class="dashboard-label">Tır Ağırlık Limiti</span>
+          <span class="dashboard-label">{{ 'INVOICE_UPLOAD.TRUCK_WEIGHT_LIMIT' | translate }}</span>
           <div class="dashboard-value-container">
             <mat-form-field class="edit-field" appearance="outline">
               <input matInput type="number" [value]="orderSignal()?.truck_weight_limit"
-                (input)="onTruckWeightLimitChange($any($event.target).value)" placeholder="Ağırlık limiti (kg)" min="0"
+                (input)="onTruckWeightLimitChange($any($event.target).value)" [placeholder]="'INVOICE_UPLOAD.WEIGHT_LIMIT' | translate" min="0"
                 step="1" />
               @if(!orderSignal()?.truck_weight_limit){
-              <mat-error> Ağırlık limiti zorunludur </mat-error>}
+              <mat-error>{{ 'INVOICE_UPLOAD.WEIGHT_LIMIT_REQUIRED' | translate }}</mat-error>}
             </mat-form-field>
           </div>
         </div>
@@ -205,7 +200,7 @@
       <div class="section-header with-action">
         <div class="header-title">
           <mat-icon>list_alt</mat-icon>
-          <h2>Sipariş Detayları</h2>
+          <h2>{{ 'INVOICE_UPLOAD.ORDER_DETAILS' | translate }}</h2>
         </div>
       </div>
 
@@ -223,7 +218,7 @@
           <div class="summary-metrics">
             <div class="metric">
               <mat-icon>inventory_2</mat-icon>
-              <span>{{ orderDetailsSignal().length }} Kalem</span>
+              <span>{{ orderDetailsSignal().length }} {{'INVOICE_UPLOAD.ITEM' | translate}}</span>
             </div>
             <div class="metric">
               <mat-icon>scale</mat-icon>
@@ -235,12 +230,12 @@
             </div>
             <div class="metric">
               <mat-icon>shopping_cart</mat-icon>
-              <span>{{ totalCount() }} adet ürün</span>
+              <span>{{ totalCount() }} {{'INVOICE_UPLOAD.PRODUCTS_COUNT' | translate}}</span>
             </div>
           </div>
           <div class="status-badge">
             <span class="status-dot active"></span>
-            <span>Aktif</span>
+            <span>{{ 'COMMON.ACTIVE' | translate }}</span>
           </div>
         </div>
       </div>
@@ -249,7 +244,7 @@
   <!-- Navigation Controls -->
   <button mat-button class="next-button" (click)="submit()" [disabled]="!orderSignal() || !isFormValid()">
     <mat-icon>arrow_forward</mat-icon>
-    <span>{{isOrderDetailsDirtySignal() || isOrderDirtySignal() ? 'KAYDET' : 'İLERİ'}}</span>
+    <span>{{(isOrderDetailsDirtySignal() || isOrderDirtySignal() ? 'COMMON.SAVE' : 'COMMON.NEXT') | translate}}</span>
   </button>
   }
 

@@ -3,18 +3,16 @@
   <div class="page-header">
     <div class="header-content">
       <div class="header-left">
-        <h1>Müşteri Yönetimi</h1>
+        <h1>{{ 'CUSTOMER.TITLE' | translate }}</h1>
         <div class="breadcrumb">
-          <span>Ana Sayfa</span>
+          <span>{{ 'MENU.HOME' | translate }}</span>
           <span class="separator">/</span>
-          <span class="active">Müşteriler</span>
+          <span class="active">{{ 'CUSTOMER.CUSTOMERS' | translate }}</span>
         </div>
       </div>
       <div class="header-actions">
         <button mat-raised-button color="primary" (click)="openAddDialog()" class="add-btn">
-          <mat-icon>add</mat-icon>
-          Yeni Müşteri Ekle
-        </button>
+          <mat-icon>add</mat-icon>{{ 'CUSTOMER.ADD_NEW' | translate }}</button>
       </div>
     </div>
   </div>
@@ -24,10 +22,10 @@
     <!-- Search Bar -->
     <div class="search-bar">
       <mat-form-field appearance="outline" class="search-field">
-        <mat-label>Müşteri Ara</mat-label>
+        <mat-label>{{ 'CUSTOMER.SEARCH' | translate }}</mat-label>
         <input
           matInput
-          placeholder="Müşteri adı, ülke veya ilişki türü ile ara..."
+          [placeholder]="'CUSTOMER.SEARCH_PLACEHOLDER' | translate"
           (ngModel)="searchTerm"
           (input)="onSearch($event)"
         />
@@ -45,7 +43,7 @@
       @if (isLoading) {
         <div class="loading-overlay">
           <mat-spinner diameter="50"></mat-spinner>
-          <p>Yükleniyor...</p>
+          <p>{{ 'COMMON.LOADING' | translate }}</p>
         </div>
       }
 
@@ -87,7 +85,7 @@
           </th>
           <td mat-cell *matCellDef="let row">
             <mat-chip class="relation-chip" [class]="'relation-' + row.relation_type">
-              {{ getRelationTypeLabel(row.relation_type) }}
+              {{ getRelationTypeLabel(row.relation_type) | translate}}
             </mat-chip>
           </td>
         </ng-container>
@@ -130,7 +128,7 @@
               mat-icon-button
               color="primary"
               (click)="openEditDialog(row); $event.stopPropagation()"
-              matTooltip="Düzenle"
+              [matTooltip]="'COMMON.EDIT'| translate"
             >
               <mat-icon>edit</mat-icon>
             </button>
@@ -138,7 +136,7 @@
               mat-icon-button
               color="warn"
               (click)="deleteCustomer(row, $event)"
-              matTooltip="Sil"
+              [matTooltip]="'COMMON.DELETE'| translate"
             >
               <mat-icon>delete</mat-icon>
             </button>
@@ -160,19 +158,15 @@
             @if (searchTerm) {
               <div class="no-data">
                 <mat-icon>search_off</mat-icon>
-                <p>Arama sonucu bulunamadı</p>
-                <button mat-button color="primary" (click)="clearSearch()">
-                  Aramayı Temizle
-                </button>
+                <p>{{ 'COMMON.NO_RESULTS' | translate }}</p>
+                <button mat-button color="primary" (click)="clearSearch()">{{ 'COMMON.CLEAR_SEARCH' | translate }}</button>
               </div>
             } @else {
               <div class="no-data">
                 <mat-icon>inbox</mat-icon>
-                <p>Henüz müşteri eklenmemiş</p>
+                <p>{{ 'CUSTOMER.NO_CUSTOMERS' | translate }}</p>
                 <button mat-raised-button color="primary" (click)="openAddDialog()">
-                  <mat-icon>add</mat-icon>
-                  İlk Müşteriyi Ekle
-                </button>
+                  <mat-icon>add</mat-icon>{{ 'CUSTOMER.ADD_FIRST' | translate }}</button>
               </div>
             }
           </td>

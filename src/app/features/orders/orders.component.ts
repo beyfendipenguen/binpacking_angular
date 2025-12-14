@@ -1,5 +1,5 @@
 import { Component, inject, OnInit, ViewChild } from '@angular/core';
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
@@ -19,13 +19,13 @@ import { HasPermissionDirective } from "@app/core/auth/has-permission.directive"
 @Component({
   selector: 'app-orders',
   standalone: true,
-  imports: [
-    CommonModule,
+  imports: [CommonModule,
     MatButtonModule,
     MatIconModule,
     MatDialogModule,
     GenericTableComponent,
-    HasPermissionDirective
+    HasPermissionDirective,
+    TranslateModule
   ],
   templateUrl: './orders.component.html',
   styleUrl: './orders.component.scss'

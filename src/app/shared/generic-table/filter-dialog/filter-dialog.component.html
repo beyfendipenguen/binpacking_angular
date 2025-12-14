@@ -1,14 +1,14 @@
-<h2 mat-dialog-title>{{ data.displayName }} için Filtre</h2>
+<h2 mat-dialog-title>{{ data.displayName }} {{'GENERIC_TABLE.FILTER' | translate}}</h2>
 <mat-dialog-content>
   <div class="filter-content">
     <mat-form-field appearance="outline" class="full-width">
-      <mat-label>Filtre Değeri</mat-label>
-      <input matInput [(ngModel)]="filterValue" placeholder="Arama değeri girin">
+      <mat-label>{{ 'GENERIC_TABLE.FILTER_VALUE' | translate }}</mat-label>
+      <input matInput [(ngModel)]="filterValue" [placeholder]="'GENERIC_TABLE.ENTER_SEARCH' | translate">
     </mat-form-field>
   </div>
 </mat-dialog-content>
 <mat-dialog-actions align="end">
-  <button mat-button (click)="onClear()">Temizle</button>
-  <button mat-button (click)="onCancel()">İptal</button>
-  <button mat-raised-button color="primary" (click)="onApply()">Uygula</button>
+  <button mat-button (click)="onClear()">{{ 'TRUCK_VISUALIZATION.CLEAR' | translate }}</button>
+  <button mat-button (click)="onCancel()">{{ 'HEADER.CANCEL' | translate }}</button>
+  <button mat-raised-button color="primary" (click)="onApply()">{{ 'GENERIC_TABLE.APPLY_FILTER' | translate }}</button>
 </mat-dialog-actions>

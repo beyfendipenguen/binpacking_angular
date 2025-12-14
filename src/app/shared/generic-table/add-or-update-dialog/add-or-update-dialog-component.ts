@@ -20,6 +20,7 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatSelectModule } from '@angular/material/select';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 // Alan tanımı için geliştirilmiş arayüz
 interface FieldDefinition {
@@ -53,7 +54,7 @@ interface DialogData {
     MatCheckboxModule,
     MatDatepickerModule,
     MatNativeDateModule,
-    MatSelectModule],
+    MatSelectModule,TranslateModule],
   templateUrl: './add-or-update-dialog-component.html',
   styleUrl: './add-or-update-dialog-component.scss'
 })
@@ -63,6 +64,8 @@ export class AddOrUpdateDialogComponent implements OnInit {
   isEditMode: boolean = false;
   dialogTitle: string = '';
   private fb = inject(FormBuilder);
+  private translate = inject(TranslateService);
+
 
   constructor(
     public dialogRef: MatDialogRef<AddOrUpdateDialogComponent>,
@@ -80,7 +83,7 @@ export class AddOrUpdateDialogComponent implements OnInit {
     }
 
     this.isEditMode = !!this.data.row;
-    this.dialogTitle = this.isEditMode ? 'Kayıt Güncelle' : 'Yeni Kayıt Ekle';
+    this.dialogTitle = this.isEditMode ? this.translate.instant('GENERIC_TABLE.UPDATE_RECORD') : this.translate.instant('GENERIC_TABLE.ADD_NEW_RECORD');
     this.initializeFields();
 
     // Fields kontrolü
@@ -97,7 +100,7 @@ export class AddOrUpdateDialogComponent implements OnInit {
   private addDefaultField(): void {
     this.fields.push({
       key: 'defaultField',
-      label: 'Değer',
+      label: this.translate.instant('GENERIC_TABLE.VALUE'),
       type: 'text',
       required: false,
       path: ['defaultField']

@@ -9,7 +9,7 @@ import {
   effect,
   signal
 } from '@angular/core';
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { FormControl, FormGroup } from '@angular/forms';
 import { MatStepperModule } from '@angular/material/stepper';
 import { MatButtonModule } from '@angular/material/button';
@@ -57,8 +57,7 @@ import { StepperUiActions } from '@app/store/stepper/actions/stepper-ui.actions'
 @Component({
   selector: 'app-invoice-upload',
   standalone: true,
-  imports: [
-    FormsModule,
+  imports: [FormsModule,
     ReactiveFormsModule,
     MatFormFieldModule,
     MatStepperModule,
@@ -75,7 +74,8 @@ import { StepperUiActions } from '@app/store/stepper/actions/stepper-ui.actions'
     GenericTableComponent,
     MatSelectModule,
     MatDatepickerModule,
-    MatNativeDateModule
+    MatNativeDateModule,
+    TranslateModule
   ],
   templateUrl: './invoice-upload.component.html',
   styleUrl: './invoice-upload.component.scss',

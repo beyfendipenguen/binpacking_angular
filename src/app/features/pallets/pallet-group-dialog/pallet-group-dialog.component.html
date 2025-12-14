@@ -1,6 +1,6 @@
 <div class="dialog-container">
   <div class="dialog-header">
-    <h2 mat-dialog-title>Palet Grupları Yönetimi</h2>
+    <h2 mat-dialog-title>{{ 'PALLET.GROUP_MANAGEMENT' | translate }}</h2>
     <button mat-icon-button (click)="close()" class="close-btn">
       <mat-icon>close</mat-icon>
     </button>
@@ -11,9 +11,9 @@
       <!-- Sol Panel: Grup Listesi -->
       <div class="groups-panel">
         <div class="panel-header">
-          <h3>Gruplar</h3>
+          <h3>{{ 'PALLET.GROUPS' | translate }}</h3>
           <button mat-mini-fab color="primary" (click)="createNewGroup()" [disabled]="isLoadingGroups"
-            matTooltip="Yeni Grup">
+            [matTooltip]="'PALLET.NEW_GROUP' | translate">
             <mat-icon>add</mat-icon>
           </button>
         </div>
@@ -26,8 +26,7 @@
                 <div class="group-info">
                   <span class="group-name">{{ group.name }}</span>
                   <span class="group-badge" *ngIf="group.is_global">
-                    <mat-icon>lock</mat-icon> Global
-                  </span>
+                    <mat-icon>lock</mat-icon>{{ 'PALLET.GLOBAL' | translate }}</span>
                 </div>
                 <span class="group-count">{{ group.pallet_count }} palet</span>
               </div>
@@ -36,15 +35,15 @@
 
           <div class="empty-state" *ngIf="groups.length === 0">
             <mat-icon>folder_open</mat-icon>
-            <p>Henüz grup yok</p>
-            <p class="hint">Yeni grup oluşturmak için + butonuna tıklayın</p>
+            <p>{{ 'PALLET.NO_GROUPS' | translate }}</p>
+            <p class="hint">{{ 'PALLET.CREATE_GROUP_TIP' | translate }}</p>
           </div>
         </div>
 
         <ng-template #loadingGroups>
           <div class="loading-state">
             <mat-spinner diameter="40"></mat-spinner>
-            <p>Gruplar yükleniyor...</p>
+            <p>{{ 'PALLET.LOADING_GROUPS' | translate }}</p>
           </div>
         </ng-template>
       </div>
@@ -55,34 +54,30 @@
           <div class="panel-header">
             <h3>{{ isNewGroup ? 'Yeni Grup' : 'Grup Detayları' }}</h3>
             <span class="global-warning" *ngIf="isGlobalGroup()">
-              <mat-icon>lock</mat-icon>
-              Sadece Görüntüleme
-            </span>
+              <mat-icon>lock</mat-icon>{{ 'PALLET.VIEW_ONLY' | translate }}</span>
           </div>
 
           <form [formGroup]="groupForm" class="group-form">
             <!-- Grup Adı -->
             <mat-form-field appearance="outline" class="full-width">
-              <mat-label>Grup Adı</mat-label>
-              <input matInput formControlName="name" placeholder="Örn: Standart Euro Paletler">
-              <mat-error *ngIf="groupForm.get('name')?.hasError('required')">
-                Grup adı zorunludur
-              </mat-error>
+              <mat-label>{{ 'PALLET.GROUP_NAME' | translate }}</mat-label>
+              <input matInput formControlName="name" [placeholder]="'PALLET.GROUP_NAME_PLACEHOLDER' | translate">
+              <mat-error *ngIf="groupForm.get('name')?.hasError('required')">{{ 'PALLET.GROUP_NAME_REQUIRED' | translate }}</mat-error>
             </mat-form-field>
 
             <!-- Açıklama -->
             <mat-form-field appearance="outline" class="full-width">
-              <mat-label>Açıklama</mat-label>
+              <mat-label>{{ 'COMMON.DESCRIPTION' | translate }}</mat-label>
               <textarea matInput formControlName="description" rows="2"
-                placeholder="Grup hakkında kısa açıklama"></textarea>
+                [placeholder]="'PALLET.GROUP_DESCRIPTION' | translate"></textarea>
             </mat-form-field>
 
             <!-- Paletler Bölümü -->
             <div class="pallets-section">
               <div class="section-header">
-                <h4>Paletler</h4>
+                <h4>{{ 'PALLET.PALLETS' | translate }}</h4>
                 <span class="selection-count">
-                  {{ selectedPallets.length }} / {{ allPallets.length }} seçili
+                  {{ selectedPallets.length }} / {{ allPallets.length }} {{ 'PALLET.SELECTED' | translate }}
                 </span>
               </div>
 
@@ -90,12 +85,12 @@
                 <!-- Sol Liste: Mevcut Paletler -->
                 <div class="pallet-list-box">
                   <div class="list-header">
-                    <span class="list-title">Mevcut Paletler</span>
+                    <span class="list-title">{{ 'PALLET.AVAILABLE_PALLETS' | translate }}</span>
                     <span class="list-count">{{ availablePallets.length }}</span>
                   </div>
                   <div class="search-box">
                     <mat-icon class="search-icon">search</mat-icon>
-                    <input type="text" class="search-input" placeholder="Palet ara (ör: 120x80x145, 500)"
+                    <input type="text" class="search-input" [placeholder]="'PALLET.SEARCH_PALLETS' | translate"
                       [formControl]="searchAvailableControl">
                     <button mat-icon-button class="clear-btn" *ngIf="searchAvailableControl.value"
                       (click)="clearAvailableSearch()">
@@ -119,7 +114,7 @@
 
                     <div class="empty-list" *ngIf="availablePallets.length === 0">
                       <mat-icon>{{ searchAvailableControl.value ? 'search_off' : 'check_circle' }}</mat-icon>
-                      <p>{{ searchAvailableControl.value ? 'Sonuç bulunamadı' : 'Tüm paletler eklendi' }}</p>
+                      <p>{{ (searchAvailableControl.value ? 'PALLET.NO_RESULTS' : 'PALLET.ALL_ADDED') | translate}}</p>
                     </div>
                   </div>
                 </div>
@@ -127,22 +122,22 @@
                 <!-- Ortada: Transfer Butonları -->
                 <div class="transfer-buttons">
                   <button mat-icon-button class="transfer-btn" (click)="addSelectedToGroup()"
-                    [disabled]="tempSelectedAvailable.size === 0 || isGlobalGroup()" matTooltip="Seçilenleri ekle">
+                    [disabled]="tempSelectedAvailable.size === 0 || isGlobalGroup()" [matTooltip]="'PALLET.ADD_SELECTED' | translate">
                     <mat-icon>arrow_forward</mat-icon>
                   </button>
 
                   <button mat-icon-button class="transfer-btn" (click)="addAllToGroup()"
-                    [disabled]="availablePallets.length === 0 || isGlobalGroup()" matTooltip="Tümünü ekle">
+                    [disabled]="availablePallets.length === 0 || isGlobalGroup()" [matTooltip]="'PALLET.ADD_ALL' | translate">
                     <mat-icon>keyboard_double_arrow_right</mat-icon>
                   </button>
 
                   <button mat-icon-button class="transfer-btn" (click)="removeSelectedFromGroup()"
-                    [disabled]="tempSelectedInGroup.size === 0 || isGlobalGroup()" matTooltip="Seçilenleri çıkar">
+                    [disabled]="tempSelectedInGroup.size === 0 || isGlobalGroup()" [matTooltip]="'PALLET.REMOVE_SELECTED' | translate">
                     <mat-icon>arrow_back</mat-icon>
                   </button>
 
                   <button mat-icon-button class="transfer-btn" (click)="removeAllFromGroup()"
-                    [disabled]="selectedPallets.length === 0 || isGlobalGroup()" matTooltip="Tümünü çıkar">
+                    [disabled]="selectedPallets.length === 0 || isGlobalGroup()" [matTooltip]="'PALLET.REMOVE_ALL' | translate">
                     <mat-icon>keyboard_double_arrow_left</mat-icon>
                   </button>
                 </div>
@@ -150,14 +145,14 @@
                 <!-- Sağ Liste: Seçili Paletler -->
                 <div class="pallet-list-box">
                   <div class="list-header">
-                    <span class="list-title">Gruptaki Paletler</span>
+                    <span class="list-title">{{ 'PALLET.GROUP_PALLETS' | translate }}</span>
                     <span class="list-count">{{ selectedPallets.length }}</span>
                   </div>
 
                   <!-- ARAMA KUTUSU - SAĞ -->
                   <div class="search-box">
                     <mat-icon class="search-icon">search</mat-icon>
-                    <input type="text" class="search-input" placeholder="Palet ara (ör: 120x80x145, 500)"
+                    <input type="text" class="search-input" [placeholder]="'PALLET.SEARCH_PALLETS' | translate"
                       [formControl]="searchSelectedControl">
                     <button mat-icon-button class="clear-btn" *ngIf="searchSelectedControl.value"
                       (click)="clearSelectedSearch()">
@@ -182,7 +177,7 @@
 
                     <div class="empty-list" *ngIf="selectedPallets.length === 0">
                       <mat-icon>{{ searchSelectedControl.value ? 'search_off' : 'inbox' }}</mat-icon>
-                      <p>{{ searchSelectedControl.value ? 'Sonuç bulunamadı' : 'Henüz palet eklenmedi' }}</p>
+                      <p>{{ (searchSelectedControl.value ? 'PALLET.NO_RESULTS' : 'PALLET.NO_PALLETS_ADDED') | translate }}</p>
                     </div>
                   </div>
                 </div>
@@ -191,7 +186,7 @@
               <ng-template #loadingPallets>
                 <div class="loading-state small">
                   <mat-spinner diameter="30"></mat-spinner>
-                  <p>Paletler yükleniyor...</p>
+                  <p>{{ 'PALLET.LOADING_PALLETS' | translate }}</p>
                 </div>
               </ng-template>
             </div>
@@ -201,8 +196,8 @@
         <ng-template #noSelection>
           <div class="no-selection">
             <mat-icon>touch_app</mat-icon>
-            <p>Düzenlemek için bir grup seçin</p>
-            <p class="hint">veya yeni grup oluşturun</p>
+            <p>{{ 'PALLET.SELECT_GROUP_TO_EDIT' | translate }}</p>
+            <p class="hint">{{ 'PALLET.OR_CREATE_NEW' | translate }}</p>
           </div>
         </ng-template>
       </div>
@@ -213,15 +208,13 @@
     <div class="actions-left">
       <button mat-stroked-button color="warn" (click)="deleteGroup()"
         *ngIf="!isNewGroup && selectedGroup && !isGlobalGroup()" [disabled]="isSaving">
-        <mat-icon>delete</mat-icon>
-        Sil
-      </button>
+        <mat-icon>delete</mat-icon>{{ 'TRUCK_VISUALIZATION.DELETE' | translate }}</button>
     </div>
     <div class="actions-right">
-      <button mat-button (click)="close()" [disabled]="isSaving">İptal</button>
+      <button mat-button (click)="close()" [disabled]="isSaving">{{ 'HEADER.CANCEL' | translate }}</button>
       <button mat-raised-button color="primary" (click)="saveGroup()"
         [disabled]="groupForm.invalid || isSaving || isGlobalGroup()">
-        <span *ngIf="!isSaving">{{ isNewGroup ? 'Oluştur' : 'Güncelle' }}</span>
+        <span *ngIf="!isSaving">{{ (isNewGroup ? 'PALLET.CREATE' : 'COMMON.Update') | translate }}</span>
       </button>
     </div>
   </mat-dialog-actions>

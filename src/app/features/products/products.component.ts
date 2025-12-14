@@ -1,5 +1,5 @@
 import { Component, OnInit, inject } from '@angular/core';
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -15,7 +15,9 @@ import { BulkUploadButtonDirective } from '@app/shared/bulk-upload-dialog/bulk-u
     GenericTableComponent,
     MatButtonModule,
     MatIconModule,
-    BulkUploadButtonDirective],
+    BulkUploadButtonDirective,
+    TranslateModule
+  ],
   templateUrl: './products.component.html',
   styleUrl: './products.component.scss'
 })

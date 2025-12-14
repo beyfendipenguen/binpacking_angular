@@ -43,9 +43,11 @@
     "COUNTRY": "Country",
     "COMPANY": "Company",
     "NOTES": "Notes",
-    "DESCRIPTION": "Description"
+    "DESCRIPTION": "Description",
+    "PROCESS_FINISH": "Process Complete",
+    "DIALOG_FORM_NOT_CREATED": "The form could not be created. No valid field was found.",
+    "FIELD_REQUIRED": "This field is required."
   },
-
   "MENU": {
     "PLACEMENT_CALCULATION": "Placement Calculation",
     "OPERATIONS": "Operations",
@@ -57,7 +59,6 @@
     "PERMISSION_MANAGEMENT": "Permission Management",
     "HOME": "Home"
   },
-
   "HEADER": {
     "LOGO_ALT": "Bin Packing Logo",
     "CANCEL": "Cancel",
@@ -65,7 +66,6 @@
     "LOGOUT": "Logout",
     "LANGUAGE": "Language"
   },
-
   "DIALOG": {
     "CANCEL_OPERATION": "Cancel Operation",
     "CANCEL_CONFIRMATION_TITLE": "Are you sure you want to cancel the operation?",
@@ -73,7 +73,6 @@
     "YES_CANCEL": "Yes, Cancel",
     "NO": "No"
   },
-
   "AUTH": {
     "SIGN_IN": "Sign In",
     "LOGOUT": "Logout",
@@ -112,7 +111,6 @@
     "LOGIN_ERROR": "Incorrect username or password",
     "LOGIN_SUCCESS": "Login success"
   },
-
   "PASSWORD": {
     "RESET_TITLE": "Password Reset",
     "RESET_SUBTITLE": "Enter your registered email address to reset your security code. Reset instructions will be sent to this address.",
@@ -122,9 +120,12 @@
     "SECURITY_TIP": "For your security, choose a strong password. Your password must be at least 8 characters long and include numbers, uppercase letters, and special characters.",
     "CHANGE_PASSWORD": "Change Password",
     "FORGOT_PASSWORD_QUESTION": "Forgot your password?",
-    "RESET_EMAIL_ERROR": "Password reset email could not be sent"
+    "RESET_EMAIL_ERROR": "Password reset email could not be sent",
+    "NEW_WRITE_PASSWORD": "Create a new password",
+    "MAIL": "E-Mail",
+    "PASSWORD_RESET": "Password Reset",
+    "SEND_MAIL": "was sent to the address."
   },
-
   "SIGNIN": {
     "TITLE": "Logistics Management System",
     "SUBTITLE": "Pallet and truck loading optimization",
@@ -132,7 +133,6 @@
     "PASSWORD_LABEL": "Password",
     "PASSWORD_PLACEHOLDER": "Enter your password"
   },
-
   "CUSTOMER": {
     "TITLE": "Customer Management",
     "ADD_NEW": "Add New Customer",
@@ -172,9 +172,12 @@
     "ADD_PALLET_GROUP": "Add Pallet Group",
     "FILL_ALL_FIELDS": "Please fill all required fields",
     "CUSTOMER_NAME": "Customer Name",
-    "RELATIONSHIP_TYPE_LABEL": "Relationship Type"
+    "RELATIONSHIP_TYPE_LABEL": "Relationship Type",
+    "CUSTOMERS": "Customers",
+    "CUSTOMER_COMPANY": "Customer's Company",
+    "SELECTED": "Selected: ",
+    "NEW_COMPANY": "New Company"
   },
-
   "CUSTOMER_MESSAGES": {
     "COMPANY_ADDED": "New company added successfully",
     "COMPANY_ADD_ERROR": "Error adding company",
@@ -190,7 +193,6 @@
     "CUSTOMER_DELETED": "Customer deleted successfully",
     "DELETE_ERROR": "Error deleting customer"
   },
-
   "DIMENSIONS": {
     "PRODUCT_NAME": "Product Name",
     "PRODUCT_CODE": "Product Code",
@@ -210,7 +212,6 @@
     "MM": "mm",
     "VOLUME": "Volume"
   },
-
   "FILE": {
     "ORDER_FILES": "Order Files",
     "LOADING_FILES": "Loading files...",
@@ -226,7 +227,6 @@
     "FILE_OPENING": "Opening file...",
     "FILE_OPEN_ERROR": "Error opening file"
   },
-
   "ORDER": {
     "TITLE": "Shipment Management",
     "SUBTITLE": "View active orders and access detailed information",
@@ -245,18 +245,15 @@
     "NO_ORDER_INFO": "Order Information Not Found",
     "INCOMPLETE_ORDER": "Incomplete Order"
   },
-
   "ORDER_DETAILS": {
     "TITLE": "Product Details",
     "PRODUCTS": "Order Products"
   },
-
   "PACKAGE": {
     "CONFIGURATION": "Pallet Configuration",
     "LOADING_PALLETS": "Loading pallets...",
     "NO_PACKAGE_INFO": "No package information found for this order."
   },
-
   "PALLET": {
     "TITLE": "Pallet Management",
     "PALLET": "Pallet",
@@ -297,7 +294,6 @@
     "BULK_ADD": "Bulk Add Pallets",
     "MANAGE_GROUPS": "Manage Pallet Groups"
   },
-
   "PALLET_MESSAGES": {
     "GROUPS_LOAD_ERROR": "Error loading groups",
     "PALLETS_LOAD_ERROR": "Error loading pallets",
@@ -311,7 +307,6 @@
     "GROUP_DELETED": "Group deleted successfully",
     "GROUP_DELETE_ERROR": "Error deleting group"
   },
-
   "PRODUCT": {
     "TITLE": "Product Management",
     "PRODUCT": "Product",
@@ -323,7 +318,6 @@
     "WEIGHT_INFO": "Represents the weights of the product in different qualities",
     "BULK_ADD": "Bulk Add Products"
   },
-
   "PROFILE": {
     "TITLE": "Profile",
     "PHOTO": "Profile photo",
@@ -372,7 +366,6 @@
     "DANGER_ZONE": "Danger Zone",
     "DELETE_ACCOUNT": "Delete Account"
   },
-
   "COUNTRIES": {
     "TURKEY": "Turkey",
     "USA_CANADA": "USA/Canada",
@@ -385,7 +378,6 @@
     "CHINA": "China",
     "JAPAN": "Japan"
   },
-
   "PROFILE_MESSAGES": {
     "LOAD_ERROR": "Error loading profile",
     "COMPANY_LOAD_ERROR": "Error loading company information",
@@ -400,7 +392,6 @@
     "PASSWORD_CHANGED": "Password changed successfully",
     "PASSWORD_CHANGE_ERROR": "Error changing password"
   },
-
   "PALLET_CONTROL": {
     "TITLE": "Pallet Placement",
     "SUBTITLE": "Place products on pallets and optimize load distribution",
@@ -454,7 +445,6 @@
     "CONTINUE_ANYWAY": "Continue anyway.",
     "GO_BACK": "Go back."
   },
-
   "INVOICE_UPLOAD": {
     "ADD_ORDER_DETAIL": "Add Order Detail",
     "SEARCH_PRODUCT": "Search Product",
@@ -496,7 +486,6 @@
     "ORDER_DETAILS": "Order Details",
     "ITEM": "Item",
     "PRODUCTS_COUNT": "products",
-    "SAVE_NEXT": "SAVE & NEXT",
     "TEMPLATE_DOWNLOAD_ERROR": "Template could not be downloaded",
     "TABLE": {
       "PRODUCT_NAME": "Product Name",
@@ -531,7 +520,6 @@
       "OPERATION_IN_PROGRESS": "Operation in progress..."
     }
   },
-
   "RESULT_STEP": {
     "PROCESSING": "Processing...",
     "RUN_OPTIMIZATION": "Run Optimization",
@@ -565,26 +553,25 @@
     "CONNECTION_ERROR": "Cannot connect to server. Check your internet connection.",
     "REQUEST_ERROR": "Request error. Please check parameters.",
     "SERVER_ERROR": "Server error. Please try again later.",
-    "UNEXPECTED_ERROR": "An unexpected error occurred."
+    "UNEXPECTED_ERROR": "An unexpected error occurred.",
+    "DRAG_DROP": "Drag & Drop"
   },
-
   "TRUCK": {
     "TITLE": "Vehicle Management",
     "VEHICLES": "Vehicles",
     "VEHICLE_TYPE": "Vehicle Type"
   },
-
   "BULK_ADD": {
     "BULK": "Bulk",
     "ADD": "Add",
-    "HOW_IT_WORKS": "how does bulk add work?",
+    "HOW_IT_WORKS": "How does bulk add work?",
     "STEP_1": "Fill in the columns specified in the table below",
     "STEP_2": "Do not change column names under any circumstances",
     "STEP_3": "Fill in all required fields completely",
     "STEP_4": "Save the file and upload it to the system",
     "TEMPLATE_NOT_FOUND": "Template file not found.",
     "EXCEL_TEMPLATE": "Excel Template",
-    "DOWNLOAD_FIRST": "Download the Excel template first for bulk add",
+    "DOWNLOAD_FIRST": "First, download the Excel template.",
     "DOWNLOADING": "Downloading...",
     "DOWNLOAD_TEMPLATE": "Download Template",
     "DROP_FILE": "Drop File",
@@ -602,12 +589,10 @@
     "FILE_TYPE": "file.",
     "FILE_UPLOAD_ERROR": "An error occurred while uploading the file."
   },
-
   "ERROR_PAGE": {
     "GO_HOME": "Go to Home Page",
     "UNKNOWN_ERROR": "An unknown error occurred."
   },
-
   "GENERIC_TABLE": {
     "REQUIRED_FIELD": "This field is required",
     "UPDATE_RECORD": "Update Record",
@@ -644,7 +629,6 @@
     "DATA_LOADED": "Data loaded",
     "DATA_LOAD_ERROR": "Error loading data"
   },
-
   "TRUCK_VISUALIZATION": {
     "NO_DATA": "No Loading Data Yet",
     "NO_DATA_MESSAGE": "3D visualization will appear here after the truck loading algorithm is run.",
@@ -680,11 +664,26 @@
     "WHEEL_MODEL": "Wheel Model",
     "PLACING_PACKAGES": "Placing packages..."
   },
-
   "STEPPER": {
     "ERROR": "Error",
     "SYSTEM_ERROR": "System Error",
     "ORDER_NOT_FOUND": "Order not found",
-    "PACKAGING_ERROR": "An error occurred during the packaging process."
+    "PACKAGING_ERROR": "An error occurred during the packaging process.",
+    "STEP_1_LABEL": "Order Control",
+    "STEP_2_LABEL": "Pallet Control",
+    "STEP_3_LABEL": "Result Screen",
+    "EDIT_MODE": "EDITING"
+  },
+   "COMPANY_RELATION": {
+    "TYPE": {
+      "CUSTOMER": "Customer",
+      "SUPPLIER": "Supplier",
+      "PARTNER": "Partner",
+      "CONTRACTOR": "Contractor",
+      "DISTRIBUTOR": "Distributor",
+      "SUBSIDIARY": "Subsidiary",
+      "OTHER": "Other",
+      "UNKNOWN": "Unknown Relation Type"
+    }
   }
 }

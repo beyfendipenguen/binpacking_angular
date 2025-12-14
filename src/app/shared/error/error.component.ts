@@ -1,5 +1,5 @@
 import { Component, OnInit, signal, inject } from '@angular/core';
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { MatIcon } from '@angular/material/icon';
 import { ActivatedRoute } from '@angular/router';
 import { MatFabButton } from '@angular/material/button';
@@ -7,7 +7,9 @@ import { RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-error',
-  imports: [MatFabButton, MatIcon, RouterModule],
+  imports: [MatFabButton, MatIcon, RouterModule,
+    TranslateModule
+  ],
   templateUrl: './error.component.html',
   styles: []
 })

@@ -2,11 +2,11 @@
   <div class="page-header">
     <div class="header-content">
       <div class="header-left">
-        <h1>Ürün Yönetimi</h1>
+        <h1>{{ 'PRODUCT.TITLE' | translate }}</h1>
         <div class="breadcrumb">
-          <span>Ana Sayfa</span>
+          <span>{{ 'MENU.HOME' | translate }}</span>
           <span class="separator">/</span>
-          <span class="active">Ürünler</span>
+          <span class="active">{{ 'PRODUCT.PRODUCTS' | translate }}</span>
         </div>
       </div>
       <div class="header-actions">
@@ -15,9 +15,7 @@
           color="primary"
           [appBulkUploadButton]="productBulkConfig"
           class="bulk-add-btn">
-          <mat-icon>add_box</mat-icon>
-          Toplu Ürün Ekle
-        </button>
+          <mat-icon>add_box</mat-icon>{{ 'PRODUCT.BULK_ADD' | translate }}</button>
       </div>
     </div>
   </div>
@@ -25,7 +23,7 @@
 
   <div class="content-section" [class.loading]="isLoading">
     <app-generic-table [service]="productService" [displayedColumns]="displayedColumns"
-      [filterableColumns]="filterableColumns" [nestedDisplayColumns]="nestedDisplayColumns" [title]="'Ürünler'"
+      [filterableColumns]="filterableColumns" [nestedDisplayColumns]="nestedDisplayColumns" [title]="'PRODUCT.PRODUCTS'"
       [showRowNumbers]="true" [excludeFields]="['name']">
     </app-generic-table>
   </div>

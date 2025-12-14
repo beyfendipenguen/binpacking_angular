@@ -28,6 +28,7 @@ import { StepperGeneralEffects } from './store/stepper/effects/stepper-general.e
 
 import { STORE_CONFIG, DEVTOOLS_CONFIG, metaReducers } from './ngrx.config';
 import { loadingInterceptor } from './shared/loading/loading.interceptor';
+import { LanguageService } from './core/services/language.service';
 
 // ✅ TranslateHttpLoader factory function
 export function createTranslateLoader(http: HttpClient) {
@@ -39,9 +40,16 @@ export function appInitialization() {
   return configService.load();
 }
 
+export function initializeLanguage() {
+  const languageService = inject(LanguageService);
+  return Promise.resolve();
+}
+
+
 export const appConfig: ApplicationConfig = {
   providers: [
     provideAppInitializer(appInitialization),
+    provideAppInitializer(initializeLanguage),
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(routes, withComponentInputBinding()),
     provideAnimationsAsync(),

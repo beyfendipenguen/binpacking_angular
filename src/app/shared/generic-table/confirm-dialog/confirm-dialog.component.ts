@@ -1,4 +1,5 @@
 import { Component, Inject } from '@angular/core';
+import { TranslateModule } from '@ngx-translate/core';
 import { CommonModule } from '@angular/common';
 import {
   MAT_DIALOG_DATA,
@@ -13,7 +14,9 @@ import { MatIconModule } from '@angular/material/icon';
   imports: [CommonModule,
     MatDialogModule,
     MatButtonModule,
-    MatIconModule],
+    MatIconModule,
+    TranslateModule
+  ],
   templateUrl: './confirm-dialog.component.html',
   styleUrl: './confirm-dialog.component.scss'
 })

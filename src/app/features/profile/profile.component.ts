@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { Component, inject, OnDestroy, OnInit } from '@angular/core';
 import {
   ReactiveFormsModule,
@@ -29,8 +29,7 @@ import { ToastService } from '@app/core/services/toast.service';
 
 @Component({
   selector: 'app-profile',
-  imports: [
-    CommonModule,
+  imports: [CommonModule,
     ReactiveFormsModule,
     MatCardModule,
     MatButtonModule,
@@ -42,6 +41,7 @@ import { ToastService } from '@app/core/services/toast.service';
     MatDividerModule,
     MatDialogModule,
     MatSelectModule,
+    TranslateModule
   ],
   templateUrl: './profile.component.html',
   styleUrl: './profile.component.scss',

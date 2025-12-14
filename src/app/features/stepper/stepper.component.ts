@@ -27,6 +27,7 @@ import { ToastService } from '@core/services/toast.service';
 import { LoadingComponent } from '@shared/loading/loading.component';
 import { AppState, selectCompletedStep, selectIsEditMode, selectCurrentStep } from '@app/store';
 import { StepperUiActions } from '@app/store/stepper/actions/stepper-ui.actions';
+import { TranslateModule } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-stepper',
@@ -34,7 +35,7 @@ import { StepperUiActions } from '@app/store/stepper/actions/stepper-ui.actions'
     MatStepperModule, FormsModule, LoadingComponent, ReactiveFormsModule,
     MatFormFieldModule, MatInputModule, MatButtonModule, AsyncPipe,
     InvoiceUploadComponent, PalletControlComponent, LoadingComponent,
-    ResultStepComponent, CommonModule
+    ResultStepComponent, CommonModule,TranslateModule
   ],
   providers: [
   ],

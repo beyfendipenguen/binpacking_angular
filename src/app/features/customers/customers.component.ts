@@ -1,5 +1,5 @@
 import { Component, OnInit, ViewChild, inject } from '@angular/core';
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { CommonModule } from '@angular/common';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatPaginator, MatPaginatorModule, PageEvent } from '@angular/material/paginator';
@@ -21,8 +21,7 @@ import { CustomerDialogComponent } from './dialogs/customer-dialog/customer-dial
 @Component({
   selector: 'app-customers',
   standalone: true,
-  imports: [
-    CommonModule,
+  imports: [CommonModule,
     MatTableModule,
     MatPaginatorModule,
     MatSortModule,
@@ -33,7 +32,8 @@ import { CustomerDialogComponent } from './dialogs/customer-dialog/customer-dial
     MatChipsModule,
     MatProgressSpinnerModule,
     MatTooltipModule,
-    MatDialogModule
+    MatDialogModule,
+    TranslateModule
   ],
   templateUrl: './customers.component.html',
   styleUrl: './customers.component.scss'
@@ -95,7 +95,7 @@ export class CustomersComponent implements OnInit {
    */
   getRelationTypeLabel(relationType: string): string {
     const option = RELATION_TYPE_OPTIONS.find(opt => opt.value === relationType);
-    return option ? option.label : relationType;
+    return option ? option.labelKey : relationType;
   }
 
   /**

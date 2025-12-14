@@ -8,7 +8,7 @@
         <mat-label>{{ field.label }}</mat-label>
         <input matInput [formControlName]="field.key" type="text">
         <mat-error *ngIf="form.get(field.key)?.errors?.['required']">
-          Bu alan zorunludur
+          {{ 'COMMON.FIELD_REQUIRED' | translate }}
         </mat-error>
       </mat-form-field>
 
@@ -17,7 +17,7 @@
         <mat-label>{{ field.label }}</mat-label>
         <input matInput [formControlName]="field.key" type="number">
         <mat-error *ngIf="form.get(field.key)?.errors?.['required']">
-          Bu alan zorunludur
+          {{ 'COMMON.FIELD_REQUIRED' | translate }}
         </mat-error>
       </mat-form-field>
 
@@ -28,7 +28,7 @@
         <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
         <mat-datepicker #picker></mat-datepicker>
         <mat-error *ngIf="form.get(field.key)?.errors?.['required']">
-          Bu alan zorunludur
+          {{ 'COMMON.FIELD_REQUIRED' | translate }}
         </mat-error>
       </mat-form-field>
 
@@ -41,12 +41,12 @@
       <mat-form-field *ngSwitchCase="'select'" appearance="outline" class="full-width">
         <mat-label>{{ field.label }}</mat-label>
         <mat-select [formControlName]="field.key">
-          <mat-option *ngFor="let option of data?.options?.[field.key]" [value]="option.value">
+          <mat-option *ngFor="let option of data.options[field.key]" [value]="option.value">
             {{ option.label }}
           </mat-option>
         </mat-select>
         <mat-error *ngIf="form.get(field.key)?.errors?.['required']">
-          Bu alan zorunludur
+          {{ 'COMMON.FIELD_REQUIRED' | translate }}
         </mat-error>
       </mat-form-field>
 
@@ -55,7 +55,7 @@
         <mat-label>{{ field.label }}</mat-label>
         <textarea matInput [formControlName]="field.key" rows="3"></textarea>
         <mat-error *ngIf="form.get(field.key)?.errors?.['required']">
-          Bu alan zorunludur
+          {{ 'COMMON.FIELD_REQUIRED' | translate }}
         </mat-error>
       </mat-form-field>
 
@@ -64,25 +64,25 @@
         <mat-label>{{ field.label }}</mat-label>
         <input matInput [formControlName]="field.key">
         <mat-error *ngIf="form.get(field.key)?.errors?.['required']">
-          Bu alan zorunludur
+          {{ 'COMMON.FIELD_REQUIRED' | translate }}
         </mat-error>
       </mat-form-field>
     </div>
 
     <!-- Alan yoksa bir mesaj göster -->
     <div *ngIf="fields.length === 0" class="no-fields-message">
-      <p>Form oluşturulamadı. Geçerli alan bulunamadı.</p>
+      <p>{{'COMMON.DIALOG_FORM_NOT_CREATED' | translate}}</p>
     </div>
   </div>
 
   <div mat-dialog-actions align="end">
-    <button mat-button type="button" (click)="onCancel()">İptal</button>
+    <button mat-button type="button" (click)="onCancel()">{{'COMMON.CANCEL' | translate}}</button>
     <button
       mat-raised-button
       color="primary"
       type="submit"
       [disabled]="form.invalid">
-      {{ isEditMode ? 'Güncelle' : 'Ekle' }}
+      {{ (isEditMode ? 'COMMON.UPDATE' : 'COMMON.ADD') | translate }}
     </button>
   </div>
 </form>

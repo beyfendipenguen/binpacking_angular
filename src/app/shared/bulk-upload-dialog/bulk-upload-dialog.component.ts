@@ -29,7 +29,7 @@ import { GenericBulkUploadResultDialogComponent } from './bulk-upload-result-dia
       <div class="dialog-header">
         <h2 mat-dialog-title>
           <mat-icon>{{ config.icon }}</mat-icon>
-          Toplu {{ config.entityName }} Ekleme
+          {{'BULK_ADD.BULK'| translate}} {{ config.entityName }} {{'BULK_ADD.ADD'| translate}}
         </h2>
         <button mat-icon-button (click)="onClose()" class="close-button">
           <mat-icon>close</mat-icon>
@@ -43,7 +43,7 @@ import { GenericBulkUploadResultDialogComponent } from './bulk-upload-result-dia
           <div class="info-box">
             <mat-icon>info</mat-icon>
             <div class="info-text">
-              <strong>Toplu {{ config.entityName.toLowerCase() }} ekleme nasıl çalışır?</strong>
+              <strong>{{'BULK_ADD.HOW_IT_WORKS' | translate}}</strong>
               <p>
                 @for (instruction of getInstructions(); track instruction) {
                   {{ instruction }}<br>
@@ -60,8 +60,8 @@ import { GenericBulkUploadResultDialogComponent } from './bulk-upload-result-dia
                   <mat-icon>description</mat-icon>
                 </div>
                 <div class="download-content">
-                  <h3>Excel Şablonu</h3>
-                  <p>Toplu {{ config.entityName.toLowerCase() }} eklemek için önce Excel şablonunu indirin</p>
+                  <h3>{{'BULK_ADD.EXCEL_TEMPLATE' | translate}}</h3>
+                  <p>{{'BULK_ADD.DOWNLOAD_FIRST' | translate}}</p>
                   <button
                     mat-raised-button
                     color="primary"
@@ -102,7 +102,7 @@ import { GenericBulkUploadResultDialogComponent } from './bulk-upload-result-dia
                     @if(!isDragOver) {
                       <button mat-raised-button color="primary" type="button">
                         <mat-icon>folder_open</mat-icon>
-                        Dosya Seç
+                        {{ 'BULK_ADD.SELECT_FILE' | translate }}
                       </button>
                     }
                   </div>
@@ -127,7 +127,7 @@ import { GenericBulkUploadResultDialogComponent } from './bulk-upload-result-dia
                       (click)="fileInput.click()"
                       class="change-file-btn">
                       <mat-icon>sync</mat-icon>
-                      Dosyayı Değiştir
+                      {{ 'BULK_ADD.CHANGE_FILE' | translate }}
                     </button>
                   </div>
                 }
@@ -151,14 +151,14 @@ import { GenericBulkUploadResultDialogComponent } from './bulk-upload-result-dia
       </mat-dialog-content>
 
       <mat-dialog-actions align="end">
-        <button mat-button (click)="onClose()">İptal</button>
+        <button mat-button (click)="onClose()">{{'COMMON.CANCEL' | translate}}</button>
         <button
           mat-raised-button
           color="primary"
           (click)="onSave()"
           [disabled]="!canSave()">
           <mat-icon>save</mat-icon>
-          Kaydet ve İçe Aktar
+          {{ 'BULK_ADD.SAVE_AND_IMPORT' | translate }}
         </button>
       </mat-dialog-actions>
     </div>

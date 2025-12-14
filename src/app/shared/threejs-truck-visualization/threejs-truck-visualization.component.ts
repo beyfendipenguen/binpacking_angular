@@ -15,6 +15,7 @@ import {
   AfterViewInit,
   signal
 } from '@angular/core';
+import { TranslateModule } from '@ngx-translate/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import * as THREE from 'three';
@@ -49,7 +50,9 @@ interface PackageData {
 @Component({
   selector: 'app-threejs-truck-visualization',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule,
+    TranslateModule
+  ],
   templateUrl: './threejs-truck-visualization.component.html',
   styleUrl: './threejs-truck-visualization.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush

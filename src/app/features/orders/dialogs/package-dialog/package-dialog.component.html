@@ -5,7 +5,7 @@
       <mat-icon>inventory_2</mat-icon>
     </div>
     <div class="header-content">
-      <h2 class="dialog-title">Palet Yapılandırması</h2>
+      <h2 class="dialog-title">{{ 'PACKAGE.CONFIGURATION' | translate }}</h2>
       <p class="dialog-subtitle">
         <span class="order-name">{{ data.orderName }}</span>
         <span class="separator">•</span>
@@ -21,7 +21,7 @@
   @if (isLoading) {
   <div class="loading-state">
     <mat-spinner diameter="50"></mat-spinner>
-    <p>Paletler yükleniyor...</p>
+    <p>{{ 'PALLET.LOADING_PALLETS' | translate }}</p>
   </div>
   }
 
@@ -46,7 +46,7 @@
             <div class="package-metrics">
               <div class="metric-chip">
                 <mat-icon>inventory</mat-icon>
-                <span>{{ pkg.itemCount }} Ürün</span>
+                <span>{{ pkg.itemCount }} {{ 'PRODUCT.PRODUCT' | translate }}</span>
               </div>
             </div>
           </div>
@@ -84,7 +84,7 @@
   @if (!isLoading && groupedPackages.length === 0) {
   <div class="empty-state">
     <mat-icon>inventory_2</mat-icon>
-    <p>Bu sipariş için paket bilgisi bulunamadı.</p>
+    <p>{{ 'PACKAGE.NO_PACKAGE_INFO' | translate }}</p>
   </div>
   }
 </div>

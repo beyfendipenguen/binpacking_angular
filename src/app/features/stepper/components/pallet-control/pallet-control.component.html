@@ -4,10 +4,8 @@
       <mat-icon>inventory_2</mat-icon>
     </div>
     <div class="header-titles">
-      <h1>Palet Yerleştirme</h1>
-      <p class="header-subtitle">
-        Ürünleri paletlere yerleştirin ve yük dağılımını optimize edin
-      </p>
+      <h1>{{ 'PALLET_CONTROL.TITLE' | translate }}</h1>
+      <p class="header-subtitle">{{ 'PALLET_CONTROL.SUBTITLE' | translate }}</p>
     </div>
   </div>
 
@@ -17,7 +15,7 @@
         <mat-icon>view_in_ar</mat-icon>
       </div>
       <div class="dashboard-info">
-        <span class="dashboard-label">Kalan Alan</span>
+        <span class="dashboard-label">{{ 'PALLET_CONTROL.REMAINING_SPACE' | translate }}</span>
         <span class="dashboard-value">{{ remainingArea() }} m²</span>
       </div>
     </div>
@@ -27,7 +25,7 @@
         <mat-icon>scale</mat-icon>
       </div>
       <div class="dashboard-info">
-        <span class="dashboard-label">Toplam Ağırlık</span>
+        <span class="dashboard-label">{{ 'PALLET_CONTROL.TOTAL_WEIGHT' | translate }}</span>
         <span class="dashboard-value">{{ totalWeight() }} kg</span>
       </div>
     </div>
@@ -37,7 +35,7 @@
         <mat-icon>fitness_center</mat-icon>
       </div>
       <div class="dashboard-info">
-        <span class="dashboard-label">Kalan Ağırlık</span>
+        <span class="dashboard-label">{{ 'PALLET_CONTROL.REMAINING_WEIGHT' | translate }}</span>
         <span class="dashboard-value">{{ remainingWeight() }} kg</span>
       </div>
     </div>
@@ -47,7 +45,7 @@
         <mat-icon>straighten</mat-icon>
       </div>
       <div class="dashboard-info">
-        <span class="dashboard-label">Toplam Metre</span>
+        <span class="dashboard-label">{{ 'PALLET_CONTROL.TOTAL_METER' | translate }}</span>
         <span class="dashboard-value">{{ totalMeter() }} m</span>
       </div>
     </div>
@@ -59,18 +57,18 @@
       <div class="section-header with-action">
         <div class="header-left">
           <mat-icon>category</mat-icon>
-          <h2>Envanter</h2>
+          <h2>{{ 'PALLET_CONTROL.INVENTORY' | translate }}</h2>
         </div>
         @if(remainingProducts().length > 0){
         <div class="header-actions">
           <button mat-icon-button class="header-action-button" (click)="toggleSort()" [matTooltip]="
-                sortAscending()
-                  ? 'Küçükten Büyüğe Sırala'
-                  : 'Büyükten Küçüğe Sırala'
+                (sortAscending()
+                  ? 'PALLET_CONTROL.SORT_ASC'
+                  : 'PALLET_CONTROL.SORT_DESC') | translate
               ">
             <mat-icon [class.rotated]="sortAscending()">sort</mat-icon>
           </button>
-          <button mat-icon-button class="header-action-button" matTooltip="Birleştir" (click)="merge()">
+          <button mat-icon-button class="header-action-button" [matTooltip]="'PALLET_CONTROL.MERGE_PRODUCTS' | translate" (click)="merge()">
             <mat-icon>merge</mat-icon>
           </button>
         </div>
@@ -79,11 +77,11 @@
       <div class="search-container">
         <div class="search-input-wrapper">
           <mat-icon class="search-icon">search</mat-icon>
-          <input matInput class="search-input" type="text" placeholder="Ürün ara..." [formControl]="searchControl"
+          <input matInput class="search-input" type="text" [placeholder]="'PALLET_CONTROL.SEARCH_PRODUCT' | translate" [formControl]="searchControl"
             [matAutocomplete]="auto" id="searchControl" name="searchControl" />
 
           @if(searchControl.value) {
-          <button mat-icon-button class="clear-search" (click)="clearSearch()" matTooltip="Aramayı Temizle">
+          <button mat-icon-button class="clear-search" (click)="clearSearch()" [matTooltip]="'COMMON.CLEAR_SEARCH' | translate">
             <mat-icon>close</mat-icon>
           </button>
           }
@@ -93,7 +91,7 @@
             @if(isSearching) {
             <mat-option class="loading-indicator">
               <mat-spinner diameter="20"></mat-spinner>
-              <span>Aranıyor...</span>
+              <span>{{ 'COMMON.SEARCHING' | translate }}</span>
             </mat-option>
             }
 
@@ -101,7 +99,7 @@
             @if(filteredProducts().length === 0) {
             <mat-option disabled>
               <mat-icon>search_off</mat-icon>
-              <span>Sonuç bulunamadı</span>
+              <span>{{ 'PALLET.NO_RESULTS' | translate }}</span>
             </mat-option>
             }
             @for(product of filteredProducts(); track product.id) {
@@ -132,7 +130,7 @@
                 (focus)="$event.target.select()"
                 (change)="updatePackageDetailCount(packageDetail, $event)" id="productCount-{{packageDetail.id}}"
                 name="productCount-{{packageDetail.id}}" />
-              <span class="count-label">Adet</span>
+              <span class="count-label">{{ 'INVOICE_UPLOAD.TABLE.COUNT' | translate }}</span>
             </div>
           </div>
 
@@ -144,7 +142,7 @@
                   splitInput.value ? +splitInput.value : null
                 );
                 splitInput.value = ''
-              " matTooltip="Kaç Adet Ayırmak İstiyorsunuz?" id="splitInput-{{packageDetail.id}}"
+              " [matTooltip]="'PALLET_CONTROL.HOW_MANY_SPLIT'| translate" id="splitInput-{{packageDetail.id}}"
               name="splitInput-{{packageDetail.id}}" />
 
             <button mat-icon-button class="action-button split-button" (click)="
@@ -153,13 +151,13 @@
                   splitInput.value ? +splitInput.value : null
                 );
                 splitInput.value = ''
-              " matTooltip="Ürünü Böl">
+              " [matTooltip]="'PALLET_CONTROL.SPLIT_PRODUCT'| translate">
               <mat-icon>content_cut</mat-icon>
             </button>
           </div>
           <div class="split-product-container">
             <button mat-icon-button class="action-button" (click)="deleteRemainingProducts([packageDetail.id])"
-              matTooltip="Ürünü Sil">
+              [matTooltip]="'PALLET_CONTROL.DELETE_PRODUCT'| translate">
               <mat-icon>close</mat-icon>
             </button>
           </div>
@@ -167,7 +165,7 @@
         } @if(!hasRemainingProduct()){
         <div class="empty-state">
           <mat-icon>done_all</mat-icon>
-          <p>Tüm ürünler paletlere yerleştirildi.</p>
+          <p>{{ 'PALLET_CONTROL.ALL_PRODUCTS_PLACED' | translate }}</p>
         </div>
         }
       </div>
@@ -179,18 +177,16 @@
         <div class="header-content-inline">
           <div class="header-title-section">
             <mat-icon>view_quilt</mat-icon>
-            <h2>Paletleme Alanı</h2>
+            <h2>{{ 'PALLET_CONTROL.PALLETIZING_AREA' | translate }}</h2>
             <button mat-raised-button (click)="calculatePackageDetail()" class="calculate-button"
-              matTooltip="Palet Yerleşimini Hesapla">
+              [matTooltip]="'PALLET_CONTROL.CALCULATE_PLACEMENT' | translate">
               <mat-icon>calculate</mat-icon>
-              <span>Hesapla</span>
+              <span>{{ 'PALLET_CONTROL.CALCULATE' | translate }}</span>
             </button>
 
             @if(uiPackages().length > 0) {
             <mat-checkbox class="vertical-sort-checkbox" [checked]="verticalSortSignal()"
-              (change)="onVerticalSortChange($event.checked)">
-              Dikey Yerleştir
-            </mat-checkbox>
+              (change)="onVerticalSortChange($event.checked)">{{ 'PALLET_CONTROL.VERTICAL_PLACEMENT' | translate }}</mat-checkbox>
             }
           </div>
 
@@ -199,7 +195,7 @@
             <div class="stat-item heaviest">
               <mat-icon>fitness_center</mat-icon>
               <div class="stat-info">
-                <span class="stat-label">En Ağır</span>
+                <span class="stat-label">{{ 'PALLET_CONTROL.HEAVIEST' | translate }}</span>
                 <span class="stat-value">{{ heaviestPalletWeight() }} kg</span>
               </div>
             </div>
@@ -207,7 +203,7 @@
             <div class="stat-item lightest">
               <mat-icon>feather</mat-icon>
               <div class="stat-info">
-                <span class="stat-label">En Hafif</span>
+                <span class="stat-label">{{ 'PALLET_CONTROL.LIGHTEST' | translate }}</span>
                 <span class="stat-value">{{ lightestPalletWeight() }} kg</span>
               </div>
             </div>
@@ -215,16 +211,16 @@
             <div class="stat-item average">
               <mat-icon>analytics</mat-icon>
               <div class="stat-info">
-                <span class="stat-label">Ortalama</span>
+                <span class="stat-label">{{ 'PALLET_CONTROL.AVERAGE' | translate }}</span>
                 <span class="stat-value">{{ averagePalletWeight() }} kg</span>
               </div>
             </div>
           </div>
         </div>
 
-        <button mat-button class="clear-button" (click)="removeAllPackage()" matTooltip="Tüm Paketleri Temizle">
+        <button mat-button class="clear-button" (click)="removeAllPackage()" [matTooltip]="'PALLET_CONTROL.CLEAR_ALL_PACKAGES' | translate">
           <mat-icon>delete_sweep</mat-icon>
-          <span>Temizle</span>
+          <span>{{ 'TRUCK_VISUALIZATION.CLEAR' | translate }}</span>
         </button>
       </div>
 
@@ -238,7 +234,7 @@
               @if(package.pallet?.dimension?.depth == 1000 || package.pallet?.dimension?.width == 1000){
               <button class="orientation-toggle" [class.vertical]="package.alignment === 'v'"
                 (click)="toggleAlignment(package)"
-                [matTooltip]="package.alignment === 'v' ? 'Dikey Yerleşim' : 'Yatay Yerleşim'">
+                [matTooltip]="(package.alignment === 'v' ? 'PALLET_CONTROL.VERTICAL_LAYOUT' : 'PALLET_CONTROL.HORIZONTAL_LAYOUT') | translate">
                 <div class="toggle-icon layers">
                   <span class="layer"></span>
                   <span class="layer"></span>
@@ -249,7 +245,7 @@
               }
             </div>
             <div class="package-actions">
-              <button mat-icon-button class="small-action" matTooltip="Paketi Çıkar" (click)="removePackage(package)">
+              <button mat-icon-button class="small-action" [matTooltip]="'PALLET_CONTROL.REMOVE_PACKAGE' | translate" (click)="removePackage(package)">
                 <mat-icon>close</mat-icon>
               </button>
             </div>
@@ -267,7 +263,7 @@
                   <span>{{ package.pallet.name }}</span>
                 </div>
                 <button mat-icon-button class="small-action" (click)="removePalletFromPackage(package)"
-                  matTooltip="Paleti Çıkar">
+                  [matTooltip]="'PALLET_CONTROL.REMOVE_PACKAGE' | translate">
                   <mat-icon>close</mat-icon>
                 </button>
               </div>
@@ -284,15 +280,15 @@
                   <div class="product-icon small"></div>
                   <div class="product-info">
                     <span class="product-name">{{ packageDetail.product.name }}</span>
-                    <span class="product-count">{{ packageDetail.count }} Adet</span>
+                    <span class="product-count">{{ packageDetail.count }} {{'DIMENSIONS.QUANTITY' | translate}}</span>
                   </div>
                   <div class="button-container">
                     <button mat-icon-button class="action-button" (click)="addPackageDetail(packageDetail.id)"
-                      matTooltip="Ekle">
+                      [matTooltip]="'COMMON.ADD'| translate">
                       <mat-icon>add</mat-icon>
                     </button>
                     <button mat-icon-button class="action-button"
-                      (click)="removePackageDetailFromPackage(package.id, j)" matTooltip="Ürünü çıkar">
+                      (click)="removePackageDetailFromPackage(package.id, j)" [matTooltip]="'COMMON.REMOVE_PRODUCT'| translate">
                       <mat-icon>close</mat-icon>
                     </button>
                   </div>
@@ -302,7 +298,7 @@
                 @if(package.package_details.length === 0){
                 <div class="empty-state">
                   <mat-icon>drag_indicator</mat-icon>
-                  <p>Bu palete ürün sürükleyin</p>
+                  <p>{{ 'PALLET_CONTROL.DRAG_PRODUCT_HERE' | translate }}</p>
                 </div>
                 }
               </div>
@@ -363,7 +359,7 @@
             @if(!package.pallet){
             <div class="empty-state">
               <mat-icon>add_box</mat-icon>
-              <p>Palet sürükleyin</p>
+              <p>{{ 'PALLET_CONTROL.DRAG_PALLET' | translate }}</p>
             </div>
             }
           </div>
@@ -376,7 +372,7 @@
     <div class="pallets-section">
       <div class="section-header">
         <mat-icon>view_module</mat-icon>
-        <h2>Palet Tipleri</h2>
+        <h2>{{ 'PALLET_CONTROL.PALLET_TYPES' | translate }}</h2>
       </div>
 
       <div cdkDropList #palletsList="cdkDropList" id="availablePalletsList" [cdkDropListData]="availablePallets()"
@@ -390,7 +386,7 @@
         } @if(availablePallets().length === 0){
         <div class="empty-state">
           <mat-icon>info</mat-icon>
-          <p>Henüz palet bulunmamaktadır.</p>
+          <p>{{ 'PALLET_CONTROL.NO_PALLETS' | translate }}</p>
         </div>
         }
       </div>
@@ -400,12 +396,12 @@
 
   <button mat-button class="next-button" (click)="submitForm()" [disabled]="!uiPackages() || uiPackages().length === 0">
     <mat-icon>arrow_forward</mat-icon>
-    <span>{{ this.isDirtySignal() ? "Kaydet" : "ileri" }}</span>
+    <span>{{( this.isDirtySignal() ? "'COMMON.SAVE'" : "'COMMON.SAVE'")| translate}}</span>
   </button>
 
   <button mat-button class="prev-button" (click)="goPreviousStep()">
     <mat-icon>arrow_back</mat-icon>
-    <span>Geri</span>
+    <span>{{ 'COMMON.BACK' | translate }}</span>
   </button>
 
 </form>

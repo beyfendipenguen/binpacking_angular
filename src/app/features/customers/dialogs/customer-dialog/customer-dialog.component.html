@@ -10,24 +10,24 @@
     @if (isLoading) {
       <div class="loading-container">
         <mat-spinner diameter="40"></mat-spinner>
-        <p>Yükleniyor...</p>
+        <p>{{ 'COMMON.LOADING' | translate }}</p>
       </div>
     } @else {
       <form [formGroup]="form" class="customer-form">
 
         <!-- Company Selection Section -->
         <div class="form-section">
-          <h3 class="section-title">Şirket Bilgileri</h3>
+          <h3 class="section-title">{{ 'PROFILE.COMPANY_INFO' | translate }}</h3>
 
           <div class="company-field-row">
             <mat-form-field appearance="outline" class="company-field">
-              <mat-label>Müşteri Şirketi</mat-label>
+              <mat-label>{{ 'CUSTOMER.CUSTOMER_COMPANY' | translate }}</mat-label>
               <input
                 type="text"
                 matInput
                 formControlName="target_company_search"
                 [matAutocomplete]="companyAuto"
-                placeholder="Şirket ara veya yeni ekle..."
+                [placeholder]="'CUSTOMER.COMPANY_PLACEHOLDER' | translate"
               />
               <mat-icon matPrefix>business</mat-icon>
               @if (selectedCompany) {
@@ -55,7 +55,7 @@
                 }
               </mat-autocomplete>
               @if (form.get('target_company')?.hasError('required') && form.get('target_company')?.touched) {
-                <mat-error>Müşteri şirketi seçimi zorunludur</mat-error>
+                <mat-error>{{ 'CUSTOMER.COMPANY_REQUIRED' | translate }}</mat-error>
               }
             </mat-form-field>
 
@@ -68,53 +68,51 @@
               [disabled]="!palletGroups.length"
             >
               <mat-icon>add</mat-icon>
-              Yeni Şirket
+              {{ 'CUSTOMER.NEW_COMPANY' | translate }}
             </button>
           </div>
 
           @if (selectedCompany) {
             <div class="selected-company-info">
               <mat-icon>check_circle</mat-icon>
-              <span>Seçili: <strong>{{ selectedCompany.company_name }}</strong> ({{ selectedCompany.country }})</span>
+              <span>{{ 'CUSTOMER.SELECTED' | translate }} <strong>{{ selectedCompany.company_name }}</strong> ({{ selectedCompany.country }})</span>
             </div>
           }
         </div>
 
         <!-- Relation Details Section -->
         <div class="form-section">
-          <h3 class="section-title">İlişki Detayları</h3>
+          <h3 class="section-title">{{ 'CUSTOMER.RELATIONSHIP' | translate }}</h3>
 
           <div class="form-row">
             <mat-form-field appearance="outline" class="full-width">
-              <mat-label>İlişki Türü</mat-label>
+              <mat-label>{{ 'CUSTOMER.RELATIONSHIP_TYPE_LABEL' | translate }}</mat-label>
               <mat-select formControlName="relation_type">
                 @for (option of relationTypeOptions; track option.value) {
                   <mat-option [value]="option.value">
-                    {{ option.label }}
+                    {{ option.labelKey | translate}}
                   </mat-option>
                 }
               </mat-select>
               <mat-icon matPrefix>category</mat-icon>
               @if (form.get('relation_type')?.hasError('required') && form.get('relation_type')?.touched) {
-                <mat-error>İlişki türü seçimi zorunludur</mat-error>
+                <mat-error>{{ 'CUSTOMER.RELATIONSHIP_TYPE_REQUIRED' | translate }}</mat-error>
               }
             </mat-form-field>
           </div>
 
           <div class="form-row">
-            <mat-slide-toggle formControlName="is_active" color="primary">
-              İlişki Aktif
-            </mat-slide-toggle>
+            <mat-slide-toggle formControlName="is_active" color="primary">{{ 'CUSTOMER.RELATIONSHIP_ACTIVE' | translate }}</mat-slide-toggle>
           </div>
 
           <div class="form-row">
             <mat-form-field appearance="outline" class="full-width">
-              <mat-label>Notlar</mat-label>
+              <mat-label>{{ 'COMMON.NOTES' | translate }}</mat-label>
               <textarea
                 matInput
                 formControlName="notes"
                 rows="3"
-                placeholder="İlişki hakkında notlar (opsiyonel)..."
+                [placeholder]="'CUSTOMER.NOTES_PLACEHOLDER' | translate"
               ></textarea>
               <mat-icon matPrefix>notes</mat-icon>
             </mat-form-field>
@@ -123,11 +121,11 @@
 
         <!-- Settings Section (Extra Data) -->
         <div class="form-section">
-          <h3 class="section-title">Ayarlar</h3>
+          <h3 class="section-title">{{ 'PROFILE.SETTINGS' | translate }}</h3>
 
           <div class="form-row form-row-2-cols">
             <mat-form-field appearance="outline">
-              <mat-label>Maksimum Palet Yüksekliği (mm)</mat-label>
+              <mat-label>{{ 'CUSTOMER.MAX_PALLET_HEIGHT' | translate }}</mat-label>
               <input
                 matInput
                 type="number"
@@ -135,17 +133,17 @@
                 placeholder="2400"
               />
               <mat-icon matPrefix>height</mat-icon>
-              <span matSuffix>mm</span>
+              <span matSuffix>{{ 'DIMENSIONS.MM' | translate }}</span>
               @if (form.get('max_pallet_height')?.hasError('required') && form.get('max_pallet_height')?.touched) {
-                <mat-error>Bu alan zorunludur</mat-error>
+                <mat-error>{{ 'GENERIC_TABLE.REQUIRED_FIELD' | translate }}</mat-error>
               }
               @if (form.get('max_pallet_height')?.hasError('min')) {
-                <mat-error>Minimum değer 1 olmalıdır</mat-error>
+                <mat-error>{{ 'CUSTOMER.MIN_VALUE_1' | translate }}</mat-error>
               }
             </mat-form-field>
 
             <mat-form-field appearance="outline">
-              <mat-label>Kamyon Ağırlık Limiti (kg)</mat-label>
+              <mat-label>{{ 'CUSTOMER.TRUCK_WEIGHT_LIMIT' | translate }}</mat-label>
               <input
                 matInput
                 type="number"
@@ -153,22 +151,22 @@
                 placeholder="25000"
               />
               <mat-icon matPrefix>local_shipping</mat-icon>
-              <span matSuffix>kg</span>
+              <span matSuffix>{{ 'DIMENSIONS.KG' | translate }}</span>
               @if (form.get('truck_weight_limit')?.hasError('required') && form.get('truck_weight_limit')?.touched) {
-                <mat-error>Bu alan zorunludur</mat-error>
+                <mat-error>{{ 'GENERIC_TABLE.REQUIRED_FIELD' | translate }}</mat-error>
               }
               @if (form.get('truck_weight_limit')?.hasError('min')) {
-                <mat-error>Minimum değer 1 olmalıdır</mat-error>
+                <mat-error>{{ 'CUSTOMER.MIN_VALUE_1' | translate }}</mat-error>
               }
             </mat-form-field>
           </div>
 
           <div class="form-row pallet-group-row">
             <mat-form-field appearance="outline" class="pallet-group-field">
-              <mat-label>Varsayılan Palet Grubu</mat-label>
+              <mat-label>{{ 'CUSTOMER.DEFAULT_PALLET_GROUP' | translate }}</mat-label>
               <mat-select formControlName="default_pallet_group_id" placeholder="Palet grubu seçin...">
                 <mat-option [value]="null">
-                  <span class="empty-option">Palet grubu seçilmedi</span>
+                  <span class="empty-option">{{ 'CUSTOMER.NO_PALLET_GROUP' | translate }}</span>
                 </mat-option>
                 @for (group of palletGroups; track group.id) {
                   <mat-option [value]="group.id">
@@ -183,7 +181,7 @@
               @if (isLoadingPalletGroups) {
                 <mat-spinner matSuffix diameter="20"></mat-spinner>
               }
-              <mat-hint>Opsiyonel - Müşteri için varsayılan palet grubu</mat-hint>
+              <mat-hint>{{ 'CUSTOMER.PALLET_HINT' | translate }}</mat-hint>
             </mat-form-field>
 
             @if (palletGroups.length === 0 && !isLoadingPalletGroups) {
@@ -193,11 +191,9 @@
                 type="button"
                 (click)="navigateToPalletGroups()"
                 class="add-pallet-group-btn"
-                matTooltip="Henüz palet grubu yok, yeni eklemek için tıklayın"
+                [matTooltip]="'CUSTOMER.NO_PALLET_GROUPS_YET' | translate"
               >
-                <mat-icon>add</mat-icon>
-                Palet Grubu Ekle
-              </button>
+                <mat-icon>add</mat-icon>{{ 'CUSTOMER.ADD_PALLET_GROUP' | translate }}</button>
             }
           </div>
         </div>
@@ -211,9 +207,7 @@
       mat-button
       (click)="onCancel()"
       [disabled]="isSaving"
-    >
-      İptal
-    </button>
+    >{{ 'HEADER.CANCEL' | translate }}</button>
     <button
       mat-raised-button
       color="primary"
@@ -223,7 +217,7 @@
       @if (isSaving) {
         <mat-spinner diameter="20" class="button-spinner"></mat-spinner>
       }
-      {{ data.mode === 'create' ? 'Ekle' : 'Güncelle' }}
+      {{ (data.mode === 'create' ? 'COMMON.SAVE' : 'COMMON.UPDATE' ) | translate}}
     </button>
   </mat-dialog-actions>
 </div>

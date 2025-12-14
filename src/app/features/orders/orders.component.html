@@ -12,8 +12,8 @@
         </div>
       </div>
       <div class="hero-text">
-        <h1 class="hero-title">Sevkiyat Yönetimi</h1>
-        <p class="hero-subtitle">Aktif siparişleri görüntüleyin ve detaylı bilgilere erişin</p>
+        <h1 class="hero-title">{{ 'ORDER.TITLE' | translate }}</h1>
+        <p class="hero-subtitle">{{ 'ORDER.SUBTITLE' | translate }}</p>
       </div>
     </div>
   </div>
@@ -22,7 +22,7 @@
   <div class="table-wrapper" *appHasPermission="'orders.view_order'">
     <app-generic-table [service]="orderService" [displayedColumns]="displayedColumns" [columnTypes]="columnTypes"
       [columnDefinitions]="columnDefinitions" [nestedDisplayColumns]="nestedDisplayColumns"
-      [filterableColumns]="filterableColumns" [title]="'Sevkiyat Emirleri'" [showRowNumbers]="true"
+      [filterableColumns]="filterableColumns" [title]="''" [showRowNumbers]="true"
       [showAddButton]="false" [showUpdateButton]="false" [showDeleteButton]="true"
       (cellButtonClick)="onCellButtonClick($event)" (rowClick)="onRowClick($event)">
     </app-generic-table>

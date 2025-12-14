@@ -13,7 +13,7 @@ import {
   untracked,
   computed
 } from '@angular/core';
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { MatButton } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { CommonModule } from '@angular/common';
@@ -34,11 +34,11 @@ import { ReportFile, ResultStepService } from './result-step.service';
 @Component({
   selector: 'app-result-step',
   standalone: true,
-  imports: [
-    CommonModule,
+  imports: [CommonModule,
     MatButton,
     MatIconModule,
-    ThreeJSTruckVisualizationComponent
+    ThreeJSTruckVisualizationComponent,
+    TranslateModule
   ],
   templateUrl: './result-step.component.html',
   styleUrl: './result-step.component.scss',

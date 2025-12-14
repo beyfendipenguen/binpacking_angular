@@ -1,6 +1,6 @@
 <div class="add-company-dialog">
   <div class="dialog-header">
-    <h2 mat-dialog-title>Yeni Şirket Ekle</h2>
+    <h2 mat-dialog-title>{{ 'CUSTOMER.NEW_COMPANY_DIALOG_TITLE' | translate }}</h2>
     <button mat-icon-button (click)="onCancel()" class="close-btn">
       <mat-icon>close</mat-icon>
     </button>
@@ -11,47 +11,45 @@
 
       <div class="form-row">
         <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Şirket Adı</mat-label>
+          <mat-label>{{ 'CUSTOMER.COMPANY_NAME' | translate }}</mat-label>
           <input
             matInput
             formControlName="company_name"
-            placeholder="Örn: ABC Lojistik A.Ş."
+            [placeholder]="'CUSTOMER.COMPANY_NAME_PLACEHOLDER' | translate"
             autocomplete="off"
           />
           <mat-icon matPrefix>business</mat-icon>
           @if (form.get('company_name')?.hasError('required') && form.get('company_name')?.touched) {
-            <mat-error>Şirket adı zorunludur</mat-error>
+            <mat-error>{{ 'PROFILE.COMPANY_NAME_REQUIRED' | translate }}</mat-error>
           }
           @if (form.get('company_name')?.hasError('minlength')) {
-            <mat-error>Şirket adı en az 2 karakter olmalıdır</mat-error>
+            <mat-error>{{ 'PROFILE.COMPANY_NAME_MIN' | translate }}</mat-error>
           }
         </mat-form-field>
       </div>
 
       <div class="form-row">
         <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Ülke</mat-label>
+          <mat-label>{{ 'COMMON.COUNTRY' | translate }}</mat-label>
           <input
             matInput
             formControlName="country"
-            placeholder="Örn: Türkiye, Almanya, İngiltere"
+            [placeholder]="'CUSTOMER.COUNTRY_PLACEHOLDER' | translate"
             autocomplete="off"
           />
           <mat-icon matPrefix>flag</mat-icon>
           @if (form.get('country')?.hasError('required') && form.get('country')?.touched) {
-            <mat-error>Ülke zorunludur</mat-error>
+            <mat-error>{{ 'PROFILE.COUNTRY_REQUIRED' | translate }}</mat-error>
           }
           @if (form.get('country')?.hasError('minlength')) {
-            <mat-error>Ülke en az 2 karakter olmalıdır</mat-error>
+            <mat-error>{{ 'PROFILE.COUNTRY_MIN' | translate }}</mat-error>
           }
         </mat-form-field>
       </div>
 
       <div class="info-box">
         <mat-icon>info</mat-icon>
-        <p>
-          Yeni şirket eklendikten sonra otomatik olarak müşteri olarak seçilecektir.
-        </p>
+        <p>{{ 'CUSTOMER.COMPANY_ADDED_INFO' | translate }}</p>
       </div>
 
     </form>
@@ -62,9 +60,7 @@
       mat-button
       (click)="onCancel()"
       [disabled]="isSaving"
-    >
-      İptal
-    </button>
+    >{{ 'COMMON.CANCEL' | translate }}</button>
     <button
       mat-raised-button
       color="primary"
@@ -74,7 +70,7 @@
       @if (isSaving) {
         <mat-spinner diameter="20" class="button-spinner"></mat-spinner>
       }
-      Ekle
+      {{ 'COMMON.ADD' | translate }}
     </button>
   </mat-dialog-actions>
 </div>

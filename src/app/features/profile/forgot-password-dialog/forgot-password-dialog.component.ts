@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { Component, inject } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -14,8 +14,7 @@ import { UserService } from '@app/features/auth/user.service';
 @Component({
   selector: 'app-forgot-password-dialog',
   standalone: true,
-  imports: [
-    CommonModule,
+  imports: [CommonModule,
     MatDialogModule,
     MatButtonModule,
     MatFormFieldModule,
@@ -23,7 +22,8 @@ import { UserService } from '@app/features/auth/user.service';
     MatIconModule,
     MatProgressSpinnerModule,
     ReactiveFormsModule,
-    MatSnackBarModule
+    MatSnackBarModule,
+    TranslateModule
   ],
   templateUrl: './forgot-password-dialog.component.html',
   styleUrl: './forgot-password-dialog.component.scss'

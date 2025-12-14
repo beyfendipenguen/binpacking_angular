@@ -12,31 +12,16 @@ export enum RelationType {
 
 export interface CompanyRelation {
   id?: string;
-
-  // Backend'den nested Company objesi gelecek
   target_company: Company;
-
-  // İlişki türü
   relation_type: RelationType;
-
-  // İlişki türü görünümü
   relation_type_display: string;
-
-  // İlişkinin aktif olup olmadığı
   is_active: boolean;
-
-  // İlişki hakkında notlar
   notes?: string | null;
-
-  // İlişkiye özel ek bilgiler (settings)
   extra_data?: ExtraData | null;
-
-  // Meta-veriler
   created_at?: Date;
   updated_at?: Date;
 }
 
-// Extra Data yapısı
 export interface ExtraData {
   _schema_version?: string;
   is_multi_pallet?: boolean;
@@ -45,41 +30,41 @@ export interface ExtraData {
   default_pallet_group_id?: string | null;
 }
 
-// Create/Update için DTO
 export interface CompanyRelationDto {
-  target_company: Company; // UUID
+  target_company: Company;
   relation_type: RelationType;
   is_active: boolean;
   notes?: string | null;
   extra_data?: ExtraData | null;
 }
 
-// İlişki türlerinin görünür isimlerini getiren yardımcı fonksiyon
-export const getRelationTypeLabel = (type: RelationType): string => {
-  const labels = {
-    [RelationType.CUSTOMER]: 'Müşteri',
-    [RelationType.SUPPLIER]: 'Tedarikçi',
-    [RelationType.PARTNER]: 'İş Ortağı',
-    [RelationType.CONTRACTOR]: 'Yüklenici',
-    [RelationType.DISTRIBUTOR]: 'Distribütör',
-    [RelationType.SUBSIDIARY]: 'Bağlı Kuruluş',
-    [RelationType.OTHER]: 'Diğer'
-  };
-  return labels[type] || 'Bilinmeyen İlişki Türü';
+// ✅ Translation key'leri döndür (component'te translate edilecek)
+export const RELATION_TYPE_KEYS = {
+  [RelationType.CUSTOMER]: 'COMPANY_RELATION.TYPE.CUSTOMER',
+  [RelationType.SUPPLIER]: 'COMPANY_RELATION.TYPE.SUPPLIER',
+  [RelationType.PARTNER]: 'COMPANY_RELATION.TYPE.PARTNER',
+  [RelationType.CONTRACTOR]: 'COMPANY_RELATION.TYPE.CONTRACTOR',
+  [RelationType.DISTRIBUTOR]: 'COMPANY_RELATION.TYPE.DISTRIBUTOR',
+  [RelationType.SUBSIDIARY]: 'COMPANY_RELATION.TYPE.SUBSIDIARY',
+  [RelationType.OTHER]: 'COMPANY_RELATION.TYPE.OTHER'
+} as const;
+
+// ✅ Translation key döndür
+export const getRelationTypeKey = (type: RelationType): string => {
+  return RELATION_TYPE_KEYS[type] || 'COMPANY_RELATION.TYPE.UNKNOWN';
 };
 
-// Relation types için dropdown options
+// ✅ Dropdown için translation key'ler
 export const RELATION_TYPE_OPTIONS = [
-  { value: RelationType.CUSTOMER, label: 'Müşteri' },
-  { value: RelationType.SUPPLIER, label: 'Tedarikçi' },
-  { value: RelationType.PARTNER, label: 'İş Ortağı' },
-  { value: RelationType.CONTRACTOR, label: 'Yüklenici' },
-  { value: RelationType.DISTRIBUTOR, label: 'Distribütör' },
-  { value: RelationType.SUBSIDIARY, label: 'Bağlı Kuruluş' },
-  { value: RelationType.OTHER, label: 'Diğer' }
+  { value: RelationType.CUSTOMER, labelKey: 'COMPANY_RELATION.TYPE.CUSTOMER' },
+  { value: RelationType.SUPPLIER, labelKey: 'COMPANY_RELATION.TYPE.SUPPLIER' },
+  { value: RelationType.PARTNER, labelKey: 'COMPANY_RELATION.TYPE.PARTNER' },
+  { value: RelationType.CONTRACTOR, labelKey: 'COMPANY_RELATION.TYPE.CONTRACTOR' },
+  { value: RelationType.DISTRIBUTOR, labelKey: 'COMPANY_RELATION.TYPE.DISTRIBUTOR' },
+  { value: RelationType.SUBSIDIARY, labelKey: 'COMPANY_RELATION.TYPE.SUBSIDIARY' },
+  { value: RelationType.OTHER, labelKey: 'COMPANY_RELATION.TYPE.OTHER' }
 ];
 
-// Yeni bir CompanyRelation oluşturmak için varsayılan değerler
 export const createDefaultCompanyRelation = (): Partial<CompanyRelationDto> => {
   return {
     relation_type: RelationType.CUSTOMER,

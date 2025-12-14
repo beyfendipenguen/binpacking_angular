@@ -1,33 +1,36 @@
 <ng-container>
-
   <mat-stepper #stepper class="responsive-stepper" [orientation]="(stepperOrientation | async)!"
-    (selectionChange)="onStepChange($event)" [linear]="!isEditModeSignal()" [selectedIndex]="(selectedIndex | async) ">
+    (selectionChange)="onStepChange($event)" [linear]="!isEditModeSignal()" [selectedIndex]="(selectedIndex | async)">
     <app-loading></app-loading>
 
     <mat-step [completed]="(completedStepsSignal() >= 1)" [editable]="true">
       <ng-template matStepLabel>
-        (ISB) İhracat Sipariş Bildirimi Yükleme @if (isEditModeSignal()) {<span
-          class="edit-mode-badge">DÜZENLEME</span>}
+        {{ 'STEPPER.STEP_1_LABEL' | translate }}
+        @if (isEditModeSignal()) {
+          <span class="edit-mode-badge">{{ 'STEPPER.EDIT_MODE' | translate }}</span>
+        }
       </ng-template>
-      <app-invoice-upload #invoiceUploadComponent>
-      </app-invoice-upload>
+      <app-invoice-upload #invoiceUploadComponent></app-invoice-upload>
     </mat-step>
 
     <mat-step [completed]="(completedStepsSignal() >= 2)" [editable]="(completedStepsSignal() >= 1)">
       <ng-template matStepLabel>
-        Palet Kontrolü @if (isEditModeSignal()) {<span class="edit-mode-badge">DÜZENLEME</span>}
+        {{ 'STEPPER.STEP_2_LABEL' | translate }}
+        @if (isEditModeSignal()) {
+          <span class="edit-mode-badge">{{ 'STEPPER.EDIT_MODE' | translate }}</span>
+        }
       </ng-template>
-      <app-pallet-control #palletControlComponent> </app-pallet-control>
+      <app-pallet-control #palletControlComponent></app-pallet-control>
     </mat-step>
 
     <mat-step [completed]="completedStepsSignal() >= 3" [editable]="completedStepsSignal() >= 2">
       <ng-template matStepLabel>
-        Sonuç Ekranı @if (isEditModeSignal()) {<span class="edit-mode-badge">DÜZENLEME</span>}
+        {{ 'STEPPER.STEP_3_LABEL' | translate }}
+        @if (isEditModeSignal()) {
+          <span class="edit-mode-badge">{{ 'STEPPER.EDIT_MODE' | translate }}</span>
+        }
       </ng-template>
-      <app-result-step #resultStepComponent (shipmentCompleted)="onShipmentCompleted()">
-      </app-result-step>
+      <app-result-step #resultStepComponent (shipmentCompleted)="onShipmentCompleted()"></app-result-step>
     </mat-step>
-
   </mat-stepper>
-
 </ng-container>

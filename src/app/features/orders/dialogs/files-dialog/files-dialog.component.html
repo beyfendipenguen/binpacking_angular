@@ -5,7 +5,7 @@
       <mat-icon>folder</mat-icon>
     </div>
     <div class="header-content">
-      <h2 class="dialog-title">Sipariş Dosyaları</h2>
+      <h2 class="dialog-title">{{ 'FILE.ORDER_FILES' | translate }}</h2>
       <p class="dialog-subtitle">
         <span class="order-name">{{ data.orderName }}</span>
         <span class="separator">•</span>
@@ -21,7 +21,7 @@
   @if (isLoading) {
   <div class="loading-state">
     <mat-spinner diameter="50"></mat-spinner>
-    <p>Dosyalar yükleniyor...</p>
+    <p>{{ 'FILE.LOADING_FILES' | translate }}</p>
   </div>
   }
 
@@ -30,7 +30,7 @@
   <div class="dialog-content">
     <div class="files-header">
       <mat-icon>info</mat-icon>
-      <span>{{ files.length }} dosya bulundu</span>
+      <span>{{ files.length }} {{ 'FILE.FILES_FOUND' | translate}}</span>
     </div>
 
     <div class="files-grid">
@@ -44,7 +44,7 @@
           <p class="file-type">{{ getFileTypeLabel(file.type) }}</p>
         </div>
         <div class="file-action">
-          <button mat-icon-button (click)="downloadFile(file); $event.stopPropagation()" matTooltip="İndir">
+          <button mat-icon-button (click)="downloadFile(file); $event.stopPropagation()" [matTooltip]="'COMMON.DOWNLOAD' | translate">
             <mat-icon>download</mat-icon>
           </button>
         </div>
@@ -58,7 +58,7 @@
   @if (!isLoading && files.length === 0) {
   <div class="empty-state">
     <mat-icon>folder_off</mat-icon>
-    <p>Bu sipariş için dosya bulunamadı.</p>
+    <p>{{ 'FILE.NO_FILES' | translate }}</p>
   </div>
   }
 </div>

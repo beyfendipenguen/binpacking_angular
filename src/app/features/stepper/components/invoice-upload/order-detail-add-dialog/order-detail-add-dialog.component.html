@@ -3,22 +3,22 @@
     <div class="icon-wrapper">
       <mat-icon class="header-icon">add_shopping_cart</mat-icon>
     </div>
-    <h2 mat-dialog-title>Sipariş Detayı Ekle</h2>
+    <h2 mat-dialog-title>{{ 'INVOICE_UPLOAD.ADD_ORDER_DETAIL' | translate }}</h2>
   </div>
 
   <mat-dialog-content>
     <form [formGroup]="orderDetailForm" (ngSubmit)="onSubmit()">
       <!-- Ürün Arama -->
       <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Ürün Ara</mat-label>
+        <mat-label>{{ 'INVOICE_UPLOAD.SEARCH_PRODUCT' | translate }}</mat-label>
         <mat-icon matPrefix>inventory_2</mat-icon>
-        <input type="text" placeholder="Ürün kodu veya tip numarası" matInput
+        <input type="text" [placeholder]="'INVOICE_UPLOAD.SEARCH_PLACEHOLDER' | translate" matInput
           formControlName="product" [matAutocomplete]="auto">
         <mat-autocomplete #auto="matAutocomplete" [displayWith]="displayProductFn.bind(this)">
           @if(isLoading) {
             <mat-option class="loading-indicator">
               <mat-spinner diameter="20"></mat-spinner>
-              <span>Aranıyor...</span>
+              <span>{{ 'COMMON.SEARCHING' | translate }}</span>
             </mat-option>
           }
 
@@ -33,7 +33,7 @@
             @if(filteredProducts.length === 0) {
               <mat-option disabled>
                 <mat-icon>search_off</mat-icon>
-                <span>Sonuç bulunamadı</span>
+                <span>{{ 'PALLET.NO_RESULTS' | translate }}</span>
               </mat-option>
             }
             @for(product of filteredProducts; track product.id) {
@@ -46,19 +46,19 @@
             }
           }
         </mat-autocomplete>
-        <mat-hint>En az 3 karakter yazın</mat-hint>
+        <mat-hint>{{ 'INVOICE_UPLOAD.MIN_CHARS' | translate }}</mat-hint>
       </mat-form-field>
 
       <!-- Miktar -->
       <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Miktar</mat-label>
+        <mat-label>{{ 'INVOICE_UPLOAD.QUANTITY' | translate }}</mat-label>
         <mat-icon matPrefix>numbers</mat-icon>
         <input type="number" matInput formControlName="count" min="1">
         @if(orderDetailForm.get('count')?.hasError('required')) {
-          <mat-error>Miktar girilmesi zorunludur</mat-error>
+          <mat-error>{{ 'INVOICE_UPLOAD.QUANTITY_REQUIRED' | translate }}</mat-error>
         }
         @if(orderDetailForm.get('count')?.hasError('min')) {
-          <mat-error>Miktar en az 1 olmalıdır</mat-error>
+          <mat-error>{{ 'INVOICE_UPLOAD.QUANTITY_MIN' | translate }}</mat-error>
         }
       </mat-form-field>
 
@@ -67,13 +67,13 @@
         <div class="selected-product-box">
           <div class="product-header">
             <mat-icon>check_circle</mat-icon>
-            <h4>Seçilen Ürün</h4>
+            <h4>{{ 'INVOICE_UPLOAD.SELECTED_PRODUCT' | translate }}</h4>
           </div>
           <div class="product-details">
             <div class="product-detail-item">
               <mat-icon>qr_code_2</mat-icon>
               <div class="detail-content">
-                <span class="detail-label">Kod-Tip:</span>
+                <span class="detail-label">{{ 'INVOICE_UPLOAD.CODE_TYPE' | translate }}</span>
                 <span class="detail-value">
                   {{ orderDetailForm.get('product_id')?.value.product_type?.code }}-{{
                   orderDetailForm.get('product_id')?.value.product_type?.type }}
@@ -83,7 +83,7 @@
             <div class="product-detail-item">
               <mat-icon>straighten</mat-icon>
               <div class="detail-content">
-                <span class="detail-label">Boyutlar:</span>
+                <span class="detail-label">{{ 'TRUCK_VISUALIZATION.DIMENSIONS' | translate }}</span>
                 <span class="detail-value">
                   {{ orderDetailForm.get('product_id')?.value.dimension?.width }}x
                   {{ orderDetailForm.get('product_id')?.value.dimension?.height }}x
@@ -95,7 +95,7 @@
             <div class="product-detail-item">
               <mat-icon>analytics</mat-icon>
               <div class="detail-content">
-                <span class="detail-label">Hacim:</span>
+                <span class="detail-label">{{'DIMENSIONS.VOLUME' | translate}}:</span>
                 <span class="detail-value">
                   {{ orderDetailForm.get('product_id')?.value.dimension?.volume | number:'1.0-2' }} mm³
                 </span>
@@ -110,12 +110,12 @@
   <mat-dialog-actions>
     <button mat-stroked-button (click)="onCancel()" class="cancel-button">
       <mat-icon>close</mat-icon>
-      <span>İptal</span>
+      <span>{{ 'HEADER.CANCEL' | translate }}</span>
     </button>
     <button mat-raised-button color="primary" [disabled]="orderDetailForm.invalid"
       (click)="onSubmit()" class="save-button">
       <mat-icon>save</mat-icon>
-      <span>Kaydet</span>
+      <span>{{ 'COMMON.SAVE' | translate }}</span>
     </button>
   </mat-dialog-actions>
 </div>

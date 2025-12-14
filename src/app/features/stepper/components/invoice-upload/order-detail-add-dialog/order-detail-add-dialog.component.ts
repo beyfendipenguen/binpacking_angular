@@ -1,5 +1,5 @@
 import { Component, inject, OnInit } from '@angular/core';
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { CommonModule } from '@angular/common';
 import {
   ReactiveFormsModule,
@@ -32,8 +32,7 @@ import { generateUUID } from 'three/src/math/MathUtils.js';
 @Component({
   selector: 'app-order-detail-add-dialog',
   standalone: true,
-  imports: [
-    CommonModule,
+  imports: [CommonModule,
     ReactiveFormsModule,
     MatDialogModule,
     MatFormFieldModule,
@@ -43,12 +42,13 @@ import { generateUUID } from 'three/src/math/MathUtils.js';
     MatProgressSpinnerModule,
     MatTabsModule,
     MatIconModule,
+    TranslateModule
   ],
   templateUrl: './order-detail-add-dialog.component.html',
   styleUrl: './order-detail-add-dialog.component.scss',
 })
 export class OrderDetailAddDialogComponent implements OnInit {
-  
+
   private translate = inject(TranslateService);
 orderDetailForm: FormGroup;
   dimensionSearchForm: FormGroup;

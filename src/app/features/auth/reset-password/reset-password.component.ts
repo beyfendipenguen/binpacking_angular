@@ -12,13 +12,12 @@ import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { UserService } from '../user.service';
 import { ToastService } from '@app/core/services/toast.service';
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-reset-password',
   standalone: true,
-  imports: [
-    CommonModule,
+  imports: [CommonModule,
     RouterModule,
     ReactiveFormsModule,
     MatCardModule,
@@ -28,7 +27,8 @@ import { TranslateService } from '@ngx-translate/core';
     MatIconModule,
     MatProgressSpinnerModule,
     MatSnackBarModule,
-    MatProgressBarModule
+    MatProgressBarModule,
+    TranslateModule
   ],
   templateUrl: './reset-password.component.html',
   styleUrl: './reset-password.component.scss'

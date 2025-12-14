@@ -72,40 +72,36 @@
     <div class="login-card">
       <div class="login-header">
         <mat-icon class="logo-icon">local_shipping</mat-icon>
-        <h1>Lojistik Yönetim Sistemi</h1>
-        <p>Palet ve TIR yükleme optimizasyonu</p>
+        <h1>{{ 'SIGNIN.TITLE' | translate }}</h1>
+        <p>{{ 'SIGNIN.SUBTITLE' | translate }}</p>
       </div>
 
       <form class="login-form" [formGroup]="signinForm" (ngSubmit)="loginUser()">
         <mat-form-field appearance="outline">
-          <mat-label>Kullanıcı Adı</mat-label>
+          <mat-label>{{ 'SIGNIN.USERNAME_LABEL' | translate }}</mat-label>
           <input matInput formControlName="username" placeholder="Lojistik kimlik numaranız">
           <mat-icon matSuffix>person</mat-icon>
         </mat-form-field>
 
         <mat-form-field appearance="outline">
-          <mat-label>Parola</mat-label>
-          <input matInput formControlName="password" [type]="hide ? 'password' : 'text'" placeholder="Şifrenizi girin">
+          <mat-label>{{ 'SIGNIN.PASSWORD_LABEL' | translate }}</mat-label>
+          <input matInput formControlName="password" [type]="hide ? 'password' : 'text'" [placeholder]="'SIGNIN.PASSWORD_PLACEHOLDER' | translate">
           <button mat-icon-button matSuffix (click)="hide = !hide" [attr.aria-label]="'Hide password'" [attr.aria-pressed]="hide">
             <mat-icon>{{hide ? 'visibility_off' : 'visibility'}}</mat-icon>
           </button>
         </mat-form-field>
 
         <button class="login-button custom-button" [disabled]="signinForm.invalid" type="submit" mat-raised-button>
-          Sisteme Giriş
+          {{ 'AUTH.SIGN_IN' | translate }}
           <mat-icon class="button-icon">keyboard_arrow_right</mat-icon>
         </button>
       </form>
 
       <div class="quick-actions">
         <button mat-button class="action-link" (click)="openForgotPasswordDialog()">
-          <mat-icon>lock_open</mat-icon>
-          Parolamı Unuttum
-        </button>
+          <mat-icon>lock_open</mat-icon>{{ 'AUTH.FORGOT_PASSWORD' | translate }}</button>
         <button mat-button class="action-link">
-          <mat-icon>help_outline</mat-icon>
-          Teknik Destek
-        </button>
+          <mat-icon>help_outline</mat-icon>{{ 'AUTH.TECHNICAL_SUPPORT' | translate }}</button>
       </div>
     </div>
 

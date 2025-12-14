@@ -1,17 +1,11 @@
 <h2 mat-dialog-title>
-  <mat-icon class="warning-icon">warning</mat-icon>
-  Onay
-</h2>
+  <mat-icon class="warning-icon">warning</mat-icon>{{ 'GENERIC_TABLE.CONFIRMATION' | translate }}</h2>
 <mat-dialog-content>
   <p>{{ data.message }}</p>
 </mat-dialog-content>
 <mat-dialog-actions align="end">
   <button mat-button [mat-dialog-close]="false">
-    <mat-icon>close</mat-icon>
-    İptal
-  </button>
+    <mat-icon>close</mat-icon>{{ 'HEADER.CANCEL' | translate }}</button>
   <button mat-raised-button color="warn" [mat-dialog-close]="true">
-    <mat-icon>check</mat-icon>
-    Onay
-  </button>
+    <mat-icon>check</mat-icon>{{ 'GENERIC_TABLE.CONFIRMATION' | translate }}</button>
 </mat-dialog-actions>

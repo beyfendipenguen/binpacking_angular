@@ -1,5 +1,5 @@
 import { Component, inject, OnInit } from '@angular/core';
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { CommonModule } from '@angular/common';
 import { MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
@@ -15,12 +15,12 @@ import { Pallet } from '@app/features/interfaces/pallet.interface';
 import { PalletGroupService } from '@app/features/services/pallet-group.service';
 import { PalletService } from '@app/features/services/pallet.service';
 import { ToastService } from '@app/core/services/toast.service';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 @Component({
   selector: 'app-pallet-group-dialog',
   standalone: true,
-  imports: [
-    CommonModule,
+  imports: [CommonModule,
     FormsModule,
     ReactiveFormsModule,
     MatDialogModule,
@@ -31,6 +31,8 @@ import { ToastService } from '@app/core/services/toast.service';
     MatChipsModule,
     MatListModule,
     MatProgressSpinnerModule,
+    TranslateModule,
+    MatTooltipModule
   ],
   templateUrl: './pallet-group-dialog.component.html',
   styleUrls: ['./pallet-group-dialog.component.scss']

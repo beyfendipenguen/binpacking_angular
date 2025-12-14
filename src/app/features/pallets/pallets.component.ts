@@ -1,5 +1,5 @@
 import { Component, inject } from '@angular/core';
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { PalletService } from '../services/pallet.service';
 import { BulkUploadConfig } from '@app/shared/bulk-upload-dialog/bulk-upload.config';
 import { createPalletBulkConfig } from './config/pallet-bulk.config';
@@ -14,14 +14,14 @@ import { PalletGroupDialogComponent } from './pallet-group-dialog/pallet-group-d
 
 @Component({
   selector: 'app-pallets',
-  imports: [
-    CommonModule,
+  imports: [CommonModule,
     GenericTableComponent,
     MatButtonModule,
     MatIconModule,
     MatMenuModule,
     MatDialogModule,
-    BulkUploadButtonDirective
+    BulkUploadButtonDirective,
+    TranslateModule
   ],
   templateUrl: './pallets.component.html',
   styleUrl: './pallets.component.scss'

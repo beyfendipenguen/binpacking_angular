@@ -9,7 +9,7 @@ import {
   AfterViewInit,
   SimpleChanges,
 } from '@angular/core';
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
@@ -76,8 +76,7 @@ export interface CellButtonClickEvent<T> {
 
 @Component({
   selector: 'app-generic-table',
-  imports: [
-    CommonModule,
+  imports: [CommonModule,
     FormsModule,
     ReactiveFormsModule,
     MatTableModule,
@@ -93,6 +92,7 @@ export interface CellButtonClickEvent<T> {
     MatTooltipModule,
     MatChipsModule,
     MatButtonToggleModule,
+    TranslateModule
   ],
   providers: [DatePipe],
   templateUrl: './generic-table.component.html',

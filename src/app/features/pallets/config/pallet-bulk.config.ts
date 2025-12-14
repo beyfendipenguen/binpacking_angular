@@ -1,7 +1,7 @@
 import { inject } from '@angular/core';
 import { PalletService } from '@app/features/services/pallet.service';
 import { BulkUploadConfig } from '@app/shared/bulk-upload-dialog/bulk-upload.config';
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 export function createPalletBulkConfig(): BulkUploadConfig {
   const palletService = inject(PalletService);

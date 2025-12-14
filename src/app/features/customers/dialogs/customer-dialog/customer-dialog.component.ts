@@ -1,5 +1,5 @@
 import { Component, Inject, OnInit, inject } from '@angular/core';
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef, MatDialog, MatDialogModule } from '@angular/material/dialog';
@@ -27,6 +27,7 @@ import { PalletGroup } from '../../../interfaces/pallet-group.interface';
 import { Observable } from 'rxjs';
 import { map, startWith } from 'rxjs/operators';
 import { AddCompanyDialogComponent } from '../add-company-dialog/add-company-dialog.component';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 export interface CustomerDialogData {
   mode: 'create' | 'edit';
@@ -36,8 +37,7 @@ export interface CustomerDialogData {
 @Component({
   selector: 'app-customer-dialog',
   standalone: true,
-  imports: [
-    CommonModule,
+  imports: [CommonModule,
     ReactiveFormsModule,
     MatDialogModule,
     MatFormFieldModule,
@@ -47,7 +47,9 @@ export interface CustomerDialogData {
     MatSlideToggleModule,
     MatIconModule,
     MatProgressSpinnerModule,
-    MatAutocompleteModule
+    MatAutocompleteModule,
+    TranslateModule,
+    MatTooltipModule
   ],
   templateUrl: './customer-dialog.component.html',
   styleUrl: './customer-dialog.component.scss'

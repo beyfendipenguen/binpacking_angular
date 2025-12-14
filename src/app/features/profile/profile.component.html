@@ -8,7 +8,7 @@
             <div class="profile-picture-container">
               <img
                 [src]="profilePictureUrl"
-                alt="Profil fotoğrafı"
+                [alt]="'PROFILE.PHOTO' | translate"
                 class="profile-picture"
                 [class.loading]="isLoadingPicture"
               >
@@ -39,7 +39,7 @@
             <h1 class="profile-name">
               {{userProfile?.first_name}} {{userProfile?.last_name}}
               @if (userProfile?.is_admin) {
-                <span class="admin-badge">Yönetici</span>
+                <span class="admin-badge">{{ 'PROFILE.ADMIN' | translate }}</span>
               }
             </h1>
             <p class="profile-email">{{userProfile?.email}}</p>
@@ -75,53 +75,53 @@
         <mat-tab>
           <ng-template mat-tab-label>
             <mat-icon class="tab-icon">person</mat-icon>
-            <span>Kişisel Bilgiler</span>
+            <span>{{ 'PROFILE.PERSONAL_INFO' | translate }}</span>
           </ng-template>
 
           <div class="tab-content">
             <form [formGroup]="profileForm" (ngSubmit)="onUpdateProfile()" class="profile-form">
               <div class="form-section">
-                <h3 class="section-title">Temel Bilgiler</h3>
+                <h3 class="section-title">{{ 'PROFILE.BASIC_INFO' | translate }}</h3>
 
                 <div class="form-row">
                   <mat-form-field appearance="outline" class="form-field">
-                    <mat-label>Ad</mat-label>
-                    <input matInput formControlName="first_name" placeholder="Adınızı girin">
+                    <mat-label>{{ 'COMMON.NAME' | translate }}</mat-label>
+                    <input matInput formControlName="first_name" [placeholder]="'PROFILE.NAME_PLACEHOLDER' | translate">
                     <mat-icon matSuffix>person</mat-icon>
                     @if (profileForm.get('first_name')?.hasError('required')) {
-                      <mat-error>Ad alanı zorunludur</mat-error>
+                      <mat-error>{{ 'PROFILE.NAME_REQUIRED' | translate }}</mat-error>
                     }
                   </mat-form-field>
 
                   <mat-form-field appearance="outline" class="form-field">
-                    <mat-label>Soyad</mat-label>
-                    <input matInput formControlName="last_name" placeholder="Soyadınızı girin">
+                    <mat-label>{{ 'COMMON.SURNAME' | translate }}</mat-label>
+                    <input matInput formControlName="last_name" [placeholder]="'PROFILE.SURNAME_PLACEHOLDER' | translate">
                     <mat-icon matSuffix>person</mat-icon>
                     @if (profileForm.get('last_name')?.hasError('required')) {
-                      <mat-error>Soyad alanı zorunludur</mat-error>
+                      <mat-error>{{ 'PROFILE.SURNAME_REQUIRED' | translate }}</mat-error>
                     }
                   </mat-form-field>
                 </div>
 
                 <div class="form-row">
                   <mat-form-field appearance="outline" class="form-field">
-                    <mat-label>Kullanıcı Adı</mat-label>
-                    <input matInput formControlName="username" placeholder="Kullanıcı adınızı girin">
+                    <mat-label>{{ 'SIGNIN.USERNAME_LABEL' | translate }}</mat-label>
+                    <input matInput formControlName="username" [placeholder]="'PROFILE.USERNAME_PLACEHOLDER' | translate">
                     <mat-icon matSuffix>alternate_email</mat-icon>
                     @if (profileForm.get('username')?.hasError('required')) {
-                      <mat-error>Kullanıcı adı zorunludur</mat-error>
+                      <mat-error>{{ 'PROFILE.USERNAME_REQUIRED' | translate }}</mat-error>
                     }
                   </mat-form-field>
 
                   <mat-form-field appearance="outline" class="form-field">
-                    <mat-label>E-posta</mat-label>
-                    <input matInput formControlName="email" type="email" placeholder="E-posta adresinizi girin">
+                    <mat-label>{{ 'COMMON.EMAIL' | translate }}</mat-label>
+                    <input matInput formControlName="email" type="email" [placeholder]="'AUTH.ENTER_EMAIL' | translate">
                     <mat-icon matSuffix>email</mat-icon>
                     @if (profileForm.get('email')?.hasError('required')) {
-                      <mat-error>E-posta alanı zorunludur</mat-error>
+                      <mat-error>{{ 'PROFILE.EMAIL_REQUIRED' | translate }}</mat-error>
                     }
                     @if (profileForm.get('email')?.hasError('email')) {
-                      <mat-error>Geçerli bir e-posta adresi girin</mat-error>
+                      <mat-error>{{ 'AUTH.VALID_EMAIL' | translate }}</mat-error>
                     }
                   </mat-form-field>
                 </div>
@@ -130,11 +130,11 @@
               <mat-divider></mat-divider>
 
               <div class="form-section">
-                <h3 class="section-title">İletişim Bilgileri</h3>
+                <h3 class="section-title">{{ 'PROFILE.CONTACT_INFO' | translate }}</h3>
 
                 <div class="form-row">
                   <mat-form-field appearance="outline" class="form-field country-code">
-                    <mat-label>Ülke Kodu</mat-label>
+                    <mat-label>{{ 'PROFILE.COUNTRY_CODE' | translate }}</mat-label>
                     <mat-select formControlName="countryCode">
                       @for (country of countryCodes; track country.code) {
                         <mat-option [value]="country.code">
@@ -146,20 +146,20 @@
                   </mat-form-field>
 
                   <mat-form-field appearance="outline" class="form-field phone-number">
-                    <mat-label>Telefon Numarası</mat-label>
+                    <mat-label>{{ 'PROFILE.PHONE_NUMBER' | translate }}</mat-label>
                     <input matInput formControlName="phone" placeholder="5XX XXX XX XX"
                           (input)="onPhoneInput($event)" maxlength="13">
                     <mat-icon matSuffix>phone</mat-icon>
-                    <mat-hint>Başında 0 olmadan girin</mat-hint>
+                    <mat-hint>{{ 'PROFILE.PHONE_PLACEHOLDER' | translate }}</mat-hint>
                     @if (profileForm.get('phone')?.hasError('pattern')) {
-                      <mat-error>Sadece rakam girebilirsiniz</mat-error>
+                      <mat-error>{{ 'PROFILE.PHONE_NUMBERS_ONLY' | translate }}</mat-error>
                     }
                   </mat-form-field>
                 </div>
 
                 <mat-form-field appearance="outline" class="form-field full-width">
-                  <mat-label>Adres</mat-label>
-                  <textarea matInput formControlName="address" rows="3" placeholder="Adresinizi girin"></textarea>
+                  <mat-label>{{ 'COMMON.ADDRESS' | translate }}</mat-label>
+                  <textarea matInput formControlName="address" rows="3" [placeholder]="'PROFILE.ADDRESS_PLACEHOLDER' | translate"></textarea>
                   <mat-icon matSuffix>location_on</mat-icon>
                 </mat-form-field>
               </div>
@@ -173,7 +173,7 @@
                   class="submit-button"
                 >
                   @if (!isLoading) {
-                    <span>Profili Güncelle</span>
+                    <span>{{ 'PROFILE.UPDATE_PROFILE' | translate }}</span>
                   }
                 </button>
 
@@ -183,9 +183,7 @@
                   (click)="resetForm()"
                   [disabled]="isLoading"
                   class="cancel-button"
-                >
-                  Sıfırla
-                </button>
+                >{{ 'PROFILE.RESET' | translate }}</button>
               </div>
             </form>
           </div>
@@ -195,7 +193,7 @@
         <mat-tab>
           <ng-template mat-tab-label>
             <mat-icon class="tab-icon">business</mat-icon>
-            <span>Şirket Bilgileri</span>
+            <span>{{ 'PROFILE.COMPANY_INFO' | translate }}</span>
           </ng-template>
 
           <div class="tab-content">
@@ -204,13 +202,13 @@
 
                 <!-- Company Logo Section -->
                 <div class="form-section">
-                  <h3 class="section-title">Şirket Logosu</h3>
+                  <h3 class="section-title">{{ 'PROFILE.COMPANY_LOGO' | translate }}</h3>
 
                   <div class="company-logo-section">
                     <div class="company-logo-container">
                       <img
                         [src]="companyLogoUrl"
-                        alt="Şirket logosu"
+                        [alt]="'PROFILE.LOGO_ALT' | translate"
                         class="company-logo"
                         [class.loading]="isLoadingCompanyLogo"
                       >
@@ -237,8 +235,8 @@
                       >
                     </div>
                     <div class="company-logo-info">
-                      <p class="info-text">Şirket logonuzu yükleyin veya değiştirin</p>
-                      <p class="hint-text">Önerilen boyut: 512x512px, maksimum 2MB</p>
+                      <p class="info-text">{{ 'PROFILE.UPLOAD_LOGO' | translate }}</p>
+                      <p class="hint-text">{{ 'PROFILE.LOGO_SIZE_TIP' | translate }}</p>
                     </div>
                   </div>
                 </div>
@@ -247,29 +245,29 @@
 
                 <!-- Company Details Section -->
                 <div class="form-section">
-                  <h3 class="section-title">Şirket Detayları</h3>
+                  <h3 class="section-title">{{ 'PROFILE.COMPANY_DETAILS' | translate }}</h3>
 
                   <mat-form-field appearance="outline" class="form-field full-width">
-                    <mat-label>Şirket Adı</mat-label>
-                    <input matInput formControlName="company_name" placeholder="Şirket adını girin">
+                    <mat-label>{{ 'CUSTOMER.COMPANY_NAME' | translate }}</mat-label>
+                    <input matInput formControlName="company_name" [placeholder]="'PROFILE.COMPANY_NAME_PLACEHOLDER' | translate">
                     <mat-icon matSuffix>business</mat-icon>
                     @if (companyForm.get('company_name')?.hasError('required')) {
-                      <mat-error>Şirket adı zorunludur</mat-error>
+                      <mat-error>{{ 'PROFILE.COMPANY_NAME_REQUIRED' | translate }}</mat-error>
                     }
                     @if (companyForm.get('company_name')?.hasError('minlength')) {
-                      <mat-error>Şirket adı en az 2 karakter olmalıdır</mat-error>
+                      <mat-error>{{ 'PROFILE.COMPANY_NAME_MIN' | translate }}</mat-error>
                     }
                   </mat-form-field>
 
                   <mat-form-field appearance="outline" class="form-field full-width">
-                    <mat-label>Ülke</mat-label>
-                    <input matInput formControlName="country" placeholder="Ülke adını girin">
+                    <mat-label>{{ 'COMMON.COUNTRY' | translate }}</mat-label>
+                    <input matInput formControlName="country" [placeholder]="'PROFILE.COUNTRY_PLACEHOLDER' | translate">
                     <mat-icon matSuffix>flag</mat-icon>
                     @if (companyForm.get('country')?.hasError('required')) {
-                      <mat-error>Ülke zorunludur</mat-error>
+                      <mat-error>{{ 'PROFILE.COUNTRY_REQUIRED' | translate }}</mat-error>
                     }
                     @if (companyForm.get('country')?.hasError('minlength')) {
-                      <mat-error>Ülke en az 2 karakter olmalıdır</mat-error>
+                      <mat-error>{{ 'PROFILE.COUNTRY_MIN' | translate }}</mat-error>
                     }
                   </mat-form-field>
                 </div>
@@ -283,7 +281,7 @@
                     class="submit-button"
                   >
                     @if (!isSavingCompany) {
-                      <span>Şirket Bilgilerini Güncelle</span>
+                      <span>{{ 'PROFILE.UPDATE_COMPANY' | translate }}</span>
                     }
                   </button>
 
@@ -293,16 +291,14 @@
                     (click)="resetCompanyForm()"
                     [disabled]="isSavingCompany"
                     class="cancel-button"
-                  >
-                    Sıfırla
-                  </button>
+                  >{{ 'PROFILE.RESET' | translate }}</button>
                 </div>
               </form>
             } @else {
               <div class="no-company-section">
                 <mat-icon class="large-icon">business_center</mat-icon>
-                <h3>Şirket Bilgisi Bulunamadı</h3>
-                <p>Hesabınıza henüz bir şirket atanmamış.</p>
+                <h3>{{ 'PROFILE.NO_COMPANY' | translate }}</h3>
+                <p>{{ 'PROFILE.NO_COMPANY_ASSIGNED' | translate }}</p>
               </div>
             }
           </div>
@@ -312,50 +308,50 @@
         <mat-tab>
           <ng-template mat-tab-label>
             <mat-icon class="tab-icon">lock</mat-icon>
-            <span>Güvenlik</span>
+            <span>{{ 'PROFILE.SECURITY' | translate }}</span>
           </ng-template>
 
           <div class="tab-content">
             <form [formGroup]="passwordForm" (ngSubmit)="onChangePassword()" class="profile-form">
               <div class="form-section">
-                <h3 class="section-title">Parola Değiştir</h3>
+                <h3 class="section-title">{{ 'PROFILE.CHANGE_PASSWORD' | translate }}</h3>
 
                 <mat-form-field appearance="outline" class="form-field full-width">
-                  <mat-label>Mevcut Parola</mat-label>
+                  <mat-label>{{ 'AUTH.CURRENT_PASSWORD' | translate }}</mat-label>
                   <input matInput [type]="hidePassword ? 'password' : 'text'" formControlName="old_password">
-                  <button mat-icon-button matSuffix (click)="hidePassword = !hidePassword" [attr.aria-label]="'Parolayı gizle'" [attr.aria-pressed]="hidePassword" type="button">
+                  <button mat-icon-button matSuffix (click)="hidePassword = !hidePassword" [attr.aria-label]="'AUTH.HIDE_PASSWORD' | translate" [attr.aria-pressed]="hidePassword" type="button">
                     <mat-icon>{{hidePassword ? 'visibility_off' : 'visibility'}}</mat-icon>
                   </button>
                   @if (passwordForm.get('old_password')?.hasError('required')) {
-                    <mat-error>Mevcut parola zorunludur</mat-error>
+                    <mat-error>{{ 'AUTH.CURRENT_PASSWORD_REQUIRED' | translate }}</mat-error>
                   }
                 </mat-form-field>
 
                 <mat-form-field appearance="outline" class="form-field full-width">
-                  <mat-label>Yeni Parola</mat-label>
+                  <mat-label>{{ 'AUTH.NEW_PASSWORD' | translate }}</mat-label>
                   <input matInput [type]="hideNewPassword ? 'password' : 'text'" formControlName="new_password">
-                  <button mat-icon-button matSuffix (click)="hideNewPassword = !hideNewPassword" [attr.aria-label]="'Parolayı gizle'" [attr.aria-pressed]="hideNewPassword" type="button">
+                  <button mat-icon-button matSuffix (click)="hideNewPassword = !hideNewPassword" [attr.aria-label]="'AUTH.HIDE_PASSWORD' | translate" [attr.aria-pressed]="hideNewPassword" type="button">
                     <mat-icon>{{hideNewPassword ? 'visibility_off' : 'visibility'}}</mat-icon>
                   </button>
                   @if (passwordForm.get('new_password')?.hasError('required')) {
-                    <mat-error>Yeni parola zorunludur</mat-error>
+                    <mat-error>{{ 'AUTH.NEW_PASSWORD_REQUIRED' | translate }}</mat-error>
                   }
                   @if (passwordForm.get('new_password')?.hasError('minlength')) {
-                    <mat-error>Parola en az 8 karakter olmalıdır</mat-error>
+                    <mat-error>{{ 'AUTH.PASSWORD_MIN_LENGTH' | translate }}</mat-error>
                   }
                 </mat-form-field>
 
                 <mat-form-field appearance="outline" class="form-field full-width">
-                  <mat-label>Yeni Parolayı Onayla</mat-label>
+                  <mat-label>{{ 'AUTH.CONFIRM_NEW_PASSWORD' | translate }}</mat-label>
                   <input matInput [type]="hideConfirmPassword ? 'password' : 'text'" formControlName="confirm_password">
-                  <button mat-icon-button matSuffix (click)="hideConfirmPassword = !hideConfirmPassword" [attr.aria-label]="'Parolayı gizle'" [attr.aria-pressed]="hideConfirmPassword" type="button">
+                  <button mat-icon-button matSuffix (click)="hideConfirmPassword = !hideConfirmPassword" [attr.aria-label]="'AUTH.HIDE_PASSWORD' | translate" [attr.aria-pressed]="hideConfirmPassword" type="button">
                     <mat-icon>{{hideConfirmPassword ? 'visibility_off' : 'visibility'}}</mat-icon>
                   </button>
                   @if (passwordForm.get('confirm_password')?.hasError('required')) {
-                    <mat-error>Lütfen parolanızı onaylayın</mat-error>
+                    <mat-error>{{ 'PROFILE.CONFIRM_PASSWORD_PLACEHOLDER' | translate }}</mat-error>
                   }
                   @if (passwordForm.hasError('mismatch') && !passwordForm.get('confirm_password')?.hasError('required')) {
-                    <mat-error>Parolalar eşleşmiyor</mat-error>
+                    <mat-error>{{ 'AUTH.PASSWORD_MISMATCH' | translate }}</mat-error>
                   }
                 </mat-form-field>
               </div>
@@ -377,7 +373,7 @@
                   class="submit-button"
                 >
                   @if (!isLoading) {
-                    <span>Parolayı Değiştir</span>
+                    <span>{{'PASSWORD.CHANGE_PASSWORD' | translate}}</span>
                   }
                 </button>
 
@@ -387,25 +383,21 @@
                   (click)="passwordForm.reset()"
                   [disabled]="isLoading"
                   class="cancel-button"
-                >
-                  Temizle
-                </button>
+                >{{ 'TRUCK_VISUALIZATION.CLEAR' | translate }}</button>
               </div>
             </form>
 
             <!-- Parolamı Unuttum linkleri -->
             <div class="forgot-password-section">
               <mat-divider></mat-divider>
-              <p class="forgot-text">Parolanızı mi unuttunuz?</p>
+              <p class="forgot-text">{{ 'PASSWORD.FORGOT_PASSWORD_QUESTION' | translate }}</p>
               <button
                 mat-stroked-button
                 color="accent"
                 class="forgot-button"
                 (click)="openForgotPasswordDialog()"
               >
-                <mat-icon>lock_reset</mat-icon>
-                Parolamı Unuttum
-              </button>
+                <mat-icon>lock_reset</mat-icon>{{ 'AUTH.FORGOT_PASSWORD' | translate }}</button>
             </div>
           </div>
         </mat-tab>
@@ -414,19 +406,19 @@
         <mat-tab>
           <ng-template mat-tab-label>
             <mat-icon class="tab-icon">settings</mat-icon>
-            <span>Ayarlar</span>
+            <span>{{ 'PROFILE.SETTINGS' | translate }}</span>
           </ng-template>
 
           <div class="tab-content">
             <div class="settings-section">
-              <h3 class="section-title">Hesap Bilgileri</h3>
+              <h3 class="section-title">{{ 'PROFILE.ACCOUNT_INFO' | translate }}</h3>
 
               <div class="info-card">
                 <div class="info-item">
                   <mat-icon>verified_user</mat-icon>
                   <div>
-                    <p class="info-label">Hesap Türü</p>
-                    <p class="info-value">{{userProfile?.is_admin ? 'Yönetici' : 'Normal Kullanıcı'}}</p>
+                    <p class="info-label">{{ 'PROFILE.ACCOUNT_TYPE' | translate }}</p>
+                    <p class="info-value">{{(userProfile?.is_admin ? 'PROFILE.ADMIN' : 'PROFILE.NORMAL_USER') | translate}}</p>
                   </div>
                 </div>
 
@@ -434,8 +426,8 @@
                   <div class="info-item">
                     <mat-icon>business</mat-icon>
                     <div>
-                      <p class="info-label">Şirket</p>
-                      <p class="info-value">{{userCompany?.company_name || 'Yükleniyor...'}}</p>
+                      <p class="info-label">{{ 'PROFILE.COMPANY' | translate }}</p>
+                      <p class="info-value">{{userCompany?.company_name || 'INFO.FILE_UPLOADING' | translate}}</p>
                     </div>
                   </div>
                 }
@@ -443,7 +435,7 @@
                 <div class="info-item">
                   <mat-icon>fingerprint</mat-icon>
                   <div>
-                    <p class="info-label">Kullanıcı ID</p>
+                    <p class="info-label">{{ 'PROFILE.USER_ID' | translate }}</p>
                     <p class="info-value">{{userProfile?.id}}</p>
                   </div>
                 </div>
@@ -451,12 +443,10 @@
             </div>
 
             <div class="settings-section">
-              <h3 class="section-title">Tehlikeli Bölge</h3>
+              <h3 class="section-title">{{ 'PROFILE.DANGER_ZONE' | translate }}</h3>
               <div class="danger-zone">
                 <button mat-stroked-button color="warn" class="danger-button">
-                  <mat-icon>delete_forever</mat-icon>
-                  Hesabı Sil
-                </button>
+                  <mat-icon>delete_forever</mat-icon>{{ 'PROFILE.DELETE_ACCOUNT' | translate }}</button>
               </div>
             </div>
           </div>

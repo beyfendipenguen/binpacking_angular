@@ -8,7 +8,7 @@ import {
   OnDestroy,
   WritableSignal,
 } from '@angular/core';
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import {
   FormBuilder,
   FormControl,
@@ -91,8 +91,7 @@ import { Product } from '@app/features/interfaces/product.interface';
 
 @Component({
   selector: 'app-pallet-control',
-  imports: [
-    FormsModule,
+  imports: [FormsModule,
     ReactiveFormsModule,
     MatFormFieldModule,
     MatStepperModule,
@@ -109,6 +108,7 @@ import { Product } from '@app/features/interfaces/product.interface';
     MatAutocompleteModule,
     MatTooltipModule,
     MatCheckboxModule,
+    TranslateModule
   ],
   templateUrl: './pallet-control.component.html',
   styleUrl: './pallet-control.component.scss',
