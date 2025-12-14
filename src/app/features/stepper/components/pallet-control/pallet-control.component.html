@@ -396,7 +396,7 @@
 
   <button mat-button class="next-button" (click)="submitForm()" [disabled]="!uiPackages() || uiPackages().length === 0">
     <mat-icon>arrow_forward</mat-icon>
-    <span>{{( this.isDirtySignal() ? "'COMMON.SAVE'" : "'COMMON.SAVE'")| translate}}</span>
+    <span>{{( this.isDirtySignal() ? 'COMMON.SAVE' : 'COMMON.NEXT') | translate}}</span>
   </button>
 
   <button mat-button class="prev-button" (click)="goPreviousStep()">

@@ -93,7 +93,7 @@
                 [placeholder]="'INVOICE_UPLOAD.SELECT_CUSTOMER' | translate" [compareWith]="compareCompanies" required>
                 @for (company of targetCompanies; track company.id) {
                 <mat-option [value]="company">
-                  {{ company.target_company_name }} </mat-option>}
+                  {{ company.target_company.company_name }} </mat-option>}
               </mat-select>
               @if(!orderSignal()?.company_relation){
               <mat-error>{{ 'INVOICE_UPLOAD.CUSTOMER_REQUIRED' | translate }}</mat-error>}

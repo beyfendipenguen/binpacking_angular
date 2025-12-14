@@ -28,7 +28,7 @@
       (isFilterActive(column)) {
       <div class="filter-chip">
         <span class="chip-label">
-          {{ getColumnDisplayName(column) }}: {{ filterValues[column] }}
+          {{ getColumnDisplayName(column) | translate }}: {{ filterValues[column] | translate}}
         </span>
         <button
           mat-icon-button
@@ -67,7 +67,7 @@
     <ng-container [matColumnDef]="column">
       <th mat-header-cell *matHeaderCellDef mat-sort-header>
         <div class="header-content">
-          {{ getColumnDisplayName(column) }}
+          {{ getColumnDisplayName(column) | translate}}
 
           <!-- Filtre ikonu -->
           @if (filterableColumns.includes(column)) {
