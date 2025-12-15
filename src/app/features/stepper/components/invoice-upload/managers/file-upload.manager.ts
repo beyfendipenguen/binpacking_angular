@@ -8,6 +8,7 @@ import { RepositoryService } from '@app/features/stepper/services/repository.ser
 import { FileState, FileValidationResult } from '../models/invoice-upload-interfaces';
 import { AppState } from '@app/store';
 import { StepperInvoiceUploadActions } from '@app/store/stepper/actions/stepper-invoice-upload.actions';
+import { TranslateService } from '@ngx-translate/core';
 @Injectable({
   providedIn: 'root'
 })
@@ -19,6 +20,7 @@ export class FileUploadManager {
   private readonly repositoryService = inject(RepositoryService);
   private readonly toastService = inject(ToastService);
   private readonly store = inject(Store<AppState>);
+  private readonly translate = inject(TranslateService);
 
   private fileState: FileState = {
     file: null,
@@ -80,11 +82,11 @@ export class FileUploadManager {
       throw new Error('No file selected');
     }
 
-    this.toastService.info(INVOICE_UPLOAD_CONSTANTS.MESSAGES.INFO.FILE_UPLOADING);
+    this.toastService.info(this.translate.instant(INVOICE_UPLOAD_CONSTANTS.MESSAGES.INFO.FILE_UPLOADING));
 
     return this.repositoryService.processFile(this.fileState.file).pipe(
       tap(() => {
-        this.toastService.info(INVOICE_UPLOAD_CONSTANTS.MESSAGES.INFO.FILE_PROCESSING);
+        this.toastService.info(this.translate.instant(INVOICE_UPLOAD_CONSTANTS.MESSAGES.INFO.FILE_PROCESSING) );
       }),
       finalize(() => {
         // File processing completed
