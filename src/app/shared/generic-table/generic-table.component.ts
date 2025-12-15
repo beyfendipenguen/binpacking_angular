@@ -445,10 +445,9 @@ export class GenericTableComponent<T> implements OnInit, AfterViewInit {
       this.externalDataFetcher(params).subscribe({
         next: (result: ExternalDataResult<T>) => {
           this.updateDataFromExternalSource(result.results, result.count);
-          this.toastService.success(this.translate.instant('GENERIC_TABLE.DATA_LOADED'), this.translate.instant('COMMON.SUCCESS'));
         },
         error: (error) => {
-          this.toastService.error(this.translate.instant('GENERIC_TABLE.DATA_LOAD_ERROR'), this.translate.instant('COMMON.WARNING'));
+          this.toastService.error(error,this.translate.instant('GENERIC_TABLE.DATA_LOAD_ERROR'));
           this.dataSource.data = [];
           this.totalItems = 0;
           this.isLoading = false;
