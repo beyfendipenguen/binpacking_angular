@@ -164,7 +164,7 @@
           <div class="form-row pallet-group-row">
             <mat-form-field appearance="outline" class="pallet-group-field">
               <mat-label>{{ 'CUSTOMER.DEFAULT_PALLET_GROUP' | translate }}</mat-label>
-              <mat-select formControlName="default_pallet_group_id" placeholder="Palet grubu seçin...">
+              <mat-select formControlName="default_pallet_group_id" [placeholder]="'CUSTOMER.SELECT_PALLET_GROUP' | translate">
                 <mat-option [value]="null">
                   <span class="empty-option">{{ 'CUSTOMER.NO_PALLET_GROUP' | translate }}</span>
                 </mat-option>
@@ -172,7 +172,7 @@
                   <mat-option [value]="group.id">
                     <div class="pallet-group-option">
                       <span class="group-name">{{ group.name }} </span>
-                      <span class="pallet-count">{{ group.pallet_count }} Palet</span>
+                      <span class="pallet-count">{{ group.pallet_count }} {{'PALLET.PALLET' | translate}}</span>
                     </div>
                   </mat-option>
                 }
@@ -184,7 +184,6 @@
               <mat-hint>{{ 'CUSTOMER.PALLET_HINT' | translate }}</mat-hint>
             </mat-form-field>
 
-            @if (palletGroups.length === 0 && !isLoadingPalletGroups) {
               <button
                 mat-raised-button
                 color="accent"
@@ -194,7 +193,6 @@
                 [matTooltip]="'CUSTOMER.NO_PALLET_GROUPS_YET' | translate"
               >
                 <mat-icon>add</mat-icon>{{ 'CUSTOMER.ADD_PALLET_GROUP' | translate }}</button>
-            }
           </div>
         </div>
 

@@ -68,7 +68,8 @@
               ">
             <mat-icon [class.rotated]="sortAscending()">sort</mat-icon>
           </button>
-          <button mat-icon-button class="header-action-button" [matTooltip]="'PALLET_CONTROL.MERGE_PRODUCTS' | translate" (click)="merge()">
+          <button mat-icon-button class="header-action-button"
+            [matTooltip]="'PALLET_CONTROL.MERGE_PRODUCTS' | translate" (click)="merge()">
             <mat-icon>merge</mat-icon>
           </button>
         </div>
@@ -77,11 +78,12 @@
       <div class="search-container">
         <div class="search-input-wrapper">
           <mat-icon class="search-icon">search</mat-icon>
-          <input matInput class="search-input" type="text" [placeholder]="'PALLET_CONTROL.SEARCH_PRODUCT' | translate" [formControl]="searchControl"
-            [matAutocomplete]="auto" id="searchControl" name="searchControl" />
+          <input matInput class="search-input" type="text" [placeholder]="'PALLET_CONTROL.SEARCH_PRODUCT' | translate"
+            [formControl]="searchControl" [matAutocomplete]="auto" id="searchControl" name="searchControl" />
 
           @if(searchControl.value) {
-          <button mat-icon-button class="clear-search" (click)="clearSearch()" [matTooltip]="'COMMON.CLEAR_SEARCH' | translate">
+          <button mat-icon-button class="clear-search" (click)="clearSearch()"
+            [matTooltip]="'COMMON.CLEAR_SEARCH' | translate">
             <mat-icon>close</mat-icon>
           </button>
           }
@@ -126,8 +128,7 @@
             <span class="product-name">{{ packageDetail.product.name }}</span>
             <div class="product-count-container">
               <input matInput class="product-count-input" type="number" min="1" [value]="packageDetail.count"
-                (keydown.enter)="$event.preventDefault()" inputmode="numeric"
-                (focus)="$event.target.select()"
+                (keydown.enter)="$event.preventDefault()" inputmode="numeric" (focus)="$event.target.select()"
                 (change)="updatePackageDetailCount(packageDetail, $event)" id="productCount-{{packageDetail.id}}"
                 name="productCount-{{packageDetail.id}}" />
               <span class="count-label">{{ 'INVOICE_UPLOAD.TABLE.COUNT' | translate }}</span>
@@ -186,7 +187,8 @@
 
             @if(uiPackages().length > 0) {
             <mat-checkbox class="vertical-sort-checkbox" [checked]="verticalSortSignal()"
-              (change)="onVerticalSortChange($event.checked)">{{ 'PALLET_CONTROL.VERTICAL_PLACEMENT' | translate }}</mat-checkbox>
+              (change)="onVerticalSortChange($event.checked)">{{ 'PALLET_CONTROL.VERTICAL_PLACEMENT' | translate
+              }}</mat-checkbox>
             }
           </div>
 
@@ -218,7 +220,8 @@
           </div>
         </div>
 
-        <button mat-button class="clear-button" (click)="removeAllPackage()" [matTooltip]="'PALLET_CONTROL.CLEAR_ALL_PACKAGES' | translate">
+        <button mat-button class="clear-button" (click)="removeAllPackage()"
+          [matTooltip]="'PALLET_CONTROL.CLEAR_ALL_PACKAGES' | translate">
           <mat-icon>delete_sweep</mat-icon>
           <span>{{ 'TRUCK_VISUALIZATION.CLEAR' | translate }}</span>
         </button>
@@ -230,7 +233,7 @@
           <div class="package-header">
             <div class="package-title">
               <mat-icon>inbox</mat-icon>
-              <span>Palet {{ package.name }}</span>
+              <span>{{'PALLET.PALLET'| translate}} {{ package.name }}</span>
               @if(package.pallet?.dimension?.depth == 1000 || package.pallet?.dimension?.width == 1000){
               <button class="orientation-toggle" [class.vertical]="package.alignment === 'v'"
                 (click)="toggleAlignment(package)"
@@ -245,7 +248,8 @@
               }
             </div>
             <div class="package-actions">
-              <button mat-icon-button class="small-action" [matTooltip]="'PALLET_CONTROL.REMOVE_PACKAGE' | translate" (click)="removePackage(package)">
+              <button mat-icon-button class="small-action" [matTooltip]="'PALLET_CONTROL.REMOVE_PACKAGE' | translate"
+                (click)="removePackage(package)">
                 <mat-icon>close</mat-icon>
               </button>
             </div>
@@ -288,7 +292,8 @@
                       <mat-icon>add</mat-icon>
                     </button>
                     <button mat-icon-button class="action-button"
-                      (click)="removePackageDetailFromPackage(package.id, j)" [matTooltip]="'COMMON.REMOVE_PRODUCT'| translate">
+                      (click)="removePackageDetailFromPackage(package.id, j)"
+                      [matTooltip]="'COMMON.REMOVE_PRODUCT'| translate">
                       <mat-icon>close</mat-icon>
                     </button>
                   </div>

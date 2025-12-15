@@ -166,6 +166,7 @@
     "MIN_VALUE_1": "Minimum değer 1 olmalıdır",
     "DEFAULT_PALLET_GROUP": "Varsayılan Pallet Grubu",
     "NO_PALLET_GROUP": "Palet grubu seçilmedi",
+    "SELECT_PALLET_GROUP": "Palet grubu seçin...",
     "PALLET_HINT": "Opsiyonel - Müşteri için varsayılan palet grubu",
     "NO_PALLET_GROUPS_YET": "Henüz palet grubu yok, yeni eklemek için tıklayın",
     "ADD_PALLET_GROUP": "Palet Grubu Ekle",

@@ -28,6 +28,7 @@ import { Observable } from 'rxjs';
 import { map, startWith } from 'rxjs/operators';
 import { AddCompanyDialogComponent } from '../add-company-dialog/add-company-dialog.component';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { PalletGroupDialogComponent } from '@app/features/pallets/pallet-group-dialog/pallet-group-dialog.component';
 
 export interface CustomerDialogData {
   mode: 'create' | 'edit';
@@ -164,11 +165,18 @@ export class CustomerDialogComponent implements OnInit {
    * Navigate to pallet groups page
    */
   navigateToPalletGroups(): void {
-    // Dialog'u kapat
-    this.dialogRef.close(null);
+    const dialogRef = this.dialog.open(PalletGroupDialogComponent, {
+          width: '1200px',
+          maxWidth: '95vw',
+          height: '80vh',
+          maxHeight: '90vh',
+          disableClose: false,
+          panelClass: 'pallet-group-dialog'
+        });
 
-    // Pallet groups sayfasına yönlendir
-    this.router.navigate(['/pallet-groups']);
+        dialogRef.afterClosed().subscribe(result => {
+          this.loadPalletGroups()
+        });
   }
 
   /**

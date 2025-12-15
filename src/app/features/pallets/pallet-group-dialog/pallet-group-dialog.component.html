@@ -28,7 +28,7 @@
                   <span class="group-badge" *ngIf="group.is_global">
                     <mat-icon>lock</mat-icon>{{ 'PALLET.GLOBAL' | translate }}</span>
                 </div>
-                <span class="group-count">{{ group.pallet_count }} palet</span>
+                <span class="group-count">{{ group.pallet_count }} {{'PALLET.PALLET' | translate}}</span>
               </div>
             </mat-list-item>
           </mat-list>
@@ -52,7 +52,7 @@
       <div class="details-panel">
         <div *ngIf="selectedGroup || isNewGroup; else noSelection">
           <div class="panel-header">
-            <h3>{{ isNewGroup ? 'Yeni Grup' : 'Grup Detayları' }}</h3>
+            <h3>{{ (isNewGroup ? 'PALLET.NEW_GROUP' : 'PALLET.GROUP_DETAILS') | translate }}</h3>
             <span class="global-warning" *ngIf="isGlobalGroup()">
               <mat-icon>lock</mat-icon>{{ 'PALLET.VIEW_ONLY' | translate }}</span>
           </div>

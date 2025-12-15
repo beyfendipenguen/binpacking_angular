@@ -167,6 +167,7 @@
     "MIN_VALUE_1": "Minimum value must be 1",
     "DEFAULT_PALLET_GROUP": "Default Pallet Group",
     "NO_PALLET_GROUP": "No pallet group selected",
+    "SELECT_PALLET_GROUP": "Select the pallet group...",
     "PALLET_HINT": "Optional - Default pallet group for customer",
     "NO_PALLET_GROUPS_YET": "No pallet groups yet, click to add new",
     "ADD_PALLET_GROUP": "Add Pallet Group",
