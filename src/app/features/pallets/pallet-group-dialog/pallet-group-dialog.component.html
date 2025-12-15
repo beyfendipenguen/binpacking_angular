@@ -214,7 +214,7 @@
       <button mat-button (click)="close()" [disabled]="isSaving">{{ 'HEADER.CANCEL' | translate }}</button>
       <button mat-raised-button color="primary" (click)="saveGroup()"
         [disabled]="groupForm.invalid || isSaving || isGlobalGroup()">
-        <span *ngIf="!isSaving">{{ (isNewGroup ? 'PALLET.CREATE' : 'COMMON.Update') | translate }}</span>
+        <span *ngIf="!isSaving">{{ (isNewGroup ? 'PALLET.CREATE' : 'COMMON.UPDATE') | translate }}</span>
       </button>
     </div>
   </mat-dialog-actions>
