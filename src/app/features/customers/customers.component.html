@@ -97,7 +97,7 @@
           </th>
           <td mat-cell *matCellDef="let row">
             <mat-chip [class]="row.is_active ? 'status-active' : 'status-inactive'">
-              {{ row.is_active ? 'Aktif' : 'Pasif' }}
+              {{ (row.is_active ? 'COMMON.ACTIVE' : 'COMMON.PASSIVE') | translate }}
             </mat-chip>
           </td>
         </ng-container>
