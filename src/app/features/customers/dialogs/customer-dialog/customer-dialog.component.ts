@@ -26,7 +26,7 @@ import { Company } from '../../../interfaces/company.interface';
 import { PalletGroup } from '../../../interfaces/pallet-group.interface';
 import { Observable } from 'rxjs';
 import { map, startWith } from 'rxjs/operators';
-import { AddCompanyDialogComponent } from '../add-company-dialog/add-company-dialog.component';
+import { AddCompanyDialogComponent, CompanyDialogData } from '../add-company-dialog/add-company-dialog.component';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { PalletGroupDialogComponent } from '@app/features/pallets/pallet-group-dialog/pallet-group-dialog.component';
 
@@ -166,17 +166,17 @@ export class CustomerDialogComponent implements OnInit {
    */
   navigateToPalletGroups(): void {
     const dialogRef = this.dialog.open(PalletGroupDialogComponent, {
-          width: '1200px',
-          maxWidth: '95vw',
-          height: '80vh',
-          maxHeight: '90vh',
-          disableClose: false,
-          panelClass: 'pallet-group-dialog'
-        });
+      width: '1200px',
+      maxWidth: '95vw',
+      height: '80vh',
+      maxHeight: '90vh',
+      disableClose: false,
+      panelClass: 'pallet-group-dialog'
+    });
 
-        dialogRef.afterClosed().subscribe(result => {
-          this.loadPalletGroups()
-        });
+    dialogRef.afterClosed().subscribe(result => {
+      this.loadPalletGroups()
+    });
   }
 
   /**
@@ -242,9 +242,14 @@ export class CustomerDialogComponent implements OnInit {
    */
   openAddCompanyDialog(): void {
     const dialogRef = this.dialog.open(AddCompanyDialogComponent, {
-      width: '500px',
-      disableClose: true
+      width: '600px',
+      maxWidth: '95vw',
+      disableClose: true,
+      data: {
+        mode: 'create'
+      } as CompanyDialogData
     });
+
 
     dialogRef.afterClosed().subscribe((newCompany: Company | null) => {
       if (newCompany) {
@@ -259,6 +264,38 @@ export class CustomerDialogComponent implements OnInit {
         });
 
         this.toastService.success(this.translate.instant('CUSTOMER_MESSAGES.NEW_COMPANY_SELECTED'));
+      }
+    });
+  }
+
+  openEditCompanyDialog(): void {
+    const dialogRef = this.dialog.open(AddCompanyDialogComponent, {
+      width: '600px',
+      maxWidth: '95vw',
+      disableClose: true,
+      data: {
+        mode: 'edit',
+        existingCompanies: this.companies
+      } as CompanyDialogData
+    });
+
+    dialogRef.afterClosed().subscribe((updatedCompany: Company | null) => {
+      if (updatedCompany) {
+        // Update company in list
+        const index = this.companies.findIndex(c => c.id === updatedCompany.id);
+        if (index !== -1) {
+          this.companies[index] = updatedCompany;
+        }
+
+        // Update selected company if it's the one being edited
+        if (this.selectedCompany?.id === updatedCompany.id) {
+          this.selectedCompany = updatedCompany;
+          this.form.patchValue({
+            target_company_search: updatedCompany
+          });
+        }
+
+        this.toastService.success(this.translate.instant('CUSTOMER_MESSAGES.COMPANY_UPDATED'));
       }
     });
   }

@@ -26,7 +26,7 @@ import { ToastService } from '@core/services/toast.service';
 import { CancelConfirmationDialogComponent } from '@shared/cancel-confirmation-dialog/cancel-confirmation-dialog.component';
 import { ThreeJSTruckVisualizationComponent } from '@shared/threejs-truck-visualization/threejs-truck-visualization.component';
 
-import { AppState, selectRemainingProducts, selectStep3IsDirty, selectOrderId, selectIsEditMode, selectHasRevisedOrder } from '@app/store';
+import { AppState, selectRemainingProducts, selectStep3IsDirty, selectOrderId, selectIsEditMode, selectHasRevisedOrder, selectOrderResult, selectOrderResultId, selectStep3CurrentViewType, selectStep3ReportFiles } from '@app/store';
 import { StepperUiActions } from '@app/store/stepper/actions/stepper-ui.actions';
 import { StepperResultActions } from '@app/store/stepper/actions/stepper-result.actions';
 import { ReportFile, ResultStepService } from './result-step.service';
@@ -62,9 +62,17 @@ export class ResultStepComponent implements OnInit, OnDestroy {
 
   public orderIdSignal = this.store.selectSignal(selectOrderId);
   readonly isLoadingSignal = signal(false);
-  readonly hasResultsSignal = signal(false);
+  readonly hasResultsSignal = computed(() =>
+    this.orderResultSignal()?.length > 0
+  );
   readonly isDirtySignal = this.store.selectSignal(selectStep3IsDirty);
   readonly remainingProducts = this.store.selectSignal(selectRemainingProducts);
+
+  readonly orderResultSignal = this.store.selectSignal(selectOrderResult);
+  readonly reportFilesSignal = this.store.selectSignal(selectStep3ReportFiles);
+  readonly orderResultIdSignal = this.store.selectSignal(selectOrderResultId);
+  readonly currentViewTypeSignal = this.store.selectSignal(selectStep3CurrentViewType);
+
 
   // Computed
   readonly canCompleteShipment = computed(() =>
@@ -74,31 +82,42 @@ export class ResultStepComponent implements OnInit, OnDestroy {
   // Data
   piecesData: any[] = [];
   originalPiecesData: any[] = [];
-  orderResultId: string = '';
-  reportFiles: ReportFile[] = [];
-  currentViewType: string = 'isometric';
 
   // UI State
   isLoading = false;
-  hasResults = false;
   hasThreeJSError = false;
   optimizationProgress = 0;
 
   // File download
-  private pendingFile = signal<ReportFile | null>(null);
+  private pendingFileName = signal<string | null>(null);
 
   /**
    * Effect: Auto-open file after save
    */
   private fileOpenEffect = effect(() => {
     const isDirty = this.isDirtySignal();
+    // Store'daki güncel dosya listesini al
+    const currentReportFiles = this.reportFilesSignal();
 
     if (!isDirty) {
       untracked(() => {
-        const pending = this.pendingFile();
-        if (pending) {
-          this.resultStepService['openFile'](pending);
-          this.pendingFile.set(null);
+        // Hangi tip dosyayı bekliyorduk?
+        const pendingName = this.pendingFileName();
+
+        if (pendingName && currentReportFiles?.length > 0) {
+          // YENİ LİSTEDEN GÜNCEL DOSYAYI BUL
+          const newFileObj = currentReportFiles.find(f => (f.type) === pendingName);
+
+          if (newFileObj) {
+            // Güncel nesne ile aç
+            this.resultStepService.openFile(newFileObj);
+          } else {
+            // Nadir durum: Dosya yeni listede yoksa uyarı verilebilir
+            console.warn('Beklenen dosya yeni listede bulunamadı');
+          }
+
+          // Beklemeyi temizle
+          this.pendingFileName.set(null);
         }
       });
     }
@@ -106,8 +125,27 @@ export class ResultStepComponent implements OnInit, OnDestroy {
 
   constructor() { }
 
-  ngOnInit(): void {
+  private loadEditModeDataEffect = effect(() => {
+    const orderResult = this.orderResultSignal();
 
+    untracked(() => {
+      this.store.select(selectIsEditMode).pipe(
+        take(1)
+      ).subscribe(isEditMode => {
+        if (isEditMode && orderResult && orderResult.length > 0) {
+          try {
+            this.piecesData = JSON.parse(orderResult);
+            this.originalPiecesData = JSON.parse(JSON.stringify(this.piecesData));
+            this.cdr.markForCheck();
+          } catch (error) {
+            this.toastService.error(this.translate.instant('RESULT_STEP.UNEXPECTED_ERROR'));
+          }
+        }
+      });
+    });
+  });
+
+  ngOnInit(): void {
   }
 
   ngOnDestroy(): void {
@@ -118,7 +156,6 @@ export class ResultStepComponent implements OnInit, OnDestroy {
   // ========================================
   // BINPACKING CALCULATION
   // ========================================
-
   calculateBinpacking(): void {
 
     this.isLoading = true;
@@ -126,7 +163,7 @@ export class ResultStepComponent implements OnInit, OnDestroy {
     this.optimizationProgress = 0;
 
     this.startProgressSimulation();
-    // Edit mode ve henüz revise edilmemişse revise et
+
     this.store.select(selectIsEditMode).pipe(
       take(1),
       withLatestFrom(this.store.select(selectHasRevisedOrder))
@@ -134,7 +171,6 @@ export class ResultStepComponent implements OnInit, OnDestroy {
       if (isEditMode && !hasRevised) {
         this.store.select(selectOrderId).pipe(take(1)).subscribe(orderId => {
           this.store.dispatch(StepperUiActions.reviseOrder({ orderId }));
-          this.store.dispatch(StepperUiActions.markOrderAsRevised());
         });
       }
     });
@@ -154,21 +190,25 @@ export class ResultStepComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (result) => {
 
-          this.orderResultId = result.orderResultId;
-          this.piecesData = result.piecesData;
-          this.originalPiecesData = JSON.parse(JSON.stringify(result.piecesData));
-          this.reportFiles = result.reportFiles;
-          this.hasResults = true;
-          this.hasResultsSignal.set(true);
-
-          this.store.dispatch(StepperUiActions.setStepperData({
-            data: { orderResultId: this.orderResultId }
+          this.store.dispatch(StepperResultActions.setOrderResultId({
+            orderResultId: result.orderResultId
           }));
 
+          this.store.dispatch(StepperResultActions.loadOrderResultSuccess({
+            orderResult: result.orderResult,
+            reportFiles: result.reportFiles
+          }));
+
+          this.piecesData = result.piecesData;
+          this.originalPiecesData = JSON.parse(JSON.stringify(result.piecesData));
+
+
           this.toastService.success(this.translate.instant('RESULT_STEP.PACKAGING_SUCCESS'));
+
           if (this.originalPiecesData.find(pkg => pkg[0] === -1 && pkg[1] === -1 && pkg[2] === -1)) {
-            this.store.dispatch(StepperResultActions.setIsDirty({ isDirty: true }))
+            this.store.dispatch(StepperResultActions.setIsDirty({ isDirty: true }));
           }
+
           this.cdr.markForCheck();
         },
         error: (error) => {
@@ -217,24 +257,25 @@ export class ResultStepComponent implements OnInit, OnDestroy {
   // ========================================
 
   onFileClick(event: Event, file: any): void {
-    event.preventDefault(); // Link'in default davranışını engelle
+    event.preventDefault();
 
     if (!file?.file) {
       this.toastService.warning(this.translate.instant('RESULT_STEP.FILE_NOT_FOUND'));
       return;
     }
 
-    // Eğer değişiklik varsa, önce kaydet
     if (this.isDirtySignal()) {
       try {
-        this.pendingFile.set(file);
-        this.completeOrder(false);
+        // DEĞİŞİKLİK BURADA:
+        // Dosyanın tamamını değil, onu yeni listede bulmamızı sağlayacak ID'sini kaydediyoruz.
+        // Not: file.type, file.name veya file.id hangisi unique ise onu kullanın.
+        this.pendingFileName.set(file.type);
 
+        this.completeOrder(false);
       } catch (error) {
         this.toastService.error(this.translate.instant('RESULT_STEP.SAVE_ERROR'));
       }
     } else {
-      // Değişiklik yok, direkt aç
       this.resultStepService.openFile(file);
     }
   }
@@ -256,15 +297,11 @@ export class ResultStepComponent implements OnInit, OnDestroy {
   // ========================================
 
   goPreviousStep(): void {
-    const deletedPackages = this.threeJSComponent?.deletedPackagesSignal() || [];
-    if (deletedPackages.length > 0) {
-      this.resetComponent()
-    }
     this.store.dispatch(StepperUiActions.navigateToStep({ stepIndex: 1 }));
   }
 
   completeShipment(): void {
-    if (!this.hasResults) {
+    if (!this.hasResultsSignal()) {
       this.toastService.warning(this.translate.instant('RESULT_STEP.COMPLETE_OPTIMIZATION_FIRST'));
       return;
     }
@@ -277,13 +314,10 @@ export class ResultStepComponent implements OnInit, OnDestroy {
   // ========================================
 
   async completeOrder(resetStepper: boolean): Promise<void> {
-
     try {
-      // Convert pieces to JSON
       const processedPackages = this.threeJSComponent?.processedPackagesSignal() || [];
       const orderResult = await this.resultStepService.convertPiecesToJsonString(processedPackages);
 
-      // Check for deleted packages
       const deletedPackages = this.threeJSComponent?.deletedPackagesSignal() || [];
 
       if (deletedPackages.length > 0) {
@@ -318,25 +352,20 @@ export class ResultStepComponent implements OnInit, OnDestroy {
   /**
    * Submit order result to store
    */
-  private submitOrderResult(
-    orderResult: string,
-    resetStepper: boolean
-  ): void {
+  private submitOrderResult(orderResult: string, resetStepper: boolean): void {
+    this.store.dispatch(StepperResultActions.resultStepSubmit({
+      orderId: this.orderIdSignal(),
+      orderResult,
+      resetStepper
+    }));
 
-    // Reset UI state if needed
     if (resetStepper) {
-      this.hasResults = false;
-      this.hasResultsSignal.set(false);
-      this.reportFiles = [];
+      this.piecesData = [];
+      this.originalPiecesData = [];
     }
 
-    // Submit order result
     this.store.dispatch(StepperResultActions.resultStepSubmit({ orderId: this.orderIdSignal(), orderResult, resetStepper }))
-
-
-    // Emit completion
     this.shipmentCompleted.emit();
-
     this.toastService.success(this.translate.instant('RESULT_STEP.ORDER_COMPLETED'));
   }
 
@@ -376,24 +405,20 @@ export class ResultStepComponent implements OnInit, OnDestroy {
     this.stopProgressSimulation();
 
     this.isLoadingSignal.set(false);
-    this.hasResultsSignal.set(false);
-    this.pendingFile.set(null);
+    this.pendingFileName.set(null);
 
     this.piecesData = [];
     this.originalPiecesData = [];
-    this.orderResultId = '';
-    this.reportFiles = [];
-    this.currentViewType = 'isometric';
 
     this.isLoading = false;
-    this.hasResults = false;
     this.hasThreeJSError = false;
     this.optimizationProgress = 0;
 
     if (this.threeJSComponent) {
       this.threeJSComponent.reset();
     }
-    this.store.dispatch(StepperResultActions.setIsDirty({ isDirty: false }));
+
+    this.store.dispatch(StepperResultActions.resetStep3State());
 
     this.cdr.markForCheck();
   }

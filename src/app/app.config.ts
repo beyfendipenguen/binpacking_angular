@@ -4,7 +4,7 @@ import { ErrorHandler } from '@angular/core';
 import { HttpClient, provideHttpClient, withInterceptors } from '@angular/common/http';
 
 // ✅ ngx-translate imports
-import { TranslateModule, TranslateLoader } from '@ngx-translate/core';
+import { TranslateModule, TranslateLoader, TranslateService } from '@ngx-translate/core';
 import { TranslateHttpLoader } from '@ngx-translate/http-loader';
 
 import { routes } from './app.routes';
@@ -41,15 +41,36 @@ export function appInitialization() {
 }
 
 export function initializeLanguage() {
-  const languageService = inject(LanguageService);
-  return Promise.resolve();
+  return () => {
+    const translate = inject(TranslateService);
+
+    const savedLang = localStorage.getItem('selectedLanguage');
+    const browserLang = translate.getBrowserLang() || 'tr';
+    const supportedLangs = ['tr', 'en', 'ru'];
+    const finalLang = supportedLangs.includes(savedLang || browserLang) ? (savedLang || browserLang) : 'tr';
+
+    translate.setDefaultLang('tr');
+
+    return new Promise<void>((resolve) => {
+      translate.use(finalLang).subscribe({
+        next: () => {
+          localStorage.setItem('selectedLanguage', finalLang);
+          document.documentElement.lang = finalLang;
+          resolve();
+        },
+        error: (err) => {
+          translate.use('tr').subscribe(() => resolve());
+        }
+      });
+    });
+  };
 }
 
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideAppInitializer(appInitialization),
-    provideAppInitializer(initializeLanguage),
+    provideAppInitializer(initializeLanguage()),
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(routes, withComponentInputBinding()),
     provideAnimationsAsync(),

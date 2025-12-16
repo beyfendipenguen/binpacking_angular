@@ -179,9 +179,7 @@ export class CustomersComponent implements OnInit {
     });
 
     dialogRef.afterClosed().subscribe((result) => {
-      if (result) {
-        this.loadData(); // Refresh table
-      }
+      this.loadData(); // Refresh table
     });
   }
 

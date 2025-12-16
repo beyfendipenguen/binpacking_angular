@@ -46,7 +46,8 @@
     "DESCRIPTION": "Açıklama",
     "PROCESS_FINISH": "İşlem Tamamlandı",
     "DIALOG_FORM_NOT_CREATED": "Form oluşturulamadı. Geçerli alan bulunamadı.",
-    "FIELD_REQUIRED": "Bu alan zorunludur."
+    "FIELD_REQUIRED": "Bu alan zorunludur.",
+    "REMOVE": "Kaldır"
   },
   "MENU": {
     "PLACEMENT_CALCULATION": "Yerleştirme Hesaplama",
@@ -176,7 +177,18 @@
     "CUSTOMERS": "Müşteriler",
     "CUSTOMER_COMPANY": "Müşteri Şirketi",
     "SELECTED": "Seçili: ",
-    "NEW_COMPANY": "Yeni Şirket"
+    "NEW_COMPANY": "Yeni Şirket",
+    "EDIT_COMPANY_DIALOG_TITLE": "Şirket Düzenle",
+    "SELECT_COMPANY_TO_EDIT": "Düzenlenecek Şirketi Seçin",
+    "SEARCH_COMPANY": "Şirket Ara",
+    "EDITING": "Düzenleniyor",
+    "COMPANY_DETAILS": "Şirket Detayları",
+    "COMPANY_LOGO": "Şirket Logosu",
+    "UPLOAD_LOGO": "Logo Yükle",
+    "CHANGE_LOGO": "Logoyu Değiştir",
+    "LOGO_HINT": "PNG, JPG veya GIF formatında resim yükleyebilirsiniz (Maksimum 5MB)",
+    "COMPANY_UPDATE_INFO": "Seçtiğiniz şirketin bilgileri güncellenecektir.",
+    "EDIT_COMPANY": "Şirket Düzenle"
   },
   "CUSTOMER_MESSAGES": {
     "COMPANY_ADDED": "Yeni şirket başarıyla eklendi",
@@ -191,7 +203,12 @@
     "OPERATION_ERROR": "İşlem sırasında hata oluştu",
     "DATA_LOAD_ERROR": "Veriler yüklenirken hata oluştu",
     "CUSTOMER_DELETED": "Müşteri başarıyla silindi",
-    "DELETE_ERROR": "Müşteri silinirken hata oluştu"
+    "DELETE_ERROR": "Müşteri silinirken hata oluştu",
+    "INVALID_IMAGE_TYPE": "Geçersiz dosya türü. Lütfen bir resim dosyası seçin (PNG, JPG, GIF)",
+    "IMAGE_TOO_LARGE": "Dosya boyutu çok büyük. Maksimum dosya boyutu 5MB olmalıdır",
+    "COMPANY_UPDATED": "Şirket başarıyla güncellendi",
+    "COMPANY_UPDATE_ERROR": "Şirket güncellenirken bir hata oluştu",
+    "NO_CHANGES_MADE": "Hiçbir değişiklik yapılmadı"
   },
   "DIMENSIONS": {
     "PRODUCT_NAME": "Ürün Adı",
@@ -651,6 +668,7 @@
     "NORMALIZE": "Normal Hale Getir",
     "NORMALIZE_TIP": "Paketi normal duruma getir",
     "ROTATE": "Döndür",
+    "ROTATE_TIP": "Döndür (Kısayol: R)",
     "DELETE_PACKAGE": "Paketi Sil (Kısayol: Delete)",
     "DELETE": "Sil",
     "DESELECT": "Seçimi Kaldır (Kısayol: Esc)",

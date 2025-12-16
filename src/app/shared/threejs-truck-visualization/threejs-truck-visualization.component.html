@@ -8,164 +8,164 @@
 
   <!-- No Data Message -->
   @if (!isLoadingModels && !isLoadingData && (!piecesData || piecesData.length === 0)) {
-    <div class="no-data-message">
-      <div class="no-data-content">
-        <div class="empty-icon">🚛</div>
-        <h4>{{ 'TRUCK_VISUALIZATION.NO_DATA' | translate }}</h4>
-        <p>{{ 'TRUCK_VISUALIZATION.NO_DATA_MESSAGE' | translate }}</p>
-      </div>
+  <div class="no-data-message">
+    <div class="no-data-content">
+      <div class="empty-icon">🚛</div>
+      <h4>{{ 'TRUCK_VISUALIZATION.NO_DATA' | translate }}</h4>
+      <p>{{ 'TRUCK_VISUALIZATION.NO_DATA_MESSAGE' | translate }}</p>
     </div>
+  </div>
   }
 
   <!-- Weight Display Panel (Top Center) -->
   @if (showWeightDisplay && !isLoadingModels && !isLoadingData && piecesData && piecesData.length > 0) {
-    <div class="weight-display-panel"
-      title="('TRUCK_VISUALIZATION.FIRST' | translate) {{ (weightCalculationDepth / 1000).toFixed(1) }}m  ('PALLET.CONTROL.TOTAL_WEIGHT' | translate)">
-      <div class="weight-content">
-        <h4>{{'TRUCK_VISUALIZATION.FIRST' | translate}} {{ (weightCalculationDepth / 1000).toFixed(1) }}m {{'TRUCK_VISUALIZATION.M_WEIGHT' | translate}}</h4>
-        <div class="weight-value">{{ frontSectionWeightDisplay }}</div>
-        <div class="weight-description">{{ 'TRUCK_VISUALIZATION.FRONT_LOAD' | translate }}</div>
-      </div>
+  <div class="weight-display-panel" [title]="getWeightTitle()">
+    <div class="weight-content">
+      <h4>{{'TRUCK_VISUALIZATION.FIRST' | translate}} {{ (weightCalculationDepth / 1000).toFixed(1) }}
+        {{'TRUCK_VISUALIZATION.M_WEIGHT' | translate}}</h4>
+      <div class="weight-value">{{ frontSectionWeightDisplay }}</div>
+      <div class="weight-description">{{ 'TRUCK_VISUALIZATION.FRONT_LOAD' | translate }}</div>
     </div>
+  </div>
   }
 
   <!-- Package Info Panel (Top Right) -->
   @if (selectedPackageSignal(); as selected) {
-    @if (!isLoadingModels && !isLoadingData) {
-      <div class="package-info-panel">
-        <div class="info-content">
-          <h4>📦 {{'TRUCK_VISUALIZATION.SELECTED_PACKAGE' | translate}}</h4>
+  @if (!isLoadingModels && !isLoadingData) {
+  <div class="package-info-panel">
+    <div class="info-content">
+      <h4>📦 {{'TRUCK_VISUALIZATION.SELECTED_PACKAGE' | translate}}</h4>
 
-          <div class="package-details">
-            <div class="detail-row">
-              <span class="label">{{ 'TRUCK_VISUALIZATION.ID' | translate }}</span>
-              <span class="value">#{{ selected.id }}</span>
-            </div>
-            <div class="detail-row distance-row">
-              <span class="label">{{ 'TRUCK_VISUALIZATION.TRUCK_END' | translate }}</span>
-              <span class="value distance-value">{{ selectedPackageDistanceToEndDisplay }}</span>
-            </div>
-            <div class="detail-row">
-              <span class="label">{{ 'TRUCK_VISUALIZATION.DIMENSIONS' | translate }}</span>
-              <span class="value">{{ selected.dimensions }}</span>
-            </div>
-            <div class="detail-row">
-              <span class="label">{{ 'TRUCK_VISUALIZATION.WEIGHT' | translate }}</span>
-              <span class="value">{{ selected.weight }} kg</span>
-            </div>
-            <div class="detail-row">
-              <span class="label">{{ 'TRUCK_VISUALIZATION.POSITION' | translate }}</span>
-              <span class="value">
-                ({{ selected.x | number:'1.0-0' }},
-                {{ selected.y | number:'1.0-0' }},
-                {{ selected.z | number:'1.0-0' }})
-              </span>
-            </div>
-            @if (selected.isForcePlaced) {
-              <div class="detail-row force-status">
-                <span class="warning-badge">{{ 'TRUCK_VISUALIZATION.OUT_OF_TOLERANCE' | translate }}</span>
-              </div>
-            }
-            @if (selected.rotation) {
-              <div class="detail-row">
-                <span class="label">{{ 'TRUCK_VISUALIZATION.ROTATION' | translate }}</span>
-                <span class="value">{{ selected.rotation }}°</span>
-              </div>
-            }
-          </div>
-
-          <!-- Package Actions -->
-          <div class="package-actions">
-            @if (!selected.isForcePlaced) {
-              <button class="action-btn force-place-btn" (click)="forcePlacePackage()"
-                [title]="'TRUCK_VISUALIZATION.FORCE_PLACE_TIP' | translate" [disabled]="!selectedPackageSignal()">
-                💪 {{ 'TRUCK_VISUALIZATION.FORCE_PLACE' | translate }}
-              </button>
-            }
-            @if (selected.isForcePlaced) {
-              <button class="action-btn unforce-btn" (click)="unforcePlacePackage()"
-                [title]="'TRUCK_VISUALIZATION.NORMALIZE_TIP' | translate" [disabled]="!selectedPackageSignal()">
-                ↩️ {{ 'TRUCK_VISUALIZATION.NORMALIZE' | translate }}
-              </button>
-            }
-            <button class="action-btn rotate-btn" (click)="rotateSelectedPackage()" title="90° Döndür (Kısayol: R)"
-              [disabled]="!selectedPackageSignal()">
-              🔄 {{ 'TRUCK_VISUALIZATION.ROTATE' | translate }}
-            </button>
-            <button class="action-btn delete-btn" (click)="deleteSelectedPackage()" [title]="'TRUCK_VISUALIZATION.DELETE_PACKAGE' | translate"
-              [disabled]="!selectedPackageSignal()">
-              🗑️ {{ 'TRUCK_VISUALIZATION.DELETE' | translate }}
-            </button>
-          </div>
-
-          <button class="close-btn" (click)="clearSelection()" [title]="'TRUCK_VISUALIZATION.DESELECT' | translate">
-            ✖
-          </button>
+      <div class="package-details">
+        <div class="detail-row">
+          <span class="label">{{ 'TRUCK_VISUALIZATION.ID' | translate }}</span>
+          <span class="value">#{{ selected.id }}</span>
         </div>
+        <div class="detail-row distance-row">
+          <span class="label">{{ 'TRUCK_VISUALIZATION.TRUCK_END' | translate }}</span>
+          <span class="value distance-value">{{ selectedPackageDistanceToEndDisplay }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">{{ 'TRUCK_VISUALIZATION.DIMENSIONS' | translate }}</span>
+          <span class="value">{{ selected.dimensions }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">{{ 'TRUCK_VISUALIZATION.WEIGHT' | translate }}</span>
+          <span class="value">{{ selected.weight }} kg</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">{{ 'TRUCK_VISUALIZATION.POSITION' | translate }}</span>
+          <span class="value">
+            ({{ selected.x | number:'1.0-0' }},
+            {{ selected.y | number:'1.0-0' }},
+            {{ selected.z | number:'1.0-0' }})
+          </span>
+        </div>
+        @if (selected.isForcePlaced) {
+        <div class="detail-row force-status">
+          <span class="warning-badge">{{ 'TRUCK_VISUALIZATION.OUT_OF_TOLERANCE' | translate }}</span>
+        </div>
+        }
+        @if (selected.rotation) {
+        <div class="detail-row">
+          <span class="label">{{ 'TRUCK_VISUALIZATION.ROTATION' | translate }}</span>
+          <span class="value">{{ selected.rotation }}°</span>
+        </div>
+        }
       </div>
-    }
+
+      <!-- Package Actions -->
+      <div class="package-actions">
+        @if (!selected.isForcePlaced) {
+        <button class="action-btn force-place-btn" (click)="forcePlacePackage()"
+          [title]="'TRUCK_VISUALIZATION.FORCE_PLACE_TIP' | translate" [disabled]="!selectedPackageSignal()">
+          💪 {{ 'TRUCK_VISUALIZATION.FORCE_PLACE' | translate }}
+        </button>
+        }
+        @if (selected.isForcePlaced) {
+        <button class="action-btn unforce-btn" (click)="unforcePlacePackage()"
+          [title]="'TRUCK_VISUALIZATION.NORMALIZE_TIP' | translate" [disabled]="!selectedPackageSignal()">
+          ↩️ {{ 'TRUCK_VISUALIZATION.NORMALIZE' | translate }}
+        </button>
+        }
+        <button class="action-btn rotate-btn" (click)="rotateSelectedPackage()"
+          [title]="'TRUCK_VISUALIZATION.ROTATE_TIP' | translate" [disabled]="!selectedPackageSignal()">
+          🔄 {{ 'TRUCK_VISUALIZATION.ROTATE' | translate }}
+        </button>
+        <button class="action-btn delete-btn" (click)="deleteSelectedPackage()"
+          [title]="'TRUCK_VISUALIZATION.DELETE_PACKAGE' | translate" [disabled]="!selectedPackageSignal()">
+          🗑️ {{ 'TRUCK_VISUALIZATION.DELETE' | translate }}
+        </button>
+      </div>
+
+      <button class="close-btn" (click)="clearSelection()" [title]="'TRUCK_VISUALIZATION.DESELECT' | translate">
+        ✖
+      </button>
+    </div>
+  </div>
+  }
   }
 
   <!-- Deleted Packages Panel (Bottom Right) -->
   @if (deletedPackagesSignal().length > 0 && !isLoadingModels && !isLoadingData) {
-    <div class="deleted-packages-panel" [class.below-selection]="selectedPackageSignal()">
-      <div class="deleted-content">
-        <h4>
-          🗑️ {{ 'TRUCK_VISUALIZATION.UNPLACED_PACKAGES' | translate }}
-          <span class="delete-count">{{ deletedPackagesSignal().length }}</span>
-        </h4>
+  <div class="deleted-packages-panel" [class.below-selection]="selectedPackageSignal()">
+    <div class="deleted-content">
+      <h4>
+        🗑️ {{ 'TRUCK_VISUALIZATION.UNPLACED_PACKAGES' | translate }}
+        <span class="delete-count">{{ deletedPackagesSignal().length }}</span>
+      </h4>
 
-        <div class="deleted-list">
-          @for (pkg of deletedPackagesSignal(); track trackDeletedPackage($index, pkg)) {
-            <div class="deleted-item">
-              <div class="deleted-info">
-                <span class="deleted-id">#{{ pkg.id }}</span>
-                <span class="deleted-dims">{{ pkg.dimensions }}</span>
-                <span class="deleted-weight">{{ pkg.weight }} kg</span>
-              </div>
-              <button class="restore-btn" (click)="restorePackage(pkg)"
-                [title]="'TRUCK_VISUALIZATION.ADD_PACKAGE_TIP' | translate">
-                ➕ Ekle
-              </button>
-            </div>
-          }
-        </div>
-
-        <!-- Bulk Actions -->
-        <div class="bulk-actions">
-          <button class="bulk-btn restore-all-btn" (click)="restoreAllPackages()"
-            [title]="'TRUCK_VISUALIZATION.ADD_ALL_TIP' | translate">
-            ↩️ {{ 'TRUCK_VISUALIZATION.ADD_ALL' | translate }}
-          </button>
-          <button class="bulk-btn clear-all-btn" (click)="clearDeletedPackages()" [title]="'TRUCK_VISUALIZATION.CLEAR_TIP' | translate"
-            [disabled]="true">
-            🗑️ {{ 'TRUCK_VISUALIZATION.CLEAR' | translate }}
+      <div class="deleted-list">
+        @for (pkg of deletedPackagesSignal(); track trackDeletedPackage($index, pkg)) {
+        <div class="deleted-item">
+          <div class="deleted-info">
+            <span class="deleted-id">#{{ pkg.id }}</span>
+            <span class="deleted-dims">{{ pkg.dimensions }}</span>
+            <span class="deleted-weight">{{ pkg.weight }} kg</span>
+          </div>
+          <button class="restore-btn" (click)="restorePackage(pkg)"
+            [title]="'TRUCK_VISUALIZATION.ADD_PACKAGE_TIP' | translate">
+            ➕ {{'COMMON.ADD' | translate}}
           </button>
         </div>
+        }
+      </div>
+
+      <!-- Bulk Actions -->
+      <div class="bulk-actions">
+        <button class="bulk-btn restore-all-btn" (click)="restoreAllPackages()"
+          [title]="'TRUCK_VISUALIZATION.ADD_ALL_TIP' | translate">
+          ↩️ {{ 'TRUCK_VISUALIZATION.ADD_ALL' | translate }}
+        </button>
+        <button class="bulk-btn clear-all-btn" (click)="clearDeletedPackages()"
+          [title]="'TRUCK_VISUALIZATION.CLEAR_TIP' | translate" [disabled]="true">
+          🗑️ {{ 'TRUCK_VISUALIZATION.CLEAR' | translate }}
+        </button>
       </div>
     </div>
+  </div>
   }
 
   <!-- Loading Overlay -->
   @if (isLoadingModels) {
-    <div class="loading-overlay">
-      <div class="loading-spinner">
-        <div class="spinner"></div>
-        <p>{{ 'TRUCK_VISUALIZATION.LOADING_3D' | translate }}</p>
-        <div class="loading-details">
-          <div class="model-status">
-            <span [class.loaded]="modelsLoaded.trailerWheel">⚙️ {{ 'TRUCK_VISUALIZATION.WHEEL_MODEL' | translate }}</span>
-          </div>
+  <div class="loading-overlay">
+    <div class="loading-spinner">
+      <div class="spinner"></div>
+      <p>{{ 'TRUCK_VISUALIZATION.LOADING_3D' | translate }}</p>
+      <div class="loading-details">
+        <div class="model-status">
+          <span [class.loaded]="modelsLoaded.trailerWheel">⚙️ {{ 'TRUCK_VISUALIZATION.WHEEL_MODEL' | translate }}</span>
         </div>
       </div>
     </div>
+  </div>
   }
   @if (!isLoadingModels && isLoadingData) {
-    <div class="loading-overlay secondary">
-      <div class="loading-spinner">
-        <div class="spinner small"></div>
-        <p>{{ 'TRUCK_VISUALIZATION.PLACING_PACKAGES' | translate }}</p>
-      </div>
+  <div class="loading-overlay secondary">
+    <div class="loading-spinner">
+      <div class="spinner small"></div>
+      <p>{{ 'TRUCK_VISUALIZATION.PLACING_PACKAGES' | translate }}</p>
     </div>
+  </div>
   }
 </div>

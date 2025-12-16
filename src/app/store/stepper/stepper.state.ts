@@ -5,6 +5,9 @@ import { IUiPallet } from "@app/features/stepper/interfaces/ui-interfaces/ui-pal
 import { Document } from "@app/features/interfaces/file.interface";
 import { PackageDetailReadDto } from "@app/features/interfaces/package-detail.interface";
 import { PackageReadDto, PackageWriteDto } from "@app/features/interfaces/package.interface";
+import { ReportFile } from "@app/features/stepper/components/result-step/result-step.service";
+import { PackageData } from "@app/features/interfaces/order-result.interface";
+
 
 export interface StepperState {
   order: Order | null;
@@ -18,7 +21,6 @@ export interface StepperState {
   hasRevisedOrder: boolean;
 
   error: string | null;
-
 
   globalError: {
     message: string;
@@ -52,18 +54,14 @@ export interface StepperState {
 
   step3State: {
     orderResult: string;
-    reportFiles: Document[];
+    reportFiles: ReportFile[];
     currentViewType: string;
     hasThreeJSError: boolean;
-    processedPackages: string[];
     isDirty: boolean;
-    deletedPackageIds:string[];
   };
 }
 
-
 export const initialStepperState: StepperState = {
-
   order: null,
   originalOrder: null,
   currentStep: 0,
@@ -102,10 +100,7 @@ export const initialStepperState: StepperState = {
     orderResult: '',
     reportFiles: [],
     currentViewType: 'isometric',
-    processedPackages: [],
     hasThreeJSError: false,
-    isDirty: false,
-    deletedPackageIds:[]
+    isDirty: false
   },
-
 };

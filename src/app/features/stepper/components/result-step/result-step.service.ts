@@ -2,8 +2,8 @@ import { Injectable, inject } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { Store } from '@ngrx/store';
 import { firstValueFrom, Observable } from 'rxjs';
-import { map, switchMap, take } from 'rxjs/operators';
-import { AppState, selectOrderId, selectPackages, selectStep3IsDirty } from '@app/store';
+import { map, switchMap, take, tap } from 'rxjs/operators';
+import { AppState, selectOrder, selectOrderId, selectPackages, selectStep3IsDirty } from '@app/store';
 import { ToastService } from '@core/services/toast.service';
 import { RepositoryService } from '@features/stepper/services/repository.service';
 
@@ -27,7 +27,7 @@ export interface ReportFile {
   id?: string;
   name: string;
   file: string;
-  file_type: string | null;
+  type: string | null;
   file_size?: number;
 }
 
@@ -45,26 +45,36 @@ export class ResultStepService {
    * Calculate binpacking and generate report
    */
   calculateAndGenerateReport(): Observable<{
-    orderResultId: string;
-    piecesData: any[];
-    reportFiles: ReportFile[];
-  }> {
+  orderResultId: string;
+  orderResult: string;
+  piecesData: any[];
+  reportFiles: ReportFile[];
+}> {
+  return this.repositoryService.calculatePacking().pipe(
+    switchMap(packingResponse => {
+      const orderResultId = packingResponse.data.order_result_id;
+      const orderResult = packingResponse.data.result;
+      const piecesData = this.processPiecesData(packingResponse.data.data || packingResponse.data);
 
-    return this.repositoryService.calculatePacking().pipe(
-      switchMap(packingResponse => {
-        const orderResultId = packingResponse.data.order_result_id;
-        const piecesData = this.processPiecesData(packingResponse.data.data || packingResponse.data);
 
-        return this.repositoryService.createReport(this.orderIdSignal()).pipe(
-          map(reportResponse => ({
-            orderResultId,
-            piecesData,
-            reportFiles: Array.isArray(reportResponse?.files) ? reportResponse.files : []
-          }))
-        );
-      })
-    );
-  }
+      return this.repositoryService.createReport(this.orderIdSignal()).pipe(
+        map(reportResponse => ({
+          orderResultId,
+          orderResult: orderResult || JSON.stringify(piecesData),
+          piecesData,
+          reportFiles: Array.isArray(reportResponse?.files)
+            ? reportResponse.files.map((file: any) => ({
+                id: file.id,
+                name: file.name,
+                type: file.type || file.file_type,
+                file: file.file
+              }))
+            : []
+        }))
+      );
+    })
+  );
+}
 
   /**
    * Process pieces data from backend response

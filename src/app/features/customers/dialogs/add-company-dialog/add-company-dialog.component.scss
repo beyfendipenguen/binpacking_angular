@@ -7,7 +7,15 @@ $text-dark: #333333;
 $text-light: #666666;
 $border-color: #e0e0e0;
 $white: #ffffff;
+$success-color: #4caf50;
+$error-color: #f44336;
 
+.company-logo-small {
+            width: 32px;
+            border-radius: 4px;
+            object-fit: cover;
+            border: 1px solid $border-color;
+          }
 .add-company-dialog {
   .dialog-header {
     display: flex;
@@ -39,8 +47,134 @@ $white: #ffffff;
 
   .dialog-content {
     padding: 24px;
+    max-height: 70vh;
+    overflow-y: auto;
+
+    // Scrollbar
+    &::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: $background-color;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: $secondary-color;
+      border-radius: 3px;
+
+      &:hover {
+        background: $light-accent;
+      }
+    }
 
     .company-form {
+      .form-section {
+        margin-bottom: 24px;
+        padding: 20px;
+        background-color: $background-color;
+        border-radius: 8px;
+        border-left: 4px solid $primary-color;
+
+        &.company-selection-section {
+          border-left-color: $secondary-color;
+        }
+
+        .section-title {
+          margin: 0 0 16px 0;
+          font-size: 1rem;
+          font-weight: 600;
+          color: $primary-color;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+
+          mat-icon {
+            font-size: 20px;
+            width: 20px;
+            height: 20px;
+          }
+        }
+
+        .company-search-row {
+          .company-search-field {
+            width: 100%;
+          }
+        }
+
+        .company-option {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          padding: 4px 0;
+
+          .company-logo-small {
+            width: 10px;
+            height: 10px;
+            border-radius: 4px;
+            object-fit: cover;
+            border: 1px solid $border-color;
+          }
+
+          .company-logo-placeholder {
+            width: 32px;
+            height: 32px;
+            border-radius: 4px;
+            background-color: $background-color;
+            border: 1px solid $border-color;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            mat-icon {
+              font-size: 20px;
+              width: 20px;
+              height: 20px;
+              color: $text-light;
+            }
+          }
+
+          .company-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+
+            .company-name {
+              font-weight: 500;
+              color: $text-dark;
+            }
+
+            .company-country {
+              font-size: 0.85rem;
+              color: $text-light;
+            }
+          }
+        }
+
+        .selected-company-info {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          padding: 12px 16px;
+          background: rgba(76, 175, 80, 0.15);
+          border-radius: 8px;
+          color: #2e7d32;
+          margin-top: 12px;
+          border: 1px solid rgba(76, 175, 80, 0.3);
+
+          mat-icon {
+            font-size: 20px;
+            width: 20px;
+            height: 20px;
+          }
+
+          strong {
+            font-weight: 600;
+            color: #1b5e20;
+          }
+        }
+      }
+
       .form-row {
         margin-bottom: 20px;
 
@@ -50,6 +184,144 @@ $white: #ffffff;
 
         .full-width {
           width: 100%;
+        }
+
+        &.logo-section {
+          .logo-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: $text-dark;
+            margin-bottom: 12px;
+
+            mat-icon {
+              font-size: 20px;
+              width: 20px;
+              height: 20px;
+              color: $primary-color;
+            }
+          }
+
+          .logo-upload-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+
+            .logo-preview {
+              position: relative;
+              width: 150px;
+              height: 150px;
+              border-radius: 8px;
+              border: 2px solid $border-color;
+              overflow: hidden;
+              background-color: $white;
+
+              img {
+                width: 100%;
+                height: 100%;
+                object-fit: contain;
+                padding: 8px;
+              }
+
+              .remove-logo-btn {
+                position: absolute;
+                top: 4px;
+                right: 4px;
+                width: 32px;
+                height: 32px;
+                background-color: rgba(244, 67, 54, 0.9);
+                color: $white;
+
+                mat-icon {
+                  font-size: 18px;
+                  width: 18px;
+                  height: 18px;
+                }
+
+                &:hover {
+                  background-color: $error-color;
+                }
+              }
+            }
+
+            .logo-placeholder {
+              width: 150px;
+              height: 150px;
+              border-radius: 8px;
+              border: 2px dashed $border-color;
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              justify-content: center;
+              gap: 8px;
+              cursor: pointer;
+              transition: all 0.3s ease;
+              background-color: $background-color;
+
+              mat-icon {
+                font-size: 48px;
+                width: 48px;
+                height: 48px;
+                color: $text-light;
+              }
+
+              span {
+                font-size: 0.9rem;
+                color: $text-light;
+                font-weight: 500;
+              }
+
+              &:hover {
+                border-color: $primary-color;
+                background-color: rgba(0, 106, 106, 0.05);
+
+                mat-icon {
+                  color: $primary-color;
+                }
+
+                span {
+                  color: $primary-color;
+                }
+              }
+            }
+
+            .change-logo-btn {
+              align-self: flex-start;
+              display: flex;
+              align-items: center;
+              gap: 8px;
+
+              mat-icon {
+                font-size: 18px;
+                width: 18px;
+                height: 18px;
+              }
+            }
+          }
+
+          .logo-hint {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            background-color: rgba(214, 187, 134, 0.1);
+            border-radius: 6px;
+            margin-top: 8px;
+
+            mat-icon {
+              font-size: 16px;
+              width: 16px;
+              height: 16px;
+              color: $secondary-color;
+            }
+
+            span {
+              font-size: 0.85rem;
+              color: $text-light;
+            }
+          }
         }
       }
 
@@ -130,6 +402,29 @@ $white: #ffffff;
 
         ::ng-deep circle {
           stroke: $white;
+        }
+      }
+    }
+  }
+
+  // Responsive
+  @media (max-width: 600px) {
+    .dialog-content {
+      padding: 16px;
+
+      .company-form {
+        .form-section {
+          padding: 16px;
+        }
+
+        .form-row.logo-section {
+          .logo-upload-container {
+            .logo-preview,
+            .logo-placeholder {
+              width: 120px;
+              height: 120px;
+            }
+          }
         }
       }
     }

@@ -18,12 +18,14 @@ import {
 
 import { RepositoryService } from '@features/stepper/services/repository.service';
 import { UiPallet } from '@features/stepper/components/ui-models/ui-pallet.model';
+import { TranslateService } from '@ngx-translate/core';
 
 @Injectable()
 export class StepperPackageEffects {
   private actions$ = inject(Actions);
   private store = inject(Store<AppState>);
   private repositoryService = inject(RepositoryService);
+  private translate = inject(TranslateService);
 
   orderDetailChanges$ = createEffect(() =>
     this.actions$.pipe(
@@ -157,9 +159,8 @@ export class StepperPackageEffects {
       ),
       map(() => StepperPackageActions.calculatePackageChanges()),
       catchError((error) => {
-        console.error('[packageChanges$] Hata:', error);
         return of(StepperUiActions.setGlobalError({
-          error: { message: 'Paketleme işlemi sırasında bir hata oluştu.', stepIndex: 2 }
+          error: { message: this.translate.instant('STEPPER.PACKAGING_ERROR'), stepIndex: 2 }
         }));
       })
     )

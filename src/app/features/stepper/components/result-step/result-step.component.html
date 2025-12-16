@@ -9,27 +9,27 @@
     </div>
 
     <!-- Enhanced View Controls -->
-    @if (hasResults ) {
+    @if (hasResultsSignal() ) {
     <div class="view-controls">
-      <button class="view-button" [class.active]="currentViewType === 'front'" [disabled]="isLoading"
+      <button class="view-button" [class.active]="currentViewTypeSignal() === 'front'" [disabled]="isLoading"
         (click)="threeJSComponent.setView('front')">
         <mat-icon>view_agenda</mat-icon>
         <span>{{ 'RESULT_STEP.FRONT' | translate }}</span>
       </button>
 
-      <button class="view-button" [class.active]="currentViewType === 'side'" [disabled]="isLoading"
+      <button class="view-button" [class.active]="currentViewTypeSignal() === 'side'" [disabled]="isLoading"
         (click)="threeJSComponent.setView('side')">
         <mat-icon>view_sidebar</mat-icon>
         <span>{{ 'RESULT_STEP.SIDE' | translate }}</span>
       </button>
 
-      <button class="view-button" [class.active]="currentViewType === 'top'" [disabled]="isLoading"
+      <button class="view-button" [class.active]="currentViewTypeSignal() === 'top'" [disabled]="isLoading"
         (click)="threeJSComponent.setView('top')">
         <mat-icon>view_comfy</mat-icon>
         <span>{{ 'RESULT_STEP.TOP' | translate }}</span>
       </button>
 
-      <button class="view-button" [class.active]="currentViewType === 'isometric'" [disabled]="isLoading"
+      <button class="view-button" [class.active]="currentViewTypeSignal() === 'isometric'" [disabled]="isLoading"
         (click)="threeJSComponent.resetView()">
         <mat-icon>view_in_ar</mat-icon>
         <span>3D</span>
@@ -42,7 +42,7 @@
   <div class="visualization-container">
 
     <!-- Visualization Overlay (No Results) -->
-    @if (!hasResults && !isLoading) {
+    @if (!hasResultsSignal() && !isLoading) {
     <div class="visualization-overlay">
       <div class="overlay-content">
         <mat-icon class="overlay-icon">local_shipping</mat-icon>
@@ -69,7 +69,7 @@
     }
 
     <!-- ENHANCED: ThreeJS Truck Visualization Component with NEW dataChanged event -->
-    @if (hasResults && !hasThreeJSError) {
+    @if (hasResultsSignal() && !hasThreeJSError) {
     <app-threejs-truck-visualization #threeJSComponent [weightCalculationDepth]="3000" [showWeightDisplay]="true"
       [piecesData]="piecesData" [showHelp]="true" (error)="onThreeJSError($event)">
     </app-threejs-truck-visualization>
@@ -92,12 +92,12 @@
   </div>
 
   <!-- Enhanced Report Files Container -->
-  @if (reportFiles && reportFiles.length > 0) {
+  @if (reportFilesSignal() && reportFilesSignal().length > 0) {
   <div class="report-files-container">
     <div class="report-files-header">
       <mat-icon>description</mat-icon>
       <span>{{ 'RESULT_STEP.REPORT_FILES' | translate }}</span>
-      <div class="file-count">{{ reportFiles.length }}</div>
+      <div class="file-count">{{ reportFilesSignal().length }}</div>
 
       <!-- ✅ NEW: Unsaved Changes Badge -->
       @if (isDirtySignal()) {
@@ -109,21 +109,16 @@
     </div>
 
     <div class="report-files-list">
-      @for (file of reportFiles; track trackByFileId($index, file)) {
+      @for (file of reportFilesSignal(); track trackByFileId($index, file)) {
       <div class="report-file-item" [class.has-changes]="isDirtySignal()">
-        <div class="file-icon" [class]="'file-type-' + getFileIcon(file.file_type)">
-          <mat-icon>{{ getFileIcon(file.file_type) }}</mat-icon>
+        <div class="file-icon" [class]="'file-type-' + getFileIcon(file.type)">
+          <mat-icon>{{ getFileIcon(file.type) }}</mat-icon>
         </div>
         <div class="file-info">
           <!-- ✅ CHANGED: Click handler ekle, href kaldır -->
           <a class="file-link" (click)="onFileClick($event, file)" [class.saving]="isDirtySignal()"
             style="cursor: pointer;">
             <span class="file-name">{{ file.name }}</span>
-            @if (file.file_size) {
-            <span class="file-size">
-              {{ formatFileSize(file.file_size) }}
-            </span>
-            }
 
             <!-- ✅ NEW: Icon değişimi -->
             @if (!isDirtySignal()) {
@@ -137,7 +132,7 @@
       </div>
       }
 
-      @if (reportFiles.length === 0) {
+      @if (reportFilesSignal().length === 0) {
       <div class="empty-files">
         <mat-icon>folder_open</mat-icon>
         <span>{{ 'RESULT_STEP.NO_REPORT_FILES' | translate }}</span>
@@ -161,7 +156,7 @@
   </button>
 
   <button mat-button class="complete-order-button" (click)="completeShipment()"
-    [disabled]="!hasResults && isDirtySignal()">
+    [disabled]="!hasResultsSignal() && isDirtySignal()">
     <mat-icon>check_circle</mat-icon>
     <span>{{ 'RESULT_STEP.COMPLETE_SHIPMENT' | translate }}</span>
   </button>

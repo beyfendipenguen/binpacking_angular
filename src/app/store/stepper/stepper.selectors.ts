@@ -1,13 +1,13 @@
-import { createFeatureSelector, createSelector, MemoizedSelector, State } from '@ngrx/store';
+import { createFeatureSelector, createSelector, MemoizedSelector } from '@ngrx/store';
 import { StepperState } from './stepper.state';
 import { UiPackage } from '../../features/stepper/components/ui-models/ui-package.model';
 import { toInteger } from 'lodash';
 import { deepEqual, areOrderDetailsEqual } from '../../features/stepper/components/invoice-upload/helpers/order-detail.helper';
 import { arePackageListsEqual, calculatePackageChanges } from '../../features/stepper/components/pallet-control/package-changes.helper';
 import { UiPallet } from '../../features/stepper/components/ui-models/ui-pallet.model';
-import { PackageDetailWriteDto } from '@app/features/interfaces/package-detail.interface';
-import { mapUiPackagesToPackageWriteDtoList, mapUiPackageToPackageWriteDto } from '@app/features/mappers/package.mapper';
-import { PackageWriteDto } from '@app/features/interfaces/package.interface';
+import { mapUiPackagesToPackageWriteDtoList } from '@app/features/mappers/package.mapper';
+
+import { ReportFile } from '@app/features/stepper/components/result-step/result-step.service';
 
 // Feature selector
 export const selectStepperState = createFeatureSelector<StepperState>('stepper');
@@ -591,9 +591,10 @@ export const selectOrderResultId = createSelector(
   selectStepperState,
   (state) => state.orderResultId
 );
+
 export const selectStep3ReportFiles = createSelector(
   selectStep3State,
-  (step3State) => step3State.reportFiles
+  (step3State): ReportFile[] => step3State.reportFiles
 );
 
 export const selectIsOrderDirty = createSelector(selectStepperState, (state) => {
@@ -637,10 +638,5 @@ export const selectStep3CurrentViewType = createSelector(
 export const selectStep3HasThreeJSError = createSelector(
   selectStep3State,
   (step3State) => step3State.hasThreeJSError
-);
-
-export const selectStep3ProcessedPackages = createSelector(
-  selectStep3State,
-  (step3State) => step3State.processedPackages
 );
 

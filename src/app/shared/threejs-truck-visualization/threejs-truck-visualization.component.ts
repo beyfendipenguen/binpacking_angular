@@ -15,7 +15,7 @@ import {
   AfterViewInit,
   signal
 } from '@angular/core';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import * as THREE from 'three';
@@ -24,28 +24,10 @@ import { AppState, selectStep3IsDirty, selectTruck, StepperResultActions } from 
 import { StepperUiActions } from '@app/store/stepper/actions/stepper-ui.actions';
 import { ThreeJSRenderManagerService } from './services/threejs-render-manager.service';
 import { ThreeJSComponents, ThreeJSInitializationService } from './services/threejs-initialization.service';
+import { PackagesStateService } from './services/packages-state.service';
+import { PackageData } from '@app/features/interfaces/order-result.interface';
 
-interface PackageData {
-  id: number;
-  x: number;
-  y: number;
-  z: number;
-  length: number;
-  width: number;
-  height: number;
-  weight: number;
-  color?: string;
-  originalColor?: string;
-  dimensions?: string;
-  mesh?: THREE.Mesh;
-  isBeingDragged?: boolean;
-  rotation?: number;
-  originalLength?: number;
-  originalWidth?: number;
-  pkgId: string;
-  isForcePlaced?: boolean;
-  forcePlaceBorder?: THREE.LineSegments;
-}
+
 
 @Component({
   selector: 'app-threejs-truck-visualization',
@@ -71,15 +53,17 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
   private readonly initService = inject(ThreeJSInitializationService);
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly ngZone = inject(NgZone);
+  private readonly translate = inject(TranslateService);
+  private readonly packagesStateService = inject(PackagesStateService);
 
   // Signals
   truckDimension = this.store.selectSignal(selectTruck);
   isDirty = this.store.selectSignal(selectStep3IsDirty)
   isLoadingSignal = signal(true);
   isDataLoadingSignal = signal(false);
-  deletedPackagesSignal = signal<PackageData[]>([]);
-  processedPackagesSignal = signal<PackageData[]>([]);
-  selectedPackageSignal = signal<PackageData | null>(null);
+  deletedPackagesSignal = this.packagesStateService.deletedPackages;
+  processedPackagesSignal = this.packagesStateService.processedPackages;
+  selectedPackageSignal = this.packagesStateService.selectedPackage;
 
   // Three.js components
   private threeComponents?: ThreeJSComponents;
@@ -155,7 +139,44 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
   ngOnInit(): void {
     this.isLoadingModels = true;
     this.isLoadingSignal.set(true);
+-
+    this.packagesStateService.setOnPackageRemovedCallback((pkg) => {
+      this.cleanupMesh(pkg);
+    });
+
+    this.packagesStateService.setOnPackageAddedCallback((pkg) => {
+      if (!pkg.mesh && this.isViewReady) {
+        this.createPackageMesh(pkg);
+        this.renderManager.requestRender();
+      }
+    });
   }
+
+  /**
+   * Package mesh'ini temizler
+   */
+  private cleanupMesh(pkg: PackageData): void {
+
+    if (pkg.mesh) {
+      this.packagesGroup.remove(pkg.mesh);
+      pkg.mesh.geometry.dispose();
+      (pkg.mesh.material as THREE.Material).dispose();
+      pkg.mesh = undefined;
+    }
+
+    if (pkg.forcePlaceBorder) {
+      pkg.forcePlaceBorder.geometry.dispose();
+      (pkg.forcePlaceBorder.material as THREE.Material).dispose();
+      pkg.forcePlaceBorder = undefined;
+    }
+
+    if (pkg.originalColor) {
+      this.releaseColor(pkg.originalColor);
+    }
+
+    this.renderManager.requestRender();
+  }
+
 
   async ngAfterViewInit(): Promise<void> {
 
@@ -241,6 +262,13 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
   }
 
   // Border ekleme
+  getWeightTitle(): string {
+    const firstText = this.translate.instant('TRUCK_VISUALIZATION.FIRST');
+    const totalWeightText = this.translate.instant('PALLET_CONTROL.TOTAL_WEIGHT');
+    const depth = (this.weightCalculationDepth / 1000).toFixed(1);
+    return `${firstText} ${depth}m ${totalWeightText}`;
+  }
+
   private addForcePlaceBorder(packageData: PackageData): void {
     if (!packageData.mesh || packageData.forcePlaceBorder) return;
 
@@ -380,8 +408,8 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
       : this.piecesData;
 
     if (!pieces || pieces.length === 0) {
-      this.processedPackagesSignal.set([]);
-      this.deletedPackagesSignal.set([]);
+      this.packagesStateService.clearDeletedPackages()
+      this.packagesStateService.clearProcessedPackages()
       this.usedColors.clear();
       return;
     }
@@ -462,10 +490,13 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
       }
     });
 
-    this.processedPackagesSignal.set(processed);
+    if (processed.length !== 0) {
+      this.packagesStateService.setProcessedPackages(processed);
+    }
+
     if (deleted.length !== 0) {
-      this.store.dispatch(StepperResultActions.addDeletedPackageIdList({ packageIds: deleted.map(p => p.pkgId) }))
-      this.deletedPackagesSignal.set(deleted);
+      this.store.dispatch(StepperResultActions.changeDeletedPackageIsRemaining({ packageIds: deleted.map(p => p.pkgId) }))
+      this.packagesStateService.setDeletedPackages(deleted);
     }
   }
 
@@ -963,13 +994,13 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
 
   private selectPackage(packageData: PackageData): void {
     this.clearHighlights();
-    this.selectedPackageSignal.set(packageData);
+    this.packagesStateService.selectPackage(packageData)
     this.highlightSelectedPackage();
     this.renderManager.requestRender();
   }
 
   clearSelection(): void {
-    this.selectedPackageSignal.set(null);
+    this.packagesStateService.clearSelection();
     this.clearHighlights();
     this.renderManager.requestRender();
   }
@@ -1102,36 +1133,18 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     if (!selected) return;
 
     const packages = this.processedPackagesSignal();
-    const index = packages.findIndex(pkg => pkg.id === selected.id);
-    if (index > -1) {
-      const deletedPackage = packages[index];
+    const deletedPackage = packages.find(pkg => pkg.id === selected.id);
 
-      this.processedPackagesSignal.update(pkgs =>
-        pkgs.filter((_, i) => i !== index)
-      );
-
-
-      this.deletedPackagesSignal.update(arr => [...arr, deletedPackage]);
-      this.store.dispatch(StepperResultActions.addDeletedPackageIdList({ packageIds: this.deletedPackagesSignal().map(p => p.pkgId) }))
-      if (deletedPackage.originalColor) {
-        this.releaseColor(deletedPackage.originalColor);
-      }
-
-      if (deletedPackage.mesh) {
-        this.packagesGroup.remove(deletedPackage.mesh);
-        deletedPackage.mesh.geometry.dispose();
-        (deletedPackage.mesh.material as THREE.Material).dispose();
-      }
-
-      this.selectedPackageSignal.set(null);
+    if (deletedPackage) {
+      this.packagesStateService.moveToDeleted(deletedPackage.pkgId);
+      this.store.dispatch(StepperResultActions.changeDeletedPackageIsRemaining({ packageIds: [deletedPackage.pkgId] }))
+      this.packagesStateService.clearSelection();
       this.orderResultChange();
-      this.renderManager.requestRender();
     }
   }
 
   restorePackage(packageData: PackageData): void {
-    this.deletedPackagesSignal.update(arr => arr.filter(pkg => pkg.id !== packageData.id));
-    this.store.dispatch(StepperResultActions.addDeletedPackageIdList({ packageIds: this.deletedPackagesSignal().map(p => p.pkgId) }))
+    this.packagesStateService.removeFromDeletedPackages(packageData.pkgId);
 
     let validPosition = this.findValidPosition(packageData);
 
@@ -1172,24 +1185,26 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
       }
 
       this.createPackageMesh(packageData);
-      this.processedPackagesSignal.update(packages => [...packages, packageData]);
+
+      this.packagesStateService.addToProcessedPackages(packageData);
+
       this.orderResultChange();
-      this.renderManager.requestRender();
     } else {
-      this.deletedPackagesSignal.update(arr => [...arr, packageData]);
-      this.store.dispatch(StepperResultActions.addDeletedPackageIdList({ packageIds: this.deletedPackagesSignal().map(p => p.pkgId) }))
+      this.store.dispatch(StepperResultActions.changeDeletedPackageIsRemaining({ packageIds: [packageData.pkgId] }))
+      this.packagesStateService.addToDeletedPackages(packageData);
     }
   }
 
   restoreAllPackages(): void {
     const deleted = this.deletedPackagesSignal();
     if (deleted.length === 0) return;
+    this.store.dispatch(StepperResultActions.changeDeletedPackageIsRemaining({ packageIds: deleted.map(pkg => pkg.pkgId) }))
     const packagesToRestore = [...deleted];
     packagesToRestore.forEach(pkg => this.restorePackage(pkg));
   }
 
   clearDeletedPackages(): void {
-    this.deletedPackagesSignal.set([]);
+    this.packagesStateService.clearDeletedPackages();
   }
 
   private recreatePackageMesh(packageData: PackageData): void {
@@ -1518,9 +1533,9 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
 
     this.isLoadingSignal.set(false);
     this.isDataLoadingSignal.set(false);
-    this.deletedPackagesSignal.set([]);
-    this.processedPackagesSignal.set([]);
-    this.selectedPackageSignal.set(null);
+    this.packagesStateService.clearDeletedPackages();
+    this.packagesStateService.clearProcessedPackages();
+    this.packagesStateService.clearSelection();
 
     if (this.packagesGroup) {
       this.processedPackagesSignal().forEach(pkg => {

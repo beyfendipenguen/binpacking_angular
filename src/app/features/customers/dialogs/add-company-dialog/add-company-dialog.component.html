@@ -1,6 +1,6 @@
 <div class="add-company-dialog">
   <div class="dialog-header">
-    <h2 mat-dialog-title>{{ 'CUSTOMER.NEW_COMPANY_DIALOG_TITLE' | translate }}</h2>
+    <h2 mat-dialog-title>{{ getTitle() }}</h2>
     <button mat-icon-button (click)="onCancel()" class="close-btn">
       <mat-icon>close</mat-icon>
     </button>
@@ -9,47 +9,183 @@
   <mat-dialog-content class="dialog-content">
     <form [formGroup]="form" class="company-form">
 
-      <div class="form-row">
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>{{ 'CUSTOMER.COMPANY_NAME' | translate }}</mat-label>
-          <input
-            matInput
-            formControlName="company_name"
-            [placeholder]="'CUSTOMER.COMPANY_NAME_PLACEHOLDER' | translate"
-            autocomplete="off"
-          />
-          <mat-icon matPrefix>business</mat-icon>
-          @if (form.get('company_name')?.hasError('required') && form.get('company_name')?.touched) {
-            <mat-error>{{ 'PROFILE.COMPANY_NAME_REQUIRED' | translate }}</mat-error>
+      <!-- Edit Mode: Company Selection -->
+      @if (data.mode === 'edit') {
+        <div class="form-section company-selection-section">
+          <h3 class="section-title">
+            <mat-icon>search</mat-icon>
+            {{ 'CUSTOMER.SELECT_COMPANY_TO_EDIT' | translate }}
+          </h3>
+
+          <div class="company-search-row">
+            <mat-form-field appearance="outline" class="company-search-field">
+              <mat-label>{{ 'CUSTOMER.SEARCH_COMPANY' | translate }}</mat-label>
+              <input
+                type="text"
+                matInput
+                formControlName="company_search"
+                [matAutocomplete]="companyAuto"
+                [placeholder]="'CUSTOMER.COMPANY_PLACEHOLDER' | translate"
+              />
+              <mat-icon matPrefix>business</mat-icon>
+              @if (selectedCompany) {
+                <button
+                  mat-icon-button
+                  matSuffix
+                  (click)="clearSelectedCompany(); $event.stopPropagation()"
+                  type="button"
+                  [matTooltip]="'COMMON.CLEAR' | translate"
+                >
+                  <mat-icon>clear</mat-icon>
+                </button>
+              }
+              <mat-autocomplete
+                #companyAuto="matAutocomplete"
+                [displayWith]="displayCompanyFn"
+                (optionSelected)="onCompanySelected($event.option.value)"
+              >
+                @for (company of filteredCompanies$ | async; track company.id) {
+                  <mat-option [value]="company">
+                    <div class="company-option">
+                      @if (company.logo) {
+                        <img [src]="company.logo" alt="logo" class="company-logo-small" />
+                      } @else {
+                        <div class="company-logo-placeholder">
+                          <mat-icon>business</mat-icon>
+                        </div>
+                      }
+                      <div class="company-info">
+                        <span class="company-name">{{ company.company_name }} </span>
+                        <!-- <span class="company-country">{{ company.country }}</span> -->
+                      </div>
+                    </div>
+                  </mat-option>
+                }
+              </mat-autocomplete>
+            </mat-form-field>
+          </div>
+
+          @if (selectedCompany) {
+            <div class="selected-company-info">
+              <mat-icon>check_circle</mat-icon>
+              <span>{{ 'CUSTOMER.EDITING' | translate }}: <strong>{{ selectedCompany.company_name }}</strong></span>
+            </div>
           }
-          @if (form.get('company_name')?.hasError('minlength')) {
-            <mat-error>{{ 'PROFILE.COMPANY_NAME_MIN' | translate }}</mat-error>
-          }
-        </mat-form-field>
+        </div>
+      }
+
+      <!-- Company Form Fields -->
+      <div class="form-section">
+        <h3 class="section-title">
+          <mat-icon>business_center</mat-icon>
+          {{ 'CUSTOMER.COMPANY_DETAILS' | translate }}
+        </h3>
+
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>{{ 'CUSTOMER.COMPANY_NAME' | translate }}</mat-label>
+            <input
+              matInput
+              formControlName="company_name"
+              [placeholder]="'CUSTOMER.COMPANY_NAME_PLACEHOLDER' | translate"
+              autocomplete="off"
+            />
+            <mat-icon matPrefix>business</mat-icon>
+            @if (form.get('company_name')?.hasError('required') && form.get('company_name')?.touched) {
+              <mat-error>{{ 'PROFILE.COMPANY_NAME_REQUIRED' | translate }}</mat-error>
+            }
+            @if (form.get('company_name')?.hasError('minlength')) {
+              <mat-error>{{ 'PROFILE.COMPANY_NAME_MIN' | translate }}</mat-error>
+            }
+          </mat-form-field>
+        </div>
+
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>{{ 'COMMON.COUNTRY' | translate }}</mat-label>
+            <input
+              matInput
+              formControlName="country"
+              [placeholder]="'CUSTOMER.COUNTRY_PLACEHOLDER' | translate"
+              autocomplete="off"
+            />
+            <mat-icon matPrefix>flag</mat-icon>
+            @if (form.get('country')?.hasError('required') && form.get('country')?.touched) {
+              <mat-error>{{ 'PROFILE.COUNTRY_REQUIRED' | translate }}</mat-error>
+            }
+            @if (form.get('country')?.hasError('minlength')) {
+              <mat-error>{{ 'PROFILE.COUNTRY_MIN' | translate }}</mat-error>
+            }
+          </mat-form-field>
+        </div>
+
+        <!-- Logo Upload Section -->
+        <div class="form-row logo-section">
+          <label class="logo-label">
+            <mat-icon>image</mat-icon>
+            {{ 'CUSTOMER.COMPANY_LOGO' | translate }}
+          </label>
+
+          <div class="logo-upload-container">
+            @if (logoPreviewUrl) {
+              <div class="logo-preview">
+                <img [src]="logoPreviewUrl" alt="Company Logo" />
+                <button
+                  mat-icon-button
+                  class="remove-logo-btn"
+                  (click)="removeLogo()"
+                  type="button"
+                  [matTooltip]="'COMMON.REMOVE' | translate"
+                >
+                  <mat-icon>close</mat-icon>
+                </button>
+              </div>
+            } @else {
+              <div class="logo-placeholder" (click)="triggerFileInput()">
+                <mat-icon>add_photo_alternate</mat-icon>
+                <span>{{ 'CUSTOMER.UPLOAD_LOGO' | translate }}</span>
+              </div>
+            }
+
+            <input
+              type="file"
+              id="logo-input"
+              accept="image/*"
+              (change)="onLogoSelected($event)"
+              style="display: none"
+            />
+
+            @if (logoPreviewUrl) {
+              <button
+                mat-stroked-button
+                color="primary"
+                type="button"
+                (click)="triggerFileInput()"
+                class="change-logo-btn"
+              >
+                <mat-icon>edit</mat-icon>
+                {{ 'CUSTOMER.CHANGE_LOGO' | translate }}
+              </button>
+            }
+          </div>
+
+          <div class="logo-hint">
+            <mat-icon>info_outline</mat-icon>
+            <span>{{ 'CUSTOMER.LOGO_HINT' | translate }}</span>
+          </div>
+        </div>
       </div>
 
-      <div class="form-row">
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>{{ 'COMMON.COUNTRY' | translate }}</mat-label>
-          <input
-            matInput
-            formControlName="country"
-            [placeholder]="'CUSTOMER.COUNTRY_PLACEHOLDER' | translate"
-            autocomplete="off"
-          />
-          <mat-icon matPrefix>flag</mat-icon>
-          @if (form.get('country')?.hasError('required') && form.get('country')?.touched) {
-            <mat-error>{{ 'PROFILE.COUNTRY_REQUIRED' | translate }}</mat-error>
-          }
-          @if (form.get('country')?.hasError('minlength')) {
-            <mat-error>{{ 'PROFILE.COUNTRY_MIN' | translate }}</mat-error>
-          }
-        </mat-form-field>
-      </div>
-
+      <!-- Info Box -->
       <div class="info-box">
         <mat-icon>info</mat-icon>
-        <p>{{ 'CUSTOMER.COMPANY_ADDED_INFO' | translate }}</p>
+        <p>
+          @if (data.mode === 'create') {
+            {{ 'CUSTOMER.COMPANY_ADDED_INFO' | translate }}
+          } @else {
+            {{ 'CUSTOMER.COMPANY_UPDATE_INFO' | translate }}
+          }
+        </p>
       </div>
 
     </form>
@@ -65,12 +201,12 @@
       mat-raised-button
       color="primary"
       (click)="onSave()"
-      [disabled]="form.invalid || isSaving"
+      [disabled]="form.invalid || isSaving || (data.mode === 'edit' && !selectedCompany)"
     >
       @if (isSaving) {
         <mat-spinner diameter="20" class="button-spinner"></mat-spinner>
       }
-      {{ 'COMMON.ADD' | translate }}
+      {{ getSaveButtonText() }}
     </button>
   </mat-dialog-actions>
 </div>

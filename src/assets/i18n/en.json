@@ -46,7 +46,8 @@
     "DESCRIPTION": "Description",
     "PROCESS_FINISH": "Process Complete",
     "DIALOG_FORM_NOT_CREATED": "The form could not be created. No valid field was found.",
-    "FIELD_REQUIRED": "This field is required."
+    "FIELD_REQUIRED": "This field is required.",
+    "REMOVE": "Remove"
   },
   "MENU": {
     "PLACEMENT_CALCULATION": "Placement Calculation",
@@ -177,7 +178,18 @@
     "CUSTOMERS": "Customers",
     "CUSTOMER_COMPANY": "Customer's Company",
     "SELECTED": "Selected: ",
-    "NEW_COMPANY": "New Company"
+    "NEW_COMPANY": "New Company",
+    "EDIT_COMPANY_DIALOG_TITLE": "Edit Company",
+    "SELECT_COMPANY_TO_EDIT": "Select Company to Edit",
+    "SEARCH_COMPANY": "Search Company",
+    "EDITING": "Editing",
+    "COMPANY_DETAILS": "Company Details",
+    "COMPANY_LOGO": "Company Logo",
+    "UPLOAD_LOGO": "Upload Logo",
+    "CHANGE_LOGO": "Change Logo",
+    "LOGO_HINT": "You can upload images in PNG, JPG or GIF format (Maximum 5MB)",
+    "COMPANY_UPDATE_INFO": "The selected company information will be updated.",
+    "EDIT_COMPANY": "Edit Company"
   },
   "CUSTOMER_MESSAGES": {
     "COMPANY_ADDED": "New company added successfully",
@@ -192,7 +204,12 @@
     "OPERATION_ERROR": "Error during operation",
     "DATA_LOAD_ERROR": "Error loading data",
     "CUSTOMER_DELETED": "Customer deleted successfully",
-    "DELETE_ERROR": "Error deleting customer"
+    "DELETE_ERROR": "Error deleting customer",
+    "INVALID_IMAGE_TYPE": "Invalid file type. Please select an image file (PNG, JPG, GIF)",
+    "IMAGE_TOO_LARGE": "File size is too large. Maximum file size should be 5MB",
+    "COMPANY_UPDATED": "Company updated successfully",
+    "COMPANY_UPDATE_ERROR": "An error occurred while updating the company",
+    "NO_CHANGES_MADE": "No changes were made"
   },
   "DIMENSIONS": {
     "PRODUCT_NAME": "Product Name",
@@ -650,6 +667,7 @@
     "NORMALIZE": "Normalize",
     "NORMALIZE_TIP": "Return package to normal state",
     "ROTATE": "Rotate",
+    "ROTATE_TIP": "Rotate (Shortcut: R)",
     "DELETE_PACKAGE": "Delete Package (Shortcut: Delete)",
     "DELETE": "Delete",
     "DESELECT": "Deselect (Shortcut: Esc)",
@@ -675,7 +693,7 @@
     "STEP_3_LABEL": "Result Screen",
     "EDIT_MODE": "EDITING"
   },
-   "COMPANY_RELATION": {
+  "COMPANY_RELATION": {
     "TYPE": {
       "CUSTOMER": "Customer",
       "SUPPLIER": "Supplier",

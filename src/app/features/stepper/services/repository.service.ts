@@ -177,7 +177,6 @@ export class RepositoryService {
       }
     ).pipe(
       catchError(error => {
-        console.error('[RepositoryService] bulkUpdatePackageDetails - Error:', error);
         throw error;
       })
     );
@@ -217,10 +216,14 @@ export class RepositoryService {
     )
   }
 
-  partialUpdateOrderResult(piecesData: any, order_id: string = this.getOrderResultId()) {
-    const updateData = {
-      result: piecesData
-    };
-    return this.http.patch<any>(`${this.api.getApiUrl()}/orders/order-results/${order_id}/`, updateData)
-  }
+partialUpdateOrderResult(orderResultId: string, orderResult: string): Observable<any> {
+  const updateData = {
+    result: orderResult
+  };
+
+  return this.http.patch<any>(
+    `${this.api.getApiUrl()}/orders/order-results/${orderResultId}/`,
+    updateData
+  );
+}
 }

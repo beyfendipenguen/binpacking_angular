@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
 import { tap, withLatestFrom, map, filter, catchError, switchMap } from 'rxjs/operators';
-import { AppState, selectStepperState } from '../../index';
+import { AppState, selectStepperState, StepperResultActions } from '../../index';
 import { LocalStorageService } from '@features/stepper/services/local-storage.service';
 import { ToastService } from '@core/services/toast.service';
 import { StepperUiActions } from '../actions/stepper-ui.actions';
@@ -14,6 +14,9 @@ import { OrderDetailService } from '@app/features/services/order-detail.service'
 import { OrderService } from '@app/features/services/order.service';
 import { RepositoryService } from '@app/features/stepper/services/repository.service';
 import { PackageService } from '@app/features/services/package.service';
+import { OrderResultService } from '@app/features/services/order-result.service';
+import { FileService } from '@app/core/services/file.service';
+import { ReportFile } from '@app/features/stepper/components/result-step/result-step.service';
 
 @Injectable()
 export class StepperGeneralEffects {
@@ -25,6 +28,8 @@ export class StepperGeneralEffects {
   private orderDetailService = inject(OrderDetailService);
   private repositoryService = inject(RepositoryService);
   private packageService = inject(PackageService)
+  private orderResultService = inject(OrderResultService)
+  private fileService = inject(FileService)
 
 
   // Edit Modu: Sipariş, detaylar ve paketleri paralel yükler
@@ -39,14 +44,51 @@ export class StepperGeneralEffects {
             map(response => response.results)
           ),
           pallets: this.repositoryService.getPalletsByOrder(action.orderId),
+          orderResult: this.orderResultService.getByOrderId(action.orderId).pipe(
+          ),
+          files: this.fileService.getAll({ order_id: action.orderId, limit: 30, offset: 0 }).pipe(
+            map((response: any) => response.results.map((file: any) => ({
+              id: file.id,
+              name: file.name,
+              type: file.type || file.file_type,
+              file: file.file,
+            }))),
+            catchError(() => of([]))
+          ),
         }).pipe(
-          switchMap(({ order, orderDetails, packages, pallets }) => [
-            StepperInvoiceUploadActions.saveSuccess({ order }),
-            StepperInvoiceUploadActions.upsertManySuccess({ orderDetails }),
-            StepperPackageActions.upsertManySuccess({ packages }),
-            StepperPackageActions.getPalletsSuccess({ pallets })
-          ]),
-          catchError((error) => of(StepperUiActions.setGlobalError({ error })))
+          switchMap(({ order, orderDetails, packages, pallets, orderResult, files }) => {
+
+            // ✅ FILES FİLTRESİ: order.name içeren dosyaları al
+            const filteredFiles = files.filter((file: ReportFile) =>
+              file.name.includes(order.name)
+            );
+            let cleanedResult = orderResult[0].result || '';
+            const orderResultId = orderResult[0].id;
+
+            if (cleanedResult) {
+              try {
+                cleanedResult = cleanedResult.replace(/'/g, '"');
+                JSON.parse(cleanedResult);
+              } catch (error) {
+                cleanedResult = '';
+              }
+            }
+
+            return [
+              StepperInvoiceUploadActions.saveSuccess({ order }),
+              StepperInvoiceUploadActions.upsertManySuccess({ orderDetails }),
+              StepperPackageActions.upsertManySuccess({ packages }),
+              StepperPackageActions.getPalletsSuccess({ pallets }),
+              StepperResultActions.setOrderResultId({ orderResultId }),
+              StepperResultActions.loadOrderResultSuccess({
+                orderResult: cleanedResult,
+                reportFiles: filteredFiles
+              })
+            ];
+          }),
+          catchError((error) => {
+            return of(StepperUiActions.setGlobalError({ error }));
+          })
         )
       )
     )
@@ -142,6 +184,10 @@ export class StepperGeneralEffects {
         StepperPackageActions.upsertPackageDetailCount,
         StepperPackageActions.movePartialRemainingProductToPackage,
         StepperPackageActions.movePartialPackageDetailBetweenPackages,
+
+        //Result Actions
+        StepperResultActions.loadOrderResultSuccess,
+        StepperResultActions.setOrderResultId
       ),
       map(() => StepperUiActions.stepperStepUpdated())
     )

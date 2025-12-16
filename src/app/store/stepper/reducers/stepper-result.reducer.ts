@@ -1,36 +1,17 @@
 import { on } from '@ngrx/store';
 import { StepperState } from '../stepper.state';
 import { StepperResultActions } from '../actions/stepper-result.actions';
-import { mapUiPackagesToOrderDetails } from '@features/mappers/ui-package-to-order-detail.mapper';
-import { OrderDetailDiffCalculator } from '@features/utils/order-detail-diff.util';
-
-// Helper function
-const ensureEmptyPackageAdded = (packages: any[], order: any): any => {
-  const emptyPackage = {
-    id: crypto.randomUUID(),
-    pallet: null,
-    products: [],
-    order: order,
-    name: `${packages.length + 1}`,
-    isSavedInDb: false,
-  };
-
-  if (packages.some(pkg => pkg.pallet === null || pkg.products.length === 0))
-    return ensurePackagesNamesOrdered(packages);
-  return ensurePackagesNamesOrdered([...packages, emptyPackage]);
-};
-
-const ensurePackagesNamesOrdered = (packages: any[]) => {
-  return packages.map((pkg, index) => ({ ...pkg, name: `${index + 1}` }));
-};
 
 export const stepperResultHandlers = [
-  // Complete Shipment
-  on(StepperResultActions.completeShipment, (state: StepperState, { orderResult }) => ({
+
+  // Load Order Result Success (Edit Mode)
+  on(StepperResultActions.loadOrderResultSuccess, (state: StepperState, { orderResult, reportFiles }) => ({
     ...state,
     step3State: {
       ...state.step3State,
-      orderResult: orderResult
+      orderResult: orderResult,
+      reportFiles: reportFiles,
+      isDirty: false
     }
   })),
 
@@ -44,24 +25,50 @@ export const stepperResultHandlers = [
     }
   })),
 
-  on(StepperResultActions.addDeletedPackageIdList, (state: StepperState, { packageIds }) => {
-    const packageIdSet = new Set(packageIds);
+  // Set Current View Type
+  on(StepperResultActions.setCurrentViewType, (state: StepperState, { viewType }) => ({
+    ...state,
+    step3State: {
+      ...state.step3State,
+      currentViewType: viewType
+    }
+  })),
+
+  // Add Deleted Package Id List
+  on(StepperResultActions.changeDeletedPackageIsRemaining, (state: StepperState, { packageIds }) => {
+    // Gelen array'i performans için Set'e çeviriyoruz (araması daha hızlıdır)
+    // Güvenlik: packageIds null/undefined gelirse diye boş dizi önlemi
+    const idsToToggle = new Set(packageIds || []);
 
     return {
       ...state,
       step2State: {
         ...state.step2State,
-        packages: state.step2State.packages.map(pkg => ({
-          ...pkg,
-          is_remaining: !packageIdSet.has(pkg.id)
-        }))
-      },
-      step3State: {
-        ...state.step3State,
-        deletedPackageIds: [...packageIds]
+        packages: state.step2State.packages.map(pkg => {
+          // Eğer bu paketin ID'si, gelen listenin içindeyse:
+          if (idsToToggle.has(pkg.id)) {
+            return {
+              ...pkg,
+              is_remaining: !pkg.is_remaining // MEVCUT DEĞERİ TERSİNE ÇEVİR (Toggle)
+            };
+          }
+
+          // Listede yoksa paketi olduğu gibi bırak
+          return pkg;
+        })
       }
     };
   }),
+
+  // Clear Deleted Packages
+  on(StepperResultActions.clearDeletedPackages, (state: StepperState) => ({
+    ...state,
+    step3State: {
+      ...state.step3State,
+      deletedPackageIds: []
+    }
+  })),
+
   // Set Is Dirty
   on(StepperResultActions.setIsDirty, (state: StepperState, { isDirty }) => ({
     ...state,
@@ -71,18 +78,14 @@ export const stepperResultHandlers = [
     }
   })),
 
-
   // Result Step Submit
-  on(StepperResultActions.resultStepSubmit, (state: StepperState, { orderResult }) => {
-    return {
-      ...state,
-      step3State: {
-        ...state.step3State,
-        orderResult: orderResult,
-        hasResults: true,
-      }
-    };
-  }),
+  on(StepperResultActions.resultStepSubmit, (state: StepperState, { orderResult }) => ({
+    ...state,
+    step3State: {
+      ...state.step3State,
+      orderResult: orderResult
+    }
+  })),
 
   // Result Step Submit Success
   on(StepperResultActions.resultStepSubmitSuccess, (state: StepperState) => ({
@@ -103,7 +106,21 @@ export const stepperResultHandlers = [
     }
   })),
 
-  on(StepperResultActions.setOrderResultId,(state: StepperState, { orderResultId })=>({
+  // Reset Step3 State
+  on(StepperResultActions.resetStep3State, (state: StepperState) => ({
+    ...state,
+    step3State: {
+      orderResult: '',
+      reportFiles: [],
+      currentViewType: 'isometric',
+      hasThreeJSError: false,
+      deletedPackages: [],
+      processedPackages: [],
+      isDirty: false
+    }
+  })),
+
+  on(StepperResultActions.setOrderResultId, (state: StepperState, { orderResultId }) => ({
     ...state,
     orderResultId: orderResultId
   }))
