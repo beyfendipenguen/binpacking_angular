@@ -49,7 +49,6 @@ export class ProductsComponent implements OnInit {
 
   // Filtrelenebilen alanlar
   filterableColumns: string[] = [
-    'name',
     'product_type.code',
     'product_type.type',
     'dimension.width',
