@@ -3,7 +3,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { Store } from '@ngrx/store';
 import { firstValueFrom, Observable } from 'rxjs';
 import { map, switchMap, take, tap } from 'rxjs/operators';
-import { AppState, selectOrder, selectOrderId, selectPackages, selectStep3IsDirty } from '@app/store';
+import { AppState, selectOrderId, selectPackages, selectStep3IsDirty, StepperResultActions } from '@app/store';
 import { ToastService } from '@core/services/toast.service';
 import { RepositoryService } from '@features/stepper/services/repository.service';
 
@@ -146,6 +146,7 @@ export class ResultStepService {
       ];
     });
 
+    this.store.dispatch(StepperResultActions.setOrderResult({orderResult: JSON.stringify(formattedData)}))
     return JSON.stringify(formattedData);
   }
 

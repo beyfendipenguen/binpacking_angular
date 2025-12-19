@@ -7,7 +7,7 @@
 
 
   <!-- No Data Message -->
-  @if (!isLoadingModels && !isLoadingData && (!piecesData || piecesData.length === 0)) {
+  @if (!isLoadingModels && !isLoadingData && (!piecesDataSignal() || piecesDataSignal().length === 0)) {
   <div class="no-data-message">
     <div class="no-data-content">
       <div class="empty-icon">🚛</div>
@@ -18,7 +18,7 @@
   }
 
   <!-- Weight Display Panel (Top Center) -->
-  @if (showWeightDisplay && !isLoadingModels && !isLoadingData && piecesData && piecesData.length > 0) {
+  @if (showWeightDisplay && !isLoadingModels && !isLoadingData && piecesDataSignal() && piecesDataSignal().length > 0) {
   <div class="weight-display-panel" [title]="getWeightTitle()">
     <div class="weight-content">
       <h4>{{'TRUCK_VISUALIZATION.FIRST' | translate}} {{ (weightCalculationDepth / 1000).toFixed(1) }}

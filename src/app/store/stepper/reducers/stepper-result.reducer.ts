@@ -15,6 +15,14 @@ export const stepperResultHandlers = [
     }
   })),
 
+  on(StepperResultActions.setOrderResult, (state: StepperState, { orderResult }) => ({
+    ...state,
+    step3State: {
+      ...state.step3State,
+      orderResult: orderResult,
+    }
+  })),
+
   // Create Report File Success
   on(StepperResultActions.createReportFileSuccess, (state: StepperState, { reportFiles }) => ({
     ...state,

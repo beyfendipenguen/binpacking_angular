@@ -8,6 +8,7 @@ export const StepperResultActions = createActionGroup({
   events: {
     // Edit Mode - Data Loading
     'Load Order Result Success': props<{ orderResult: string, reportFiles: ReportFile[] }>(),
+    'Set Order Result': props<{orderResult:string}>(),
 
     // Submit
     'Result Step Submit': props<{ orderId: string, orderResult: string, resetStepper: boolean }>(),

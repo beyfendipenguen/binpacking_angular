@@ -20,7 +20,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import * as THREE from 'three';
 import { Store } from '@ngrx/store';
-import { AppState, selectStep3IsDirty, selectTruck, StepperResultActions } from '../../store';
+import { AppState, selectOrderResult, selectStep3IsDirty, selectTruck, StepperResultActions } from '../../store';
 import { StepperUiActions } from '@app/store/stepper/actions/stepper-ui.actions';
 import { ThreeJSRenderManagerService } from './services/threejs-render-manager.service';
 import { ThreeJSComponents, ThreeJSInitializationService } from './services/threejs-initialization.service';
@@ -42,7 +42,6 @@ import { PackageData } from '@app/features/interfaces/order-result.interface';
 export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit, OnChanges, OnDestroy {
   @ViewChild('threeContainer', { static: true }) threeContainer!: ElementRef;
 
-  @Input() piecesData: any[] | string = [];
   @Input() showHelp: boolean = true;
   @Input() showWeightDisplay: boolean = true;
   @Input() weightCalculationDepth: number = 3000;
@@ -58,7 +57,8 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
 
   // Signals
   truckDimension = this.store.selectSignal(selectTruck);
-  isDirty = this.store.selectSignal(selectStep3IsDirty)
+  isDirty = this.store.selectSignal(selectStep3IsDirty);
+  piecesDataSignal = this.store.selectSignal(selectOrderResult);
   isLoadingSignal = signal(true);
   isDataLoadingSignal = signal(false);
   deletedPackagesSignal = this.packagesStateService.deletedPackages;
@@ -363,7 +363,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
       this.renderManager.requestRender();
 
       // Process data if available
-      if (this.piecesData && (Array.isArray(this.piecesData) ? this.piecesData.length > 0 : true)) {
+      if (this.piecesDataSignal() && (Array.isArray(this.piecesDataSignal()) ? this.piecesDataSignal().length > 0 : true)) {
         await this.safeProcessData();
       }
 
@@ -403,9 +403,9 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
   }
 
   private processData(): void {
-    const pieces = typeof this.piecesData === 'string'
-      ? JSON.parse(this.piecesData)
-      : this.piecesData;
+    const pieces = typeof this.piecesDataSignal() === 'string'
+      ? JSON.parse(this.piecesDataSignal())
+      : this.piecesDataSignal();
 
     if (!pieces || pieces.length === 0) {
       this.packagesStateService.clearDeletedPackages()
@@ -417,7 +417,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     // Mevcut state'i koruyarak process et
     const stateMap = new Map();
     this.processedPackagesSignal().forEach(pkg => {
-      stateMap.set(pkg.id, {
+      stateMap.set(pkg.pkgId, {
         color: pkg.color,
         originalColor: pkg.originalColor,
         rotation: pkg.rotation || 0,
@@ -642,7 +642,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     const intersectedPackage = this.getIntersectedPackage();
 
     if (intersectedPackage) {
-      this.selectPackage(intersectedPackage);
+      this.selectPackage(intersectedPackage.pkgId);
     } else {
       this.clearSelection();
     }
@@ -915,7 +915,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     const checkWidth = packageToCheck.width;
 
     for (const otherPackage of this.processedPackagesSignal()) {
-      if (otherPackage.id === packageToCheck.id || !otherPackage.mesh) continue;
+      if (otherPackage.pkgId === packageToCheck.pkgId || !otherPackage.mesh) continue;
 
       const otherLength = otherPackage.length;
       const otherWidth = otherPackage.width;
@@ -946,7 +946,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     let snappedY = pkgPos.y;
 
     for (const otherPkg of this.processedPackagesSignal()) {
-      if (otherPkg.id === pkg.id || !otherPkg.mesh) continue;
+      if (otherPkg.pkgId === pkg.pkgId || !otherPkg.mesh) continue;
 
       // X-axis snapping
       const distToLeft = Math.abs(pkgPos.x - (otherPkg.x + otherPkg.length));
@@ -992,9 +992,9 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     return null;
   }
 
-  private selectPackage(packageData: PackageData): void {
+  private selectPackage(pkgId: string): void {
     this.clearHighlights();
-    this.packagesStateService.selectPackage(packageData)
+    this.packagesStateService.selectPackage(pkgId)
     this.highlightSelectedPackage();
     this.renderManager.requestRender();
   }
@@ -1068,7 +1068,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
 
   private isNearOtherPackages(pkg: PackageData, threshold: number): boolean {
     for (const otherPkg of this.processedPackagesSignal()) {
-      if (otherPkg.id === pkg.id || !otherPkg.mesh) continue;
+      if (otherPkg.pkgId === pkg.pkgId || !otherPkg.mesh) continue;
 
       const distX = Math.min(
         Math.abs(pkg.x - (otherPkg.x + otherPkg.length)),
@@ -1133,7 +1133,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     if (!selected) return;
 
     const packages = this.processedPackagesSignal();
-    const deletedPackage = packages.find(pkg => pkg.id === selected.id);
+    const deletedPackage = packages.find(pkg => pkg.pkgId === selected.pkgId);
 
     if (deletedPackage) {
       this.packagesStateService.moveToDeleted(deletedPackage.pkgId);
@@ -1187,7 +1187,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
       this.createPackageMesh(packageData);
 
       this.packagesStateService.addToProcessedPackages(packageData);
-
+      this.store.dispatch(StepperResultActions.changeDeletedPackageIsRemaining({ packageIds: [packageData.pkgId] }))
       this.orderResultChange();
     } else {
       this.store.dispatch(StepperResultActions.changeDeletedPackageIsRemaining({ packageIds: [packageData.pkgId] }))
@@ -1449,7 +1449,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
   // ========================================
 
   trackDeletedPackage(index: number, item: PackageData): any {
-    return item.id;
+    return item.pkgId;
   }
 
   private orderResultChange(): void {
@@ -1546,8 +1546,6 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
       });
       this.packagesGroup.clear();
     }
-
-    this.piecesData = [];
 
     this.isLoadingModels = false;
     this.isLoadingData = false;

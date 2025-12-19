@@ -178,6 +178,36 @@ export class PackagesStateService {
   }
 
   /**
+  * Deleted packages'tan bir package'ı günceller
+  */
+  updateDeletedPackage(updatedPackage: PackageData): void {
+    this._deletedPackages.update(arr =>
+      arr.map(pkg => pkg.pkgId === updatedPackage.pkgId ? updatedPackage : pkg)
+    );
+  }
+
+  /**
+ * Package'ı hem processed hem deleted listelerinde arar ve günceller
+ */
+  updatePackageName(pkgId: string, newName: number): void {
+    this._processedPackages.update(arr => {
+      const pkg = arr.find(p => p.pkgId === pkgId);
+      if (pkg) {
+        pkg.id = newName; // Direkt property'yi değiştir
+      }
+      return [...arr]; // Signal'ı tetiklemek için yeni array
+    });
+
+    this._deletedPackages.update(arr => {
+      const pkg = arr.find(p => p.pkgId === pkgId);
+      if (pkg) {
+        pkg.id = newName;
+      }
+      return [...arr];
+    });
+  }
+
+  /**
    * Processed packages'ı tamamen temizler
    */
   clearProcessedPackages(): void {
@@ -252,8 +282,8 @@ export class PackagesStateService {
   /**
    * Package'ı seçer
    */
-  selectPackage(packageData: PackageData | null): void {
-    this._selectedPackage.set(packageData);
+  selectPackage(pkgId: string): void {
+    this._selectedPackage.set(this._processedPackages().find(p=>p.pkgId === pkgId) ?? null);
   }
 
   /**
