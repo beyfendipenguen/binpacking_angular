@@ -148,7 +148,7 @@
             class="btn"
             mat-icon-button
             (click)="openAddOrUpdateDialog(row); $event.stopPropagation()"
-            matTooltip="'COMMON.UPDATE'| translate"
+            [matTooltip]="'COMMON.UPDATE'| translate"
           >
             <mat-icon>update</mat-icon>
           </button>
