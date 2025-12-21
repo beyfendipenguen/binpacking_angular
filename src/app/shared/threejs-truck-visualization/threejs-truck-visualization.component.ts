@@ -403,9 +403,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
   }
 
   private processData(): void {
-    const pieces = typeof this.piecesDataSignal() === 'string'
-      ? JSON.parse(this.piecesDataSignal())
-      : this.piecesDataSignal();
+    const pieces = this.piecesDataSignal();
 
     if (!pieces || pieces.length === 0) {
       this.packagesStateService.clearDeletedPackages()
@@ -476,10 +474,10 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
         rotation,
         originalLength,
         originalWidth,
-        dimensions: `${length}×${width}×${piece[5] || 0}mm`,
+        dimensions: `${length}×${width}×${piece[5] || 0} mm`,
         isBeingDragged: false,
         pkgId: piece[8],
-        isForcePlaced: saved?.isForcePlaced || false // ⭐ State'i ata
+        isForcePlaced: saved?.isForcePlaced || false
       };
 
       if (piece[0] === -1 && piece[1] === -1 && piece[2] === -1) {
@@ -1413,6 +1411,8 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
 
       case 'Delete':
       case 'Backspace':
+      case 'd':
+      case 'D':
         if (this.selectedPackageSignal()) {
           event.preventDefault();
           this.deleteSelectedPackage();

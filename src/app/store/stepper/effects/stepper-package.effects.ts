@@ -55,8 +55,8 @@ export class StepperPackageEffects {
       ofType(StepperPackageActions.getPallets),
       withLatestFrom(this.store.select(selectCompanyRelationId)),
       filter(([_, companyRelationId]) => !!companyRelationId),
-      switchMap(() =>
-        this.repositoryService.getPalletsByCompanyRelation().pipe(
+      switchMap(([_, companyRelationId]) =>
+        this.repositoryService.getPalletsByCompanyRelation(companyRelationId).pipe(
           map(results => results.map(pallet => new UiPallet(pallet))),
           map((pallets) => StepperPackageActions.getPalletsSuccess({ pallets })),
           catchError((error) => of(StepperUiActions.setStepperError({ error: error.message })))
@@ -87,7 +87,7 @@ export class StepperPackageEffects {
     this.actions$.pipe(
       ofType(StepperPackageActions.calculatePackageDetailSuccess),
       map(() => StepperUiActions.setStepCompleted({ stepIndex: 2 }))
-  ))
+    ))
 
   // Paket Detaylarını Kaydetme
   packageDetailsUpsertMany$ = createEffect(() =>

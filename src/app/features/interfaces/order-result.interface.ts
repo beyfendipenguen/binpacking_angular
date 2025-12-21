@@ -7,7 +7,7 @@ import * as THREE from 'three';
 export interface OrderResult extends Base {
   order: Order;
   company: Company;
-  result: string;
+  result: PackagePosition[];
   success: boolean;
   progress: number; // 0-100 arası
 }
@@ -33,3 +33,15 @@ export interface PackageData {
   isForcePlaced?: boolean;
   forcePlaceBorder?: THREE.LineSegments;
 }
+
+export type PackagePosition = [
+  number,  // x
+  number,  // y
+  number,  // z
+  number,  // width
+  number,  // height
+  number,  // depth
+  string,  // id
+  number,  // weight
+  string   // pkgId
+];

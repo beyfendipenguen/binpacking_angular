@@ -7,14 +7,15 @@ import { Order } from "@features/interfaces/order.interface";
 import { PackageDetailWriteDto } from "@features/interfaces/package-detail.interface";
 import { Pallet } from "@features/interfaces/pallet.interface";
 import { Truck } from "@features/interfaces/truck.interface";
-import { AppState, selectOrderId, selectOrderResultId, selectCompanyRelationId } from "@app/store";
+import { AppState, selectOrderId, selectOrderResultId } from "@app/store";
 import { Store } from "@ngrx/store";
-import { Observable, map, switchMap, tap, catchError } from "rxjs";
+import { Observable, map, catchError } from "rxjs";
 import { OrderDetailChanges } from "../components/invoice-upload/models/invoice-upload-interfaces";
 import { FileResponse } from "../interfaces/file-response.interface";
-import { IUiPackage } from "../interfaces/ui-interfaces/ui-package.interface";
 import { PackageReadDto } from "@app/features/interfaces/package.interface";
 import { PackageChanges } from "../components/pallet-control/package-changes.helper";
+import { PackagePosition } from "@app/features/interfaces/order-result.interface";
+import { BaseResponse } from "@app/core/interfaces/base-response.interface";
 
 @Injectable({
   providedIn: 'root',
@@ -25,7 +26,6 @@ export class RepositoryService {
   constructor(private api: ApiService, private http: HttpClient) { }
 
   private getOrderId = this.store.selectSignal(selectOrderId)
-  private getOrderResultId = this.store.selectSignal(selectOrderResultId)
 
 
 
@@ -51,7 +51,7 @@ export class RepositoryService {
       .pipe(map(response => response.results));
   }
 
-  pallets(): Observable<any> {
+  pallets1(): Observable<any> {
     return this.http
       .get<any>(`${this.api.getApiUrl()}/logistics/pallets/`, {
         params: new HttpParams().set('limit', 30).set('offset', 0),
@@ -65,7 +65,7 @@ export class RepositoryService {
 
   getPalletsByOrder(orderId: string = this.getOrderId()): Observable<any> {
     return this.http
-      .get<any>(`${this.api.getApiUrl()}/logistics/pallets/`, {
+      .get<BaseResponse<Pallet>>(`${this.api.getApiUrl()}/logistics/pallets/`, {
         params: new HttpParams()
           .set('limit', 30)
           .set('offset', 0)
@@ -78,23 +78,17 @@ export class RepositoryService {
       );
   }
 
-  getPalletsByCompanyRelation(): Observable<Pallet[]> {
-    return this.store.select(selectCompanyRelationId).pipe(
-      switchMap((companyRelationId) => {
-        return this.http
-          .get<any>(`${this.api.getApiUrl()}/logistics/pallets/`, {
-            params: new HttpParams()
-              .set('limit', 30)
-              .set('offset', 0)
-              .set('company_relation_id', companyRelationId)  // ← Relation ID ekle
-          })
-          .pipe(
-            map((response) =>
-              response.results
-            )
-          )
+  getPalletsByCompanyRelation(companyRelationId: string): Observable<Pallet[]> {
+    return this.http
+      .get<BaseResponse<Pallet>>(`${this.api.getApiUrl()}/logistics/pallets/`, {
+        params: new HttpParams()
+          .set('limit', 30)
+          .set('offset', 0)
+          .set('company_relation_id', companyRelationId)
       })
-    )
+      .pipe(
+        map((response) => response.results)
+      );
   }
 
   getTrucks(): Observable<any> {
@@ -147,7 +141,7 @@ export class RepositoryService {
     const params = new HttpParams().set('vertical_sort', verticalSort.toString());
 
     return this.http
-      .get<any>(`${this.api.getApiUrl()}/logistics/calculate-package-details/${order_id}/`, { params })
+      .post<any>(`${this.api.getApiUrl()}/logistics/calculate-packages/${order_id}/`, { params })
       .pipe();
   }
 
@@ -169,7 +163,7 @@ export class RepositoryService {
   ): Observable<{ message: string, packages: PackageReadDto[] }> {
 
     return this.http.post<{ message: string, packages: PackageReadDto[] }>(
-      `${this.api.getApiUrl()}/logistics/create-package-detail/${orderId}/`,
+      `${this.api.getApiUrl()}/logistics/bulk-update-package/${orderId}/`,
       {
         added: changes.added,
         modified: changes.modified,
@@ -199,14 +193,16 @@ export class RepositoryService {
   }
 
   createReport(order_id: string): Observable<any> {
-    return this.http.get<any>(
-      `${this.api.getApiUrl()}/logistics/create-report/${order_id}/`
+    return this.http.post<any>(
+      `${this.api.getApiUrl()}/logistics/create-report/${order_id}/`,
+      {}
     );
   }
 
   calculatePacking(order_id: string = this.getOrderId()) {
-    return this.http.get<any>(
-      `${this.api.getApiUrl()}/logistics/calculate-bin-packing/${order_id}/`
+    return this.http.post<any>(
+      `${this.api.getApiUrl()}/logistics/calculate-bin-packing/${order_id}/`,
+      {}
     );
   }
 
@@ -216,14 +212,14 @@ export class RepositoryService {
     )
   }
 
-partialUpdateOrderResult(orderResultId: string, orderResult: string): Observable<any> {
-  const updateData = {
-    result: orderResult
-  };
+  partialUpdateOrderResult(orderResultId: string, orderResult: PackagePosition[]): Observable<any> {
+    const updateData = {
+      result: orderResult
+    };
 
-  return this.http.patch<any>(
-    `${this.api.getApiUrl()}/orders/order-results/${orderResultId}/`,
-    updateData
-  );
-}
+    return this.http.patch<any>(
+      `${this.api.getApiUrl()}/orders/order-results/${orderResultId}/`,
+      updateData
+    );
+  }
 }

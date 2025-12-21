@@ -1,17 +1,16 @@
 import { createActionGroup, emptyProps, props } from '@ngrx/store';
-import { Document } from '@app/features/interfaces/file.interface';
 import { ReportFile } from '@app/features/stepper/components/result-step/result-step.service';
-import { PackageData } from '@app/features/interfaces/order-result.interface';
+import { PackagePosition } from '@app/features/interfaces/order-result.interface';
 
 export const StepperResultActions = createActionGroup({
   source: 'Stepper Result',
   events: {
     // Edit Mode - Data Loading
-    'Load Order Result Success': props<{ orderResult: string, reportFiles: ReportFile[] }>(),
-    'Set Order Result': props<{orderResult:string}>(),
+    'Load Order Result Success': props<{ orderResult: PackagePosition[], reportFiles: ReportFile[] }>(),
+    'Set Order Result': props<{orderResult:PackagePosition[]}>(),
 
     // Submit
-    'Result Step Submit': props<{ orderId: string, orderResult: string, resetStepper: boolean }>(),
+    'Result Step Submit': props<{ orderId: string, orderResult: PackagePosition[], resetStepper: boolean }>(),
     'Result Step Submit Success': emptyProps(),
     'Result Step Submit Error': props<{ error: string }>(),
 
