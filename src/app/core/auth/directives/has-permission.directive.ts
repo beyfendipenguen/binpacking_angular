@@ -1,13 +1,14 @@
-import { Directive, inject, Input, isDevMode, TemplateRef, ViewContainerRef } from '@angular/core';
-import { PERMISSION_FORMAT_REGEX, PermissionType } from './permission.interface';
+import { Directive, ElementRef, inject, Input, isDevMode, OnChanges, SimpleChanges, TemplateRef, ViewContainerRef } from '@angular/core';
+import { PERMISSION_FORMAT_REGEX, PermissionType } from '../permission.interface';
 import { Store } from '@ngrx/store';
 import { selectUserPermissions } from '@app/store';
+import { InfoCardComponent } from '@app/shared/info-card/info-card.component';
 
 @Directive({
   selector: '[appHasPermission]',
   standalone: true
 })
-export class HasPermissionDirective {
+export class HasPermissionDirective implements OnChanges {
   private _canPermissions: PermissionType[] = [];
   private _cantPermission: PermissionType[] = [];
   private store = inject(Store)
@@ -29,7 +30,6 @@ export class HasPermissionDirective {
     ]
 
     this._canPermissions = permissions;
-    this.updateView();
   }
 
   @Input()
@@ -41,7 +41,12 @@ export class HasPermissionDirective {
     ]
 
     this._cantPermission = permissions;
+  }
+
+
+  ngOnChanges(changes: SimpleChanges): void {
     this.updateView();
+
   }
 
 
@@ -71,13 +76,22 @@ export class HasPermissionDirective {
   }
 
   private updateView(): void {
-    const isBanned = !this.hasPermissions(this._cantPermission)
+    const isBanned = this.hasPermissions(this._cantPermission)
     const hasAccess = this.hasPermissions(this._canPermissions)
 
     if (!isBanned && hasAccess) {
       this.viewContainer.createEmbeddedView(this.templateRef);
     } else {
       this.viewContainer.clear();
+      const componentRef = this.viewContainer.createComponent(InfoCardComponent)
+      componentRef.instance.header = "YETKI BULUNAMADI!"
+      componentRef.instance.title = "Bu Icerigi Goruntulemek Icin Yeterli Yetkiye sahip Degilsiniz!"
+      componentRef.instance.content = `
+        <strong>Bu yetkilere sahip olmanız gerekir: </strong> ${this._canPermissions.join(', ')} <br><br>
+        <strong> Bu yetki kısıtlamalarını kaldırmanız gerekmektedir: </strong> ${this._cantPermission.join(', ')} <br><br>
+        <em> Lütfen yöneticiniz ile görüşün.</em>`
+      componentRef.changeDetectorRef.detectChanges()
+
     }
   }
 

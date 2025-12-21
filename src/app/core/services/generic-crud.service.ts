@@ -14,7 +14,9 @@ export interface Page<T> {
 @Injectable({
   providedIn: 'root'
 })
-export class GenericCrudService<T> {
+// TODO: tum genericCrudServicelerdeki bu yeni ekledigim TID TCreate TUpdate kontrol edilmeli. 
+// ihtyac varsa Read ve Write Serializerlar icin burasi kullanilmali.
+export class GenericCrudService<T, TID = string, TCreate = T, TUpdate = T> {
   protected apiUrl: string = '';
   api = inject(ApiService);
 
@@ -75,7 +77,7 @@ export class GenericCrudService<T> {
    * @param id Kaydın ID'si
    * @returns Kaydın detayları
    */
-  getById(id: number | string): Observable<T> {
+  getById(id: TID): Observable<T> {
     this.ensureApiUrl();
     return this.http.get<T>(`${this.apiUrl}${id}/`).pipe(
       // Veriyi formatla
@@ -91,14 +93,11 @@ export class GenericCrudService<T> {
    * @param item Oluşturulacak kaydın verileri
    * @returns Oluşturulan kayıt
    */
-  create(item: Partial<T>): Observable<T> {
+  create(item: Partial<TCreate>): Observable<T> {
     this.ensureApiUrl();
     return this.http.post<T>(this.apiUrl, item).pipe(
       // Veriyi formatla
-      map(response => this.formatSingleItem(response)),
-      tap(response => {
-
-      })
+      map(response => this.formatSingleItem(response))
     );
   }
 
@@ -108,15 +107,12 @@ export class GenericCrudService<T> {
    * @param item Güncellenmiş veriler
    * @returns Güncellenmiş kayıt
    */
-  update(id: number | string, item: Partial<T>): Observable<T> {
+  update(id: TID, item: Partial<TUpdate>): Observable<T> {
 
     this.ensureApiUrl();
     return this.http.put<T>(`${this.apiUrl}${id}/`, item).pipe(
       // Veriyi formatla
-      map(response => this.formatSingleItem(response)),
-      tap(response => {
-
-      })
+      map(response => this.formatSingleItem(response))
     );
   }
 
@@ -126,15 +122,12 @@ export class GenericCrudService<T> {
    * @param item Güncellenecek alanlar ve değerleri
    * @returns Güncellenmiş kayıt
    */
-  partialUpdate(id: number | string, item: Partial<T>): Observable<T> {
+  partialUpdate(id: TID, item: Partial<TUpdate>): Observable<T> {
 
     this.ensureApiUrl();
     return this.http.patch<T>(`${this.apiUrl}${id}/`, item).pipe(
       // Veriyi formatla
-      map(response => this.formatSingleItem(response)),
-      tap(response => {
-
-      })
+      map(response => this.formatSingleItem(response))
     );
   }
 
@@ -143,14 +136,10 @@ export class GenericCrudService<T> {
    * @param id Silinecek kaydın ID'si
    * @returns Silme işlemi sonucu
    */
-  delete(id: number | string): Observable<any> {
+  delete(id: TID): Observable<any> {
     this.ensureApiUrl();
 
-    return this.http.delete(`${this.apiUrl}${id}/`).pipe(
-      tap(response => {
-
-      })
-    );
+    return this.http.delete(`${this.apiUrl}${id}/`);
   }
 
   /**
