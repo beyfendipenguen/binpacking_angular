@@ -2,10 +2,11 @@ import { Injectable, inject } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { Store } from '@ngrx/store';
 import { firstValueFrom, Observable } from 'rxjs';
-import { map, switchMap, take, tap } from 'rxjs/operators';
+import { map, switchMap, take } from 'rxjs/operators';
 import { AppState, selectOrderId, selectPackages, selectStep3IsDirty, StepperResultActions } from '@app/store';
 import { ToastService } from '@core/services/toast.service';
 import { RepositoryService } from '@features/stepper/services/repository.service';
+import { PackageData, PackagePosition } from '@app/features/interfaces/order-result.interface';
 
 /**
  * Result Step Service
@@ -45,91 +46,42 @@ export class ResultStepService {
    * Calculate binpacking and generate report
    */
   calculateAndGenerateReport(): Observable<{
-  orderResultId: string;
-  orderResult: string;
-  piecesData: any[];
-  reportFiles: ReportFile[];
-}> {
-  return this.repositoryService.calculatePacking().pipe(
-    switchMap(packingResponse => {
-      const orderResultId = packingResponse.data.order_result_id;
-      const orderResult = packingResponse.data.result;
-      const piecesData = this.processPiecesData(packingResponse.data.data || packingResponse.data);
+    orderResultId: string;
+    orderResult: PackagePosition[];
+    reportFiles: ReportFile[];
+  }> {
+    return this.repositoryService.calculatePacking().pipe(
+      switchMap(packingResponse => {
+        const orderResultId = packingResponse.order_result.id;
+        const orderResult = packingResponse.order_result.result;
 
 
-      return this.repositoryService.createReport(this.orderIdSignal()).pipe(
-        map(reportResponse => ({
-          orderResultId,
-          orderResult: orderResult || JSON.stringify(piecesData),
-          piecesData,
-          reportFiles: Array.isArray(reportResponse?.files)
-            ? reportResponse.files.map((file: any) => ({
+        return this.repositoryService.createReport(this.orderIdSignal()).pipe(
+          map(reportResponse => ({
+            orderResultId,
+            orderResult: orderResult,
+            reportFiles: Array.isArray(reportResponse?.files)
+              ? reportResponse.files.map((file: any) => ({
                 id: file.id,
                 name: file.name,
                 type: file.type || file.file_type,
                 file: file.file
               }))
-            : []
-        }))
-      );
-    })
-  );
-}
-
-  /**
-   * Process pieces data from backend response
-   */
-  private processPiecesData(rawData: any): any[] {
-    try {
-      let packingData = null;
-
-      if (typeof rawData === 'string') {
-        try {
-          packingData = JSON.parse(rawData);
-        } catch (parseError) {
-          packingData = null;
-        }
-      } else if (rawData?.data) {
-        packingData = rawData.data;
-      } else {
-        packingData = rawData;
-      }
-
-      if (packingData && Array.isArray(packingData) && packingData.length > 0) {
-        return this.validateAndCleanPackingData(packingData);
-      }
-
-      return [];
-    } catch (error) {
-      return [];
-    }
+              : []
+          }))
+        );
+      })
+    );
   }
 
-  /**
-   * Validate and clean packing data
-   */
-  private validateAndCleanPackingData(rawData: any[]): any[] {
-    return rawData.filter((piece, index) => {
-      if (!Array.isArray(piece) || piece.length < 6) {
-        return false;
-      }
-
-      const [x, y, z, length, width, height] = piece;
-      if ([x, y, z, length, width, height].some(val => typeof val !== 'number' || isNaN(val))) {
-        return false;
-      }
-
-      return true;
-    });
-  }
 
   /**
    * Convert pieces data to JSON string for submission
    */
-  async convertPiecesToJsonString(processedPackages: any[]): Promise<string> {
+  async formatPackagesForResult(processedPackages: PackageData[]): Promise<PackagePosition[]> {
     const packages = await firstValueFrom(this.store.select(selectPackages));
 
-    const formattedData = processedPackages.map(piece => {
+    const formattedData: PackagePosition[] = processedPackages.map(piece => {
       const matchingPackage = packages.find((pkg: any) => pkg.id === piece.pkgId);
       const pieceId = matchingPackage ? matchingPackage.name : piece.id;
 
@@ -137,17 +89,17 @@ export class ResultStepService {
         piece.x,
         piece.y,
         piece.z,
-        piece.length,
-        piece.width,
-        piece.height,
-        pieceId,
+        piece.length,      // width
+        piece.width,     // height
+        piece.height,     // depth (PackageData.length → depth)
+        pieceId,          // label
         piece.weight,
         piece.pkgId
-      ];
+      ] as PackagePosition;
     });
 
-    this.store.dispatch(StepperResultActions.setOrderResult({orderResult: JSON.stringify(formattedData)}))
-    return JSON.stringify(formattedData);
+    this.store.dispatch(StepperResultActions.setOrderResult({ orderResult: formattedData }));
+    return formattedData;
   }
 
   /**

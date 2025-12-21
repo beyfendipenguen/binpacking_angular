@@ -134,7 +134,7 @@ export class OrderFormManager {
 
   compareCompanies(a: any, b: any): boolean {
     if (!a || !b) return false;
-    return a.id === b.id || a.target_company_name === b.target_company_name;
+    return a.id === b.id || a.target_company.company_name === b.target_company.company_name;
   }
 
   compareWeightTypes(a: string, b: string): boolean {

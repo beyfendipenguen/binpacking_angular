@@ -3,13 +3,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { tap, map } from 'rxjs/operators';
 import { ApiService } from './api.service';
-
-export interface Page<T> {
-  count: number;
-  next: string | null;
-  previous: string | null;
-  results: T[];
-}
+import { BaseResponse } from '../interfaces/base-response.interface';
 
 @Injectable({
   providedIn: 'root'
@@ -37,7 +31,7 @@ export class GenericCrudService<T, TID = string, TCreate = T, TUpdate = T> {
    * @param params Filtre ve sıralama parametreleri
    * @returns Sayfalandırılmış sonuç listesi
    */
-  getAll(params?: any): Observable<Page<T>> {
+  getAll(params?: any): Observable<BaseResponse<T>> {
 
     this.ensureApiUrl();
 
@@ -52,7 +46,7 @@ export class GenericCrudService<T, TID = string, TCreate = T, TUpdate = T> {
       });
     }
 
-    return this.http.get<Page<T>>(this.apiUrl, { params: httpParams }).pipe(
+    return this.http.get<BaseResponse<T>>(this.apiUrl, { params: httpParams }).pipe(
       // Veriyi formatla
       map(response => this.formatNumberValues(response)),
       tap(response => {
@@ -148,27 +142,35 @@ export class GenericCrudService<T, TID = string, TCreate = T, TUpdate = T> {
    * @returns Formatlanmış değer
    */
   protected formatNumber(value: any): any {
-    // Değer yoksa veya sayı değilse olduğu gibi döndür
-    if (value === null || value === undefined || value === '' ||
-      (typeof value !== 'number' && (typeof value === 'string' && isNaN(Number(value))))) {
+    // Null/undefined kontrolü
+    if (value === null || value === undefined || value === '') {
       return value;
     }
 
-    // Sayıya çevir
-    const numValue = Number(value);
+    // ✅ ZATEN NUMBER İSE → Olduğu gibi döndür (result array için)
+    if (typeof value === 'number') {
+      return value;
+    }
 
-    // Tam sayı ise (1.0, 500.0, 1000.0 gibi)
-    if (Number.isInteger(numValue)) {
+    // ✅ STRING İSE VE SAYIYA ÇEVRİLEBİLİYORSA → Format et
+    if (typeof value === 'string' && !isNaN(Number(value))) {
+      const numValue = Number(value);
+
+      // Tam sayı ise (1.0, 500.0, 1000.0 gibi)
+      if (Number.isInteger(numValue)) {
+        return numValue.toString();  // "1200.000000" → "1200"
+      }
+
+      // Ondalık kısmı varsa
+      if (numValue % 1 !== 0) {
+        // 3 basamakla sınırla, sondaki sıfırları temizle
+        return numValue.toFixed(3).replace(/\.?0+$/, '');  // "123.456000" → "123.456"
+      }
+
       return numValue.toString();
     }
 
-    // Ondalık kısmı varsa
-    if (numValue % 1 !== 0) {
-      // Ondalık kısmı 3 basamakla sınırla (yukarı yuvarlama)
-      return numValue.toFixed(3).replace(/\.?0+$/, ''); // Sondaki sıfırları temizle
-    }
-
-    // Diğer durumlar için olduğu gibi döndür
+    // ✅ DİĞER HER ŞEY → Olduğu gibi döndür
     return value;
   }
 
@@ -236,9 +238,9 @@ export class GenericCrudService<T, TID = string, TCreate = T, TUpdate = T> {
    * @param page Sayfalanmış veri
    * @returns Formatlanmış sayfalanmış veri
    */
-  protected formatNumberValues(page: Page<T>): Page<T> {
+  protected formatNumberValues(page: BaseResponse<T>): BaseResponse<T> {
     // Yanıtın kopyasını oluştur
-    const formattedPage: Page<T> = {
+    const formattedPage: BaseResponse<T> = {
       count: page.count,
       next: page.next,
       previous: page.previous,

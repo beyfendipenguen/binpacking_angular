@@ -6,7 +6,7 @@ import { Document } from "@app/features/interfaces/file.interface";
 import { PackageDetailReadDto } from "@app/features/interfaces/package-detail.interface";
 import { PackageReadDto, PackageWriteDto } from "@app/features/interfaces/package.interface";
 import { ReportFile } from "@app/features/stepper/components/result-step/result-step.service";
-import { PackageData } from "@app/features/interfaces/order-result.interface";
+import { PackagePosition } from "@app/features/interfaces/order-result.interface";
 
 
 export interface StepperState {
@@ -53,7 +53,7 @@ export interface StepperState {
   };
 
   step3State: {
-    orderResult: string;
+    orderResult: PackagePosition[];
     reportFiles: ReportFile[];
     currentViewType: string;
     hasThreeJSError: boolean;
@@ -97,7 +97,7 @@ export const initialStepperState: StepperState = {
   },
 
   step3State: {
-    orderResult: '',
+    orderResult: [],
     reportFiles: [],
     currentViewType: 'isometric',
     hasThreeJSError: false,

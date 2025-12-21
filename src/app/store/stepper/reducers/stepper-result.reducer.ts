@@ -118,7 +118,7 @@ export const stepperResultHandlers = [
   on(StepperResultActions.resetStep3State, (state: StepperState) => ({
     ...state,
     step3State: {
-      orderResult: '',
+      orderResult: [],
       reportFiles: [],
       currentViewType: 'isometric',
       hasThreeJSError: false,

@@ -8,7 +8,6 @@ import { ToastService } from '@core/services/toast.service';
 import { StepperUiActions } from '../actions/stepper-ui.actions';
 import { StepperInvoiceUploadActions } from '../actions/stepper-invoice-upload.actions';
 import { StepperPackageActions } from '../actions/stepper-package.actions';
-import { mapPackageReadDtoListToIUiPackageList } from '@app/features/mappers/package.mapper';
 import { forkJoin, of } from 'rxjs';
 import { OrderDetailService } from '@app/features/services/order-detail.service';
 import { OrderService } from '@app/features/services/order.service';
@@ -17,6 +16,7 @@ import { PackageService } from '@app/features/services/package.service';
 import { OrderResultService } from '@app/features/services/order-result.service';
 import { FileService } from '@app/core/services/file.service';
 import { ReportFile } from '@app/features/stepper/components/result-step/result-step.service';
+import { PackagePosition } from '@app/features/interfaces/order-result.interface';
 
 @Injectable()
 export class StepperGeneralEffects {
@@ -58,21 +58,11 @@ export class StepperGeneralEffects {
         }).pipe(
           switchMap(({ order, orderDetails, packages, pallets, orderResult, files }) => {
 
-            // ✅ FILES FİLTRESİ: order.name içeren dosyaları al
             const filteredFiles = files.filter((file: ReportFile) =>
               file.name.includes(order.name)
             );
-            let cleanedResult = orderResult[0].result || '';
+            const cleanedResult = orderResult[0]?.result as PackagePosition[] || [];
             const orderResultId = orderResult[0].id;
-
-            if (cleanedResult) {
-              try {
-                cleanedResult = cleanedResult.replace(/'/g, '"');
-                JSON.parse(cleanedResult);
-              } catch (error) {
-                cleanedResult = '';
-              }
-            }
 
             return [
               StepperInvoiceUploadActions.saveSuccess({ order }),
@@ -187,7 +177,8 @@ export class StepperGeneralEffects {
 
         //Result Actions
         StepperResultActions.loadOrderResultSuccess,
-        StepperResultActions.setOrderResultId
+        StepperResultActions.setOrderResultId,
+        StepperResultActions.setOrderResult
       ),
       map(() => StepperUiActions.stepperStepUpdated())
     )

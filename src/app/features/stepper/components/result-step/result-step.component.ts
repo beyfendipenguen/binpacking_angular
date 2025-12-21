@@ -30,6 +30,7 @@ import { AppState, selectRemainingProducts, selectStep3IsDirty, selectOrderId, s
 import { StepperUiActions } from '@app/store/stepper/actions/stepper-ui.actions';
 import { StepperResultActions } from '@app/store/stepper/actions/stepper-result.actions';
 import { ReportFile, ResultStepService } from './result-step.service';
+import { PackagePosition } from '@app/features/interfaces/order-result.interface';
 
 @Component({
   selector: 'app-result-step',
@@ -80,7 +81,7 @@ export class ResultStepComponent implements OnInit, OnDestroy {
   );
 
   // Data
-  piecesData: any[] = [];
+  piecesData: PackagePosition[] = [];
   originalPiecesData: any[] = [];
 
   // UI State
@@ -125,25 +126,6 @@ export class ResultStepComponent implements OnInit, OnDestroy {
 
   constructor() { }
 
-  private loadEditModeDataEffect = effect(() => {
-    const orderResult = this.orderResultSignal();
-
-    untracked(() => {
-      this.store.select(selectIsEditMode).pipe(
-        take(1)
-      ).subscribe(isEditMode => {
-        if (isEditMode && orderResult && orderResult.length > 0) {
-          try {
-            this.piecesData = JSON.parse(orderResult);
-            this.originalPiecesData = JSON.parse(JSON.stringify(this.piecesData));
-            this.cdr.markForCheck();
-          } catch (error) {
-            this.toastService.error(this.translate.instant('RESULT_STEP.UNEXPECTED_ERROR'));
-          }
-        }
-      });
-    });
-  });
 
   ngOnInit(): void {
   }
@@ -199,13 +181,12 @@ export class ResultStepComponent implements OnInit, OnDestroy {
             reportFiles: result.reportFiles
           }));
 
-          this.piecesData = result.piecesData;
-          this.originalPiecesData = JSON.parse(JSON.stringify(result.piecesData));
+          this.piecesData = result.orderResult;
 
 
           this.toastService.success(this.translate.instant('RESULT_STEP.PACKAGING_SUCCESS'));
 
-          if (this.originalPiecesData.find(pkg => pkg[0] === -1 && pkg[1] === -1 && pkg[2] === -1)) {
+          if (this.piecesData.find(pkg => pkg[0] === -1 && pkg[1] === -1 && pkg[2] === -1)) {
             this.store.dispatch(StepperResultActions.setIsDirty({ isDirty: true }));
           }
 
@@ -315,14 +296,13 @@ export class ResultStepComponent implements OnInit, OnDestroy {
 
   async completeOrder(resetStepper: boolean): Promise<void> {
     try {
-      const processedPackages = this.threeJSComponent?.processedPackagesSignal() || [];
-      const orderResult = await this.resultStepService.convertPiecesToJsonString(processedPackages);
-
       const deletedPackages = this.threeJSComponent?.deletedPackagesSignal() || [];
 
       if (deletedPackages.length > 0) {
         await this.warningDialog();
       } else {
+        const processedPackages = this.threeJSComponent?.processedPackagesSignal() || [];
+        const orderResult = await this.resultStepService.formatPackagesForResult(processedPackages);
         this.submitOrderResult(orderResult, resetStepper);
       }
     } catch (error) {
@@ -352,7 +332,7 @@ export class ResultStepComponent implements OnInit, OnDestroy {
   /**
    * Submit order result to store
    */
-  private submitOrderResult(orderResult: string, resetStepper: boolean): void {
+  private submitOrderResult(orderResult: PackagePosition[], resetStepper: boolean): void {
     this.store.dispatch(StepperResultActions.resultStepSubmit({
       orderId: this.orderIdSignal(),
       orderResult,
@@ -364,7 +344,6 @@ export class ResultStepComponent implements OnInit, OnDestroy {
       this.originalPiecesData = [];
     }
 
-    this.store.dispatch(StepperResultActions.resultStepSubmit({ orderId: this.orderIdSignal(), orderResult, resetStepper }))
     this.shipmentCompleted.emit();
     this.toastService.success(this.translate.instant('RESULT_STEP.ORDER_COMPLETED'));
   }

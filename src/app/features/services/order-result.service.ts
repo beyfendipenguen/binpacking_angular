@@ -12,9 +12,11 @@ export class OrderResultService extends GenericCrudService<OrderResult> {
     super(http, 'orders/order-results');
   }
 
-    getByOrderId(orderId: string): Observable<OrderResult[]> {
-      return this.getAll({ order_id: orderId, limit: 100 }).pipe(
-        map((response: any) => response.results || [])
-      );
-    }
+  getByOrderId(orderId: string): Observable<OrderResult[]> {
+    return this.getAll({ order_id: orderId, limit: 100 }).pipe(
+      map((response: any) => {
+        return response.results || [];
+      })
+    );
+  }
 }

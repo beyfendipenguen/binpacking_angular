@@ -52,7 +52,7 @@ export class StepperResultEffects {
               this.store.dispatch(StepperUiActions.reviseOrderSuccess());
             }),
             switchMap(() =>
-              this.repositoryService.partialUpdateOrderResult(orderResultId, action.orderResult),
+              this.repositoryService.partialUpdateOrderResult(orderResultId, action.orderResult)
             ),
             map(() => action)
           );
@@ -89,60 +89,7 @@ export class StepperResultEffects {
     )
   );
 
-  // syncStep2Changes$ = createEffect(() =>
-  //   this.actions$.pipe(
-  //     ofType(StepperPackageActions.calculatePackageChanges),
-
-  //     withLatestFrom(
-  //       this.store.select(selectOrderResultId),
-  //       this.store.select(selectStep2Changes),
-  //       this.store.select(selectPackages)
-  //     ),
-
-  //     filter(([action, orderResultId]) => !!orderResultId),
-
-  //     tap(([action, orderResultId, changes, packages]) => {
-  //       if (changes.added.length > 0) {
-  //         const newDeletedPackages: PackageData[] = changes.added.map(addedPkg => {
-  //           const fullPackage = packages.find(p => p.id === addedPkg.id);
-
-  //           const depth = Number(fullPackage?.pallet?.dimension?.depth || 0);
-  //           const width = Number(fullPackage?.pallet?.dimension?.width || 0);
-  //           const height = Number(fullPackage?.pallet?.dimension?.height || 0);
-
-  //           return {
-  //             id: Number(addedPkg.name),
-  //             pkgId: addedPkg.id,
-  //             x: -1,
-  //             y: -1,
-  //             z: -1,
-  //             length: depth,
-  //             width: width,
-  //             height: height,
-  //             weight: 0,
-  //             color: '#808080',
-  //             originalColor: '#808080',
-  //             dimensions: `${depth}×${width}×${height}mm`,
-  //             rotation: 0,
-  //             originalLength: depth,
-  //             originalWidth: width,
-  //             isForcePlaced: false,
-  //             isBeingDragged: false
-  //           };
-  //         });
-
-  //         this.packagesStateService.addToDeletedPackages(newDeletedPackages);
-  //       }
-
-  //       if (changes.deleted.length > 0) {
-  //         this.packagesStateService.removeFromBothLists(changes.deleted);
-  //       }
-  //     })
-  //   ),
-  //   { dispatch: false }
-  // );
-
-syncBackendPackages$ = createEffect(() =>
+  syncBackendPackages$ = createEffect(() =>
     this.actions$.pipe(
       ofType(StepperPackageActions.upsertManySuccess),
 
@@ -229,7 +176,7 @@ syncBackendPackages$ = createEffect(() =>
           this.packagesStateService.removeFromBothLists(toRemove);
         }
 
-        this.resultStepService.convertPiecesToJsonString([...this.packagesStateService.processedPackages(), ...this.packagesStateService.deletedPackages()])
+        this.resultStepService.formatPackagesForResult([...this.packagesStateService.processedPackages(), ...this.packagesStateService.deletedPackages()])
 
       })
     ),

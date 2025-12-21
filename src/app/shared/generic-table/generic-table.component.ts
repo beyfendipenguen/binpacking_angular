@@ -28,13 +28,14 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatChipsModule } from '@angular/material/chips';
-import { GenericCrudService, Page } from '../../core/services/generic-crud.service';
+import { GenericCrudService } from '../../core/services/generic-crud.service';
 import { FilterDialogComponent } from './filter-dialog/filter-dialog.component';
 import { ConfirmDialogComponent } from './confirm-dialog/confirm-dialog.component';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { AddOrUpdateDialogComponent } from './add-or-update-dialog/add-or-update-dialog-component';
 import { ToastService } from '../../core/services/toast.service';
 import { Observable, of } from 'rxjs';
+import { BaseResponse } from '@app/core/interfaces/base-response.interface';
 
 // Interface for external data source
 export interface ExternalDataParams {
@@ -456,7 +457,7 @@ export class GenericTableComponent<T> implements OnInit, AfterViewInit {
     } else if (!this.isExternalMode && this.service) {
       // Use the service (original behavior)
       this.service.getAll(params).subscribe({
-        next: (page: Page<T>) => {
+        next: (page: BaseResponse<T>) => {
           if (page && 'results' in page && Array.isArray(page.results)) {
             this.dataSource.data = [];
             setTimeout(() => {
@@ -741,7 +742,7 @@ export class GenericTableComponent<T> implements OnInit, AfterViewInit {
 
     // If it's a nested column and we have a display name for it
     if (this.nestedDisplayColumns && this.nestedDisplayColumns[column]) {
-      return this.nestedDisplayColumns[column];
+      return this.translate.instant( this.nestedDisplayColumns[column]);
     }
 
     // Otherwise just use the column name with title case
