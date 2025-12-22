@@ -1,0 +1,165 @@
+<div class="dialog-container">
+      <!-- Header -->
+      <div class="dialog-header">
+        <div class="header-icon">
+          <mat-icon>support_agent</mat-icon>
+        </div>
+        <div class="header-text">
+          <h2 mat-dialog-title>{{ 'CONTACT_ADMIN.TITLE' | translate }}</h2>
+          <p class="subtitle">{{ 'CONTACT_ADMIN.SUBTITLE' | translate }}</p>
+        </div>
+        <button mat-icon-button class="close-button" (click)="onCancel()">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+
+      <!-- Content -->
+      <mat-dialog-content class="dialog-content">
+        <form [formGroup]="contactForm" (ngSubmit)="onSubmit()">
+          <!-- Subject Type -->
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>{{ 'CONTACT_ADMIN.SUBJECT_TYPE' | translate }}</mat-label>
+            <mat-select formControlName="subjectType">
+              <mat-option value="permission_request">
+                <div class="option-content">
+                  {{ 'CONTACT_ADMIN.PERMISSION_REQUEST' | translate }}
+                </div>
+              </mat-option>
+              <mat-option value="technical_issue">
+                <div class="option-content">
+                  <span>{{ 'CONTACT_ADMIN.TECHNICAL_ISSUE' | translate }}</span>
+                </div>
+              </mat-option>
+              <mat-option value="feature_request">
+                <div class="option-content">
+                  <span>{{ 'CONTACT_ADMIN.FEATURE_REQUEST' | translate }}</span>
+                </div>
+              </mat-option>
+              <mat-option value="general_inquiry">
+                <div class="option-content">
+                  <span>{{ 'CONTACT_ADMIN.GENERAL_INQUIRY' | translate }}</span>
+                </div>
+              </mat-option>
+            </mat-select>
+            <mat-icon matPrefix>category</mat-icon>
+          </mat-form-field>
+
+          <!-- Subject -->
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>{{ 'CONTACT_ADMIN.SUBJECT' | translate }}</mat-label>
+            <input matInput formControlName="subject"
+                   [placeholder]="'CONTACT_ADMIN.SUBJECT_PLACEHOLDER' | translate">
+            <mat-icon matPrefix>title</mat-icon>
+            <mat-error *ngIf="contactForm.get('subject')?.hasError('required')">
+              {{ 'CONTACT_ADMIN.SUBJECT_REQUIRED' | translate }}
+            </mat-error>
+            <mat-error *ngIf="contactForm.get('subject')?.hasError('minlength')">
+              {{ 'CONTACT_ADMIN.SUBJECT_MIN_LENGTH' | translate }}
+            </mat-error>
+          </mat-form-field>
+
+          <!-- Priority -->
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>{{ 'CONTACT_ADMIN.PRIORITY' | translate }}</mat-label>
+            <mat-select formControlName="priority">
+              <mat-option value="low">
+                <span class="priority-badge low">{{ 'CONTACT_ADMIN.PRIORITY_LOW' | translate }}</span>
+              </mat-option>
+              <mat-option value="medium">
+                <span class="priority-badge medium">{{ 'CONTACT_ADMIN.PRIORITY_MEDIUM' | translate }}</span>
+              </mat-option>
+              <mat-option value="high">
+                <span class="priority-badge high">{{ 'CONTACT_ADMIN.PRIORITY_HIGH' | translate }}</span>
+              </mat-option>
+              <mat-option value="urgent">
+                <span class="priority-badge urgent">{{ 'CONTACT_ADMIN.PRIORITY_URGENT' | translate }}</span>
+              </mat-option>
+            </mat-select>
+            <mat-icon matPrefix>flag</mat-icon>
+          </mat-form-field>
+
+          <!-- Message -->
+          <mat-form-field appearance="outline" class="full-width message-field">
+            <mat-label>{{ 'CONTACT_ADMIN.MESSAGE' | translate }}</mat-label>
+            <textarea
+              matInput
+              formControlName="message"
+              rows="6"
+              [placeholder]="'CONTACT_ADMIN.MESSAGE_PLACEHOLDER' | translate">
+            </textarea>
+            <mat-icon matPrefix>message</mat-icon>
+            <mat-hint align="end">
+              {{ contactForm.get('message')?.value?.length || 0 }} / 1000
+            </mat-hint>
+            <mat-error *ngIf="contactForm.get('message')?.hasError('required')">
+              {{ 'CONTACT_ADMIN.MESSAGE_REQUIRED' | translate }}
+            </mat-error>
+            <mat-error *ngIf="contactForm.get('message')?.hasError('minlength')">
+              {{ 'CONTACT_ADMIN.MESSAGE_MIN_LENGTH' | translate }}
+            </mat-error>
+          </mat-form-field>
+
+          <!-- Contact Email -->
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>{{ 'CONTACT_ADMIN.CONTACT_EMAIL' | translate }}</mat-label>
+            <input
+              matInput
+              type="email"
+              formControlName="contactEmail"
+              [placeholder]="'CONTACT_ADMIN.CONTACT_EMAIL_PLACEHOLDER' | translate">
+            <mat-icon matPrefix>email</mat-icon>
+            <mat-hint>{{ 'CONTACT_ADMIN.CONTACT_EMAIL_HINT' | translate }}</mat-hint>
+            <mat-error *ngIf="contactForm.get('contactEmail')?.hasError('email')">
+              {{ 'CONTACT_ADMIN.EMAIL_INVALID' | translate }}
+            </mat-error>
+          </mat-form-field>
+
+          <!-- Permission Details (if available) -->
+          <div class="permission-info" *ngIf="hasPermissionData && data">
+            <div class="info-header">
+              <mat-icon>info</mat-icon>
+              <span>{{ 'CONTACT_ADMIN.PERMISSION_DETAILS' | translate }}</span>
+            </div>
+            <div class="permission-details">
+              <div *ngIf="data.requiredPermissions.length > 0" class="detail-section">
+                <span class="label">{{ 'PERMISSION.REQUIRED' | translate }}:</span>
+                <div class="tags">
+                  <span class="tag" *ngFor="let perm of data.requiredPermissions">{{ perm | permissionTranslate}}</span>
+                </div>
+              </div>
+              <div *ngIf="data.restrictedPermissions.length > 0" class="detail-section">
+                <span class="label">{{ 'PERMISSION.RESTRICTED' | translate }}:</span>
+                <div class="tags restricted">
+                  <span class="tag" *ngFor="let perm of data.restrictedPermissions">{{ perm | permissionTranslate}}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </form>
+      </mat-dialog-content>
+
+      <!-- Actions -->
+      <mat-dialog-actions class="dialog-actions">
+        <button
+          mat-button
+          type="button"
+          class="cancel-button"
+          (click)="onCancel()"
+          [disabled]="isSubmitting">
+          <mat-icon>close</mat-icon>
+          {{ 'COMMON.CANCEL' | translate }}
+        </button>
+
+        <button
+          mat-raised-button
+          color="primary"
+          type="submit"
+          class="submit-button"
+          [disabled]="contactForm.invalid || isSubmitting"
+          (click)="onSubmit()">
+          <mat-icon *ngIf="!isSubmitting">send</mat-icon>
+          <mat-icon *ngIf="isSubmitting" class="spinner">refresh</mat-icon>
+          {{ isSubmitting ? ('CONTACT_ADMIN.SENDING' | translate) : ('CONTACT_ADMIN.SEND' | translate) }}
+        </button>
+      </mat-dialog-actions>
+    </div>

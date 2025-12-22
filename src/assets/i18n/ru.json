@@ -47,7 +47,9 @@
     "PROCESS_FINISH": "Операция завершена",
     "DIALOG_FORM_NOT_CREATED": "Форма не может быть создана. Не найдено подходящее поле.",
     "FIELD_REQUIRED": "Это поле является обязательным.",
-    "REMOVE": "Удалить"
+    "REMOVE": "Удалить",
+    "GO_BACK": "Назад",
+    "PAGE": "Страница"
   },
   "MENU": {
     "PLACEMENT_CALCULATION": "Расчет размещения",
@@ -706,5 +708,101 @@
       "OTHER": "Другое",
       "UNKNOWN": "Неизвестный тип отношений"
     }
+  },
+  "PERMISSION": {
+    "MESSAGES":{
+      "HELLO": "Здравствуйте",
+      "REQUEST": "Я прошу разрешения на доступ.",
+      "THANKS": "Спасибо.",
+      "SUCCESS": "Ваше сообщение успешно отправлено! Мы свяжемся с вами в ближайшее время.",
+      "ARE_YOU_SURE": "Изменения не были сохранены. Вы уверены, что хотите выйти?"
+    },
+    "DENIED": {
+      "TITLE": "Доступ запрещен",
+      "MESSAGE": "У вас недостаточно прав для просмотра этого содержимого."
+    },
+    "ACTIONS": {
+      "VIEW": "Просмотр",
+      "ADD": "Добавить",
+      "CHANGE": "Изменить",
+      "DELETE": "Удалить"
+    },
+    "APPS": {
+      "LOGISTICS": "Логистика",
+      "ORDERS": "Заказы",
+      "ACCESS_CONTROL": "Контроль доступа",
+      "PRODUCTS": "Продукты",
+      "ORGANIZATIONS": "Организации",
+      "AUTH": "Авторизация",
+      "SESSIONS": "Сеансы",
+      "CONTENTTYPES": "Типы контента",
+      "CORE": "Система",
+      "ADMIN": "Админ-панель",
+      "USERS": "Пользователи"
+    },
+    "MODELS": {
+      "PACKAGEDETAILS": "Детали упаковки",
+      "PACKAGES": "Упаковка",
+      "TRUCKS": "Грузовик",
+      "PALLETS": "Паллета",
+      "PALLETGROUPS": "Группа паллет",
+      "FILES": "Файл",
+      "ORDERS": "Заказ",
+      "ORDERDETAILS": "Детали заказа",
+      "ORDERRESULTS": "Результат заказа",
+      "GROUPPROFILES": "Профиль группы",
+      "BOYLES": "Бойле",
+      "WEIGHTTYPES": "Тип веса",
+      "PRODUCTTYPES": "Тип продукта",
+      "PRODUCTS": "Продукт",
+      "DIMENSIONS": "Размер",
+      "COMPANYS": "Компания",
+      "COMPANYRELATIONS": "Связь компании",
+      "GROUPS": "Группа",
+      "PERMISSIONS": "Разрешение",
+      "USERS": "Пользователь",
+      "SESSIONS": "Сеанс",
+      "CONTENTTYPES": "Тип контента",
+      "JOBS": "Работа",
+      "LOGENTRYS": "Запись журнала"
+    },
+    "REQUIRED": "Необходимые разрешения",
+    "RESTRICTED": "Ограниченные разрешения",
+    "CONTACT_ADMIN": "Связаться с администратором"
+  },
+  "CONTACT_ADMIN": {
+    "TITLE": "Связаться с администратором",
+    "SUBTITLE": "Свяжитесь с нами по вашим вопросам или запросам",
+    "SUBJECT_TYPE": "Тип темы",
+    "PERMISSION_REQUEST": "Запрос разрешения",
+    "TECHNICAL_ISSUE": "Техническая проблема",
+    "FEATURE_REQUEST": "Запрос функции",
+    "GENERAL_INQUIRY": "Общий вопрос",
+    "SUBJECT": "Тема",
+    "SUBJECT_PLACEHOLDER": "например, Запрос разрешения на просмотр заказов",
+    "SUBJECT_REQUIRED": "Тема обязательна",
+    "SUBJECT_MIN_LENGTH": "Тема должна содержать не менее 5 символов",
+    "PRIORITY": "Уровень приоритета",
+    "PRIORITY_LOW": "Низкий",
+    "PRIORITY_MEDIUM": "Средний",
+    "PRIORITY_HIGH": "Высокий",
+    "PRIORITY_URGENT": "Срочно",
+    "MESSAGE": "Ваше сообщение",
+    "MESSAGE_PLACEHOLDER": "Пожалуйста, опишите ваш запрос или проблему подробно...",
+    "MESSAGE_REQUIRED": "Сообщение обязательно",
+    "MESSAGE_MIN_LENGTH": "Сообщение должно содержать не менее 20 символов",
+    "CONTACT_EMAIL": "Контактная почта (необязательно)",
+    "CONTACT_EMAIL_PLACEHOLDER": "example@email.com",
+    "CONTACT_EMAIL_HINT": "Если вы хотите, чтобы с вами связались по другому адресу",
+    "EMAIL_INVALID": "Введите действительный адрес электронной почты",
+    "SEND": "Отправить",
+    "SENDING": "Отправка...",
+    "RESPONSE_TIME": "Быстрый ответ",
+    "RESPONSE_TIME_DESC": "Мы отвечаем на запросы в течение 24 часов",
+    "PRIVACY": "Конфиденциальность",
+    "PRIVACY_DESC": "Ваша информация хранится безопасно",
+    "NOTIFICATION": "Уведомление",
+    "NOTIFICATION_DESC": "Вы получите уведомление по электронной почте, когда мы ответим",
+    "PERMISSION_DETAILS": "Детали разрешения"
   }
 }

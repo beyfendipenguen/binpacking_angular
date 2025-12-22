@@ -1,0 +1,56 @@
+<div class="permission-denied-container">
+      <div class="permission-card">
+        <!-- Icon -->
+        <div class="icon-wrapper">
+          <mat-icon class="lock-icon">lock</mat-icon>
+          <div class="icon-pulse"></div>
+        </div>
+
+        <!-- Content -->
+        <div class="content">
+          <h2 class="title">{{ title || ('PERMISSION.DENIED.TITLE' | translate) }}</h2>
+          <p class="message">{{ message || ('PERMISSION.DENIED.MESSAGE' | translate) }}</p>
+
+          <!-- Permission Details -->
+          <div class="permission-details" *ngIf="showDetails && (requiredPermissions.length > 0 || restrictedPermissions.length > 0)">
+            <div class="detail-section" *ngIf="requiredPermissions.length > 0">
+              <span class="detail-label">{{ 'PERMISSION.REQUIRED' | translate }}:</span>
+              <div class="permission-tags">
+                <span class="permission-tag" *ngFor="let perm of requiredPermissions">
+                  {{ perm | permissionTranslate}}
+                </span>
+              </div>
+            </div>
+
+            <div class="detail-section" *ngIf="restrictedPermissions.length > 0">
+              <span class="detail-label">{{ 'PERMISSION.RESTRICTED' | translate }}:</span>
+              <div class="permission-tags restricted">
+                <span class="permission-tag" *ngFor="let perm of restrictedPermissions">
+                  {{ perm | permissionTranslate}}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div class="actions">
+            <button
+              mat-stroked-button
+              color="primary"
+              *ngIf="showContactButton"
+              (click)="onContactAdmin()">
+              <mat-icon>support_agent</mat-icon>
+              {{ 'PERMISSION.CONTACT_ADMIN' | translate }}
+            </button>
+
+            <button
+              mat-button
+              *ngIf="showBackButton"
+              (click)="onGoBack()">
+              <mat-icon>arrow_back</mat-icon>
+              {{ 'COMMON.GO_BACK' | translate }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>

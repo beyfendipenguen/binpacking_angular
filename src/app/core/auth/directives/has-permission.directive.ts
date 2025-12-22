@@ -1,20 +1,31 @@
-import { Directive, ElementRef, inject, Input, isDevMode, OnChanges, SimpleChanges, TemplateRef, ViewContainerRef } from '@angular/core';
+// has-permission.directive.ts
+import { Directive, Input, OnInit, OnChanges, SimpleChanges, TemplateRef, ViewContainerRef, inject, isDevMode } from '@angular/core';
 import { PERMISSION_FORMAT_REGEX, PermissionType } from '../permission.interface';
 import { Store } from '@ngrx/store';
 import { selectUserPermissions } from '@app/store';
-import { InfoCardComponent } from '@app/shared/info-card/info-card.component';
+import { PermissionDeniedComponent } from '@app/shared/permission-denied/permission-denied.component';
 
 @Directive({
   selector: '[appHasPermission]',
   standalone: true
 })
-export class HasPermissionDirective implements OnChanges {
+export class HasPermissionDirective implements OnInit, OnChanges {
   private _canPermissions: PermissionType[] = [];
   private _cantPermission: PermissionType[] = [];
-  private store = inject(Store)
+  private _operator: 'AND' | 'OR' = 'AND';
 
+  // Custom mesaj için
+  private _customTitle?: string;
+  private _customMessage?: string;
+  private _showDetails = true;
+  private _showContactButton = true;
 
-  private permissions = this.store.selectSignal(selectUserPermissions)
+  private store = inject(Store);
+  private permissions = this.store.selectSignal(selectUserPermissions);
+
+  // View tracking
+  private hasCreatedView = false;
+  private hasCreatedErrorCard = false;
 
   constructor(
     private templateRef: TemplateRef<any>,
@@ -25,9 +36,9 @@ export class HasPermissionDirective implements OnChanges {
   set appHasPermission(value: PermissionType | PermissionType[]) {
     const permissions = Array.isArray(value) ? value : [value];
 
-    if (isDevMode()) [
-      this.validatePermissions(permissions)
-    ]
+    if (isDevMode()) {
+      this.validatePermissions(permissions);
+    }
 
     this._canPermissions = permissions;
   }
@@ -36,62 +47,91 @@ export class HasPermissionDirective implements OnChanges {
   set appHasPermissionCant(value: PermissionType | PermissionType[]) {
     const permissions = Array.isArray(value) ? value : [value];
 
-    if (isDevMode()) [
-      this.validatePermissions(permissions)
-    ]
+    if (isDevMode()) {
+      this.validatePermissions(permissions);
+    }
 
     this._cantPermission = permissions;
   }
 
+  @Input()
+  set appHasPermissionOperator(value: 'AND' | 'OR') {
+    this._operator = value;
+  }
+
+  @Input()
+  set appHasPermissionTitle(value: string) {
+    this._customTitle = value;
+  }
+
+  @Input()
+  set appHasPermissionMessage(value: string) {
+    this._customMessage = value;
+  }
+
+  @Input()
+  set appHasPermissionShowDetails(value: boolean) {
+    this._showDetails = value;
+  }
+
+  @Input()
+  set appHasPermissionShowContact(value: boolean) {
+    this._showContactButton = value;
+  }
+
+  ngOnInit(): void {
+    this.updateView();
+  }
 
   ngOnChanges(changes: SimpleChanges): void {
     this.updateView();
-
   }
 
+  private hasPermissions(requiredPerms: PermissionType[]): boolean {
+    const userPerms = this.permissions();
 
-  /**
-     * "AND" Mantığı (Strict Mode):
-     * Kullanıcı, istenen yetkilerin HEPSİNE sahip olmak zorundadır.
-     * Örn: ['core.add_order', 'core.view_order'] geldiyse, kullanıcıda ikisi de olmalı.
-     */
-  hasPermissions(requiredPerms: PermissionType[]): boolean {
-    // 1. Kullanıcının yetkilerini al (Store'dan veya servisten gelen string listesi)
-    // Örn: ['core.view_order', 'core.add_order', 'auth.view_user']
-    const userPerms = this.permissions(); // Veya signal ise: this.permissions()
-
-    // 2. Eğer requiredPerms boşsa veya null ise, "kısıtlama yok" demektir -> İzin Ver
     if (!requiredPerms || requiredPerms.length === 0) {
       return true;
     }
 
-    // 3. Kullanıcının yetkileri henüz yüklenmediyse -> Reddet
     if (!userPerms) {
       return false;
     }
 
-    // 4. KRİTİK NOKTA: 'every' kullanımı
-    // "İstenen her bir yetki (req), kullanıcının yetki listesinde var mı?"
-    return requiredPerms.every(req => userPerms.includes(req));
+    return this._operator === 'AND'
+      ? requiredPerms.every(req => userPerms.includes(req))
+      : requiredPerms.some(req => userPerms.includes(req));
   }
 
   private updateView(): void {
-    const isBanned = this._cantPermission.length > 0 ? this.hasPermissions(this._cantPermission) : false
-    const hasAccess = this.hasPermissions(this._canPermissions)
+    const isBanned = this._cantPermission.length > 0 ? this.hasPermissions(this._cantPermission) : false;
+    const hasAccess = this.hasPermissions(this._canPermissions);
 
     if (!isBanned && hasAccess) {
-      this.viewContainer.createEmbeddedView(this.templateRef);
+      if (!this.hasCreatedView) {
+        this.viewContainer.clear();
+        this.viewContainer.createEmbeddedView(this.templateRef);
+        this.hasCreatedView = true;
+        this.hasCreatedErrorCard = false;
+      }
     } else {
-      this.viewContainer.clear();
-      const componentRef = this.viewContainer.createComponent(InfoCardComponent)
-      componentRef.instance.header = "YETKI BULUNAMADI!"
-      componentRef.instance.title = "Bu Icerigi Goruntulemek Icin Yeterli Yetkiye sahip Degilsiniz!"
-      componentRef.instance.content = `
-        <strong>Bu yetkilere sahip olmanız gerekir: </strong> ${this._canPermissions.join(', ')} <br><br>
-        <strong> Bu yetki kısıtlamalarını kaldırmanız gerekmektedir: </strong> ${this._cantPermission.join(', ')} <br><br>
-        <em> Lütfen yöneticiniz ile görüşün.</em>`
-      componentRef.changeDetectorRef.detectChanges()
+      if (!this.hasCreatedErrorCard) {
+        this.viewContainer.clear();
+        const componentRef = this.viewContainer.createComponent(PermissionDeniedComponent);
 
+        componentRef.instance.title = this._customTitle;
+        componentRef.instance.message = this._customMessage;
+        componentRef.instance.requiredPermissions = this._canPermissions;
+        componentRef.instance.restrictedPermissions = this._cantPermission;
+        componentRef.instance.showDetails = this._showDetails;
+        componentRef.instance.showContactButton = this._showContactButton;
+        componentRef.instance.currentPage = window.location.pathname; // Ekledik
+
+        componentRef.changeDetectorRef.detectChanges();
+
+        this.hasCreatedView = false;
+        this.hasCreatedErrorCard = true;
+      }
     }
   }
 
@@ -99,13 +139,10 @@ export class HasPermissionDirective implements OnChanges {
     permissions.forEach(permission => {
       if (!PERMISSION_FORMAT_REGEX.test(permission)) {
         console.error(
-          `%c[hasPermissionDirective] Hata: "${permission}" gecerli bir yetki degil!
-          Beklenen format: 'app_label.codename' (örn: core.add_order)
-          `,
+          `%c[hasPermissionDirective] Hata: "${permission}" geçerli bir yetki değil!\nBeklenen format: 'app_label.codename' (örn: core.add_order)`,
           `color: red; font-weight: bold;`
         );
-
       }
-    })
+    });
   }
 }

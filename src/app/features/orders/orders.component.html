@@ -29,7 +29,51 @@
   </div>
   <!-- <button [appDisableAuth]="'core.add_order'">
     Sipariş Ekle
-  </button>
+  </button> -->
 
-  <button [appDisableAuthCant]="['core.cant_order']" matButton="elevated">Basic</button> -->
+  <!-- <button [appDisableAuth]="['orders.add_order', 'orders.change_order']" matButton="elevated">Basic</button> -->
+
+  <!-- orders.component.html -->
+
+<!-- Basit kullanım - default mesaj
+<div class="table-wrapper">
+  <app-generic-table
+    *appHasPermission="'orders.view_order'"
+    [service]="orderService">
+  </app-generic-table>
+</div>
+
+ Custom mesaj ile -->
+<!-- <div class="statistics-section">
+  <app-order-stats
+    *appHasPermission="'orders.view_statistics'"
+    [appHasPermissionTitle]="'İstatistikler Kilitli'"
+    [appHasPermissionMessage]="'Sipariş istatistiklerini görmek için premium pakete geçiş yapmalısınız.'"
+    [appHasPermissionShowContact]="false">
+  </app-order-stats>
+</div> -->
+
+<!-- Birden fazla permission (OR logic) -->
+<!-- <div class="admin-panel"> -->
+  <!-- <app-admin-tools
+    *appHasPermission="['orders.admin_access', 'orders.super_admin']"
+    [appHasPermissionOperator]="'OR'">
+  </app-admin-tools>
+</div> -->
+
+<!-- Permission detaylarını gizle -->
+<!-- <div class="sensitive-data">
+  <app-financial-report
+    *appHasPermission="'orders.view_financial'"
+    [appHasPermissionShowDetails]="false">
+  </app-financial-report>
+</div> -->
+
+<!-- Hem can hem cant kullanımı -->
+<!-- <div class="special-feature">
+  <app-bulk-operations
+    *appHasPermission="'orders.bulk_edit'"
+    [appHasPermissionCant]="['orders.trial_user', 'orders.restricted']">
+  </app-bulk-operations>
+</div> -->
 </div>
