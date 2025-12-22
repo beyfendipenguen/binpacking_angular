@@ -27,7 +27,7 @@ import { DisableAuthDirective } from '@app/core/auth/directives/disable-auth.dir
     GenericTableComponent,
     HasPermissionDirective,
     TranslateModule,
-    DisableAuthDirective
+    // DisableAuthDirective
   ],
   templateUrl: './orders.component.html',
   styleUrl: './orders.component.scss'

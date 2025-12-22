@@ -76,7 +76,7 @@ export class HasPermissionDirective implements OnChanges {
   }
 
   private updateView(): void {
-    const isBanned = this.hasPermissions(this._cantPermission)
+    const isBanned = this._cantPermission.length > 0 ? this.hasPermissions(this._cantPermission) : false
     const hasAccess = this.hasPermissions(this._canPermissions)
 
     if (!isBanned && hasAccess) {
