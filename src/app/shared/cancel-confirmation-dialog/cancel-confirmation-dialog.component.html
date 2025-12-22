@@ -3,14 +3,14 @@
     <div class="icon-wrapper">
       <mat-icon class="warning-icon">warning_amber</mat-icon>
     </div>
-    <h2 mat-dialog-title>{{data.header}}</h2>
+    <h2 mat-dialog-title>{{data.header | translate}}</h2>
   </div>
 
   <mat-dialog-content>
-    <p class="main-text">{{data.title}}</p>
+    <p class="main-text">{{data.title | translate}}</p>
     <div class="warning-box">
       <mat-icon>info</mat-icon>
-      <span>{{data.info}}</span>
+      <span>{{data.info | translate}}</span>
     </div>
   </mat-dialog-content>
 
