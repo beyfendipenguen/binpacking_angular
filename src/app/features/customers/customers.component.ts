@@ -216,7 +216,7 @@ export class CustomersComponent implements OnInit {
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       width: '400px',
       data: {
-        message: `"${row.target_company.company_name}" ${this.translate.instant('CUSTOMER_MESSAGES.DELETE_CONFIRM')}`
+        message: `"${row.target_company.company_name}" ${this.translate.instant('CUSTOMER.DELETE_CONFIRM')}`
       }
     });
 
