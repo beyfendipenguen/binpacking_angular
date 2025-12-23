@@ -26,6 +26,8 @@ import { UserService } from '../auth/user.service';
 import { CompanyService } from '../services/company.service';
 import { Company } from '../interfaces/company.interface';
 import { ToastService } from '@app/core/services/toast.service';
+import { DisableAuthDirective } from '@app/core/auth/directives/disable-auth.directive';
+import { HasPermissionDirective } from '@app/core/auth/directives/has-permission.directive';
 
 @Component({
   selector: 'app-profile',
@@ -41,7 +43,9 @@ import { ToastService } from '@app/core/services/toast.service';
     MatDividerModule,
     MatDialogModule,
     MatSelectModule,
-    TranslateModule
+    TranslateModule,
+    HasPermissionDirective,
+    DisableAuthDirective
   ],
   templateUrl: './profile.component.html',
   styleUrl: './profile.component.scss',

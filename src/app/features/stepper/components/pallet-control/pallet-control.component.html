@@ -1,4 +1,4 @@
-<form [formGroup]="secondFormGroup" style="padding-bottom:100px">
+<form [formGroup]="secondFormGroup" style="padding-bottom:100px" *appHasPermission="'logistics.view_package'">
   <div class="logistics-header">
     <div class="header-icon">
       <mat-icon>inventory_2</mat-icon>
@@ -79,7 +79,8 @@
         <div class="search-input-wrapper">
           <mat-icon class="search-icon">search</mat-icon>
           <input matInput class="search-input" type="text" [placeholder]="'PALLET_CONTROL.SEARCH_PRODUCT' | translate"
-            [formControl]="searchControl" [matAutocomplete]="auto" id="searchControl" name="searchControl" />
+            [formControl]="searchControl" [matAutocomplete]="auto" id="searchControl" name="searchControl"
+            [appDisableAuth]="['products.add_product']" />
 
           @if(searchControl.value) {
           <button mat-icon-button class="clear-search" (click)="clearSearch()"
@@ -118,10 +119,11 @@
       </div>
 
       <div cdkDropList #productsList="cdkDropList" id="productsList" [cdkDropListData]="remainingProducts()"
-        [cdkDropListConnectedTo]="palletDropListIds()" class="inventory-list"
-        (cdkDropListDropped)="dropPackageDetailToPackage($event)">
+        *appHasPermission="'products.view_product'" [cdkDropListConnectedTo]="palletDropListIds()"
+        class="inventory-list" (cdkDropListDropped)="dropPackageDetailToPackage($event)">
         @for(packageDetail of remainingProducts(); track packageDetail.id){
         <div class="product-item" cdkDrag (cdkDragStarted)="dragStarted($event)" (cdkDragEnded)="dragEnded()"
+          [appDisableAuth]="['products.change_product']"
           [cdkDragData]="packageDetail">
           <div class="product-icon"></div>
           <div class="product-info">
@@ -130,7 +132,8 @@
               <input matInput class="product-count-input" type="number" min="1" [value]="packageDetail.count"
                 (keydown.enter)="$event.preventDefault()" inputmode="numeric" (focus)="$event.target.select()"
                 (change)="updatePackageDetailCount(packageDetail, $event)" id="productCount-{{packageDetail.id}}"
-                name="productCount-{{packageDetail.id}}" />
+                name="productCount-{{packageDetail.id}}"
+                [appDisableAuth]="['products.change_product']"/>
               <span class="count-label">{{ 'INVOICE_UPLOAD.TABLE.COUNT' | translate }}</span>
             </div>
           </div>
@@ -144,7 +147,8 @@
                 );
                 splitInput.value = ''
               " [matTooltip]="'PALLET_CONTROL.HOW_MANY_SPLIT'| translate" id="splitInput-{{packageDetail.id}}"
-              name="splitInput-{{packageDetail.id}}" />
+              name="splitInput-{{packageDetail.id}}"
+              [appDisableAuth]="['products.change_product']" />
 
             <button mat-icon-button class="action-button split-button" (click)="
                 splitProduct(
@@ -152,13 +156,15 @@
                   splitInput.value ? +splitInput.value : null
                 );
                 splitInput.value = ''
-              " [matTooltip]="'PALLET_CONTROL.SPLIT_PRODUCT'| translate">
+              " [matTooltip]="'PALLET_CONTROL.SPLIT_PRODUCT'| translate"
+              [appDisableAuth]="['products.change_product']">
               <mat-icon>content_cut</mat-icon>
             </button>
           </div>
           <div class="split-product-container">
             <button mat-icon-button class="action-button" (click)="deleteRemainingProducts([packageDetail.id])"
-              [matTooltip]="'PALLET_CONTROL.DELETE_PRODUCT'| translate">
+              [matTooltip]="'PALLET_CONTROL.DELETE_PRODUCT'| translate"
+              [appDisableAuth]="['products.delete_product']">
               <mat-icon>close</mat-icon>
             </button>
           </div>
@@ -173,7 +179,7 @@
     </div>
 
     <!-- PAKETLER BÖLÜMÜ -->
-    <div class="packages-section">
+    <div class="packages-section" *appHasPermission="'logistics.view_package'">
       <div class="section-header with-action">
         <div class="header-content-inline">
           <div class="header-title-section">
@@ -187,6 +193,7 @@
 
             @if(uiPackages().length > 0) {
             <mat-checkbox class="vertical-sort-checkbox" [checked]="verticalSortSignal()"
+              [appDisableAuth]="['logistics.change_package']"
               (change)="onVerticalSortChange($event.checked)">{{ 'PALLET_CONTROL.VERTICAL_PLACEMENT' | translate
               }}</mat-checkbox>
             }
@@ -236,6 +243,7 @@
               <span>{{'PALLET.PALLET'| translate}} {{ package.name }}</span>
               @if(package.pallet?.dimension?.depth == 1000 || package.pallet?.dimension?.width == 1000){
               <button class="orientation-toggle" [class.vertical]="package.alignment === 'v'"
+                [appDisableAuth]="['logistics.change_package']"
                 (click)="toggleAlignment(package)"
                 [matTooltip]="(package.alignment === 'v' ? 'PALLET_CONTROL.VERTICAL_LAYOUT' : 'PALLET_CONTROL.HORIZONTAL_LAYOUT') | translate">
                 <div class="toggle-icon layers">
@@ -275,12 +283,14 @@
               <!-- Palet içindeki ürünler -->
               <div cdkDropList [id]="package.pallet.ui_id" [cdkDropListData]="package.package_details"
                 [cdkDropListConnectedTo]="palletDropListIds()" class="pallet-content"
-                (cdkDropListDropped)="dropPackageDetailToPackage($event)">
+                (cdkDropListDropped)="dropPackageDetailToPackage($event)"
+                [appDisableAuth]="['logistics.change_package']">
                 @for(packageDetail of package.package_details;let j = $index; track
                 packageDetail.id){
 
                 <div class="pallet-item" cdkDrag [cdkDragData]="packageDetail" (cdkDragStarted)="dragStarted($event)"
-                  (cdkDragEnded)="dragEnded()">
+                  (cdkDragEnded)="dragEnded()"
+                  [appDisableAuth]="['logistics.change_package']">
                   <div class="product-icon small"></div>
                   <div class="product-info">
                     <span class="product-name">{{ packageDetail.product.name }}</span>
@@ -374,7 +384,7 @@
     </div>
 
     <!-- PALETLER BÖLÜMÜ -->
-    <div class="pallets-section">
+    <div class="pallets-section" *appHasPermission="'logistics.view_pallet'">
       <div class="section-header">
         <mat-icon>view_module</mat-icon>
         <h2>{{ 'PALLET_CONTROL.PALLET_TYPES' | translate }}</h2>
@@ -382,7 +392,8 @@
 
       <div cdkDropList #palletsList="cdkDropList" id="availablePalletsList" [cdkDropListData]="availablePallets()"
         [cdkDropListConnectedTo]="packageDropListIds()" class="pallets-list"
-        (cdkDropListDropped)="dropPalletToPackage($event)">
+        (cdkDropListDropped)="dropPalletToPackage($event)"
+        [appDisableAuth]="['logistics.change_package']">
         @for(pallet of availablePallets(); track pallet.ui_id){
         <div class="pallet-item" cdkDrag>
           <div class="pallet-base-icon"></div>
@@ -399,7 +410,7 @@
   </div>
 
 
-  <button mat-button class="next-button" (click)="submitForm()" [disabled]="!uiPackages() || uiPackages().length === 0">
+  <button mat-button class="next-button" (click)="submitForm()" [disabled]="!uiPackages() || uiPackages().length === 0" [appDisableAuth]="['logistics.change_package']">
     <mat-icon>arrow_forward</mat-icon>
     <span>{{( this.isDirtySignal() ? 'COMMON.SAVE' : 'COMMON.NEXT') | translate}}</span>
   </button>

@@ -53,6 +53,8 @@ import { AppState, selectOrder, selectOrderDetails, selectIsOrderDetailsDirty, s
 import { StepperInvoiceUploadActions } from '@app/store/stepper/actions/stepper-invoice-upload.actions';
 import { StepperPackageActions } from '@app/store/stepper/actions/stepper-package.actions';
 import { StepperUiActions } from '@app/store/stepper/actions/stepper-ui.actions';
+import { DisableAuthDirective } from '@app/core/auth/directives/disable-auth.directive';
+import { HasPermissionDirective } from '@app/core/auth/directives/has-permission.directive';
 
 @Component({
   selector: 'app-invoice-upload',
@@ -75,7 +77,9 @@ import { StepperUiActions } from '@app/store/stepper/actions/stepper-ui.actions'
     MatSelectModule,
     MatDatepickerModule,
     MatNativeDateModule,
-    TranslateModule
+    TranslateModule,
+    DisableAuthDirective,
+    HasPermissionDirective
   ],
   templateUrl: './invoice-upload.component.html',
   styleUrl: './invoice-upload.component.scss',

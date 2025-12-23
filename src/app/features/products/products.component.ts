@@ -8,6 +8,8 @@ import { ProductService } from '../services/product.service';
 import { BulkUploadConfig } from '@app/shared/bulk-upload-dialog/bulk-upload.config';
 import { createProductBulkConfig } from './config/product-bulk.config';
 import { BulkUploadButtonDirective } from '@app/shared/bulk-upload-dialog/bulk-upload-button.directive';
+import { DisableAuthDirective } from '@app/core/auth/directives/disable-auth.directive';
+import { HasPermissionDirective } from '@app/core/auth/directives/has-permission.directive';
 
 @Component({
   selector: 'app-products',
@@ -16,7 +18,9 @@ import { BulkUploadButtonDirective } from '@app/shared/bulk-upload-dialog/bulk-u
     MatButtonModule,
     MatIconModule,
     BulkUploadButtonDirective,
-    TranslateModule
+    TranslateModule,
+    DisableAuthDirective,
+    HasPermissionDirective
   ],
   templateUrl: './products.component.html',
   styleUrl: './products.component.scss'

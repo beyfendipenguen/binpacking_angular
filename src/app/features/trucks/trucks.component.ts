@@ -5,6 +5,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { GenericTableComponent } from '@app/shared/generic-table/generic-table.component';
 import { TruckService } from '../services/truck.service';
+import { HasPermissionDirective } from '@app/core/auth/directives/has-permission.directive';
 
 @Component({
   selector: 'app-trucks',
@@ -12,7 +13,8 @@ import { TruckService } from '../services/truck.service';
     GenericTableComponent,
     MatButtonModule,
     MatIconModule,
-    TranslateModule
+    TranslateModule,
+    HasPermissionDirective
   ],
   templateUrl: './trucks.component.html',
   styleUrl: './trucks.component.scss'

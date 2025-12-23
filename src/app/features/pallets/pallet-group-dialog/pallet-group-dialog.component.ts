@@ -16,6 +16,7 @@ import { PalletGroupService } from '@app/features/services/pallet-group.service'
 import { PalletService } from '@app/features/services/pallet.service';
 import { ToastService } from '@app/core/services/toast.service';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { DisableAuthDirective } from '@app/core/auth/directives/disable-auth.directive';
 
 @Component({
   selector: 'app-pallet-group-dialog',
@@ -32,7 +33,8 @@ import { MatTooltipModule } from '@angular/material/tooltip';
     MatListModule,
     MatProgressSpinnerModule,
     TranslateModule,
-    MatTooltipModule
+    MatTooltipModule,
+    DisableAuthDirective
   ],
   templateUrl: './pallet-group-dialog.component.html',
   styleUrls: ['./pallet-group-dialog.component.scss']

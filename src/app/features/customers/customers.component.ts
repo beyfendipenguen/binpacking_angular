@@ -17,6 +17,8 @@ import { CompanyRelation, RELATION_TYPE_OPTIONS } from '../interfaces/company-re
 import { ConfirmDialogComponent } from '@app/shared/generic-table/confirm-dialog/confirm-dialog.component';
 import { ToastService } from '@app/core/services/toast.service';
 import { CustomerDialogComponent } from './dialogs/customer-dialog/customer-dialog.component';
+import { HasPermissionDirective } from '@app/core/auth/directives/has-permission.directive';
+import { DisableAuthDirective } from "@app/core/auth/directives/disable-auth.directive";
 
 @Component({
   selector: 'app-customers',
@@ -33,8 +35,8 @@ import { CustomerDialogComponent } from './dialogs/customer-dialog/customer-dial
     MatProgressSpinnerModule,
     MatTooltipModule,
     MatDialogModule,
-    TranslateModule
-  ],
+    TranslateModule,
+    HasPermissionDirective, DisableAuthDirective],
   templateUrl: './customers.component.html',
   styleUrl: './customers.component.scss'
 })

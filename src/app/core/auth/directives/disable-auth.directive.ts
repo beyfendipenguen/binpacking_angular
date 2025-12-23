@@ -61,16 +61,38 @@ export class DisableAuthDirective implements OnChanges {
   }
 
   private updateView(): void {
-    // Referans koddaki mantığın aynısı
-    const isBanned = this.hasPermissions(this._cantPermission);
+    // DÜZELTME: Eğer _cantPermission boşsa, kimse banlı değildir (isBanned = false).
+    // Doluysa yetki kontrolü yap.
+    const isBanned = this._cantPermission.length > 0
+      ? this.hasPermissions(this._cantPermission)
+      : false;
+
     const hasAccess = this.hasPermissions(this._canPermissions);
 
-    // Eğer yetkili ise (isBanned false VE hasAccess true)
+    // Eğer yasaklı değilse VE erişim yetkisi varsa
     if (!isBanned && hasAccess) {
+      // Yetkisi var, butonu aktif bırak (Varsa disable özelliklerini temizle)
+      this.enableElement();
       return;
     } else {
+      // Yetkisi yok veya yasaklı, disable et
       this.disableElement();
     }
+  }
+
+  private enableElement() {
+    const el = this.elementRef.nativeElement;
+
+    // 1. Property'yi kaldırmak için false'a çekiyoruz
+    this.renderer.setProperty(el, 'disabled', false);
+
+    // 2. Stilleri kaldırıyoruz
+    this.renderer.removeStyle(el, 'opacity');
+    this.renderer.removeStyle(el, 'cursor');
+    this.renderer.removeStyle(el, 'pointer-events');
+
+    // 3. Attribute'u kaldırıyoruz
+    this.renderer.removeAttribute(el, 'title');
   }
 
   private disableElement() {

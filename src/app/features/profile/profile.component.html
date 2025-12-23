@@ -196,7 +196,7 @@
             <span>{{ 'PROFILE.COMPANY_INFO' | translate }}</span>
           </ng-template>
 
-          <div class="tab-content">
+          <div class="tab-content" *appHasPermission="'organizations.view_company'">
             @if (userCompany) {
               <form [formGroup]="companyForm" (ngSubmit)="onUpdateCompany()" class="profile-form">
 
@@ -222,7 +222,8 @@
                         class="upload-button"
                         (click)="companyLogoInput.click()"
                         [disabled]="isSavingCompany"
-                        type="button"
+                        type="button",
+                        [appDisableAuth]="['organizations.change_company']"
                       >
                         <mat-icon>photo_camera</mat-icon>
                       </button>
@@ -232,6 +233,7 @@
                         accept="image/*"
                         (change)="onCompanyLogoSelected($event)"
                         style="display: none"
+                        [appDisableAuth]="['organizations.change_company']"
                       >
                     </div>
                     <div class="company-logo-info">
@@ -249,7 +251,7 @@
 
                   <mat-form-field appearance="outline" class="form-field full-width">
                     <mat-label>{{ 'CUSTOMER.COMPANY_NAME' | translate }}</mat-label>
-                    <input matInput formControlName="company_name" [placeholder]="'PROFILE.COMPANY_NAME_PLACEHOLDER' | translate">
+                    <input matInput formControlName="company_name" [placeholder]="'PROFILE.COMPANY_NAME_PLACEHOLDER' | translate" [appDisableAuth]="['organizations.change_company']">
                     <mat-icon matSuffix>business</mat-icon>
                     @if (companyForm.get('company_name')?.hasError('required')) {
                       <mat-error>{{ 'PROFILE.COMPANY_NAME_REQUIRED' | translate }}</mat-error>
@@ -261,7 +263,7 @@
 
                   <mat-form-field appearance="outline" class="form-field full-width">
                     <mat-label>{{ 'COMMON.COUNTRY' | translate }}</mat-label>
-                    <input matInput formControlName="country" [placeholder]="'PROFILE.COUNTRY_PLACEHOLDER' | translate">
+                    <input matInput formControlName="country" [placeholder]="'PROFILE.COUNTRY_PLACEHOLDER' | translate" [appDisableAuth]="['organizations.change_company']">
                     <mat-icon matSuffix>flag</mat-icon>
                     @if (companyForm.get('country')?.hasError('required')) {
                       <mat-error>{{ 'PROFILE.COUNTRY_REQUIRED' | translate }}</mat-error>
@@ -279,6 +281,7 @@
                     type="submit"
                     [disabled]="isSavingCompany || companyForm.invalid || !companyFormChanged"
                     class="submit-button"
+                    [appDisableAuth]="['organizations.change_company']"
                   >
                     @if (!isSavingCompany) {
                       <span>{{ 'PROFILE.UPDATE_COMPANY' | translate }}</span>

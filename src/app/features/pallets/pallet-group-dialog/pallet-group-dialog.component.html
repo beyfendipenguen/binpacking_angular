@@ -13,7 +13,8 @@
         <div class="panel-header">
           <h3>{{ 'PALLET.GROUPS' | translate }}</h3>
           <button mat-mini-fab color="primary" (click)="createNewGroup()" [disabled]="isLoadingGroups"
-            [matTooltip]="'PALLET.NEW_GROUP' | translate">
+            [matTooltip]="'PALLET.NEW_GROUP' | translate"
+            [appDisableAuth]="['logistics.add_palletgroup']">
             <mat-icon>add</mat-icon>
           </button>
         </div>
@@ -61,14 +62,14 @@
             <!-- Grup Adı -->
             <mat-form-field appearance="outline" class="full-width">
               <mat-label>{{ 'PALLET.GROUP_NAME' | translate }}</mat-label>
-              <input matInput formControlName="name" [placeholder]="'PALLET.GROUP_NAME_PLACEHOLDER' | translate">
+              <input matInput formControlName="name" [placeholder]="'PALLET.GROUP_NAME_PLACEHOLDER' | translate" [appDisableAuth]="['logistics.add_palletgroup','logistics.change_palletgroup']">
               <mat-error *ngIf="groupForm.get('name')?.hasError('required')">{{ 'PALLET.GROUP_NAME_REQUIRED' | translate }}</mat-error>
             </mat-form-field>
 
             <!-- Açıklama -->
             <mat-form-field appearance="outline" class="full-width">
               <mat-label>{{ 'COMMON.DESCRIPTION' | translate }}</mat-label>
-              <textarea matInput formControlName="description" rows="2"
+              <textarea matInput formControlName="description" rows="2" [appDisableAuth]="['logistics.add_palletgroup','logistics.change_palletgroup']"
                 [placeholder]="'PALLET.GROUP_DESCRIPTION' | translate"></textarea>
             </mat-form-field>
 
@@ -102,7 +103,8 @@
                       [class.selected]="tempSelectedAvailable.has(pallet.id)"
                       (click)="toggleAvailableSelection(pallet.id)" (dblclick)="addSinglePallet(pallet.id)">
                       <mat-checkbox [checked]="tempSelectedAvailable.has(pallet.id)" [disabled]="isGlobalGroup()"
-                        (click)="$event.stopPropagation()" (change)="toggleAvailableSelection(pallet.id)">
+                        (click)="$event.stopPropagation()" (change)="toggleAvailableSelection(pallet.id)"
+                        [appDisableAuth]="['logistics.add_palletgroup','logistics.change_palletgroup']">
                       </mat-checkbox>
                       <div class="pallet-info">
                         <span class="pallet-dimensions">
@@ -122,22 +124,26 @@
                 <!-- Ortada: Transfer Butonları -->
                 <div class="transfer-buttons">
                   <button mat-icon-button class="transfer-btn" (click)="addSelectedToGroup()"
-                    [disabled]="tempSelectedAvailable.size === 0 || isGlobalGroup()" [matTooltip]="'PALLET.ADD_SELECTED' | translate">
+                    [disabled]="tempSelectedAvailable.size === 0 || isGlobalGroup()" [matTooltip]="'PALLET.ADD_SELECTED' | translate"
+                    [appDisableAuth]="['logistics.add_palletgroup','logistics.change_palletgroup']">
                     <mat-icon>arrow_forward</mat-icon>
                   </button>
 
                   <button mat-icon-button class="transfer-btn" (click)="addAllToGroup()"
-                    [disabled]="availablePallets.length === 0 || isGlobalGroup()" [matTooltip]="'PALLET.ADD_ALL' | translate">
+                    [disabled]="availablePallets.length === 0 || isGlobalGroup()" [matTooltip]="'PALLET.ADD_ALL' | translate"
+                    [appDisableAuth]="['logistics.add_palletgroup','logistics.change_palletgroup']">
                     <mat-icon>keyboard_double_arrow_right</mat-icon>
                   </button>
 
                   <button mat-icon-button class="transfer-btn" (click)="removeSelectedFromGroup()"
-                    [disabled]="tempSelectedInGroup.size === 0 || isGlobalGroup()" [matTooltip]="'PALLET.REMOVE_SELECTED' | translate">
+                    [disabled]="tempSelectedInGroup.size === 0 || isGlobalGroup()" [matTooltip]="'PALLET.REMOVE_SELECTED' | translate"
+                    [appDisableAuth]="['logistics.add_palletgroup','logistics.change_palletgroup']">
                     <mat-icon>arrow_back</mat-icon>
                   </button>
 
                   <button mat-icon-button class="transfer-btn" (click)="removeAllFromGroup()"
-                    [disabled]="selectedPallets.length === 0 || isGlobalGroup()" [matTooltip]="'PALLET.REMOVE_ALL' | translate">
+                    [disabled]="selectedPallets.length === 0 || isGlobalGroup()" [matTooltip]="'PALLET.REMOVE_ALL' | translate"
+                    [appDisableAuth]="['logistics.add_palletgroup','logistics.change_palletgroup']">
                     <mat-icon>keyboard_double_arrow_left</mat-icon>
                   </button>
                 </div>
@@ -155,7 +161,8 @@
                     <input type="text" class="search-input" [placeholder]="'PALLET.SEARCH_PALLETS' | translate"
                       [formControl]="searchSelectedControl">
                     <button mat-icon-button class="clear-btn" *ngIf="searchSelectedControl.value"
-                      (click)="clearSelectedSearch()">
+                      (click)="clearSelectedSearch()"
+                      [appDisableAuth]="['logistics.add_palletgroup','logistics.change_palletgroup']">
                       <mat-icon>close</mat-icon>
                     </button>
                   </div>
@@ -165,7 +172,8 @@
                       [class.selected]="tempSelectedInGroup.has(pallet.id)" (click)="toggleSelectedSelection(pallet.id)"
                       (dblclick)="removeSinglePallet(pallet.id)">
                       <mat-checkbox [checked]="tempSelectedInGroup.has(pallet.id)" [disabled]="isGlobalGroup()"
-                        (click)="$event.stopPropagation()" (change)="toggleSelectedSelection(pallet.id)">
+                        (click)="$event.stopPropagation()" (change)="toggleSelectedSelection(pallet.id)"
+                        [appDisableAuth]="['logistics.add_palletgroup','logistics.change_palletgroup']">
                       </mat-checkbox>
                       <div class="pallet-info">
                         <span class="pallet-dimensions">
@@ -207,13 +215,15 @@
   <mat-dialog-actions class="dialog-actions" *ngIf="selectedGroup || isNewGroup">
     <div class="actions-left">
       <button mat-stroked-button color="warn" (click)="deleteGroup()"
-        *ngIf="!isNewGroup && selectedGroup && !isGlobalGroup()" [disabled]="isSaving">
+        *ngIf="!isNewGroup && selectedGroup && !isGlobalGroup()" [disabled]="isSaving"
+        [appDisableAuth]="['logistics.delete_palletgroup']">
         <mat-icon>delete</mat-icon>{{ 'TRUCK_VISUALIZATION.DELETE' | translate }}</button>
     </div>
     <div class="actions-right">
       <button mat-button (click)="close()" [disabled]="isSaving">{{ 'HEADER.CANCEL' | translate }}</button>
       <button mat-raised-button color="primary" (click)="saveGroup()"
-        [disabled]="groupForm.invalid || isSaving || isGlobalGroup()">
+        [disabled]="groupForm.invalid || isSaving || isGlobalGroup()"
+        [appDisableAuth]="['logistics.change_palletgroup']">
         <span *ngIf="!isSaving">{{ (isNewGroup ? 'PALLET.CREATE' : 'COMMON.UPDATE') | translate }}</span>
       </button>
     </div>

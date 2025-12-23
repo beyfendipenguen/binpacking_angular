@@ -1,4 +1,4 @@
-<div class="customers-container">
+<div class="customers-container" *appHasPermission="'organizations.view_companyrelation'">
   <!-- Header -->
   <div class="page-header">
     <div class="header-content">
@@ -11,7 +11,7 @@
         </div>
       </div>
       <div class="header-actions">
-        <button mat-raised-button color="primary" (click)="openAddDialog()" class="add-btn">
+        <button mat-raised-button color="primary" (click)="openAddDialog()" class="add-btn" [appDisableAuth]="['organizations.add_companyrelation']">
           <mat-icon>add</mat-icon>{{ 'CUSTOMER.ADD_NEW' | translate }}</button>
       </div>
     </div>
@@ -21,13 +21,14 @@
   <div class="content-section">
     <!-- Search Bar -->
     <div class="search-bar">
-      <mat-form-field appearance="outline" class="search-field">
+      <mat-form-field appearance="outline" class="search-field"[appDisableAuth]="['organizations.add_companyrelation','organizations.change_companyrelation']">
         <mat-label>{{ 'CUSTOMER.SEARCH' | translate }}</mat-label>
         <input
           matInput
           [placeholder]="'CUSTOMER.SEARCH_PLACEHOLDER' | translate"
           (ngModel)="searchTerm"
           (input)="onSearch($event)"
+
         />
         <mat-icon matPrefix>search</mat-icon>
         @if (searchTerm) {
@@ -39,7 +40,7 @@
     </div>
 
     <!-- Table Container -->
-    <div class="table-container" [class.loading]="isLoading">
+    <div class="table-container" [class.loading]="isLoading" >
       @if (isLoading) {
         <div class="loading-overlay">
           <mat-spinner diameter="50"></mat-spinner>
@@ -129,6 +130,7 @@
               color="primary"
               (click)="openEditDialog(row); $event.stopPropagation()"
               [matTooltip]="'COMMON.EDIT'| translate"
+              [appDisableAuth]="['organizations.change_companyrelation']"
             >
               <mat-icon>edit</mat-icon>
             </button>
@@ -137,6 +139,7 @@
               color="warn"
               (click)="deleteCustomer(row, $event)"
               [matTooltip]="'COMMON.DELETE'| translate"
+              [appDisableAuth]="['organizations.delete_companyrelation']"
             >
               <mat-icon>delete</mat-icon>
             </button>
@@ -150,6 +153,7 @@
           *matRowDef="let row; columns: displayedColumns;"
           class="table-row"
           (click)="onRowClick(row)"
+          [appDisableAuth]="['organizations.add_companyrelation','organizations.change_companyrelation']"
         ></tr>
 
         <!-- No Data Row -->

@@ -10,11 +10,8 @@
         </div>
       </div>
       <div class="header-actions">
-        <button
-          mat-raised-button
-          color="primary"
-          [appBulkUploadButton]="productBulkConfig"
-          class="bulk-add-btn">
+        <button mat-raised-button color="primary" [appBulkUploadButton]="productBulkConfig" class="bulk-add-btn"
+          [appDisableAuth]="['products.add_product']">
           <mat-icon>add_box</mat-icon>{{ 'PRODUCT.BULK_ADD' | translate }}</button>
       </div>
     </div>
@@ -22,9 +19,11 @@
 
 
   <div class="content-section" [class.loading]="isLoading">
-    <app-generic-table [service]="productService" [displayedColumns]="displayedColumns"
-      [filterableColumns]="filterableColumns" [nestedDisplayColumns]="nestedDisplayColumns" [title]="'PRODUCT.PRODUCTS'"
-      [showRowNumbers]="true" [excludeFields]="['name']">
+    <app-generic-table *appHasPermission="'products.view_product'" [service]="productService"
+      [displayedColumns]="displayedColumns" [filterableColumns]="filterableColumns"
+      [nestedDisplayColumns]="nestedDisplayColumns" [title]="'PRODUCT.PRODUCTS'" [showRowNumbers]="true"
+      [excludeFields]="['name']" [deletePermission]="['products.delete_product']"
+      [addPermission]="['products.add_product']" [updatePermission]="['products.change_product']">
     </app-generic-table>
   </div>
 </div>
