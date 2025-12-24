@@ -34,8 +34,10 @@ import { ConfirmDialogComponent } from './confirm-dialog/confirm-dialog.componen
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { AddOrUpdateDialogComponent } from './add-or-update-dialog/add-or-update-dialog-component';
 import { ToastService } from '../../core/services/toast.service';
-import { Observable, of } from 'rxjs';
+import { Observable } from 'rxjs';
 import { BaseResponse } from '@app/core/interfaces/base-response.interface';
+import { HasPermissionDirective } from "@app/core/auth/directives/has-permission.directive";
+import { DisableAuthDirective } from '@app/core/auth/directives/disable-auth.directive';
 
 // Interface for external data source
 export interface ExternalDataParams {
@@ -93,7 +95,8 @@ export interface CellButtonClickEvent<T> {
     MatTooltipModule,
     MatChipsModule,
     MatButtonToggleModule,
-    TranslateModule
+    TranslateModule,
+    DisableAuthDirective
   ],
   providers: [DatePipe],
   templateUrl: './generic-table.component.html',
@@ -119,7 +122,9 @@ export class GenericTableComponent<T> implements OnInit, AfterViewInit {
   @Input() parentId: string | undefined = undefined; // Bağlı olduğu üst nesne ID'si
   @Input() useParentId: boolean = false; // Üst nesne ID kullanılacak mı belirteci
   @Input() parentIdFieldName: string = 'order_id'; // API'ye gönderilecek parametre adı
-
+  @Input() addPermission: string | string[] = [];
+  @Input() deletePermission: string | string[] = [];
+  @Input() updatePermission: string | string[] = [];
   // External data source inputs
   @Input() externalData?: T[]; // External data array input
   @Input() externalTotalCount?: number; // Total count for pagination

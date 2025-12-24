@@ -47,7 +47,9 @@
     "PROCESS_FINISH": "İşlem Tamamlandı",
     "DIALOG_FORM_NOT_CREATED": "Form oluşturulamadı. Geçerli alan bulunamadı.",
     "FIELD_REQUIRED": "Bu alan zorunludur.",
-    "REMOVE": "Kaldır"
+    "REMOVE": "Kaldır",
+    "GO_BACK": "Geri Dön",
+    "PAGE": "Sayfa"
   },
   "MENU": {
     "PLACEMENT_CALCULATION": "Yerleştirme Hesaplama",
@@ -705,5 +707,102 @@
       "OTHER": "Diğer",
       "UNKNOWN": "Bilinmeyen İlişki Türü"
     }
+  },
+  "PERMISSION": {
+    "MESSAGES":{
+      "HELLO": "Merhaba",
+      "REQUEST": "Erişim sağlamak için yetki talebinde bulunuyorum.",
+      "THANKS": "Teşekkür ederim.",
+      "SUCCESS": "Mesajınız başarıyla gönderildi! En kısa sürede size dönüş yapılacaktır.",
+      "ARE_YOU_SURE": "Değişiklikler kaydedilmedi. Çıkmak istediğinize emin misiniz?"
+    },
+    "DENIED": {
+      "TITLE": "Erişim Engellendi",
+      "MESSAGE": "Bu içeriği görüntülemek için yeterli yetkiye sahip değilsiniz."
+    },
+    "ACTIONS": {
+      "VIEW": "Görüntüle",
+      "ADD": "Ekle",
+      "CHANGE": "Düzenle",
+      "DELETE": "Sil"
+    },
+    "APPS": {
+      "LOGISTICS": "Lojistik",
+      "ORDERS": "Siparişler",
+      "ACCESS_CONTROL": "Erişim Kontrolü",
+      "PRODUCTS": "Ürünler",
+      "ORGANIZATIONS": "Organizasyonlar",
+      "AUTH": "Yetkilendirme",
+      "SESSIONS": "Oturumlar",
+      "CONTENTTYPES": "İçerik Tipleri",
+      "CORE": "Sistem",
+      "ADMIN": "Yönetim Paneli",
+      "USERS": "Kullanıcılar"
+    },
+    "MODELS": {
+      "PACKAGEDETAILS": "Paket Detayı",
+      "PACKAGES": "Paket",
+      "TRUCKS": "Araç",
+      "PALLETS": "Palet",
+      "PALLETGROUPS": "Palet Grubu",
+      "FILES": "Dosya",
+      "ORDERS": "Sipariş",
+      "ORDERDETAILS": "Sipariş Detayı",
+      "ORDERRESULTS": "Sipariş Sonucu",
+      "GROUPPROFILES": "Grup Profili",
+      "BOYLES": "Böyle",
+      "WEIGHTTYPES": "Ağırlık Tipi",
+      "PRODUCTTYPES": "Ürün Tipi",
+      "PRODUCTS": "Ürün",
+      "DIMENSIONS": "Boyut",
+      "COMPANYS": "Şirket",
+      "COMPANYRELATIONS": "Şirket İlişkisi",
+      "GROUPS": "Grup",
+      "PERMISSIONS": "Yetki",
+      "USERS": "Kullanıcı",
+      "SESSIONS": "Oturum",
+      "CONTENTTYPES": "İçerik Tipi",
+      "JOBS": "İş",
+      "LOGENTRYS": "Günlük Kaydı"
+    },
+    "REQUIRED": "Gerekli Yetkiler",
+    "RESTRICTED": "Kısıtlı Yetkiler",
+    "CONTACT_ADMIN": "Yönetici ile İletişime Geç"
+  },
+  "CONTACT_ADMIN": {
+    "TITLE": "Yönetici ile İletişim",
+    "SUBTITLE": "Sorularınız veya talepleriniz için bize ulaşın",
+    "SUBJECT_TYPE": "Konu Türü",
+    "PERMISSION_REQUEST": "Yetki Talebi",
+    "TECHNICAL_ISSUE": "Teknik Sorun",
+    "FEATURE_REQUEST": "Özellik İsteği",
+    "GENERAL_INQUIRY": "Genel Soru",
+    "SUBJECT": "Konu Başlığı",
+    "SUBJECT_PLACEHOLDER": "Örn: Sipariş görüntüleme yetkisi talebi",
+    "SUBJECT_REQUIRED": "Konu başlığı zorunludur",
+    "SUBJECT_MIN_LENGTH": "Konu başlığı en az 5 karakter olmalıdır",
+    "PRIORITY": "Öncelik Seviyesi",
+    "PRIORITY_LOW": "Düşük",
+    "PRIORITY_MEDIUM": "Orta",
+    "PRIORITY_HIGH": "Yüksek",
+    "PRIORITY_URGENT": "Acil",
+    "MESSAGE": "Mesajınız",
+    "MESSAGE_PLACEHOLDER": "Lütfen talebinizi veya sorununuzu detaylı bir şekilde açıklayın...",
+    "MESSAGE_REQUIRED": "Mesaj zorunludur",
+    "MESSAGE_MIN_LENGTH": "Mesaj en az 20 karakter olmalıdır",
+    "CONTACT_EMAIL": "İletişim E-posta (Opsiyonel)",
+    "CONTACT_EMAIL_PLACEHOLDER": "ornek@email.com",
+    "CONTACT_EMAIL_HINT": "Farklı bir e-posta adresi ile iletişime geçmek isterseniz",
+    "EMAIL_INVALID": "Geçerli bir e-posta adresi giriniz",
+    "SEND": "Gönder",
+    "SENDING": "Gönderiliyor...",
+    "RESPONSE_TIME": "Hızlı Yanıt",
+    "RESPONSE_TIME_DESC": "Taleplerinize 24 saat içinde dönüş yapılır",
+    "PRIVACY": "Gizlilik",
+    "PRIVACY_DESC": "Bilgileriniz güvenli bir şekilde saklanır",
+    "NOTIFICATION": "Bildirim",
+    "NOTIFICATION_DESC": "Yanıt geldiğinde e-posta ile bilgilendirilirsiniz",
+    "PERMISSION_DETAILS": "Yetki Detayları"
   }
+
 }

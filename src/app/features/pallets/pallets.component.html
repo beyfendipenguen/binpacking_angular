@@ -16,11 +16,12 @@
         </button>
 
         <mat-menu #actionsMenu="matMenu" class="actions-menu">
-          <button mat-menu-item [appBulkUploadButton]="palletBulkConfig">
+          <button mat-menu-item [appBulkUploadButton]="palletBulkConfig"
+          [appDisableAuth]="['logistics.add_pallet']">
             <mat-icon>add_box</mat-icon>
             <span>{{ 'PALLET.BULK_ADD' | translate }}</span>
           </button>
-          <button mat-menu-item (click)="openPalletGroupsDialog()">
+          <button mat-menu-item (click)="openPalletGroupsDialog()" [appDisableAuth]="['logistics.view_palletgroup']">
             <mat-icon>folder</mat-icon>
             <span>{{ 'PALLET.MANAGE_GROUPS' | translate }}</span>
           </button>
@@ -31,13 +32,17 @@
 
   <div class="content-section" [class.loading]="isLoading">
     <app-generic-table
+      *appHasPermission="'logistics.view_pallet'"
       [service]="palletService"
       [displayedColumns]="displayedColumns"
       [filterableColumns]="filterableColumns"
       [nestedDisplayColumns]="nestedDisplayColumns"
       [title]="'PRODUCT.PRODUCTS' | translate"
       [showRowNumbers]="true"
-      [excludeFields]="['name']">
+      [excludeFields]="['name']"
+      [deletePermission]="['logistics.delete_pallet']"
+      [addPermission]="['logistics.add_pallet']"
+      [updatePermission]="['logistics.change_pallet']">
     </app-generic-table>
   </div>
 </div>

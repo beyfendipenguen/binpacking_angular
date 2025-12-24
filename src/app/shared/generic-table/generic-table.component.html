@@ -52,6 +52,7 @@
           mat-icon-button
           (click)="onAddButtonClick($event)"
           [matTooltip]="'GENERIC_TABLE.ADD_NEW' | translate"
+          [appDisableAuth]="addPermission"
         >
           <mat-icon>add_circle</mat-icon>
         </button>
@@ -140,6 +141,7 @@
             color="warn"
             (click)="confirmDelete(row.id); $event.stopPropagation()"
             [matTooltip]="'COMMON.DELETE'| translate"
+            [appDisableAuth]="deletePermission"
           >
             <mat-icon>delete</mat-icon>
           </button>
@@ -149,6 +151,7 @@
             mat-icon-button
             (click)="openAddOrUpdateDialog(row); $event.stopPropagation()"
             [matTooltip]="'COMMON.UPDATE'| translate"
+            [appDisableAuth]="updatePermission"
           >
             <mat-icon>update</mat-icon>
           </button>

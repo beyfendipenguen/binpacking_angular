@@ -15,7 +15,6 @@ import { OrderDetailService } from '../services/order-detail.service';
 import { OrderService } from '../services/order.service';
 import { PackageDetailService } from '../services/package-detail.service';
 import { HasPermissionDirective } from "@app/core/auth/directives/has-permission.directive";
-import { DisableAuthDirective } from '@app/core/auth/directives/disable-auth.directive';
 
 @Component({
   selector: 'app-orders',
@@ -27,7 +26,6 @@ import { DisableAuthDirective } from '@app/core/auth/directives/disable-auth.dir
     GenericTableComponent,
     HasPermissionDirective,
     TranslateModule,
-    // DisableAuthDirective
   ],
   templateUrl: './orders.component.html',
   styleUrl: './orders.component.scss'

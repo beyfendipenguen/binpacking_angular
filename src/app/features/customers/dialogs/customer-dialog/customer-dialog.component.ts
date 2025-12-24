@@ -11,9 +11,7 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
-import { Router } from '@angular/router';
 import { CompanyRelationService } from '../../../services/company-relation.service';
-import { CompanyService } from '../../../services/company.service';
 import { PalletGroupService } from '../../../services/pallet-group.service';
 import { ToastService } from '@app/core/services/toast.service';
 import {
@@ -29,6 +27,8 @@ import { map, startWith } from 'rxjs/operators';
 import { AddCompanyDialogComponent, CompanyDialogData } from '../add-company-dialog/add-company-dialog.component';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { PalletGroupDialogComponent } from '@app/features/pallets/pallet-group-dialog/pallet-group-dialog.component';
+import { DisableAuthDirective } from "@app/core/auth/directives/disable-auth.directive";
+import { HasPermissionDirective } from '@app/core/auth/directives/has-permission.directive';
 
 export interface CustomerDialogData {
   mode: 'create' | 'edit';
@@ -50,8 +50,9 @@ export interface CustomerDialogData {
     MatProgressSpinnerModule,
     MatAutocompleteModule,
     TranslateModule,
-    MatTooltipModule
-  ],
+    MatTooltipModule,
+    DisableAuthDirective,
+    HasPermissionDirective],
   templateUrl: './customer-dialog.component.html',
   styleUrl: './customer-dialog.component.scss'
 })
@@ -63,7 +64,6 @@ export class CustomerDialogComponent implements OnInit {
   private palletGroupService = inject(PalletGroupService);
   private toastService = inject(ToastService);
   private dialog = inject(MatDialog);
-  private router = inject(Router);
 
   form!: FormGroup;
   isLoading = false;

@@ -47,7 +47,9 @@
     "PROCESS_FINISH": "Process Complete",
     "DIALOG_FORM_NOT_CREATED": "The form could not be created. No valid field was found.",
     "FIELD_REQUIRED": "This field is required.",
-    "REMOVE": "Remove"
+    "REMOVE": "Remove",
+    "GO_BACK": "Go Back",
+    "PAGE": "Page"
   },
   "MENU": {
     "PLACEMENT_CALCULATION": "Placement Calculation",
@@ -704,5 +706,101 @@
       "OTHER": "Other",
       "UNKNOWN": "Unknown Relation Type"
     }
+  },
+  "PERMISSION": {
+    "MESSAGES":{
+      "HELLO": "Hello",
+      "REQUEST": "I am requesting authorization to gain access.",
+      "THANKS": "Thank you.",
+      "SUCCESS": "Your message has been successfully sent! We will get back to you as soon as possible.",
+      "ARE_YOU_SURE": "Changes have not been saved. Are you sure you want to exit?"
+    },
+    "DENIED": {
+      "TITLE": "Access Denied",
+      "MESSAGE": "You don't have sufficient permissions to view this content."
+    },
+    "ACTIONS": {
+      "VIEW": "View",
+      "ADD": "Add",
+      "CHANGE": "Edit",
+      "DELETE": "Delete"
+    },
+    "APPS": {
+      "LOGISTICS": "Logistics",
+      "ORDERS": "Orders",
+      "ACCESS_CONTROL": "Access Control",
+      "PRODUCTS": "Products",
+      "ORGANIZATIONS": "Organizations",
+      "AUTH": "Authorization",
+      "SESSIONS": "Sessions",
+      "CONTENTTYPES": "Content Types",
+      "CORE": "System",
+      "ADMIN": "Admin Panel",
+      "USERS": "Users"
+    },
+    "MODELS": {
+      "PACKAGEDETAILS": "Package Detail",
+      "PACKAGES": "Package",
+      "TRUCKS": "Truck",
+      "PALLETS": "Pallet",
+      "PALLETGROUPS": "Pallet Group",
+      "FILES": "File",
+      "ORDERS": "Order",
+      "ORDERDETAILS": "Order Detail",
+      "ORDERRESULTS": "Order Result",
+      "GROUPPROFILES": "Group Profile",
+      "BOYLES": "Boyle",
+      "WEIGHTTYPES": "Weight Type",
+      "PRODUCTTYPES": "Product Type",
+      "PRODUCTS": "Product",
+      "DIMENSIONS": "Dimension",
+      "COMPANYS": "Company",
+      "COMPANYRELATIONS": "Company Relation",
+      "GROUPS": "Group",
+      "PERMISSIONS": "Permission",
+      "USERS": "User",
+      "SESSIONS": "Session",
+      "CONTENTTYPES": "Content Type",
+      "JOBS": "Job",
+      "LOGENTRYS": "Log Entry"
+    },
+    "REQUIRED": "Required Permissions",
+    "RESTRICTED": "Restricted Permissions",
+    "CONTACT_ADMIN": "Contact Administrator"
+  },
+  "CONTACT_ADMIN": {
+    "TITLE": "Contact Administrator",
+    "SUBTITLE": "Reach out to us for your questions or requests",
+    "SUBJECT_TYPE": "Subject Type",
+    "PERMISSION_REQUEST": "Permission Request",
+    "TECHNICAL_ISSUE": "Technical Issue",
+    "FEATURE_REQUEST": "Feature Request",
+    "GENERAL_INQUIRY": "General Inquiry",
+    "SUBJECT": "Subject",
+    "SUBJECT_PLACEHOLDER": "e.g., Order viewing permission request",
+    "SUBJECT_REQUIRED": "Subject is required",
+    "SUBJECT_MIN_LENGTH": "Subject must be at least 5 characters",
+    "PRIORITY": "Priority Level",
+    "PRIORITY_LOW": "Low",
+    "PRIORITY_MEDIUM": "Medium",
+    "PRIORITY_HIGH": "High",
+    "PRIORITY_URGENT": "Urgent",
+    "MESSAGE": "Your Message",
+    "MESSAGE_PLACEHOLDER": "Please describe your request or issue in detail...",
+    "MESSAGE_REQUIRED": "Message is required",
+    "MESSAGE_MIN_LENGTH": "Message must be at least 20 characters",
+    "CONTACT_EMAIL": "Contact Email (Optional)",
+    "CONTACT_EMAIL_PLACEHOLDER": "example@email.com",
+    "CONTACT_EMAIL_HINT": "If you want to be contacted at a different email",
+    "EMAIL_INVALID": "Please enter a valid email address",
+    "SEND": "Send",
+    "SENDING": "Sending...",
+    "RESPONSE_TIME": "Quick Response",
+    "RESPONSE_TIME_DESC": "We respond to requests within 24 hours",
+    "PRIVACY": "Privacy",
+    "PRIVACY_DESC": "Your information is stored securely",
+    "NOTIFICATION": "Notification",
+    "NOTIFICATION_DESC": "You'll be notified by email when we respond",
+    "PERMISSION_DETAILS": "Permission Details"
   }
 }

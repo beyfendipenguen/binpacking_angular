@@ -11,6 +11,8 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { BulkUploadButtonDirective } from '@app/shared/bulk-upload-dialog/bulk-upload-button.directive';
 import { PalletGroupDialogComponent } from './pallet-group-dialog/pallet-group-dialog.component';
+import { DisableAuthDirective } from '@app/core/auth/directives/disable-auth.directive';
+import { HasPermissionDirective } from '@app/core/auth/directives/has-permission.directive';
 
 @Component({
   selector: 'app-pallets',
@@ -21,7 +23,9 @@ import { PalletGroupDialogComponent } from './pallet-group-dialog/pallet-group-d
     MatMenuModule,
     MatDialogModule,
     BulkUploadButtonDirective,
-    TranslateModule
+    TranslateModule,
+    DisableAuthDirective,
+    HasPermissionDirective,
   ],
   templateUrl: './pallets.component.html',
   styleUrl: './pallets.component.scss'

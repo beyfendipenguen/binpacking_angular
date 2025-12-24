@@ -84,10 +84,11 @@ import { ProductService } from '@app/features/services/product.service';
 import { CancelConfirmationDialogComponent } from '@app/shared/cancel-confirmation-dialog/cancel-confirmation-dialog.component';
 import { RepositoryService } from '../../services/repository.service';
 import { StepperPackageActions } from '@app/store/stepper/actions/stepper-package.actions';
-import { StepperInvoiceUploadActions } from '@app/store/stepper/actions/stepper-invoice-upload.actions';
 import { StepperUiActions } from '@app/store/stepper/actions/stepper-ui.actions';
 import { PackageDetailReadDto } from '@app/features/interfaces/package-detail.interface';
 import { Product } from '@app/features/interfaces/product.interface';
+import { HasPermissionDirective } from '@app/core/auth/directives/has-permission.directive';
+import { DisableAuthDirective } from '@app/core/auth/directives/disable-auth.directive';
 
 @Component({
   selector: 'app-pallet-control',
@@ -108,7 +109,9 @@ import { Product } from '@app/features/interfaces/product.interface';
     MatAutocompleteModule,
     MatTooltipModule,
     MatCheckboxModule,
-    TranslateModule
+    TranslateModule,
+    HasPermissionDirective,
+    DisableAuthDirective
   ],
   templateUrl: './pallet-control.component.html',
   styleUrl: './pallet-control.component.scss',

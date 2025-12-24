@@ -1,4 +1,4 @@
-<div class="truck-container">
+<div class="truck-container" *appHasPermission="'logistics.view_truck'">
   <div class="page-header">
     <div class="header-content">
       <div class="header-left">
@@ -16,6 +16,9 @@
   <div class="content-section" [class.loading]="isLoading">
     <app-generic-table [service]="truckService" [displayedColumns]="displayedColumns"
       [filterableColumns]="filterableColumns" [nestedDisplayColumns]="nestedDisplayColumns" [title]="'TRUCK.VEHICLES' | translate"
+      [deletePermission]="['logistics.delete_truck']"
+      [addPermission]="['logistics.add_truck']"
+      [updatePermission]="['logistics.change_truck']"
       [showRowNumbers]="true">
     </app-generic-table>
   </div>
