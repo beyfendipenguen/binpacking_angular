@@ -7,6 +7,7 @@ import {
   AfterViewInit,
   OnDestroy,
   WritableSignal,
+  computed,
 } from '@angular/core';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import {
@@ -67,6 +68,7 @@ import {
   distinctUntilChanged,
   finalize,
   of,
+  startWith,
   Subject,
   switchMap,
   takeUntil,
@@ -89,6 +91,9 @@ import { PackageDetailReadDto } from '@app/features/interfaces/package-detail.in
 import { Product } from '@app/features/interfaces/product.interface';
 import { HasPermissionDirective } from '@app/core/auth/directives/has-permission.directive';
 import { DisableAuthDirective } from '@app/core/auth/directives/disable-auth.directive';
+import { Pallet } from '@app/features/interfaces/pallet.interface';
+import { PalletService } from '@app/features/services/pallet.service';
+import { toSignal } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-pallet-control',
@@ -122,15 +127,22 @@ export class PalletControlComponent
 
   private translate = inject(TranslateService);
   private readonly dialog = inject(MatDialog);
+
+  //product search
   searchControl = new FormControl('');
   isSearching = false;
   filteredProducts: WritableSignal<any[]> = signal<any[]>([]);
+  //pallet search
+  palletSearchControl = new FormControl('');
+  isPalletSearching = false;
+  filteredPalletsFromBackend: WritableSignal<Pallet[]> = signal<Pallet[]>([]);
 
   // Service injections
   repository: RepositoryService = inject(RepositoryService);
   toastService: ToastService = inject(ToastService);
   private readonly store = inject(Store<AppState>);
   private readonly productService = inject(ProductService);
+  private readonly palletService = inject(PalletService);
 
   uiPackages = this.store.selectSignal(selectUiPackages);
   remainingProducts = this.store.selectSignal(selectRemainingProducts);
@@ -188,6 +200,7 @@ export class PalletControlComponent
 
   ngOnInit(): void {
     this.setupSearchSubscription();
+    this.setupPalletSearchSubscription();
   }
 
   ngAfterViewInit(): void { }
@@ -413,6 +426,139 @@ export class PalletControlComponent
     this.store.dispatch(
       StepperPackageActions.upsertPackageDetailCount({ packageDetail, count: newCount })
     );
+  }
+
+  palletSearchValue = toSignal(
+    this.palletSearchControl.valueChanges.pipe(startWith('')),
+    { initialValue: '' }
+  );
+
+  displayedPallets = computed(() => {
+    const searchValue = this.palletSearchValue();
+    const allPallets = this.availablePallets();
+
+    if (!searchValue || typeof searchValue !== 'string' || searchValue.trim().length === 0) {
+      return allPallets;
+    }
+
+    return this.filterPalletsByQuery(searchValue, allPallets);
+  });
+
+  private setupPalletSearchSubscription(): void {
+    this.palletSearchControl.valueChanges
+      .pipe(
+        debounceTime(500),
+        distinctUntilChanged(),
+        takeUntil(this.destroy$),
+        switchMap((value) => {
+          if (typeof value === 'string' && value.trim().length > 1) {
+
+            const storePallets = this.availablePallets();
+            const localResults = this.filterPalletsByQuery(value, storePallets);
+
+            if (localResults.length > 0) {
+              this.filteredPalletsFromBackend.set([]);
+              return of([]);
+            }
+
+            this.isPalletSearching = true;
+            return this.palletService.searchPalletsWithParsedQuery(value, 10).pipe(
+              catchError((error) => {
+                return of([]);
+              }),
+              finalize(() => {
+                this.isPalletSearching = false;
+              })
+            );
+          }
+
+          this.filteredPalletsFromBackend.set([]);
+          return of([]);
+        })
+      )
+      .subscribe({
+        next: (pallets: Pallet[]) => {
+          this.filteredPalletsFromBackend.set(pallets);
+        },
+      });
+  }
+
+  private filterPalletsByQuery(query: string, pallets: any[]): any[] {
+    if (!pallets || pallets.length === 0) {
+      return [];
+    }
+
+    const trimmedQuery = query.toLowerCase().trim();
+    const hasX = /\s*x\s*/i.test(trimmedQuery);
+    let searchDepth: number | null = null;
+    let searchWidth: number | null = null;
+
+    if (hasX || trimmedQuery.includes(' ')) {
+      const parts = trimmedQuery.split(/\s*x\s*|\s+/i)
+        .map(p => p.trim())
+        .filter(p => p.length > 0 && !isNaN(Number(p)))
+        .map(p => Number(p));
+
+      if (parts.length === 2) {
+        searchDepth = parts[0];
+        searchWidth = parts[1];
+      } else if (parts.length === 1) {
+        searchDepth = searchWidth = parts[0];
+      }
+    } else if (!isNaN(Number(trimmedQuery))) {
+      searchDepth = searchWidth = Number(trimmedQuery);
+    }
+
+    return pallets.filter((pallet) => {
+      if (pallet.name && pallet.name.toLowerCase().includes(trimmedQuery)) {
+        return true;
+      }
+
+      if (pallet.dimension) {
+        const palletDepth = Math.trunc(pallet.dimension.depth);
+        const palletWidth = Math.trunc(pallet.dimension.width);
+
+        if (searchDepth !== null && searchWidth !== null) {
+          if (searchDepth !== searchWidth) {
+            return palletDepth === searchDepth && palletWidth === searchWidth;
+          } else {
+            return palletDepth === searchDepth || palletWidth === searchWidth;
+          }
+        }
+      }
+
+      return false;
+    });
+  }
+
+  selectPallet(pallet: Pallet) {
+    const palletData = {
+      ui_id: Guid(),
+      id: pallet.id,
+      dimension: pallet.dimension,
+      weight: pallet.weight,
+      company: pallet.company
+    };
+
+    this.store.dispatch(
+      StepperPackageActions.addPalletToAvailable({
+        pallet: palletData as any,
+      })
+    );
+
+    this.clearPalletSearch();
+  }
+
+  clearPalletSearch(): void {
+    this.palletSearchControl.setValue('');
+    this.filteredPalletsFromBackend.set([]);
+    this.isPalletSearching = false;
+  }
+
+  displayPalletFn(pallet: any): string {
+    return pallet?.dimension?.depth != null && pallet?.dimension?.width != null
+      ? `${Math.trunc(pallet.dimension.depth)} X ${Math.trunc(pallet.dimension.width)}`
+      : '';
   }
 
   selectProduct(product: Product) {

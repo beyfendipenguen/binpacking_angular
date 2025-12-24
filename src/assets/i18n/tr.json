@@ -462,7 +462,8 @@
     "MUST_PLACE_REMAINING": "Kalan ürünleri yerleştirmeniz gerekmektedir",
     "CONTINUE_WARNING": "Eğer bu şekilde devam etmek isterseniz yerleştirilmeyen ürünler siparişten kaldırılacaktır.",
     "CONTINUE_ANYWAY": "Yine de devam et.",
-    "GO_BACK": "Geri dön."
+    "GO_BACK": "Geri dön.",
+    "SEARCH_PALLET": "Palet ara..."
   },
   "INVOICE_UPLOAD": {
     "ADD_ORDER_DETAIL": "Sipariş Detayı Ekle",

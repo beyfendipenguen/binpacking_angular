@@ -148,6 +148,23 @@ export const stepperPackageHandlers = [
     };
   }),
 
+  //add pallets
+  on(StepperPackageActions.addPalletToAvailable, (state: StepperState, { pallet }) => {
+    const exists = state.step2State.pallets.some(p => p.id === pallet.id);
+
+    if (exists) {
+      return state;
+    }
+
+    return {
+      ...state,
+      step2State: {
+        ...state.step2State,
+        pallets: [pallet, ...state.step2State.pallets]
+      }
+    };
+  }),
+
   // Get Pallets Success
   on(StepperPackageActions.getPalletsSuccess, (state: StepperState, { pallets }) => ({
     ...state,
@@ -377,7 +394,7 @@ export const stepperPackageHandlers = [
       targetPackageDetails.push({
         ...packageDetail,
         count: maxCount,
-        id:Guid()
+        id: Guid()
       });
     }
 

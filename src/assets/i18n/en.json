@@ -463,7 +463,8 @@
     "MUST_PLACE_REMAINING": "You must place the remaining products",
     "CONTINUE_WARNING": "If you continue this way, unplaced products will be removed from the order.",
     "CONTINUE_ANYWAY": "Continue anyway.",
-    "GO_BACK": "Go back."
+    "GO_BACK": "Go back.",
+    "SEARCH_PALLET": "Search pallet..."
   },
   "INVOICE_UPLOAD": {
     "ADD_ORDER_DETAIL": "Add Order Detail",
