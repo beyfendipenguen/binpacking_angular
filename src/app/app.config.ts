@@ -29,6 +29,12 @@ import { StepperGeneralEffects } from './store/stepper/effects/stepper-general.e
 import { STORE_CONFIG, DEVTOOLS_CONFIG, metaReducers } from './ngrx.config';
 import { loadingInterceptor } from './shared/loading/loading.interceptor';
 import { LanguageService } from './core/services/language.service';
+import { VersionCheckService } from './core/services/version-check.service';
+
+export function checkVersion() {
+  const versionCheckService = inject(VersionCheckService);
+  versionCheckService.initVersionCheck();
+}
 
 // ✅ TranslateHttpLoader factory function
 export function createTranslateLoader(http: HttpClient) {
@@ -69,6 +75,7 @@ export function initializeLanguage() {
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    provideAppInitializer(checkVersion),
     provideAppInitializer(appInitialization),
     provideAppInitializer(initializeLanguage()),
     provideZoneChangeDetection({ eventCoalescing: true }),
