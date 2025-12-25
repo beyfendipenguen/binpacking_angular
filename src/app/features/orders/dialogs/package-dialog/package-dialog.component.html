@@ -37,11 +37,10 @@
             <div class="pallet-icon">
               <mat-icon>view_in_ar</mat-icon>
             </div>
-            <div class="package-number">{{ i + 1 }}</div>
           </div>
 
           <div class="package-info">
-            <h4 class="package-title">{{ pkg.palletName }} {{ i + 1 }}</h4>
+            <h4 class="package-title">{{'PALLET.PALLET'| translate}} {{ pkg.palletName }}</h4>
             <p class="package-dimensions">{{ pkg.dimension }}</p>
             <div class="package-metrics">
               <div class="metric-chip">

@@ -5,8 +5,9 @@ import { MAT_DIALOG_DATA, MatDialogRef, MatDialogModule } from '@angular/materia
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { PackageDetailService } from '@app/features/services/package-detail.service';
 import { ColumnDefinition } from '@app/shared/generic-table/generic-table.component';
+import { PackageService } from '@app/features/services/package.service';
+import { PackageReadDto } from '@app/features/interfaces/package.interface';
 
 interface GroupedPackage {
   id: string;
@@ -33,7 +34,7 @@ interface GroupedPackage {
 export class PackageDialogComponent implements OnInit {
 
   private translate = inject(TranslateService);
-  packageDetailService = inject(PackageDetailService);
+  packageService = inject(PackageService);
 
   // Grouped packages for display
   groupedPackages: GroupedPackage[] = [];
@@ -89,7 +90,7 @@ export class PackageDialogComponent implements OnInit {
       offset: 0
     };
 
-    this.packageDetailService.getAll(params).subscribe({
+    this.packageService.getAll(params).subscribe({
       next: (response) => {
         this.groupPackageDetails(response.results);
         this.isLoading = false;
@@ -103,41 +104,27 @@ export class PackageDialogComponent implements OnInit {
   /**
    * Group package details by package ID
    */
-  groupPackageDetails(packageDetails: any[]): void {
-    if (!packageDetails || !packageDetails.length) {
+  groupPackageDetails(packages: PackageReadDto[]): void {
+    if (!packages || !packages.length) {
       this.groupedPackages = [];
       return;
     }
 
-    // Group by package ID
-    const packageMap = new Map<string, GroupedPackage>();
+    this.groupedPackages = packages.toSorted((a,b)=>a.name.localeCompare(b.name, undefined, { numeric: true })). map(pkg => {
+      const dimension = pkg.pallet?.dimension;
+      const dimensionStr = dimension
+        ? `${dimension.width} × ${dimension.depth} ${dimension.unit || this.translate.instant('DIMENSIONS.MM')}`
+        : 'N/A';
 
-    packageDetails.forEach((detail: any) => {
-      const packageId = detail.package?.id;
-      if (!packageId) return;
-
-      if (!packageMap.has(packageId)) {
-        const dimension = detail.package?.pallet?.dimension;
-        const dimensionStr = dimension
-          ? `${dimension.width} × ${dimension.depth} ${dimension.unit || this.translate.instant('DIMENSIONS.MM')}`
-          : 'N/A';
-
-        packageMap.set(packageId, {
-          id: packageId,
-          palletName: detail.package?.pallet?.name || this.translate.instant('PALLET_CONTROL.PALLET'),
-          dimension: dimensionStr,
-          itemCount: 0,
-          items: [],
-          expanded: false
-        });
-      }
-
-      const pkg = packageMap.get(packageId)!;
-      pkg.items.push(detail);
-      pkg.itemCount = pkg.items.length;
+      return {
+        id: pkg.id,
+        palletName: pkg.name || this.translate.instant('PALLET_CONTROL.PALLET'),
+        dimension: dimensionStr,
+        itemCount: pkg.package_details?.length || 0,
+        items: pkg.package_details || [],
+        expanded: false
+      };
     });
-
-    this.groupedPackages = Array.from(packageMap.values());
   }
 
   /**

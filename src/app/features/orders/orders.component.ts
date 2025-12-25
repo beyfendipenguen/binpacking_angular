@@ -35,8 +35,6 @@ export class OrdersComponent implements OnInit {
   private translate = inject(TranslateService);
   // Services
   orderService = inject(OrderService);
-  orderDetailService = inject(OrderDetailService);
-  packageDetailService = inject(PackageDetailService);
   fileService = inject(FileService);
   dialog = inject(MatDialog);
   router = inject(Router);
