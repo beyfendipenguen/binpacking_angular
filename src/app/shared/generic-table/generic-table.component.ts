@@ -215,7 +215,8 @@ export class GenericTableComponent<T> implements OnInit, AfterViewInit {
 
   // Bu metod template'deki spread operatörünü kaldırmak için
   getDisplayColumnWithActions(): string[] {
-    let columns = [...this.displayedColumns];
+    // Önce yetkili sütunları filtrele
+    let columns = this.displayedColumns.filter(col => this.hasColumnPermission(col));
 
     // Eğer sıra numarası gösterilecekse, en başa 'rowNumber' sütununu ekle
     if (this.showRowNumbers) {

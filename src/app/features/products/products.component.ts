@@ -48,7 +48,9 @@ export class ProductsComponent implements OnInit {
     'dimension.depth',
     'weight_type.std',
     'weight_type.eco',
-    'weight_type.pre'
+    'weight_type.pre',
+    'created_by',
+    'created_at'
   ];
 
   // Filtrelenebilen alanlar
@@ -63,6 +65,10 @@ export class ProductsComponent implements OnInit {
     'weight_type.pre'
   ];
 
+  columnTypes: { [key: string]: string } = {
+    'created_at': 'date'
+  };
+
   // İlişkili nesne sütunları için özel görüntüleme ayarları
   nestedDisplayColumns: { [key: string]: string } = {
     'name': this.translate.instant('DIMENSIONS.PRODUCT_NAME'),
@@ -73,7 +79,9 @@ export class ProductsComponent implements OnInit {
     'dimension.depth': this.translate.instant('DIMENSIONS.DEPTH'),
     'weight_type.std': 'Std',
     'weight_type.eco': 'Eco',
-    'weight_type.pre': 'Pre'
+    'weight_type.pre': 'Pre',
+    'created_by':this.translate.instant('COMMON.USER'),
+    'created_at':this.translate.instant('ORDER.CREATION_DATE')
   };
 
   ngOnInit(): void {

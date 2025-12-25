@@ -34,6 +34,8 @@ export class TrucksComponent {
     'dimension.width',
     'dimension.depth',
     'dimension.height',
+    'created_by',
+    'created_at'
 
   ];
 
@@ -45,12 +47,18 @@ export class TrucksComponent {
     'dimension.depth',
   ];
 
+  columnTypes: { [key: string]: string } = {
+    'created_at': 'date'
+  };
+
   // İlişkili nesne sütunları için özel görüntüleme ayarları
   nestedDisplayColumns: { [key: string]: string } = {
     'name': this.translate.instant('TRUCK.VEHICLE_TYPE'),
     'dimension.width': this.translate.instant('DIMENSIONS.LENGTH'),
     'dimension.height': this.translate.instant('DIMENSIONS.HEIGHT'),
-    'dimension.depth': this.translate.instant('DIMENSIONS.WIDTH')
+    'dimension.depth': this.translate.instant('DIMENSIONS.WIDTH'),
+    'created_by': this.translate.instant('COMMON.USER'),
+    'created_at': this.translate.instant('ORDER.CREATION_DATE'),
   };
 
   ngOnInit(): void {

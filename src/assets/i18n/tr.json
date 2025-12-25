@@ -49,7 +49,8 @@
     "FIELD_REQUIRED": "Bu alan zorunludur.",
     "REMOVE": "Kaldır",
     "GO_BACK": "Geri Dön",
-    "PAGE": "Sayfa"
+    "PAGE": "Sayfa",
+    "USER": "Ekleyen"
   },
   "MENU": {
     "PLACEMENT_CALCULATION": "Yerleştirme Hesaplama",

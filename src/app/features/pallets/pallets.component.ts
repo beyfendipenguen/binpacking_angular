@@ -48,7 +48,9 @@ export class PalletsComponent {
     'dimension.width',
     'dimension.depth',
     'dimension.height',
-    'weight'
+    'weight',
+    'created_by',
+    'created_at'
   ];
 
   // Filtrelenebilen alanlar
@@ -64,7 +66,13 @@ export class PalletsComponent {
     'dimension.width': this.translate.instant('DIMENSIONS.WIDTH'),
     'dimension.height': this.translate.instant('CUSTOMER.MAX_PALLET_HEIGHT'),
     'dimension.depth': this.translate.instant('DIMENSIONS.DEPTH'),
-    'weight': this.translate.instant('DIMENSIONS.WEIGHT')
+    'weight': this.translate.instant('DIMENSIONS.WEIGHT'),
+    'created_by': this.translate.instant('COMMON.USER'),
+    'created_at':  this.translate.instant('ORDER.CREATION_DATE')
+  };
+
+  columnTypes: { [key: string]: string } = {
+    'created_at': 'date',
   };
 
   ngOnInit(): void {

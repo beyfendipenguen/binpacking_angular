@@ -47,13 +47,14 @@ export class OrdersComponent implements OnInit {
   displayedColumns: string[] = [
     'name',
     'date',
-    'created_at',
     'company_relation.target_company.company_name',
     'company_relation.target_company.country',
     'order_details',
     'package',
     'files',
-    'is_completed'
+    'is_completed',
+    'created_by',
+    'created_at',
   ];
 
   columnTypes: { [key: string]: string } = {
@@ -72,12 +73,6 @@ export class OrdersComponent implements OnInit {
     {
       key: 'date',
       label: this.translate.instant('INVOICE_UPLOAD.ORDER_DATE'),
-      type: 'text',
-      required: true
-    },
-    {
-      key: 'created_at',
-      label: this.translate.instant('ORDER.CREATION_DATE'),
       type: 'text',
       required: true
     },
@@ -144,9 +139,10 @@ export class OrdersComponent implements OnInit {
     'package': this.translate.instant('PALLET.PALLETS'),
     'files': this.translate.instant('ORDER.FILES'),
     'date': this.translate.instant('INVOICE_UPLOAD.ORDER_DATE'),
-    'created_at': this.translate.instant('ORDER.CREATION_DATE'),
     'name': this.translate.instant('ORDER.ORDER_NAME'),
     'is_completed': this.translate.instant('COMMON.STATUS'),
+    'created_by':this.translate.instant('COMMON.USER'),
+    'created_at' : this.translate.instant('ORDER.CREATION_DATE')
   };
 
   filterableColumns: string[] = [
