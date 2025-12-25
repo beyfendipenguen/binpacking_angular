@@ -94,7 +94,7 @@ export class CustomerDialogComponent implements OnInit, OnDestroy {
 
   extraDataFields: ExtraDataFieldConfig[] = [
     {
-      key: 'showLogo',
+      key: 'show_logo',
       label: 'CUSTOMER.EXTRA_DATA.SHOW_LOGO',
       type: 'boolean',
       icon: 'image'

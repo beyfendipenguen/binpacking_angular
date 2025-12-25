@@ -5,6 +5,8 @@ export interface Base {
   created_at?: string | null;
   updated_at?: string | null;
   created_by?: User | null; //UUID user
+  created_by_username?: string | null;
+  updated_by_username?: string | null;
   updated_by?: User | null; //UUID user
   deleted_time?: string | null; //DateTime
   is_deleted?: boolean | null; //boolean

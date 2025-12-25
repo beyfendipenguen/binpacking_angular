@@ -119,7 +119,7 @@ export class ExtraDataDialogComponent implements OnInit, OnDestroy {
   // ExtraData field configuration
   extraDataFields: ExtraDataFieldConfig[] = [
     {
-      key: 'showLogo',
+      key: 'show_logo',
       label: 'CUSTOMER.EXTRA_DATA.SHOW_LOGO',
       type: 'boolean',
       icon: 'image',

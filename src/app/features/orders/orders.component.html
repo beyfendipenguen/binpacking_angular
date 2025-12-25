@@ -25,9 +25,9 @@
       [nestedDisplayColumns]="nestedDisplayColumns" [filterableColumns]="filterableColumns" [title]="''"
       [showRowNumbers]="true" [showAddButton]="false" [showUpdateButton]="false" [showDeleteButton]="true"
       (cellButtonClick)="onCellButtonClick($event)" (rowClick)="onRowClick($event)"
-      [deletePermission]="['orders.delete_order']"
-      [addPermission]="['orders.add_order']"
-      [updatePermission]="['orders.change_order']">
+      [deletePermission]="['orders.delete_order']" [addPermission]="['orders.add_order']"
+      [updatePermission]="['orders.change_order']"
+      [columnPermissions]="{'created_at': ['access_control.view_created'],'created_by_username': ['access_control.view_created']}">
     </app-generic-table>
   </div>
 
@@ -35,7 +35,7 @@
 
   <!-- orders.component.html -->
 
-<!-- Basit kullanım - default mesaj
+  <!-- Basit kullanım - default mesaj
 <div class="table-wrapper">
   <app-generic-table
     *appHasPermission="'orders.view_order'"
@@ -44,7 +44,7 @@
 </div>
 
  Custom mesaj ile -->
-<!-- <div class="statistics-section">
+  <!-- <div class="statistics-section">
   <app-order-stats
     *appHasPermission="'orders.view_statistics'"
     [appHasPermissionTitle]="'İstatistikler Kilitli'"
@@ -53,24 +53,24 @@
   </app-order-stats>
 </div> -->
 
-<!-- Birden fazla permission (OR logic) -->
-<!-- <div class="admin-panel"> -->
+  <!-- Birden fazla permission (OR logic) -->
+  <!-- <div class="admin-panel"> -->
   <!-- <app-admin-tools
     *appHasPermission="['orders.admin_access', 'orders.super_admin']"
     [appHasPermissionOperator]="'OR'">
   </app-admin-tools>
 </div> -->
 
-<!-- Permission detaylarını gizle -->
-<!-- <div class="sensitive-data">
+  <!-- Permission detaylarını gizle -->
+  <!-- <div class="sensitive-data">
   <app-financial-report
     *appHasPermission="'orders.view_financial'"
     [appHasPermissionShowDetails]="false">
   </app-financial-report>
 </div> -->
 
-<!-- Hem can hem cant kullanımı -->
-<!-- <div class="special-feature">
+  <!-- Hem can hem cant kullanımı -->
+  <!-- <div class="special-feature">
   <app-bulk-operations
     *appHasPermission="'orders.bulk_edit'"
     [appHasPermissionCant]="['orders.trial_user', 'orders.restricted']">

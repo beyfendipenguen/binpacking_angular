@@ -36,8 +36,10 @@ import { AddOrUpdateDialogComponent } from './add-or-update-dialog/add-or-update
 import { ToastService } from '../../core/services/toast.service';
 import { Observable } from 'rxjs';
 import { BaseResponse } from '@app/core/interfaces/base-response.interface';
-import { HasPermissionDirective } from "@app/core/auth/directives/has-permission.directive";
 import { DisableAuthDirective } from '@app/core/auth/directives/disable-auth.directive';
+import { Store } from '@ngrx/store';
+import { AppState, selectUserPermissions } from '@app/store';
+import { PermissionType } from '@app/core/auth/permission.interface';
 
 // Interface for external data source
 export interface ExternalDataParams {
@@ -118,6 +120,7 @@ export class GenericTableComponent<T> implements OnInit, AfterViewInit {
   @Input() showUpdateButton: boolean = true; // Güncelleme butonu gösterme ayarı
   @Input() showDeleteButton: boolean = true; // Silme butonu gösterme ayarı
   @Input() excludeFields: string[] = [];
+  @Input() columnPermissions: { [key: string]: PermissionType | PermissionType[] } = {};
 
   @Input() parentId: string | undefined = undefined; // Bağlı olduğu üst nesne ID'si
   @Input() useParentId: boolean = false; // Üst nesne ID kullanılacak mı belirteci
@@ -150,6 +153,8 @@ export class GenericTableComponent<T> implements OnInit, AfterViewInit {
   private dialog = inject(MatDialog);
   private toastService = inject(ToastService);
   private datePipe = inject(DatePipe);
+  private readonly store = inject(Store<AppState>);
+  private permissions = this.store.selectSignal(selectUserPermissions);
 
   dataSource = new MatTableDataSource<T>([]);
   filterValues: { [key: string]: string } = {}; // Aktif filtre değerlerinin izlenmesi
@@ -223,6 +228,32 @@ export class GenericTableComponent<T> implements OnInit, AfterViewInit {
     }
 
     return columns;
+  }
+
+  hasColumnPermission(column: string): boolean {
+    const permission = this.columnPermissions[column];
+
+    if (!permission) {
+      return true; // Yetkisi tanımlanmamışsa göster
+    }
+
+    const permissions = Array.isArray(permission) ? permission : [permission];
+    return this.hasPermissions(permissions);
+  }
+
+  private hasPermissions(requiredPerms: PermissionType[]): boolean {
+    const userPerms = this.permissions();
+
+    if (!requiredPerms || requiredPerms.length === 0) {
+      return true;
+    }
+
+    if (!userPerms) {
+      return false;
+    }
+
+    // AND operatörü - tüm yetkiler gerekli
+    return requiredPerms.every(req => userPerms.includes(req));
   }
 
   // Sıra numarası hesaplama metodu
@@ -453,7 +484,7 @@ export class GenericTableComponent<T> implements OnInit, AfterViewInit {
           this.updateDataFromExternalSource(result.results, result.count);
         },
         error: (error) => {
-          this.toastService.error(error,this.translate.instant('GENERIC_TABLE.DATA_LOAD_ERROR'));
+          this.toastService.error(error, this.translate.instant('GENERIC_TABLE.DATA_LOAD_ERROR'));
           this.dataSource.data = [];
           this.totalItems = 0;
           this.isLoading = false;
@@ -593,10 +624,12 @@ export class GenericTableComponent<T> implements OnInit, AfterViewInit {
                 this.toastService.success(this.translate.instant('GENERIC_TABLE.ADDED_SUCCESS'), this.translate.instant('GENERIC_TABLE.ADDED'));
                 this.dataSource.data.unshift(createdItem);
                 this.isLoading = false;
+                this.loadData();
               },
               error: (error) => {
                 this.toastService.error(this.translate.instant('GENERIC_TABLE.ADD_ERROR'), this.translate.instant('GENERIC_TABLE.ADD_FAILED'));
                 this.isLoading = false;
+                this.loadData();
               },
             });
           }
@@ -747,7 +780,7 @@ export class GenericTableComponent<T> implements OnInit, AfterViewInit {
 
     // If it's a nested column and we have a display name for it
     if (this.nestedDisplayColumns && this.nestedDisplayColumns[column]) {
-      return this.translate.instant( this.nestedDisplayColumns[column]);
+      return this.translate.instant(this.nestedDisplayColumns[column]);
     }
 
     // Otherwise just use the column name with title case
