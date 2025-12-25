@@ -192,7 +192,41 @@
     "CHANGE_LOGO": "Изменить логотип",
     "LOGO_HINT": "Вы можете загрузить изображения в формате PNG, JPG или GIF (Максимум 5МБ)",
     "COMPANY_UPDATE_INFO": "Информация о выбранной компании будет обновлена.",
-    "EDIT_COMPANY": "Редактировать компанию"
+    "EDIT_COMPANY": "Редактировать компанию",
+    "CUSTOMER_SETTINGS": "Настройки клиента",
+    "ALREADY_EXISTS": "Этот клиент уже существует.",
+    "EXTRA_DATA": {
+      "TITLE": "Массовое обновление Extra Data",
+      "SELECT_RELATIONS": "Выбрать связи",
+      "CONFIGURE_DATA": "Настройка данных",
+      "SELECT_ALL": "Выбрать все",
+      "SELECTED_COUNT": "Выбрано {{count}} / {{total}}",
+      "NO_RELATIONS": "Связи с клиентами пока не найдены",
+      "UPDATE_MODE": "Режим обновления",
+      "MERGE_MODE": "Объединить (Merge)",
+      "MERGE_MODE_DESC": "Добавляет новые значения, сохраняя существующие",
+      "REPLACE_MODE": "Заменить (Replace)",
+      "REPLACE_MODE_DESC": "Полностью заменяет существующие extra_data новыми",
+      "STANDARD_FIELDS": "Стандартные поля",
+      "CUSTOM_FIELDS": "Пользовательские поля (Superuser)",
+      "FIELD_KEY": "Имя поля",
+      "FIELD_TYPE": "Тип данных",
+      "FIELD_VALUE": "Значение",
+      "TYPE_STRING": "Строка",
+      "TYPE_NUMBER": "Число",
+      "TYPE_BOOLEAN": "Логический (Boolean)",
+      "ADDED_FIELDS": "Добавленные поля",
+      "PREVIEW": "Предпросмотр",
+      "WILL_UPDATE": "Будет обновлено связей: {{count}}",
+      "SELECT_AT_LEAST_ONE": "Пожалуйста, выберите хотя бы одну связь",
+      "NO_CHANGES": "Нет изменений для обновления",
+      "UPDATE_SUCCESS": "Успешно обновлено связей: {{count}}",
+      "UPDATE_ERROR": "Произошла ошибка при обновлении",
+      "FIELD_ADDED": "Поле добавлено",
+      "FIELD_UPDATED": "Поле обновлено",
+      "FIELD_REMOVED": "Поле удалено",
+      "INVALID_NUMBER": "Неверный формат числа"
+    }
   },
   "CUSTOMER_MESSAGES": {
     "COMPANY_ADDED": "Новая компания успешно добавлена",
@@ -712,7 +746,7 @@
     }
   },
   "PERMISSION": {
-    "MESSAGES":{
+    "MESSAGES": {
       "HELLO": "Здравствуйте",
       "REQUEST": "Я прошу разрешения на доступ.",
       "THANKS": "Спасибо.",

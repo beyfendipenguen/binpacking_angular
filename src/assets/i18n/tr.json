@@ -191,7 +191,41 @@
     "CHANGE_LOGO": "Logoyu Değiştir",
     "LOGO_HINT": "PNG, JPG veya GIF formatında resim yükleyebilirsiniz (Maksimum 5MB)",
     "COMPANY_UPDATE_INFO": "Seçtiğiniz şirketin bilgileri güncellenecektir.",
-    "EDIT_COMPANY": "Şirket Düzenle"
+    "EDIT_COMPANY": "Şirket Düzenle",
+    "CUSTOMER_SETTINGS": "Müşteri Ayarları",
+    "ALREADY_EXISTS": "Bu müşteri zaten mevcut",
+    "EXTRA_DATA": {
+      "TITLE": "Toplu Extra Data Güncelleme",
+      "SELECT_RELATIONS": "İlişkileri Seç",
+      "CONFIGURE_DATA": "Verileri Yapılandır",
+      "SELECT_ALL": "Tümünü Seç",
+      "SELECTED_COUNT": "{{count}} / {{total}} seçildi",
+      "NO_RELATIONS": "Henüz müşteri ilişkisi bulunmuyor",
+      "UPDATE_MODE": "Güncelleme Modu",
+      "MERGE_MODE": "Birleştir (Merge)",
+      "MERGE_MODE_DESC": "Mevcut değerleri koruyarak yeni değerleri ekler",
+      "REPLACE_MODE": "Değiştir (Replace)",
+      "REPLACE_MODE_DESC": "Mevcut extra_data'yı tamamen yenisiyle değiştirir",
+      "STANDARD_FIELDS": "Standart Alanlar",
+      "CUSTOM_FIELDS": "Özel Alanlar (Superuser)",
+      "FIELD_KEY": "Alan Adı",
+      "FIELD_TYPE": "Veri Tipi",
+      "FIELD_VALUE": "Değer",
+      "TYPE_STRING": "Metin",
+      "TYPE_NUMBER": "Sayı",
+      "TYPE_BOOLEAN": "Boolean",
+      "ADDED_FIELDS": "Eklenen Alanlar",
+      "PREVIEW": "Önizleme",
+      "WILL_UPDATE": "{{count}} adet ilişki güncellenecek",
+      "SELECT_AT_LEAST_ONE": "Lütfen en az bir ilişki seçin",
+      "NO_CHANGES": "Güncelleme için değişiklik yapılmadı",
+      "UPDATE_SUCCESS": "{{count}} adet ilişki başarıyla güncellendi",
+      "UPDATE_ERROR": "Güncelleme sırasında bir hata oluştu",
+      "FIELD_ADDED": "Alan eklendi",
+      "FIELD_UPDATED": "Alan güncellendi",
+      "FIELD_REMOVED": "Alan kaldırıldı",
+      "INVALID_NUMBER": "Geçersiz sayı formatı"
+    }
   },
   "CUSTOMER_MESSAGES": {
     "COMPANY_ADDED": "Yeni şirket başarıyla eklendi",
@@ -711,7 +745,7 @@
     }
   },
   "PERMISSION": {
-    "MESSAGES":{
+    "MESSAGES": {
       "HELLO": "Merhaba",
       "REQUEST": "Erişim sağlamak için yetki talebinde bulunuyorum.",
       "THANKS": "Teşekkür ederim.",
@@ -806,5 +840,4 @@
     "NOTIFICATION_DESC": "Yanıt geldiğinde e-posta ile bilgilendirilirsiniz",
     "PERMISSION_DETAILS": "Yetki Detayları"
   }
-
 }

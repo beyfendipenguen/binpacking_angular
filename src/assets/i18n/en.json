@@ -192,7 +192,41 @@
     "CHANGE_LOGO": "Change Logo",
     "LOGO_HINT": "You can upload images in PNG, JPG or GIF format (Maximum 5MB)",
     "COMPANY_UPDATE_INFO": "The selected company information will be updated.",
-    "EDIT_COMPANY": "Edit Company"
+    "EDIT_COMPANY": "Edit Company",
+    "CUSTOMER_SETTINGS": "Customer Settings",
+    "ALREADY_EXISTS": "This customer already exists",
+    "EXTRA_DATA": {
+      "TITLE": "Bulk Extra Data Update",
+      "SELECT_RELATIONS": "Select Relations",
+      "CONFIGURE_DATA": "Configure Data",
+      "SELECT_ALL": "Select All",
+      "SELECTED_COUNT": "{{count}} / {{total}} selected",
+      "NO_RELATIONS": "No customer relations found yet",
+      "UPDATE_MODE": "Update Mode",
+      "MERGE_MODE": "Merge",
+      "MERGE_MODE_DESC": "Adds new values while preserving existing ones",
+      "REPLACE_MODE": "Replace",
+      "REPLACE_MODE_DESC": "Completely replaces existing extra_data with new values",
+      "STANDARD_FIELDS": "Standard Fields",
+      "CUSTOM_FIELDS": "Custom Fields (Superuser)",
+      "FIELD_KEY": "Field Name",
+      "FIELD_TYPE": "Data Type",
+      "FIELD_VALUE": "Value",
+      "TYPE_STRING": "String",
+      "TYPE_NUMBER": "Number",
+      "TYPE_BOOLEAN": "Boolean",
+      "ADDED_FIELDS": "Added Fields",
+      "PREVIEW": "Preview",
+      "WILL_UPDATE": "{{count}} relations will be updated",
+      "SELECT_AT_LEAST_ONE": "Please select at least one relation",
+      "NO_CHANGES": "No changes made for update",
+      "UPDATE_SUCCESS": "{{count}} relations successfully updated",
+      "UPDATE_ERROR": "An error occurred during update",
+      "FIELD_ADDED": "Field added",
+      "FIELD_UPDATED": "Field updated",
+      "FIELD_REMOVED": "Field removed",
+      "INVALID_NUMBER": "Invalid number format"
+    }
   },
   "CUSTOMER_MESSAGES": {
     "COMPANY_ADDED": "New company added successfully",
@@ -710,7 +744,7 @@
     }
   },
   "PERMISSION": {
-    "MESSAGES":{
+    "MESSAGES": {
       "HELLO": "Hello",
       "REQUEST": "I am requesting authorization to gain access.",
       "THANKS": "Thank you.",
