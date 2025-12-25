@@ -939,6 +939,10 @@ export class PalletControlComponent
     this.store.dispatch(StepperPackageActions.addPackageDetailToRemainingProducts({ packageDetailId }));
   }
 
+  reducePackageDetail(packageDetailId: string) {
+    this.store.dispatch(StepperPackageActions.reducePackageDetailCount({ packageDetailId }));
+  }
+
   deleteRemainingProducts(packageDetailIds: string[]): void {
     this.store.dispatch(StepperPackageActions.deleteRemainingProducts({ packageDetailIds }));
   }

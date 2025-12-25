@@ -43,6 +43,7 @@ export const StepperPackageActions = createActionGroup({
     'Move Partial Remaining Product To Package': props<{ targetPackageId: string, previousIndex: number, maxCount: number }>(),
 
     // Remaining Alanı İşlemleri
+    'Reduce Package Detail Count': props<{ packageDetailId: string }>(),
     'Add Package Detail To Remaining Products': props<{ packageDetailId: string }>(),
     'Delete Remaining Products': props<{ packageDetailIds: string[] }>(),
     'Remaining Product Move Product': props<{ previousIndex: number, currentIndex: number }>(),

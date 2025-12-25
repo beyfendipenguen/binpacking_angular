@@ -171,9 +171,11 @@ export class StepperGeneralEffects {
         StepperPackageActions.removePalletFromPackage,
         StepperPackageActions.removePackage,
         StepperPackageActions.addPackageDetailToRemainingProducts,
+        StepperPackageActions.reducePackageDetailCount,
         StepperPackageActions.upsertPackageDetailCount,
         StepperPackageActions.movePartialRemainingProductToPackage,
         StepperPackageActions.movePartialPackageDetailBetweenPackages,
+        StepperPackageActions.addPalletToAvailable,
 
         //Result Actions
         StepperResultActions.loadOrderResultSuccess,

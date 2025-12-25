@@ -99,19 +99,6 @@
       inset 0 1px 1px rgba(255, 255, 255, 0.2);
   }
 }
-
-.navbar-exit-button {
-  &:hover {
-    background: rgba(76, 175, 80, 0.25);
-    border-color: rgba(76, 175, 80, 0.8);
-    color: #4caf50;
-
-    mat-icon {
-      color: #4caf50;
-    }
-  }
-}
-
 /* Responsive */
 @media (max-width: 768px) {
   .navbar-button-group {

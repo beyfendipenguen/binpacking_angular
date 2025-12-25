@@ -243,20 +243,61 @@ export const stepperPackageHandlers = [
 
   // Add Ui Product To Remaining Products
   on(StepperPackageActions.addPackageDetailToRemainingProducts, (state: StepperState, { packageDetailId }) => {
-    const packageDetail = state.step2State.packages.flatMap(pkg => pkg.package_details).find(pd => pd.id === packageDetailId)
-    if (!packageDetail) {
+
+    let targetPackageDetail: PackageDetailReadDto | undefined;
+    let targetPackage: any;
+
+    for (const pkg of state.step2State.packages) {
+      const found = pkg.package_details.find(pd => pd.id === packageDetailId);
+      if (found) {
+        targetPackageDetail = found;
+        targetPackage = pkg;
+        break;
+      }
+    }
+
+    if (!targetPackageDetail || !targetPackage) {
       return state;
     }
 
+
+    const tempPackageDetails = targetPackage.package_details.map((pd: PackageDetailReadDto) =>
+      pd.id === packageDetailId
+        ? { ...pd, count: pd.count + 1 }
+        : pd
+    );
+
+    const fillPercentage = getPalletFillPercentage(
+      targetPackage.pallet,
+      tempPackageDetails
+    );
+
+    if (fillPercentage <= 100) {
+      return {
+        ...state,
+        step2State: {
+          ...state.step2State,
+          packages: state.step2State.packages.map(pkg =>
+            pkg.id === targetPackage.id
+              ? {
+                ...pkg,
+                package_details: tempPackageDetails
+              }
+              : pkg
+          )
+        }
+      };
+    }
+
     const remainingProducts = state.step2State.remainingProducts;
-    const alreadyExists = remainingProducts.some(pd => pd.id === packageDetail.id);
+    const alreadyExists = remainingProducts.some(pd => pd.product.id === targetPackageDetail.product.id);
 
     if (alreadyExists) {
       return state;
     }
 
     const newPackageDetail = {
-      ...packageDetail,
+      ...targetPackageDetail,
       count: 1,
     };
 
@@ -265,6 +306,48 @@ export const stepperPackageHandlers = [
       step2State: {
         ...state.step2State,
         remainingProducts: [...remainingProducts, newPackageDetail],
+      }
+    };
+  }),
+
+  on(StepperPackageActions.reducePackageDetailCount, (state: StepperState, { packageDetailId }) => {
+
+    let targetPackageDetail: PackageDetailReadDto | undefined;
+    let targetPackage: any;
+
+    for (const pkg of state.step2State.packages) {
+      const found = pkg.package_details.find(pd => pd.id === packageDetailId);
+      if (found) {
+        targetPackageDetail = found;
+        targetPackage = pkg;
+        break;
+      }
+    }
+
+    if (!targetPackageDetail || !targetPackage) {
+      return state;
+    }
+
+    if (targetPackageDetail.count <= 1) {
+      return state;
+    }
+
+    return {
+      ...state,
+      step2State: {
+        ...state.step2State,
+        packages: state.step2State.packages.map(pkg =>
+          pkg.id === targetPackage.id
+            ? {
+              ...pkg,
+              package_details: pkg.package_details.map(pd =>
+                pd.id === packageDetailId
+                  ? { ...pd, count: pd.count - 1 }
+                  : pd
+              )
+            }
+            : pkg
+        )
       }
     };
   }),
@@ -887,69 +970,35 @@ export const stepperPackageHandlers = [
   }),
 ];
 
-function sortPackagesByPriority(
-  packages: PackageReadDto[],
-  truckDepth: number,
-  mapToUIPackage: (packages: PackageReadDto[]) => IUiPackage[]
-): IUiPackage[] {
-  const priority1Packages: PackageReadDto[] = []; // Eşleşenler
-  const priority2Packages: PackageReadDto[] = []; // Tek başına toplam uygun olanlar
-  const regularPackages: PackageReadDto[] = [];
+// Helper function
+function safeNumber(value: any): number {
+  return typeof value === 'number' && !isNaN(value) ? value : 0;
+}
 
-  packages.forEach(pkg => {
-    const pallet = pkg.pallet;
-    if (!pallet) {
-      regularPackages.push(pkg);
-      return;
-    }
+function calculateUsedVolume(packageDetails: PackageDetailReadDto[]): number {
+  return packageDetails.reduce((total, pd) => {
+    const itemVolume =
+      safeNumber(Number(pd.product.dimension?.width)) *
+      safeNumber(Number(pd.product.dimension?.depth)) *
+      safeNumber(Number(pd.product.dimension?.height));
+    return total + (itemVolume * safeNumber(pd.count));
+  }, 0);
+}
 
-    const pkgDepth = pallet.dimension.depth;
-    const pkgWidth = pallet.dimension.width;
+function getPalletFillPercentage(
+  pallet: UiPallet,
+  packageDetails: PackageDetailReadDto[]
+): number {
+  if (!pallet?.dimension) {
+    return 0;
+  }
 
-    // Öncelik 1: Başka bir package ile eşleşiyor mu?
-    const hasMatch = packages.some(otherPkg => {
-      if (pkg.id === otherPkg.id) return false;
+  const palletTotalVolume =
+    safeNumber(Number(pallet.dimension.width)) *
+    safeNumber(Number(pallet.dimension.depth)) *
+    safeNumber(Number(pallet.dimension.height));
 
-      const otherPallet = otherPkg.pallet;
-      if (!otherPallet) return false;
+  const usedVolume = calculateUsedVolume(packageDetails);
 
-      const otherDepth = otherPallet.dimension.depth;
-      const otherWidth = otherPallet.dimension.width;
-
-      // Depth'ler eşit mi?
-      if (pkgDepth === otherDepth) {
-        const widthSum = pkgWidth + otherWidth;
-        if (widthSum <= truckDepth) return true;
-      }
-
-      // Width'ler eşit mi?
-      if (pkgWidth === otherWidth) {
-        const depthSum = pkgDepth + otherDepth;
-        if (depthSum <= truckDepth) return true;
-      }
-
-      return false;
-    });
-
-    if (hasMatch) {
-      priority1Packages.push(pkg);
-    } else {
-      // Öncelik 2: Tek başına iki kenar toplamı truck.depth'e uygun mu?
-      const dimensionSum = pkgDepth + pkgWidth;
-      if (dimensionSum <= truckDepth) {
-        priority2Packages.push(pkg);
-      } else {
-        regularPackages.push(pkg);
-      }
-    }
-  });
-
-  // Sıralama YAPMA, sadece öncelik sırasına göre birleştir
-  const sortedPackages = [
-    ...priority1Packages,
-    ...priority2Packages,
-    ...regularPackages
-  ];
-
-  return mapToUIPackage(sortedPackages);
+  return Math.round((usedVolume / palletTotalVolume) * 100);
 }

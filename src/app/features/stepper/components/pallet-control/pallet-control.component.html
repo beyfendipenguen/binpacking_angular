@@ -65,11 +65,11 @@
                 (sortAscending()
                   ? 'PALLET_CONTROL.SORT_ASC'
                   : 'PALLET_CONTROL.SORT_DESC') | translate
-              ">
+              " disableRipple>
             <mat-icon [class.rotated]="sortAscending()">sort</mat-icon>
           </button>
           <button mat-icon-button class="header-action-button"
-            [matTooltip]="'PALLET_CONTROL.MERGE_PRODUCTS' | translate" (click)="merge()">
+            [matTooltip]="'PALLET_CONTROL.MERGE' | translate" (click)="merge()" disableRipple>
             <mat-icon>merge</mat-icon>
           </button>
         </div>
@@ -270,7 +270,7 @@
                   <span>{{ package.pallet.name }}</span>
                 </div>
                 <button mat-icon-button class="small-action" (click)="removePalletFromPackage(package)"
-                  [matTooltip]="'PALLET_CONTROL.REMOVE_PACKAGE' | translate">
+                  [matTooltip]="'PALLET_CONTROL.REMOVE_PALLET' | translate">
                   <mat-icon>close</mat-icon>
                 </button>
               </div>
@@ -291,13 +291,15 @@
                     <span class="product-count">{{ packageDetail.count }} {{'DIMENSIONS.QUANTITY' | translate}}</span>
                   </div>
                   <div class="button-container">
-                    <button mat-icon-button class="action-button" (click)="addPackageDetail(packageDetail.id)"
-                      [matTooltip]="'COMMON.ADD'| translate">
+                    <button mat-icon-button class="action-button" (click)="reducePackageDetail(packageDetail.id)" disableRipple>
+                      <mat-icon>remove</mat-icon>
+                    </button>
+                    <button mat-icon-button class="action-button" (click)="addPackageDetail(packageDetail.id)" disableRipple>
                       <mat-icon>add</mat-icon>
                     </button>
                     <button mat-icon-button class="action-button"
                       (click)="removePackageDetailFromPackage(package.id, j)"
-                      [matTooltip]="'PALLET_CONTROL.REMOVE_PRODUCT'| translate">
+                      [matTooltip]="'PALLET_CONTROL.REMOVE_PRODUCT'| translate" disableRipple>
                       <mat-icon>close</mat-icon>
                     </button>
                   </div>

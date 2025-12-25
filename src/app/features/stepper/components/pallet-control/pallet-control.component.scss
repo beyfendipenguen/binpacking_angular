@@ -622,22 +622,6 @@ form {
   }
 }
 
-// Mevcut .section-header { ... } bloğunun ALTINA ekle
-
-.header-left {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.header-actions {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-// Mevcut .section-header { ... } bloğunun ALTINA ekle
-
 .header-left {
   display: flex;
   align-items: center;
@@ -649,6 +633,7 @@ form {
   align-items: center;
   flex-direction: row;
   gap: 4px;
+  isolation: isolate;
 }
 
 .header-action-button {
@@ -658,18 +643,29 @@ form {
   color: $primary-color !important;
   background-color: rgba(0, 106, 106, 0.05) !important;
   border-radius: 4px !important;
-  transition: all 0.3s ease !important;
-  overflow: hidden !important; // Bu satır önemli
+  transition: all 0.1s ease !important;
+  overflow: hidden !important;
+  position: relative;
+  pointer-events: auto !important;
+
+  // ✅ Material ripple'ı tamamen kapat
+  ::ng-deep .mat-mdc-button-persistent-ripple,
+  ::ng-deep .mat-ripple-element {
+    display: none !important;
+  }
 
   &:hover {
     background-color: rgba(0, 106, 106, 0.15) !important;
     transform: translateY(-1px);
     box-shadow: 0 2px 4px rgba(0, 106, 106, 0.2) !important;
+    transition-duration: 0.05s !important; // Hover anında
+    z-index: 1;
   }
 
   &:active {
     transform: translateY(0);
     box-shadow: none !important;
+    transition-duration: 0.05s !important; // Active'den hızlı çık
   }
 
   mat-icon {
@@ -678,17 +674,12 @@ form {
     height: 18px !important;
     color: $primary-color !important;
     margin: 0 !important;
-    transition: transform 0.3s ease !important;
+    transition: transform 0.2s ease !important; // 0.3s → 0.2s
+    pointer-events: none !important; // Icon'un click'i engellemesini önle
 
     &.rotated {
       transform: rotate(180deg);
     }
-  }
-
-  // Material ripple efektini düzelt
-  ::ng-deep .mat-mdc-button-persistent-ripple,
-  ::ng-deep .mat-ripple-element {
-    border-radius: 4px !important;
   }
 }
 
@@ -1261,6 +1252,7 @@ form {
 .button-container {
   display: flex;
   gap: 6px;
+  isolation: isolate;
 }
 
 .action-button {
@@ -1268,14 +1260,30 @@ form {
   height: 20px;
   line-height: 20px;
   color: $text-light;
-  position: relative; // z-index için
+  position: relative;
   padding: 0;
+
+  transition: all 0.1s ease !important;
+
+  pointer-events: auto !important;
+
+  ::ng-deep .mat-mdc-button-persistent-ripple,
+  ::ng-deep .mat-ripple-element {
+    display: none !important;
+  }
 
   &:hover {
     color: $primary-color;
     background-color: rgba(0, 106, 106, 0.1);
-    z-index: 1; // diğer butonun üzerine çıkmasını önler
+    z-index: 1;
+    transition-duration: 0.05s !important;
   }
+
+  &:active {
+    transition-duration: 0.05s !important;
+    transform: scale(0.95);
+  }
+
 
   mat-icon {
     font-size: 16px;
@@ -1285,7 +1293,8 @@ form {
     display: block;
     margin: auto;
     color: $secondary-color;
-    pointer-events: none; // icon hover ile tetiklenmesin
+    pointer-events: none;
+    transition: inherit;
   }
 
   &:hover mat-icon {
