@@ -95,6 +95,10 @@ export class HeaderComponent implements OnInit {
     return this.languageService.getLanguageByCode(currentLang) || this.languages[0];
   }
 
+  onExitClick(): void {
+    this.authService.clearLocalAndStore();
+  }
+
   onCancelClick(): void {
     const dialogRef = this.dialog.open(CancelConfirmationDialogComponent, {
       width: '400px',

@@ -100,6 +100,40 @@
   }
 }
 
+.navbar-exit-button {
+  &:hover {
+    background: rgba(76, 175, 80, 0.25);
+    border-color: rgba(76, 175, 80, 0.8);
+    color: #4caf50;
+
+    mat-icon {
+      color: #4caf50;
+    }
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .navbar-button-group {
+    margin-right: 8px;
+  }
+
+  .navbar-group-button {
+    padding: 5px 10px;
+    font-size: 11px;
+
+    mat-icon {
+      font-size: 14px;
+      width: 14px;
+      height: 14px;
+    }
+
+    .button-text {
+      font-size: 11px;
+    }
+  }
+}
+
 /* =========================
    MODERN PROFIL MENÜSÜ
    ========================= */

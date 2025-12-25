@@ -1,20 +1,12 @@
 <mat-toolbar>
   <mat-toolbar-row color="primary">
-    <button
-      *ngIf="isToggleButton"
-      mat-icon-button
-      (click)="sidenavOpen.emit(null)"
-    >
+    <button *ngIf="isToggleButton" mat-icon-button (click)="sidenavOpen.emit(null)">
       <mat-icon>menu</mat-icon>
     </button>
 
     <!-- Logo kısmı -->
     <div class="logo-container">
-      <img
-        routerLink="/"
-        [src]="companyLogo"
-        class="logo"
-      />
+      <img routerLink="/" [src]="companyLogo" class="logo" />
     </div>
 
     <mat-divider></mat-divider>
@@ -27,14 +19,17 @@
 
     <!-- İptal Butonu - Sadece stepper sayfasında göster -->
     @if (showCancelButton()) {
-      <button
-        mat-stroked-button
-        class="navbar-cancel-button"
-        (click)="onCancelClick()"
-      >
-        <mat-icon>close</mat-icon>
-        <span class="cancel-text">{{ 'HEADER.CANCEL' | translate }}</span>
+    <div class="navbar-button-group">
+      <button mat-stroked-button class="navbar-group-button navbar-cancel-button" (click)="onCancelClick()">
+        <mat-icon>delete_forever</mat-icon>
+        <span class="button-text">{{ 'HEADER.CANCEL' | translate }}</span>
       </button>
+
+      <button mat-stroked-button class="navbar-group-button navbar-cancel-button" (click)="onExitClick()">
+        <mat-icon>exit_to_app</mat-icon>
+        <span class="button-text">{{ 'HEADER.EXIT' | translate }}</span>
+      </button>
+    </div>
     }
 
     <!-- Profil Menüsü -->
@@ -72,13 +67,8 @@
 
 <!-- Dil Alt Menüsü (Submenu) - ✅ SVG KULLANIMI -->
 <mat-menu #languageMenu="matMenu" class="language-submenu">
-  <button
-    mat-menu-item
-    *ngFor="let lang of languages"
-    (click)="onLanguageChange(lang.code)"
-    [class.active-language]="(currentLanguage$ | async) === lang.code"
-    class="language-submenu-item"
-  >
+  <button mat-menu-item *ngFor="let lang of languages" (click)="onLanguageChange(lang.code)"
+    [class.active-language]="(currentLanguage$ | async) === lang.code" class="language-submenu-item">
     <img [src]="lang.flag" class="flag-icon-img" alt="{{ lang.name }}" />
     <span class="language-name">{{ lang.name }}</span>
     <mat-icon *ngIf="(currentLanguage$ | async) === lang.code" class="check-icon">check_circle</mat-icon>

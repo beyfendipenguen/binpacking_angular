@@ -67,7 +67,8 @@
     "CANCEL": "İptal",
     "PROFILE": "Profil",
     "LOGOUT": "Çıkış Yap",
-    "LANGUAGE": "Dil"
+    "LANGUAGE": "Dil",
+    "EXIT": "Çıkış"
   },
   "DIALOG": {
     "CANCEL_OPERATION": "İşlemi İptal Et",

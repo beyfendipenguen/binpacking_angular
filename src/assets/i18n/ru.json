@@ -67,7 +67,8 @@
     "CANCEL": "Отменить",
     "PROFILE": "Профиль",
     "LOGOUT": "Выйти",
-    "LANGUAGE": "Язык"
+    "LANGUAGE": "Язык",
+    "EXIT": "Выход"
   },
   "DIALOG": {
     "CANCEL_OPERATION": "Отменить операцию",
