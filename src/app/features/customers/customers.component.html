@@ -11,9 +11,25 @@
         </div>
       </div>
       <div class="header-actions">
-        <button mat-raised-button color="primary" (click)="openAddDialog()" class="add-btn" [appDisableAuth]="['organizations.add_companyrelation']">
-          <mat-icon>add</mat-icon>{{ 'CUSTOMER.ADD_NEW' | translate }}</button>
+        <!-- İşlemler Menüsü -->
+        <button mat-raised-button color="primary" [matMenuTriggerFor]="actionsMenu" class="actions-btn">
+          <mat-icon>settings</mat-icon>{{ 'MENU.OPERATIONS' | translate }}<mat-icon
+            class="dropdown-icon">arrow_drop_down</mat-icon>
+        </button>
+
+        <mat-menu #actionsMenu="matMenu" class="actions-menu">
+          <button mat-menu-item [appDisableAuth]="['organizations.add_companyrelation']" (click)="openAddDialog()">
+            <mat-icon>add_box</mat-icon>
+            <span>{{ 'CUSTOMER.ADD_NEW' | translate }}</span>
+          </button>
+          <button mat-menu-item (click)="openExtraDataDialog()"
+            [appDisableAuth]="['organizations.add_companyrelation']">
+            <mat-icon>build</mat-icon>
+            <span>{{ 'CUSTOMER.CUSTOMER_SETTINGS' | translate }}</span>
+          </button>
+        </mat-menu>
       </div>
+
     </div>
   </div>
 
@@ -21,31 +37,27 @@
   <div class="content-section">
     <!-- Search Bar -->
     <div class="search-bar">
-      <mat-form-field appearance="outline" class="search-field"[appDisableAuth]="['organizations.add_companyrelation','organizations.change_companyrelation']">
+      <mat-form-field appearance="outline" class="search-field"
+        [appDisableAuth]="['organizations.add_companyrelation','organizations.change_companyrelation']">
         <mat-label>{{ 'CUSTOMER.SEARCH' | translate }}</mat-label>
-        <input
-          matInput
-          [placeholder]="'CUSTOMER.SEARCH_PLACEHOLDER' | translate"
-          (ngModel)="searchTerm"
-          (input)="onSearch($event)"
-
-        />
+        <input matInput [placeholder]="'CUSTOMER.SEARCH_PLACEHOLDER' | translate" [(ngModel)]="searchTerm"
+          (input)="onSearch($event)" />
         <mat-icon matPrefix>search</mat-icon>
         @if (searchTerm) {
-          <button mat-icon-button matSuffix (click)="clearSearch()">
-            <mat-icon>clear</mat-icon>
-          </button>
+        <button mat-icon-button matSuffix (click)="clearSearch()">
+          <mat-icon>clear</mat-icon>
+        </button>
         }
       </mat-form-field>
     </div>
 
     <!-- Table Container -->
-    <div class="table-container" [class.loading]="isLoading" >
+    <div class="table-container" [class.loading]="isLoading">
       @if (isLoading) {
-        <div class="loading-overlay">
-          <mat-spinner diameter="50"></mat-spinner>
-          <p>{{ 'COMMON.LOADING' | translate }}</p>
-        </div>
+      <div class="loading-overlay">
+        <mat-spinner diameter="50"></mat-spinner>
+        <p>{{ 'COMMON.LOADING' | translate }}</p>
+      </div>
       }
 
       <table mat-table [dataSource]="dataSource" matSort class="customers-table">
@@ -58,11 +70,11 @@
           <td mat-cell *matCellDef="let row" class="company-name-cell">
             <div class="company-info">
               @if (row.target_company.logo) {
-                <img [src]="row.target_company.logo" alt="Logo" class="company-logo" />
+              <img [src]="row.target_company.logo" alt="Logo" class="company-logo" />
               } @else {
-                <div class="company-logo-placeholder">
-                  <mat-icon>business</mat-icon>
-                </div>
+              <div class="company-logo-placeholder">
+                <mat-icon>business</mat-icon>
+              </div>
               }
               <span class="company-name">{{ row.target_company.company_name }}</span>
             </div>
@@ -110,11 +122,11 @@
           </th>
           <td mat-cell *matCellDef="let row" class="notes-cell">
             @if (row.notes && row.notes.length > 0) {
-              <span [matTooltip]="row.notes" class="notes-text">
-                {{ row.notes.length > 50 ? (row.notes.substring(0, 50) + '...') : row.notes }}
-              </span>
+            <span [matTooltip]="row.notes" class="notes-text">
+              {{ row.notes.length > 50 ? (row.notes.substring(0, 50) + '...') : row.notes }}
+            </span>
             } @else {
-              <span class="no-notes">-</span>
+            <span class="no-notes">-</span>
             }
           </td>
         </ng-container>
@@ -125,22 +137,12 @@
             {{ getColumnName('actions') }}
           </th>
           <td mat-cell *matCellDef="let row" class="actions-cell">
-            <button
-              mat-icon-button
-              color="primary"
-              (click)="openEditDialog(row); $event.stopPropagation()"
-              [matTooltip]="'COMMON.EDIT'| translate"
-              [appDisableAuth]="['organizations.change_companyrelation']"
-            >
+            <button mat-icon-button color="primary" (click)="openEditDialog(row); $event.stopPropagation()"
+              [matTooltip]="'COMMON.EDIT'| translate" [appDisableAuth]="['organizations.change_companyrelation']">
               <mat-icon>edit</mat-icon>
             </button>
-            <button
-              mat-icon-button
-              color="warn"
-              (click)="deleteCustomer(row, $event)"
-              [matTooltip]="'COMMON.DELETE'| translate"
-              [appDisableAuth]="['organizations.delete_companyrelation']"
-            >
+            <button mat-icon-button color="warn" (click)="deleteCustomer(row, $event)"
+              [matTooltip]="'COMMON.DELETE'| translate" [appDisableAuth]="['organizations.delete_companyrelation']">
               <mat-icon>delete</mat-icon>
             </button>
           </td>
@@ -148,43 +150,34 @@
 
         <!-- Table Rows -->
         <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-        <tr
-          mat-row
-          *matRowDef="let row; columns: displayedColumns;"
-          class="table-row"
-          (click)="onRowClick(row)"
-          [appDisableAuth]="['organizations.add_companyrelation','organizations.change_companyrelation']"
-        ></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="table-row" (click)="onRowClick(row)"
+          [appDisableAuth]="['organizations.add_companyrelation','organizations.change_companyrelation']"></tr>
 
         <!-- No Data Row -->
         <tr class="mat-row no-data-row" *matNoDataRow>
           <td class="mat-cell" [attr.colspan]="displayedColumns.length">
             @if (searchTerm) {
-              <div class="no-data">
-                <mat-icon>search_off</mat-icon>
-                <p>{{ 'COMMON.NO_RESULTS' | translate }}</p>
-                <button mat-button color="primary" (click)="clearSearch()">{{ 'COMMON.CLEAR_SEARCH' | translate }}</button>
-              </div>
+            <div class="no-data">
+              <mat-icon>search_off</mat-icon>
+              <p>{{ 'COMMON.NO_RESULTS' | translate }}</p>
+              <button mat-button color="primary" (click)="clearSearch()">{{ 'COMMON.CLEAR_SEARCH' | translate
+                }}</button>
+            </div>
             } @else {
-              <div class="no-data">
-                <mat-icon>inbox</mat-icon>
-                <p>{{ 'CUSTOMER.NO_CUSTOMERS' | translate }}</p>
-                <button mat-raised-button color="primary" (click)="openAddDialog()">
-                  <mat-icon>add</mat-icon>{{ 'CUSTOMER.ADD_FIRST' | translate }}</button>
-              </div>
+            <div class="no-data">
+              <mat-icon>inbox</mat-icon>
+              <p>{{ 'CUSTOMER.NO_CUSTOMERS' | translate }}</p>
+              <button mat-raised-button color="primary" (click)="openAddDialog()">
+                <mat-icon>add</mat-icon>{{ 'CUSTOMER.ADD_FIRST' | translate }}</button>
+            </div>
             }
           </td>
         </tr>
       </table>
 
       <!-- Paginator -->
-      <mat-paginator
-        [length]="totalItems"
-        [pageSize]="pageSize"
-        [pageSizeOptions]="[5, 10, 25, 50, 100]"
-        (page)="onPageChange($event)"
-        showFirstLastButtons
-      >
+      <mat-paginator [length]="totalItems" [pageSize]="pageSize" [pageSizeOptions]="[5, 10, 25, 50, 100]"
+        (page)="onPageChange($event)" showFirstLastButtons>
       </mat-paginator>
     </div>
   </div>

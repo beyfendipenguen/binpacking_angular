@@ -1,0 +1,366 @@
+<div class="extra-data-dialog">
+  <div class="dialog-header">
+    <h2 mat-dialog-title>
+      {{ 'CUSTOMER.EXTRA_DATA.TITLE' | translate }}
+    </h2>
+    <button mat-icon-button (click)="onCancel()" class="close-btn">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <!-- Step Indicator -->
+  <div class="step-indicator">
+    <div class="step" [class.active]="currentStep === 1" [class.completed]="currentStep > 1">
+      <div class="step-number">1</div>
+      <div class="step-label">{{ 'CUSTOMER.EXTRA_DATA.SELECT_RELATIONS' | translate }}</div>
+    </div>
+    <div class="step-divider"></div>
+    <div class="step" [class.active]="currentStep === 2">
+      <div class="step-number">2</div>
+      <div class="step-label">{{ 'CUSTOMER.EXTRA_DATA.CONFIGURE_DATA' | translate }}</div>
+    </div>
+  </div>
+
+  <mat-dialog-content class="dialog-content">
+    @if (isLoading) {
+    <div class="loading-container">
+      <mat-spinner diameter="40"></mat-spinner>
+      <p>{{ 'COMMON.LOADING' | translate }}</p>
+    </div>
+    }
+
+    <!-- STEP 1: Relation Selection -->
+    @if (!isLoading && currentStep === 1) {
+    <div class="step-content">
+
+      <!-- Search Bar -->
+      <div class="search-bar">
+        <mat-form-field appearance="outline" class="search-field">
+          <mat-label>{{ 'CUSTOMER.SEARCH' | translate }}</mat-label>
+          <input matInput [formControl]="searchControl" [placeholder]="'CUSTOMER.SEARCH_PLACEHOLDER' | translate" />
+          <mat-icon matPrefix>search</mat-icon>
+          @if (searchControl.value) {
+          <button mat-icon-button matSuffix (click)="clearSearch()">
+            <mat-icon>clear</mat-icon>
+          </button>
+          }
+        </mat-form-field>
+      </div>
+
+      <!-- Selection Header - ← GÜNCELLEME -->
+      <div class="selection-header">
+        <div class="selection-controls">
+          <mat-checkbox [checked]="isAllSelected" [indeterminate]="isIndeterminate" (change)="selectAll()">
+            {{ 'CUSTOMER.EXTRA_DATA.SELECT_ALL_PAGE' | translate }}
+          </mat-checkbox>
+
+          <!-- Select All Mode Buttons - ← EKLE -->
+          <div class="select-all-actions">
+            <button mat-button color="primary" (click)="selectAllMode = 'all'; selectAll()" [disabled]="isLoading">
+              <mat-icon>done_all</mat-icon>
+              {{ 'CUSTOMER.EXTRA_DATA.SELECT_ALL_DATABASE' | translate }}
+            </button>
+
+            @if (selectedRelationIds.length > 0) {
+            <button mat-button color="warn" (click)="clearSelection()">
+              <mat-icon>clear_all</mat-icon>
+              {{ 'CUSTOMER.EXTRA_DATA.CLEAR_SELECTION' | translate }}
+            </button>
+            }
+          </div>
+        </div>
+
+        <span class="selection-count">
+          {{ 'CUSTOMER.EXTRA_DATA.SELECTED_COUNT' | translate: { count: selectedCount, total: totalItems } }}
+        </span>
+      </div>
+
+      <!-- Relations List -->
+      <div class="relations-list">
+        @for (relation of allRelations; track relation.id) {
+        <div class="relation-item" (click)="toggleRelation(relation.id!)"
+          [class.selected]="isRelationSelected(relation.id!)">
+          <mat-checkbox [checked]="isRelationSelected(relation.id!)" (click)="$event.stopPropagation()"
+            (change)="toggleRelation(relation.id!)"></mat-checkbox>
+
+          <div class="relation-info">
+            <div class="relation-main">
+              @if (relation.target_company.logo) {
+              <img [src]="relation.target_company.logo" alt="Logo" class="company-logo" />
+              } @else {
+              <div class="company-logo-placeholder">
+                <mat-icon>business</mat-icon>
+              </div>
+              }
+              <div class="company-details">
+                <span class="company-name">{{ relation.target_company.company_name }}</span>
+                <span class="company-country">{{ relation.target_company.country }}</span>
+              </div>
+            </div>
+
+            <div class="relation-meta">
+              <mat-chip class="relation-type-chip">
+                {{ 'COMPANY_RELATION.TYPE.' + relation.relation_type.toUpperCase() | translate }}
+              </mat-chip>
+              <mat-chip [class]="relation.is_active ? 'status-active' : 'status-inactive'">
+                {{ (relation.is_active ? 'COMMON.ACTIVE' : 'COMMON.PASSIVE') | translate }}
+              </mat-chip>
+            </div>
+          </div>
+        </div>
+        }
+
+        @if (allRelations.length === 0 && !searchControl) {
+        <div class="no-data">
+          <mat-icon>inbox</mat-icon>
+          <p>{{ 'CUSTOMER.EXTRA_DATA.NO_RELATIONS' | translate }}</p>
+        </div>
+        }
+
+        @if (allRelations.length === 0 && searchControl) {
+        <div class="no-data">
+          <mat-icon>search_off</mat-icon>
+          <p>{{ 'COMMON.NO_RESULTS' | translate }}</p>
+          <button mat-button color="primary" (click)="clearSearch()">
+            {{ 'COMMON.CLEAR_SEARCH' | translate }}
+          </button>
+        </div>
+        }
+      </div>
+
+      <!-- Paginator - ← EKLE -->
+      <mat-paginator [length]="totalItems" [pageSize]="pageSize" [pageSizeOptions]="[5, 10, 25, 50, 100]"
+        (page)="onPageChange($event)" showFirstLastButtons>
+      </mat-paginator>
+    </div>
+    }
+    <!-- STEP 2: Configuration -->
+    @if (!isLoading && currentStep === 2) {
+    <div class="step-content">
+
+      <!-- TÜM FORM BİRLEŞTİRİLMİŞ -->
+      <form [formGroup]="updateForm" class="configuration-form">
+
+        <!-- Merge Mode Selection -->
+        <!-- <div class="merge-mode-section">
+          <h3 class="section-title">{{ 'CUSTOMER.EXTRA_DATA.UPDATE_MODE' | translate }}</h3>
+          <mat-radio-group formControlName="merge_mode" class="merge-mode-group">
+            <mat-radio-button value="merge">
+              <div class="radio-content">
+                <strong>{{ 'CUSTOMER.EXTRA_DATA.MERGE_MODE' | translate }}</strong>
+                <span class="radio-description">{{ 'CUSTOMER.EXTRA_DATA.MERGE_MODE_DESC' | translate }}</span>
+              </div>
+            </mat-radio-button>
+            <mat-radio-button value="replace">
+              <div class="radio-content">
+                <strong>{{ 'CUSTOMER.EXTRA_DATA.REPLACE_MODE' | translate }}</strong>
+                <span class="radio-description">{{ 'CUSTOMER.EXTRA_DATA.REPLACE_MODE_DESC' | translate }}</span>
+              </div>
+            </mat-radio-button>
+          </mat-radio-group>
+        </div> -->
+
+        <!-- Standard Fields Section -->
+        <!-- Standard Fields Section - TÜM EXTRADATA ALANLARI -->
+        <div class="standard-fields-section">
+          <h3 class="section-title">{{ 'CUSTOMER.EXTRA_DATA.STANDARD_FIELDS' | translate }}</h3>
+
+          <!-- Regular Fields (number, string, boolean - except special ones) -->
+          <div class="form-fields-grid">
+            @for (field of regularFields; track field.key) {
+
+            <!-- Boolean Fields -->
+            @if (field.type === 'boolean') {
+            <div class="boolean-field-wrapper">
+              <mat-slide-toggle [formControlName]="field.key" color="primary">
+                <div class="field-label-with-icon">
+                  <mat-icon>{{ field.icon }}</mat-icon>
+                  <span>{{ field.label | translate }}</span>
+                </div>
+              </mat-slide-toggle>
+              @if (field.hint) {
+              <p class="field-hint">{{ field.hint | translate }}</p>
+              }
+            </div>
+            }
+
+            <!-- Number & String Fields -->
+            <!-- Number & String Fields -->
+            @if (field.type === 'number' || field.type === 'string') {
+            <mat-form-field appearance="outline">
+              <mat-label>{{ field.label | translate }}</mat-label>
+              <input matInput [type]="field.type === 'number' ? 'number' : 'text'" [formControlName]="field.key"
+                [placeholder]="field.placeholder || ''" />
+              <mat-icon matPrefix>{{ field.icon }}</mat-icon>
+              @if (field.suffix) {
+              <span matSuffix>{{ field.suffix | translate }}</span>
+              }
+
+              <!-- Error Messages - ← EKLE -->
+              @if (updateForm.get(field.key)?.hasError('required') && updateForm.get(field.key)?.touched) {
+              <mat-error>{{ 'GENERIC_TABLE.REQUIRED_FIELD' | translate }}</mat-error>
+              }
+              @if (updateForm.get(field.key)?.hasError('min')) {
+              <mat-error>{{ 'CUSTOMER.MIN_VALUE_1' | translate }}</mat-error>
+              }
+
+              @if (field.hint) {
+              <mat-hint>{{ field.hint | translate }}</mat-hint>
+              }
+            </mat-form-field>
+            }
+
+            }
+          </div>
+
+          <!-- Special Fields (like pallet groups) -->
+          @for (field of specialFields; track field.key) {
+
+          @if (field.key === 'default_pallet_group_id') {
+          <div class="form-row pallet-group-row">
+            <mat-form-field appearance="outline" class="pallet-group-field">
+              <mat-label>{{ field.label | translate }}</mat-label>
+              <mat-select [formControlName]="field.key" [placeholder]="'CUSTOMER.SELECT_PALLET_GROUP' | translate">
+                <mat-option [value]="null">
+                  <span class="empty-option">{{ 'CUSTOMER.NO_PALLET_GROUP' | translate }}</span>
+                </mat-option>
+                @for (group of palletGroups; track group.id) {
+                <mat-option [value]="group.id">
+                  <div class="pallet-group-option">
+                    <span class="group-name">{{ group.name }}</span>
+                    <span class="pallet-count">{{ group.pallet_count }} {{ 'PALLET.PALLET' | translate }}</span>
+                  </div>
+                </mat-option>
+                }
+              </mat-select>
+              <mat-icon matPrefix>{{ field.icon }}</mat-icon>
+              @if (isLoadingPalletGroups) {
+              <mat-spinner matSuffix diameter="20"></mat-spinner>
+              }
+
+              <!-- Error Message - ← EKLE -->
+              @if (updateForm.get(field.key)?.hasError('required') && updateForm.get(field.key)?.touched) {
+              <mat-error>{{ 'GENERIC_TABLE.REQUIRED_FIELD' | translate }}</mat-error>
+              }
+
+              @if (field.hint) {
+              <mat-hint>{{ field.hint | translate }}</mat-hint>
+              }
+            </mat-form-field>
+
+            <button mat-raised-button color="accent" type="button" (click)="navigateToPalletGroups()"
+              [appDisableAuth]="['logistics.add_pallet']" class="add-pallet-group-btn"
+              [matTooltip]="'CUSTOMER.ADD_PALLET_GROUP' | translate">
+              <mat-icon>add</mat-icon>
+              {{ 'CUSTOMER.ADD_PALLET_GROUP' | translate }}
+            </button>
+          </div>
+          }
+
+          }
+        </div>
+      </form>
+
+      <!-- Dynamic Fields (Superuser Only) -->
+      @if (false) {
+      <mat-expansion-panel class="dynamic-fields-panel">
+        <mat-expansion-panel-header>
+          <mat-panel-title>
+            <mat-icon>code</mat-icon>
+            {{ 'CUSTOMER.EXTRA_DATA.CUSTOM_FIELDS' | translate }}
+            @if (dynamicFields.length > 0) {
+            <mat-chip class="field-count-chip">{{ dynamicFields.length }}</mat-chip>
+            }
+          </mat-panel-title>
+        </mat-expansion-panel-header>
+
+        <div class="dynamic-fields-content">
+          <!-- Add New Field Form -->
+          <form [formGroup]="dynamicFieldForm" class="dynamic-field-form">
+            <div class="form-row">
+              <mat-form-field appearance="outline" class="field-key">
+                <mat-label>{{ 'CUSTOMER.EXTRA_DATA.FIELD_KEY' | translate }}</mat-label>
+                <input matInput formControlName="field_key" placeholder="custom_field_name" />
+                <mat-icon matPrefix>label</mat-icon>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="field-type">
+                <mat-label>{{ 'CUSTOMER.EXTRA_DATA.FIELD_TYPE' | translate }}</mat-label>
+                <mat-select formControlName="field_type">
+                  <mat-option value="string">{{ 'CUSTOMER.EXTRA_DATA.TYPE_STRING' | translate }}</mat-option>
+                  <mat-option value="number">{{ 'CUSTOMER.EXTRA_DATA.TYPE_NUMBER' | translate }}</mat-option>
+                  <mat-option value="boolean">{{ 'CUSTOMER.EXTRA_DATA.TYPE_BOOLEAN' | translate }}</mat-option>
+                </mat-select>
+                <mat-icon matPrefix>data_type</mat-icon>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="field-value">
+                <mat-label>{{ 'CUSTOMER.EXTRA_DATA.FIELD_VALUE' | translate }}</mat-label>
+                <input matInput formControlName="field_value" />
+                <mat-icon matPrefix>edit</mat-icon>
+              </mat-form-field>
+
+              <button mat-raised-button color="accent" type="button" (click)="addDynamicField()" class="add-field-btn">
+                <mat-icon>add</mat-icon>
+              </button>
+            </div>
+          </form>
+
+          <!-- Added Fields List -->
+          @if (dynamicFields.length > 0) {
+          <div class="added-fields-list">
+            <h4>{{ 'CUSTOMER.EXTRA_DATA.ADDED_FIELDS' | translate }}</h4>
+            @for (field of dynamicFields; track $index) {
+            <div class="field-item">
+              <div class="field-content">
+                <mat-chip class="type-chip">{{ field.type }}</mat-chip>
+                <span class="field-key">{{ field.key }}</span>
+                <span class="field-separator">=</span>
+                <span class="field-value">{{ getDynamicFieldDisplayValue(field) }}</span>
+              </div>
+              <button mat-icon-button color="warn" (click)="removeDynamicField($index)">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </div>
+            }
+          </div>
+          }
+        </div>
+      </mat-expansion-panel>
+      }
+
+      <!-- Preview -->
+      <div class="preview-section">
+        <h3 class="section-title">{{ 'CUSTOMER.EXTRA_DATA.PREVIEW' | translate }}</h3>
+        <div class="preview-info">
+          <mat-icon>info</mat-icon>
+          <span>{{ 'CUSTOMER.EXTRA_DATA.WILL_UPDATE' | translate: { count: selectedCount } }}</span>
+        </div>
+      </div>
+    </div>
+    }
+  </mat-dialog-content>
+
+  <mat-dialog-actions class="dialog-actions">
+    @if (currentStep === 1) {
+    <button mat-button (click)="onCancel()">{{ 'HEADER.CANCEL' | translate }}</button>
+    <button mat-raised-button color="primary" (click)="nextStep()" [disabled]="selectedCount === 0">
+      {{ 'COMMON.NEXT' | translate }}
+      <mat-icon>arrow_forward</mat-icon>
+    </button>
+    }
+
+    @if (currentStep === 2) {
+    <button mat-button (click)="previousStep()">
+      <mat-icon>arrow_back</mat-icon>
+      {{ 'COMMON.BACK' | translate }}
+    </button>
+    <button mat-raised-button color="primary" (click)="onSave()" [disabled]="isSaving || updateForm.invalid">
+      @if (isSaving) {
+      <mat-spinner diameter="20" class="button-spinner"></mat-spinner>
+      }
+      {{ 'COMMON.SAVE' | translate }}
+    </button>
+    }
+  </mat-dialog-actions>
+</div>

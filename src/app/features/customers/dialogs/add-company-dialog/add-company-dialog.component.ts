@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, Inject } from '@angular/core';
+import { Component, OnInit, inject, Inject, OnDestroy } from '@angular/core';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
@@ -12,8 +12,8 @@ import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { CompanyService } from '../../../services/company.service';
 import { ToastService } from '@app/core/services/toast.service';
 import { Company } from '../../../interfaces/company.interface';
-import { Observable } from 'rxjs';
-import { map, startWith } from 'rxjs/operators';
+import { Observable, Subject, of } from 'rxjs';
+import { map, startWith, debounceTime, distinctUntilChanged, switchMap, catchError, takeUntil } from 'rxjs/operators';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
 export interface CompanyDialogData {
@@ -40,7 +40,7 @@ export interface CompanyDialogData {
   templateUrl: './add-company-dialog.component.html',
   styleUrl: './add-company-dialog.component.scss'
 })
-export class AddCompanyDialogComponent implements OnInit {
+export class AddCompanyDialogComponent implements OnInit, OnDestroy {
 
   private translate = inject(TranslateService);
   private fb = inject(FormBuilder);
@@ -54,10 +54,14 @@ export class AddCompanyDialogComponent implements OnInit {
   // Edit mode için
   selectedCompany: Company | null = null;
   filteredCompanies$!: Observable<Company[]>;
+  isSearching = false; // ← EKLE: Loading state
 
   // Logo preview
   logoPreviewUrl: string | null = null;
   selectedLogoFile: File | null = null;
+
+  // Cleanup - ← EKLE
+  private destroy$ = new Subject<void>();
 
   constructor(
     public dialogRef: MatDialogRef<AddCompanyDialogComponent>,
@@ -70,6 +74,11 @@ export class AddCompanyDialogComponent implements OnInit {
     if (this.data.mode === 'edit') {
       this.setupCompanyAutocomplete();
     }
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   /**
@@ -90,28 +99,40 @@ export class AddCompanyDialogComponent implements OnInit {
   }
 
   /**
-   * Setup company autocomplete for edit mode
+   * Setup company autocomplete with backend search - ← GÜNCELLEME
    */
   private setupCompanyAutocomplete(): void {
     this.filteredCompanies$ = this.form.get('company_search')!.valueChanges.pipe(
       startWith(''),
-      map(value => {
-        const searchValue = typeof value === 'string' ? value : value?.company_name || '';
-        return this._filterCompanies(searchValue);
-      })
-    );
-  }
+      debounceTime(300), // 300ms bekle
+      distinctUntilChanged(), // Sadece değişen değerler
+      switchMap(value => {
+        const searchTerm = typeof value === 'string' ? value : value?.company_name || '';
 
-  /**
-   * Filter companies based on search term
-   */
-  private _filterCompanies(value: string): Company[] {
-    if (!this.data.existingCompanies) return [];
+        // Boş ise veya çok kısa ise arama yapma
+        if (!searchTerm || searchTerm.trim().length < 2) {
+          this.isSearching = false;
+          return of([]);
+        }
 
-    const filterValue = value.toLowerCase();
-    return this.data.existingCompanies.filter(company =>
-      company.company_name.toLowerCase().includes(filterValue) ||
-      company.country.toLowerCase().includes(filterValue)
+        this.isSearching = true;
+
+        // Backend'den ara
+        return this.companyService.getAll({
+          search: searchTerm.trim(),
+          limit: 5 // İlk 5 sonuç
+        }).pipe(
+          map(response => {
+            this.isSearching = false;
+            return response.results || [];
+          }),
+          catchError(error => {
+            this.isSearching = false;
+            return of([]);
+          })
+        );
+      }),
+      takeUntil(this.destroy$)
     );
   }
 
@@ -292,10 +313,9 @@ export class AddCompanyDialogComponent implements OnInit {
     // Hiçbir değişiklik yoksa uyarı ver
     if (!hasNameChanged && !hasCountryChanged && !hasLogoChanged) {
       this.toastService.info(this.translate.instant('CUSTOMER_MESSAGES.NO_CHANGES_MADE'));
+      this.isSaving = false;
       return;
     }
-
-    this.isSaving = true;
 
     const formData = new FormData();
 

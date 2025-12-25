@@ -194,6 +194,7 @@
     "EDIT_COMPANY": "Şirket Düzenle",
     "CUSTOMER_SETTINGS": "Müşteri Ayarları",
     "ALREADY_EXISTS": "Bu müşteri zaten mevcut",
+    "SEARCH_HINT": "En az 2 karakter girin",
     "EXTRA_DATA": {
       "TITLE": "Toplu Extra Data Güncelleme",
       "SELECT_RELATIONS": "İlişkileri Seç",
@@ -224,7 +225,14 @@
       "FIELD_ADDED": "Alan eklendi",
       "FIELD_UPDATED": "Alan güncellendi",
       "FIELD_REMOVED": "Alan kaldırıldı",
-      "INVALID_NUMBER": "Geçersiz sayı formatı"
+      "INVALID_NUMBER": "Geçersiz sayı formatı",
+      "SELECT_ALL_PAGE": "Sayfadakileri Seç",
+      "SELECT_ALL_DATABASE": "Tüm Kayıtları Seç",
+      "CLEAR_SELECTION": "Seçimi Temizle",
+      "ALL_SELECTED": "{{count}} adet kayıt seçildi",
+      "SELECTION_CLEARED": "Seçim temizlendi",
+      "SELECT_ALL_ERROR": "Tüm kayıtlar seçilirken hata oluştu",
+      "SHOW_LOGO": "Palet Etiketinde Logo Göster"
     }
   },
   "CUSTOMER_MESSAGES": {

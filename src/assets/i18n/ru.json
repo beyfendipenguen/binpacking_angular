@@ -195,6 +195,7 @@
     "EDIT_COMPANY": "Редактировать компанию",
     "CUSTOMER_SETTINGS": "Настройки клиента",
     "ALREADY_EXISTS": "Этот клиент уже существует.",
+    "SEARCH_HINT": "Введите не менее 2 символов",
     "EXTRA_DATA": {
       "TITLE": "Массовое обновление Extra Data",
       "SELECT_RELATIONS": "Выбрать связи",
@@ -225,7 +226,14 @@
       "FIELD_ADDED": "Поле добавлено",
       "FIELD_UPDATED": "Поле обновлено",
       "FIELD_REMOVED": "Поле удалено",
-      "INVALID_NUMBER": "Неверный формат числа"
+      "INVALID_NUMBER": "Неверный формат числа",
+      "SELECT_ALL_PAGE": "Выбрать все на странице",
+      "SELECT_ALL_DATABASE": "Выбрать все записи",
+      "CLEAR_SELECTION": "Снять выделение",
+      "ALL_SELECTED": "Выбрано записей: {{count}}",
+      "SELECTION_CLEARED": "Выделение снято",
+      "SELECT_ALL_ERROR": "Ошибка при выборе всех записей",
+      "SHOW_LOGO":"Отображение логотипа на этикетке поддона"
     }
   },
   "CUSTOMER_MESSAGES": {

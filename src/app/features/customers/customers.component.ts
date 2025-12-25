@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, inject } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { CommonModule } from '@angular/common';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
@@ -19,6 +19,10 @@ import { ToastService } from '@app/core/services/toast.service';
 import { CustomerDialogComponent } from './dialogs/customer-dialog/customer-dialog.component';
 import { HasPermissionDirective } from '@app/core/auth/directives/has-permission.directive';
 import { DisableAuthDirective } from "@app/core/auth/directives/disable-auth.directive";
+import { MatMenuModule } from "@angular/material/menu";
+import { ExtraDataDialogComponent } from './dialogs/extra-data-dialog/extra-data-dialog.component';
+import { debounceTime, distinctUntilChanged, Subject } from 'rxjs';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-customers',
@@ -36,11 +40,11 @@ import { DisableAuthDirective } from "@app/core/auth/directives/disable-auth.dir
     MatTooltipModule,
     MatDialogModule,
     TranslateModule,
-    HasPermissionDirective, DisableAuthDirective],
+    HasPermissionDirective, DisableAuthDirective, MatMenuModule, FormsModule],
   templateUrl: './customers.component.html',
   styleUrl: './customers.component.scss'
 })
-export class CustomersComponent implements OnInit {
+export class CustomersComponent implements OnInit, OnDestroy {
 
   private translate = inject(TranslateService);
   private companyRelationService = inject(CompanyRelationService);
@@ -72,8 +76,31 @@ export class CustomersComponent implements OnInit {
   currentSortField = '';
   currentSortDirection = '';
 
+  private searchSubject$ = new Subject<string>();
+  private destroy$ = new Subject<void>();
+
   ngOnInit(): void {
+    this.setupSearchDebounce(); // ← EKLE
     this.loadData();
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  private setupSearchDebounce(): void {
+    this.searchSubject$.pipe(
+      debounceTime(500), // 500ms bekle
+      distinctUntilChanged() // Sadece değişen değerler
+    ).subscribe(searchTerm => {
+      this.searchTerm = searchTerm;
+      this.currentPage = 0;
+      if (this.paginator) {
+        this.paginator.pageIndex = 0;
+      }
+      this.loadData();
+    });
   }
 
   ngAfterViewInit(): void {
@@ -150,7 +177,16 @@ export class CustomersComponent implements OnInit {
    */
   onSearch(event: Event): void {
     const input = event.target as HTMLInputElement;
-    this.searchTerm = input.value;
+    this.searchSubject$.next(input.value); // ← Sadece subject'e emit et
+  }
+
+
+  /**
+   * Clear search
+   */
+  clearSearch(): void {
+    this.searchTerm = '';
+    this.searchSubject$.next(''); // ← Subject'i de temizle
     this.currentPage = 0;
     if (this.paginator) {
       this.paginator.pageIndex = 0;
@@ -159,17 +195,22 @@ export class CustomersComponent implements OnInit {
   }
 
   /**
-   * Clear search
+   * Open dialog to add new customer
    */
-  clearSearch(): void {
-    this.searchTerm = '';
-    this.currentPage = 0;
-    if (this.paginator) {
-      this.paginator.pageIndex = 0;
-    }
-    this.loadData();
-  }
+  openExtraDataDialog(): void {
+    const dialogRef = this.dialog.open(ExtraDataDialogComponent, {
+      width: '900px',
+      maxWidth: '95vw',
+      maxHeight: '90vh',
+      disableClose: true
+    });
 
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result) {
+        this.loadData(); // Refresh table
+      }
+    });
+  }
   /**
    * Open dialog to add new customer
    */

@@ -28,6 +28,7 @@ export interface ExtraData {
   max_pallet_height?: number;
   truck_weight_limit?: number;
   default_pallet_group_id?: string | null;
+  [key: string]: any; // ← BUNU EKLE - Dynamic fields için
 }
 
 export interface CompanyRelationDto {

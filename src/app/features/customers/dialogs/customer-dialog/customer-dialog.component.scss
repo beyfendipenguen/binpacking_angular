@@ -445,6 +445,7 @@ $white: #ffffff;
         padding: 0;
 
         .mdc-notched-outline {
+
           .mdc-notched-outline__leading,
           .mdc-notched-outline__notch,
           .mdc-notched-outline__trailing {
@@ -453,6 +454,7 @@ $white: #ffffff;
         }
 
         &:hover .mdc-notched-outline {
+
           .mdc-notched-outline__leading,
           .mdc-notched-outline__notch,
           .mdc-notched-outline__trailing {
@@ -463,6 +465,7 @@ $white: #ffffff;
 
       &.mat-focused {
         .mat-mdc-text-field-wrapper .mdc-notched-outline {
+
           .mdc-notched-outline__leading,
           .mdc-notched-outline__notch,
           .mdc-notched-outline__trailing {
@@ -474,6 +477,89 @@ $white: #ffffff;
       .mat-mdc-form-field-icon-prefix {
         color: $primary-color;
       }
+    }
+  }
+}
+
+// No results styling
+.no-results {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  color: $text-light;
+  font-style: italic;
+
+  mat-icon {
+    color: $text-light;
+    opacity: 0.5;
+  }
+}
+
+// Form Fields Grid
+.form-fields-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+
+  // Boolean Field Wrapper
+  .boolean-field-wrapper {
+    grid-column: 1 / -1;
+    background-color: rgba($primary-color, 0.03);
+    padding: 16px;
+    border-radius: 8px;
+    border: 1px solid rgba($primary-color, 0.1);
+
+    ::ng-deep .mat-mdc-slide-toggle {
+      .field-label-with-icon {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 500;
+
+        mat-icon {
+          font-size: 20px;
+          width: 20px;
+          height: 20px;
+          color: $primary-color;
+        }
+      }
+    }
+
+    .field-hint {
+      margin: 8px 0 0 32px;
+      font-size: 0.85rem;
+      color: $text-light;
+    }
+  }
+}
+
+// Pallet Group Row - keep existing styles
+.pallet-group-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 16px;
+  align-items: start;
+  margin-top: 16px;
+
+  .add-pallet-group-btn {
+    height: 56px;
+  }
+}
+
+// Responsive
+@media (max-width: 768px) {
+  .form-fields-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .pallet-group-row {
+    grid-template-columns: 1fr;
+
+    .add-pallet-group-btn {
+      width: 100%;
+      height: 48px;
     }
   }
 }

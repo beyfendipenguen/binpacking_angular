@@ -1,4 +1,4 @@
-import { Component, Inject, OnInit, inject } from '@angular/core';
+import { Component, Inject, OnInit, inject, OnDestroy } from '@angular/core';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
@@ -22,17 +22,29 @@ import {
 } from '../../../interfaces/company-relation.interface';
 import { Company } from '../../../interfaces/company.interface';
 import { PalletGroup } from '../../../interfaces/pallet-group.interface';
-import { Observable } from 'rxjs';
 import { map, startWith } from 'rxjs/operators';
 import { AddCompanyDialogComponent, CompanyDialogData } from '../add-company-dialog/add-company-dialog.component';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { PalletGroupDialogComponent } from '@app/features/pallets/pallet-group-dialog/pallet-group-dialog.component';
 import { DisableAuthDirective } from "@app/core/auth/directives/disable-auth.directive";
 import { HasPermissionDirective } from '@app/core/auth/directives/has-permission.directive';
+import { Observable, Subject, of } from 'rxjs'; // ← Subject ve of ekle
+import { debounceTime, distinctUntilChanged, switchMap, catchError, takeUntil } from 'rxjs/operators'; // ← Operatörleri ekle
 
 export interface CustomerDialogData {
   mode: 'create' | 'edit';
   relation?: CompanyRelation;
+}
+interface ExtraDataFieldConfig {
+  key: string;
+  label: string;
+  type: 'number' | 'string' | 'boolean' | 'select';
+  icon: string;
+  placeholder?: string;
+  suffix?: string;
+  hint?: string;
+  validators?: any[];
+  isSpecial?: boolean; // pallet_group_id için
 }
 
 @Component({
@@ -56,7 +68,7 @@ export interface CustomerDialogData {
   templateUrl: './customer-dialog.component.html',
   styleUrl: './customer-dialog.component.scss'
 })
-export class CustomerDialogComponent implements OnInit {
+export class CustomerDialogComponent implements OnInit, OnDestroy {
 
   private translate = inject(TranslateService);
   private fb = inject(FormBuilder);
@@ -71,29 +83,77 @@ export class CustomerDialogComponent implements OnInit {
   relationTypeOptions = RELATION_TYPE_OPTIONS;
 
   // Company autocomplete
-  companies: Company[] = [];
   filteredCompanies$!: Observable<Company[]>;
   selectedCompany: Company | null = null;
-
+  isSearchingCompanies = false; // ← EKLE
   // Pallet Groups
   palletGroups: PalletGroup[] = [];
   isLoadingPalletGroups = false;
+
+  private destroy$ = new Subject<void>();
+
+  extraDataFields: ExtraDataFieldConfig[] = [
+    {
+      key: 'showLogo',
+      label: 'CUSTOMER.EXTRA_DATA.SHOW_LOGO',
+      type: 'boolean',
+      icon: 'image'
+    },
+    {
+      key: 'max_pallet_height',
+      label: 'CUSTOMER.MAX_PALLET_HEIGHT',
+      type: 'number',
+      icon: 'height',
+      placeholder: '2400',
+      suffix: 'DIMENSIONS.MM',
+      validators: [Validators.required, Validators.min(1)]
+    },
+    {
+      key: 'truck_weight_limit',
+      label: 'CUSTOMER.TRUCK_WEIGHT_LIMIT',
+      type: 'number',
+      icon: 'local_shipping',
+      placeholder: '25000',
+      suffix: 'DIMENSIONS.KG',
+      validators: [Validators.required, Validators.min(1)]
+    },
+    {
+      key: 'default_pallet_group_id',
+      label: 'CUSTOMER.DEFAULT_PALLET_GROUP',
+      type: 'select',
+      icon: 'inventory_2',
+      hint: 'CUSTOMER.PALLET_HINT',
+      isSpecial: true
+    }
+  ];
 
   constructor(
     public dialogRef: MatDialogRef<CustomerDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: CustomerDialogData
   ) { }
 
+  get regularExtraDataFields(): ExtraDataFieldConfig[] {
+    return this.extraDataFields.filter(f => !f.isSpecial);
+  }
+
+  get specialExtraDataFields(): ExtraDataFieldConfig[] {
+    return this.extraDataFields.filter(f => f.isSpecial);
+  }
+
   ngOnInit(): void {
     this.initForm();
-    this.loadCompanies();
+    // this.loadCompanies(); // ← BUNU SİL - Artık lazy loading
     this.loadPalletGroups();
     this.setupCompanyAutocomplete();
 
-    // Edit mode ise formu doldur
     if (this.data.mode === 'edit' && this.data.relation) {
       this.populateForm(this.data.relation);
     }
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   /**
@@ -102,47 +162,34 @@ export class CustomerDialogComponent implements OnInit {
   private initForm(): void {
     const defaults = createDefaultCompanyRelation();
 
-    this.form = this.fb.group({
+    const formConfig: any = {
       // Company selection
       target_company: [null, Validators.required],
-      target_company_search: [''], // For autocomplete
+      target_company_search: [''],
 
       // Relation details
       relation_type: [defaults.relation_type, Validators.required],
       is_active: [defaults.is_active],
-      notes: [defaults.notes],
+      notes: [defaults.notes]
+    };
 
-      // Extra data fields
-      is_multi_pallet: [defaults.extra_data?.is_multi_pallet],
-      max_pallet_height: [defaults.extra_data?.max_pallet_height, [Validators.required, Validators.min(1)]],
-      truck_weight_limit: [defaults.extra_data?.truck_weight_limit, [Validators.required, Validators.min(1)]],
-      default_pallet_group_id: [defaults.extra_data?.default_pallet_group_id]
+    // Add extra data fields dynamically - ← EKLE
+    this.extraDataFields.forEach(field => {
+      const defaultValue = field.key === 'default_pallet_group_id'
+        ? defaults.extra_data?.default_pallet_group_id
+        : (defaults.extra_data as any)?.[field.key];
+
+      const validators = field.validators || [];
+      formConfig[field.key] = [defaultValue, validators];
     });
+
+    this.form = this.fb.group(formConfig);
   }
 
   /**
    * Load available companies from existing relations
    */
-  private loadCompanies(): void {
-    this.isLoading = true;
-    this.companyRelationService.getAll({ limit: 1000 }).subscribe({
-      next: (page) => {
-        // Extract unique target companies
-        const companyMap = new Map<string, Company>();
-        page.results.forEach(relation => {
-          if (relation.target_company && relation.target_company.id) {
-            companyMap.set(relation.target_company.id, relation.target_company);
-          }
-        });
-        this.companies = Array.from(companyMap.values());
-        this.isLoading = false;
-      },
-      error: (error) => {
-        this.toastService.error(this.translate.instant('CUSTOMER_MESSAGES.COMPANIES_LOAD_ERROR'));
-        this.isLoading = false;
-      }
-    });
-  }
+
 
   /**
    * Load available pallet groups
@@ -185,21 +232,40 @@ export class CustomerDialogComponent implements OnInit {
   private setupCompanyAutocomplete(): void {
     this.filteredCompanies$ = this.form.get('target_company_search')!.valueChanges.pipe(
       startWith(''),
-      map(value => {
-        const searchValue = typeof value === 'string' ? value : value?.company_name || '';
-        return this._filterCompanies(searchValue);
-      })
-    );
-  }
+      debounceTime(300),
+      distinctUntilChanged(),
+      switchMap(value => {
+        const searchTerm = typeof value === 'string' ? value : value?.company_name || '';
 
-  /**
-   * Filter companies based on search term
-   */
-  private _filterCompanies(value: string): Company[] {
-    const filterValue = value.toLowerCase();
-    return this.companies.filter(company =>
-      company.company_name.toLowerCase().includes(filterValue) ||
-      company.country.toLowerCase().includes(filterValue)
+        if (!searchTerm || searchTerm.trim().length < 2) {
+          this.isSearchingCompanies = false;
+          return of([]);
+        }
+
+        this.isSearchingCompanies = true;
+
+        return this.companyRelationService.getAll({
+          search: searchTerm.trim(),
+          limit: 5
+        }).pipe(
+          map(response => {
+            this.isSearchingCompanies = false;
+            // Extract unique target companies
+            const companyMap = new Map<string, Company>();
+            response.results.forEach(relation => {
+              if (relation.target_company && relation.target_company.id) {
+                companyMap.set(relation.target_company.id, relation.target_company);
+              }
+            });
+            return Array.from(companyMap.values());
+          }),
+          catchError(error => {
+            this.isSearchingCompanies = false;
+            return of([]);
+          })
+        );
+      }),
+      takeUntil(this.destroy$)
     );
   }
 
@@ -224,17 +290,20 @@ export class CustomerDialogComponent implements OnInit {
   private populateForm(relation: CompanyRelation): void {
     this.selectedCompany = relation.target_company;
 
-    this.form.patchValue({
+    const formValues: any = {
       target_company: relation.target_company.id,
       target_company_search: relation.target_company,
       relation_type: relation.relation_type,
       is_active: relation.is_active,
-      notes: relation.notes,
-      is_multi_pallet: relation.extra_data?.is_multi_pallet ?? false,
-      max_pallet_height: relation.extra_data?.max_pallet_height ?? 2400,
-      truck_weight_limit: relation.extra_data?.truck_weight_limit ?? 25000,
-      default_pallet_group_id: relation.extra_data?.default_pallet_group_id ?? null
+      notes: relation.notes
+    };
+
+    // Add extra data fields dynamically - ← EKLE
+    this.extraDataFields.forEach(field => {
+      formValues[field.key] = (relation.extra_data as any)?.[field.key] ?? null;
     });
+
+    this.form.patchValue(formValues);
   }
 
   /**
@@ -250,12 +319,8 @@ export class CustomerDialogComponent implements OnInit {
       } as CompanyDialogData
     });
 
-
     dialogRef.afterClosed().subscribe((newCompany: Company | null) => {
       if (newCompany) {
-        // Add new company to list
-        this.companies.push(newCompany);
-
         // Select the newly created company
         this.selectedCompany = newCompany;
         this.form.patchValue({
@@ -275,18 +340,12 @@ export class CustomerDialogComponent implements OnInit {
       disableClose: true,
       data: {
         mode: 'edit',
-        existingCompanies: this.companies
+        existingCompanies: [] // ← Backend'den arayacak, gerek yok
       } as CompanyDialogData
     });
 
     dialogRef.afterClosed().subscribe((updatedCompany: Company | null) => {
       if (updatedCompany) {
-        // Update company in list
-        const index = this.companies.findIndex(c => c.id === updatedCompany.id);
-        if (index !== -1) {
-          this.companies[index] = updatedCompany;
-        }
-
         // Update selected company if it's the one being edited
         if (this.selectedCompany?.id === updatedCompany.id) {
           this.selectedCompany = updatedCompany;
@@ -320,18 +379,25 @@ export class CustomerDialogComponent implements OnInit {
     this.isSaving = true;
 
     const formValue = this.form.value;
+
+    // Build extra_data dynamically - ← DEĞİŞTİR
+    const extraData: any = {
+      _schema_version: '1.0'
+    };
+
+    this.extraDataFields.forEach(field => {
+      const value = formValue[field.key];
+      if (value !== null && value !== undefined) {
+        extraData[field.key] = value;
+      }
+    });
+
     const payload: CompanyRelationDto = {
       target_company: formValue.target_company,
       relation_type: formValue.relation_type,
       is_active: formValue.is_active,
       notes: formValue.notes || null,
-      extra_data: {
-        _schema_version: '1.0',
-        is_multi_pallet: formValue.is_multi_pallet,
-        max_pallet_height: formValue.max_pallet_height,
-        truck_weight_limit: formValue.truck_weight_limit,
-        default_pallet_group_id: formValue.default_pallet_group_id || null
-      }
+      extra_data: extraData
     };
 
     const request$ = this.data.mode === 'create'

@@ -1,4 +1,4 @@
-<div class="customer-dialog" >
+<div class="customer-dialog">
   <div class="dialog-header">
     <h2 mat-dialog-title>{{ getTitle() }}</h2>
     <button mat-icon-button (click)="onCancel()" class="close-btn">
@@ -25,13 +25,21 @@
             <input type="text" matInput formControlName="target_company_search" [matAutocomplete]="companyAuto"
               [placeholder]="'CUSTOMER.COMPANY_PLACEHOLDER' | translate" />
             <mat-icon matPrefix>business</mat-icon>
-            @if (selectedCompany) {
+
+            <!-- Loading Spinner - ← EKLE -->
+            @if (isSearchingCompanies) {
+            <mat-spinner matSuffix diameter="20"></mat-spinner>
+            }
+
+            <!-- Clear Button - ← Spinner yokken göster -->
+            @if (selectedCompany && !isSearchingCompanies) {
             <button mat-icon-button matSuffix
               (click)="form.patchValue({target_company_search: '', target_company: null}); selectedCompany = null; $event.stopPropagation()"
               type="button">
               <mat-icon>clear</mat-icon>
             </button>
             }
+
             <mat-autocomplete #companyAuto="matAutocomplete" [displayWith]="displayCompanyFn"
               (optionSelected)="onCompanySelected($event.option.value)">
               @for (company of filteredCompanies$ | async; track company.id) {
@@ -42,19 +50,35 @@
                 </div>
               </mat-option>
               }
+
+              <!-- No Results - ← EKLE -->
+              @if ((filteredCompanies$ | async)?.length === 0 && form.get('target_company_search')?.value?.length >= 2
+              && !isSearchingCompanies) {
+              <mat-option disabled>
+                <div class="no-results">
+                  <mat-icon>search_off</mat-icon>
+                  <span>{{ 'COMMON.NO_RESULTS' | translate }}</span>
+                </div>
+              </mat-option>
+              }
             </mat-autocomplete>
+
             @if (form.get('target_company')?.hasError('required') && form.get('target_company')?.touched) {
             <mat-error>{{ 'CUSTOMER.COMPANY_REQUIRED' | translate }}</mat-error>
             }
+
+            <!-- Hint - ← EKLE -->
+            <mat-hint>{{ 'CUSTOMER.SEARCH_HINT' | translate }}</mat-hint>
           </mat-form-field>
 
-          <button mat-raised-button color="accent" type="button" (click)="openAddCompanyDialog()" [appDisableAuth]="['organizations.add_company']"
-            class="add-company-btn" [disabled]="!palletGroups.length">
+          <button mat-raised-button color="accent" type="button" (click)="openAddCompanyDialog()"
+            [appDisableAuth]="['organizations.add_company']" class="add-company-btn">
             <mat-icon>add</mat-icon>
             {{ 'CUSTOMER.NEW_COMPANY' | translate }}
           </button>
-          <button mat-raised-button color="primary" type="button" (click)="openEditCompanyDialog()" [appDisableAuth]="['organizations.change_company']"
-            class="edit-company-btn" [disabled]="!companies.length">
+
+          <button mat-raised-button color="primary" type="button" (click)="openEditCompanyDialog()"
+            [appDisableAuth]="['organizations.change_company']" class="edit-company-btn">
             <mat-icon>edit</mat-icon>
             {{ 'CUSTOMER.EDIT_COMPANY' | translate }}
           </button>
@@ -109,63 +133,88 @@
       <div class="form-section">
         <h3 class="section-title">{{ 'PROFILE.SETTINGS' | translate }}</h3>
 
-        <div class="form-row form-row-2-cols">
-          <mat-form-field appearance="outline">
-            <mat-label>{{ 'CUSTOMER.MAX_PALLET_HEIGHT' | translate }}</mat-label>
-            <input matInput type="number" formControlName="max_pallet_height" placeholder="2400" />
-            <mat-icon matPrefix>height</mat-icon>
-            <span matSuffix>{{ 'DIMENSIONS.MM' | translate }}</span>
-            @if (form.get('max_pallet_height')?.hasError('required') && form.get('max_pallet_height')?.touched) {
-            <mat-error>{{ 'GENERIC_TABLE.REQUIRED_FIELD' | translate }}</mat-error>
-            }
-            @if (form.get('max_pallet_height')?.hasError('min')) {
-            <mat-error>{{ 'CUSTOMER.MIN_VALUE_1' | translate }}</mat-error>
-            }
-          </mat-form-field>
+        <!-- Regular Fields (number, string, boolean - except special ones) -->
+        <div class="form-fields-grid">
+          @for (field of regularExtraDataFields; track field.key) {
 
+          <!-- Boolean Fields -->
+          @if (field.type === 'boolean') {
+          <div class="boolean-field-wrapper">
+            <mat-slide-toggle [formControlName]="field.key" color="primary">
+              <div class="field-label-with-icon">
+                <mat-icon>{{ field.icon }}</mat-icon>
+                <span>{{ field.label | translate }}</span>
+              </div>
+            </mat-slide-toggle>
+            @if (field.hint) {
+            <p class="field-hint">{{ field.hint | translate }}</p>
+            }
+          </div>
+          }
+
+          <!-- Number & String Fields -->
+          @if (field.type === 'number' || field.type === 'string') {
           <mat-form-field appearance="outline">
-            <mat-label>{{ 'CUSTOMER.TRUCK_WEIGHT_LIMIT' | translate }}</mat-label>
-            <input matInput type="number" formControlName="truck_weight_limit" placeholder="25000" />
-            <mat-icon matPrefix>local_shipping</mat-icon>
-            <span matSuffix>{{ 'DIMENSIONS.KG' | translate }}</span>
-            @if (form.get('truck_weight_limit')?.hasError('required') && form.get('truck_weight_limit')?.touched) {
+            <mat-label>{{ field.label | translate }}</mat-label>
+            <input matInput [type]="field.type === 'number' ? 'number' : 'text'" [formControlName]="field.key"
+              [placeholder]="field.placeholder || ''" />
+            <mat-icon matPrefix>{{ field.icon }}</mat-icon>
+            @if (field.suffix) {
+            <span matSuffix>{{ field.suffix | translate }}</span>
+            }
+            @if (form.get(field.key)?.hasError('required') && form.get(field.key)?.touched) {
             <mat-error>{{ 'GENERIC_TABLE.REQUIRED_FIELD' | translate }}</mat-error>
             }
-            @if (form.get('truck_weight_limit')?.hasError('min')) {
+            @if (form.get(field.key)?.hasError('min')) {
             <mat-error>{{ 'CUSTOMER.MIN_VALUE_1' | translate }}</mat-error>
             }
+            @if (field.hint) {
+            <mat-hint>{{ field.hint | translate }}</mat-hint>
+            }
           </mat-form-field>
+          }
+
+          }
         </div>
 
+        <!-- Special Fields (like pallet groups) -->
+        @for (field of specialExtraDataFields; track field.key) {
+
+        @if (field.key === 'default_pallet_group_id') {
         <div class="form-row pallet-group-row">
           <mat-form-field appearance="outline" class="pallet-group-field">
-            <mat-label>{{ 'CUSTOMER.DEFAULT_PALLET_GROUP' | translate }}</mat-label>
-            <mat-select formControlName="default_pallet_group_id"
-              [placeholder]="'CUSTOMER.SELECT_PALLET_GROUP' | translate">
+            <mat-label>{{ field.label | translate }}</mat-label>
+            <mat-select [formControlName]="field.key" [placeholder]="'CUSTOMER.SELECT_PALLET_GROUP' | translate">
               <mat-option [value]="null">
                 <span class="empty-option">{{ 'CUSTOMER.NO_PALLET_GROUP' | translate }}</span>
               </mat-option>
               @for (group of palletGroups; track group.id) {
               <mat-option [value]="group.id">
                 <div class="pallet-group-option">
-                  <span class="group-name">{{ group.name }} </span>
+                  <span class="group-name">{{ group.name }}</span>
                   <span class="pallet-count">{{ group.pallet_count }} {{'PALLET.PALLET' | translate}}</span>
                 </div>
               </mat-option>
               }
             </mat-select>
-            <mat-icon matPrefix>inventory_2</mat-icon>
+            <mat-icon matPrefix>{{ field.icon }}</mat-icon>
             @if (isLoadingPalletGroups) {
             <mat-spinner matSuffix diameter="20"></mat-spinner>
             }
-            <mat-hint>{{ 'CUSTOMER.PALLET_HINT' | translate }}</mat-hint>
+            @if (field.hint) {
+            <mat-hint>{{ field.hint | translate }}</mat-hint>
+            }
           </mat-form-field>
 
           <button mat-raised-button color="accent" type="button" (click)="navigateToPalletGroups()"
-            [appDisableAuth]="['logistics.add_pallet']"
-            class="add-pallet-group-btn" [matTooltip]="'CUSTOMER.NO_PALLET_GROUPS_YET' | translate">
-            <mat-icon>add</mat-icon>{{ 'CUSTOMER.ADD_PALLET_GROUP' | translate }}</button>
+            [appDisableAuth]="['logistics.add_pallet']" class="add-pallet-group-btn"
+            [matTooltip]="'CUSTOMER.ADD_PALLET_GROUP' | translate">
+            <mat-icon>add</mat-icon>{{ 'CUSTOMER.ADD_PALLET_GROUP' | translate }}
+          </button>
         </div>
+        }
+
+        }
       </div>
 
     </form>

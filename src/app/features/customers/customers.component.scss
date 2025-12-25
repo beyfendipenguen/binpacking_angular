@@ -108,6 +108,7 @@ $white: #ffffff;
 
           .mat-mdc-text-field-wrapper {
             .mdc-notched-outline {
+
               .mdc-notched-outline__leading,
               .mdc-notched-outline__notch,
               .mdc-notched-outline__trailing {
@@ -116,6 +117,7 @@ $white: #ffffff;
             }
 
             &:hover .mdc-notched-outline {
+
               .mdc-notched-outline__leading,
               .mdc-notched-outline__notch,
               .mdc-notched-outline__trailing {
@@ -126,6 +128,7 @@ $white: #ffffff;
 
           &.mat-focused {
             .mat-mdc-text-field-wrapper .mdc-notched-outline {
+
               .mdc-notched-outline__leading,
               .mdc-notched-outline__notch,
               .mdc-notched-outline__trailing {

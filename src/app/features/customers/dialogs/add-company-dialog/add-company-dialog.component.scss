@@ -11,11 +11,12 @@ $success-color: #4caf50;
 $error-color: #f44336;
 
 .company-logo-small {
-            width: 32px;
-            border-radius: 4px;
-            object-fit: cover;
-            border: 1px solid $border-color;
-          }
+  width: 32px;
+  border-radius: 4px;
+  object-fit: cover;
+  border: 1px solid $border-color;
+}
+
 .add-company-dialog {
   .dialog-header {
     display: flex;
@@ -98,7 +99,17 @@ $error-color: #f44336;
 
         .company-search-row {
           .company-search-field {
-            width: 100%;
+            ::ng-deep {
+
+              // Spinner styling
+              .mat-mdc-progress-spinner {
+                margin-right: 8px;
+
+                circle {
+                  stroke: $primary-color;
+                }
+              }
+            }
           }
         }
 
@@ -419,6 +430,7 @@ $error-color: #f44336;
 
         .form-row.logo-section {
           .logo-upload-container {
+
             .logo-preview,
             .logo-placeholder {
               width: 120px;
@@ -443,6 +455,7 @@ $error-color: #f44336;
         padding: 0;
 
         .mdc-notched-outline {
+
           .mdc-notched-outline__leading,
           .mdc-notched-outline__notch,
           .mdc-notched-outline__trailing {
@@ -451,6 +464,7 @@ $error-color: #f44336;
         }
 
         &:hover .mdc-notched-outline {
+
           .mdc-notched-outline__leading,
           .mdc-notched-outline__notch,
           .mdc-notched-outline__trailing {
@@ -461,6 +475,7 @@ $error-color: #f44336;
 
       &.mat-focused {
         .mat-mdc-text-field-wrapper .mdc-notched-outline {
+
           .mdc-notched-outline__leading,
           .mdc-notched-outline__notch,
           .mdc-notched-outline__trailing {
@@ -473,5 +488,20 @@ $error-color: #f44336;
         color: $primary-color;
       }
     }
+  }
+}
+
+// No results styling - ← EKLE
+.no-results {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  color: $text-light;
+  font-style: italic;
+
+  mat-icon {
+    color: $text-light;
+    opacity: 0.5;
   }
 }

@@ -195,6 +195,7 @@
     "EDIT_COMPANY": "Edit Company",
     "CUSTOMER_SETTINGS": "Customer Settings",
     "ALREADY_EXISTS": "This customer already exists",
+    "SEARCH_HINT": "Enter at least 2 characters",
     "EXTRA_DATA": {
       "TITLE": "Bulk Extra Data Update",
       "SELECT_RELATIONS": "Select Relations",
@@ -225,7 +226,15 @@
       "FIELD_ADDED": "Field added",
       "FIELD_UPDATED": "Field updated",
       "FIELD_REMOVED": "Field removed",
-      "INVALID_NUMBER": "Invalid number format"
+      "INVALID_NUMBER": "Invalid number format",
+      "SELECT_ALL_PAGE": "Select All on Page",
+      "SELECT_ALL_DATABASE": "Select All Records",
+      "CLEAR_SELECTION": "Clear Selection",
+      "ALL_SELECTED": "{{count}} records selected",
+      "SELECTION_CLEARED": "Selection cleared",
+      "SELECT_ALL_ERROR": "Error selecting all records",
+      "SHOW_LOGO":"Display Logo on Pallet Label"
+
     }
   },
   "CUSTOMER_MESSAGES": {
