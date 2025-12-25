@@ -6,7 +6,7 @@
 
     <!-- Logo kısmı -->
     <div class="logo-container">
-      <img routerLink="/" [src]="companyLogo" class="logo" />
+      <img [src]="companyLogo" class="logo" (click)="onExitClick()"/>
     </div>
 
     <mat-divider></mat-divider>
