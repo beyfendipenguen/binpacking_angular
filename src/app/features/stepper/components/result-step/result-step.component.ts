@@ -181,6 +181,8 @@ export class ResultStepComponent implements OnInit, OnDestroy {
             reportFiles: result.reportFiles
           }));
 
+          this.threeJSComponent.reset();
+          this.threeJSComponent.safeProcessData();
           this.piecesData = result.orderResult;
 
 

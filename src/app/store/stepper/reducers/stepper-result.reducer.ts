@@ -9,7 +9,7 @@ export const stepperResultHandlers = [
     ...state,
     step3State: {
       ...state.step3State,
-      orderResult: orderResult,
+      orderResult: [...orderResult],
       reportFiles: reportFiles,
       isDirty: false
     }

@@ -1,7 +1,6 @@
 import {
   Component,
   ElementRef,
-  Input,
   OnInit,
   OnDestroy,
   OnChanges,
@@ -26,6 +25,9 @@ import { ThreeJSRenderManagerService } from './services/threejs-render-manager.s
 import { ThreeJSComponents, ThreeJSInitializationService } from './services/threejs-initialization.service';
 import { PackagesStateService } from './services/packages-state.service';
 import { PackageData } from '@app/features/interfaces/order-result.interface';
+import { toObservable } from '@angular/core/rxjs-interop';
+import { skip, distinctUntilChanged, takeUntil, Subject } from 'rxjs';
+import { ToastService } from '@app/core/services/toast.service';
 
 
 
@@ -42,10 +44,10 @@ import { PackageData } from '@app/features/interfaces/order-result.interface';
 export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit, OnChanges, OnDestroy {
   @ViewChild('threeContainer', { static: true }) threeContainer!: ElementRef;
 
-  @Input() showHelp: boolean = true;
-  @Input() showWeightDisplay: boolean = true;
-  @Input() weightCalculationDepth: number = 3000;
-
+  showHelp: boolean = true;
+  showWeightDisplay: boolean = true;
+  weightCalculationDepth: number = 3000;
+  private destroy$ = new Subject<void>();
   // Services
   private readonly store = inject(Store<AppState>);
   private readonly renderManager = inject(ThreeJSRenderManagerService);
@@ -54,6 +56,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
   private readonly ngZone = inject(NgZone);
   private readonly translate = inject(TranslateService);
   private readonly packagesStateService = inject(PackagesStateService);
+  private readonly toastService = inject(ToastService);
 
   // Signals
   truckDimension = this.store.selectSignal(selectTruck);
@@ -139,7 +142,6 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
   ngOnInit(): void {
     this.isLoadingModels = true;
     this.isLoadingSignal.set(true);
--
     this.packagesStateService.setOnPackageRemovedCallback((pkg) => {
       this.cleanupMesh(pkg);
     });
@@ -150,6 +152,17 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
         this.renderManager.requestRender();
       }
     });
+    toObservable(this.piecesDataSignal)
+      .pipe(
+        skip(1),
+        distinctUntilChanged(),
+        takeUntil(this.destroy$)
+      )
+      .subscribe((pieces) => {
+        if (this.isViewReady && pieces && pieces.length > 0) {
+          this.safeProcessData();
+        }
+      });
   }
 
   /**
@@ -191,15 +204,11 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
 
   ngOnChanges(changes: SimpleChanges): void {
     if (this.isDestroyed || !this.isViewReady) return;
-
-    if (changes['piecesData'] || changes['truckDimension']) {
-      if (this.scene && this.packagesGroup) {
-        this.safeProcessData();
-      }
-    }
   }
 
   ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
     this.isDestroyed = true;
     this.cleanup();
   }
@@ -380,7 +389,8 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
   // DATA PROCESSING
   // ========================================
 
-  private async safeProcessData(): Promise<void> {
+  public async safeProcessData(): Promise<void> {
+
     if (this.isDestroyed || !this.isViewReady) return;
 
     this.isLoadingData = true;
@@ -392,6 +402,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
 
       this.renderManager.requestRender();
     } catch (error) {
+      this.toastService.error(this.translate.instant('ERROR_PAGE.UNKNOWN_ERROR') );
     } finally {
       this.isLoadingData = false;
       this.isDataLoadingSignal.set(false);
