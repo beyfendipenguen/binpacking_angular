@@ -67,6 +67,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
   deletedPackagesSignal = this.packagesStateService.deletedPackages;
   processedPackagesSignal = this.packagesStateService.processedPackages;
   selectedPackageSignal = this.packagesStateService.selectedPackage;
+  private piecesData$ = toObservable(this.piecesDataSignal);
 
   // Three.js components
   private threeComponents?: ThreeJSComponents;
@@ -142,6 +143,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
   ngOnInit(): void {
     this.isLoadingModels = true;
     this.isLoadingSignal.set(true);
+
     this.packagesStateService.setOnPackageRemovedCallback((pkg) => {
       this.cleanupMesh(pkg);
     });
@@ -152,7 +154,9 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
         this.renderManager.requestRender();
       }
     });
-    toObservable(this.piecesDataSignal)
+
+    // Artık hazır observable'ı kullan
+    this.piecesData$
       .pipe(
         skip(1),
         distinctUntilChanged(),

@@ -509,7 +509,8 @@
     "CONTINUE_WARNING": "If you continue this way, unplaced products will be removed from the order.",
     "CONTINUE_ANYWAY": "Continue anyway.",
     "GO_BACK": "Go back.",
-    "SEARCH_PALLET": "Search pallet..."
+    "SEARCH_PALLET": "Search pallet...",
+    "WEIGHT_LIMIT_EXCEEDED": "⚠️ Weight limit exceeded! Please check the packages."
   },
   "INVOICE_UPLOAD": {
     "ADD_ORDER_DETAIL": "Add Order Detail",

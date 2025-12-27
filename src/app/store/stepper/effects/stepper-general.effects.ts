@@ -45,6 +45,7 @@ export class StepperGeneralEffects {
           ),
           pallets: this.repositoryService.getPalletsByOrder(action.orderId),
           orderResult: this.orderResultService.getByOrderId(action.orderId).pipe(
+            catchError(() => of([])) // Hata olursa boş array döndür
           ),
           files: this.fileService.getAll({ order_id: action.orderId, limit: 30, offset: 0 }).pipe(
             map((response: any) => response.results.map((file: any) => ({
@@ -57,24 +58,35 @@ export class StepperGeneralEffects {
           ),
         }).pipe(
           switchMap(({ order, orderDetails, packages, pallets, orderResult, files }) => {
-
             const filteredFiles = files.filter((file: ReportFile) =>
               file.name.includes(order.name)
             );
-            const cleanedResult = orderResult[0]?.result as PackagePosition[] || [];
-            const orderResultId = orderResult[0].id;
 
-            return [
+            // Base actions - her zaman dispatch edilecek
+            const baseActions = [
               StepperInvoiceUploadActions.saveSuccess({ order }),
               StepperInvoiceUploadActions.upsertManySuccess({ orderDetails }),
               StepperPackageActions.upsertManySuccess({ packages }),
               StepperPackageActions.getPalletsSuccess({ pallets }),
-              StepperResultActions.setOrderResultId({ orderResultId }),
-              StepperResultActions.loadOrderResultSuccess({
-                orderResult: cleanedResult,
-                reportFiles: filteredFiles
-              })
             ];
+
+            // OrderResult varsa ekstra action'ları ekle
+            if (orderResult && orderResult.length > 0 && orderResult[0]) {
+              const cleanedResult = orderResult[0].result as PackagePosition[] || [];
+              const orderResultId = orderResult[0].id;
+
+              return [
+                ...baseActions,
+                StepperResultActions.setOrderResultId({ orderResultId }),
+                StepperResultActions.loadOrderResultSuccess({
+                  orderResult: cleanedResult,
+                  reportFiles: filteredFiles
+                })
+              ];
+            }
+
+            // OrderResult yoksa sadece base action'ları döndür
+            return baseActions;
           }),
           catchError((error) => {
             return of(StepperUiActions.setGlobalError({ error }));
