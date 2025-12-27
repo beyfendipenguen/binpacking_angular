@@ -5,7 +5,7 @@ const envFile = `
 export const environment = {
     production: true,
     name: 'deploy',
-    apiUrl: 'https://api.industricode.com/api',
+    apiUrl: 'https://test-api.industricode.com/api',
     appVersion: '${version}'
 };`;
 
