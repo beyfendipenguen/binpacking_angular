@@ -10,4 +10,4 @@ deployment:
     # 3. Dist klasöründeki build dosyalarını ana dizine kopyala
     # DİKKAT: 'proje-adi' kısmını kendi proje isminle,
     # Angular 17+ ise '/browser' kısmını da ekleyerek güncelle.
-    - /bin/cp -R dist/binpacking_angular/browser/* $DEPLOYPATH
+    - /bin/cp -R dist/binpacking/browser/* $DEPLOYPATH
