@@ -6,26 +6,34 @@ if (!isset($_GET['key']) || $_GET['key'] != $secret_key) {
 }
 
 // AYARLAR
-// 1. Repo yolunu kontrol et (cPaneldekinin aynısı olmalı)
 $repo_path = '/home/ind16aricodecom/repositories/binpacking_angular_test';
-
-// 2. Hangi branch deploy edilecek? (Burası "staging" olmalı)
 $branch_name = 'staging';
 
-// LOGLAMA BAŞLANGICI
-error_log("Deploy tetiklendi. Hedef Branch: " . $branch_name);
+echo "<h2>IndustriCode Deployment Status</h2>";
 
-// KOMUTU HAZIRLA
-$command = "uapi VersionControl update repository_root=$repo_path branch=$branch_name source_repository='{\"remote_name\":\"origin\"}' 2>&1";
+// ---------------------------------------------------------
+// ADIM 1: GIT PULL (Kodları Sunucuya Çek)
+// Modül: VersionControl
+// ---------------------------------------------------------
+$cmd_pull = "uapi VersionControl update repository_root=$repo_path branch=$branch_name source_repository='{\"remote_name\":\"origin\"}' 2>&1";
+exec($cmd_pull, $output_pull);
 
-// ÇALIŞTIR
-exec($command, $output);
-
-// LOGLAMA SONUCU (Burası cevabı error_log'a yazacak)
-error_log("Deploy Sonucu: " . print_r($output, true));
-
-// Ekrana da bas (Manuel tetiklemeler için)
-echo "<pre>";
-print_r($output);
+echo "<h3>Adim 1: Git Pull Islemi</h3><pre>";
+print_r($output_pull);
 echo "</pre>";
+
+// ---------------------------------------------------------
+// ADIM 2: DEPLOY TASKS (Dosyaları Kopyala)
+// Modül: VersionControlDeployment (Burayı düzelttik)
+// Fonksiyon: create
+// ---------------------------------------------------------
+$cmd_deploy = "uapi VersionControlDeployment create repository_root=$repo_path 2>&1";
+exec($cmd_deploy, $output_deploy);
+
+echo "<h3>Adim 2: Dosya Kopyalama (Deployment)</h3><pre>";
+print_r($output_deploy);
+echo "</pre>";
+
+// Loglara da yazalım
+error_log("Deploy Tetiklendi via Script. Pull Ciktisi: " . json_encode($output_pull) . " | Deploy Ciktisi: " . json_encode($output_deploy));
 ?>
