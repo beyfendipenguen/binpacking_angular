@@ -10,7 +10,7 @@ $repo_path = '/home/ind16aricodecom/repositories/binpacking_angular';
 
 error_log("Deploy triggered: " . date("Y-m-d H:i:s"));
 
-$command = "uapi VersionControl update repository_root=$repo_path branch=stepper-refactor source_repository='{\"remote_name\":\"origin\"}' 2>&1";
+$command = "uapi VersionControl update repository_root=$repo_path branch=master source_repository='{\"remote_name\":\"origin\"}' 2>&1";
 
 exec($command, $output);
 
