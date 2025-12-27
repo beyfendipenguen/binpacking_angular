@@ -178,7 +178,6 @@ export const hasRemainingProduct = createSelector(selectStep2State, (state) => s
 export const uiPackageCount = createSelector(selectStep2State, (state) => state.packages.length)
 export const hasPackages = createSelector(selectStep2State, (state) => state.packages.length > 0)
 export const remainingProductCount = createSelector(selectStep2State, (state) => state.remainingProducts.length)
-
 export const allDropListIds = createSelector(selectPackages, (packages) => {
   const ids = ['productsList', 'availablePalletsList'];
 
@@ -254,7 +253,7 @@ export const selectIsPackagesDirty = createSelector(
       return false;
     }
 
-    if (remainingProducts.length > 0){
+    if (remainingProducts.length > 0) {
       return true;
     }
 
@@ -355,7 +354,6 @@ export const selectTotalPackageWeight = createSelector(
   }
 );
 
-
 export const selectRemainingWeight = createSelector(
   selectOrder,
   selectTotalPackageWeight,
@@ -369,6 +367,11 @@ export const selectRemainingWeight = createSelector(
     }
     return 0;
   }
+);
+
+export const selectIsWeightLimitExceeded = createSelector(
+  selectRemainingWeight,
+  (remainingWeight) => remainingWeight < 0
 );
 
 export const selectTotalProductsMeter = createSelector(selectOrderDetails, (orderDetails) => {

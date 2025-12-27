@@ -8,6 +8,7 @@ import {
   OnDestroy,
   WritableSignal,
   computed,
+  effect,
 } from '@angular/core';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import {
@@ -32,7 +33,6 @@ import {
   CdkDragStart,
 } from '@angular/cdk/drag-drop';
 import { CommonModule } from '@angular/common';
-import { UiProduct } from '../ui-models/ui-product.model';
 import { UiPallet } from '../ui-models/ui-pallet.model';
 import { UiPackage } from '../ui-models/ui-package.model';
 import { Store } from '@ngrx/store';
@@ -61,6 +61,7 @@ import {
   selectUiPallets,
   selectIsPackagesDirty,
   AppState,
+  selectIsWeightLimitExceeded,
 } from '@app/store';
 import {
   catchError,
@@ -94,6 +95,7 @@ import { DisableAuthDirective } from '@app/core/auth/directives/disable-auth.dir
 import { Pallet } from '@app/features/interfaces/pallet.interface';
 import { PalletService } from '@app/features/services/pallet.service';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { ActiveToast } from 'ngx-toastr';
 
 @Component({
   selector: 'app-pallet-control',
@@ -140,12 +142,14 @@ export class PalletControlComponent
   // Service injections
   repository: RepositoryService = inject(RepositoryService);
   toastService: ToastService = inject(ToastService);
+  private weightWarningToast: ActiveToast<any> | null = null;
   private readonly store = inject(Store<AppState>);
   private readonly productService = inject(ProductService);
   private readonly palletService = inject(PalletService);
 
   uiPackages = this.store.selectSignal(selectUiPackages);
   remainingProducts = this.store.selectSignal(selectRemainingProducts);
+  isWeightExceeded = this.store.selectSignal(selectIsWeightLimitExceeded);
 
   public orderDetailsIsDirtySignal =
     this.store.selectSignal(selectIsOrderDetailsDirty);
@@ -196,6 +200,26 @@ export class PalletControlComponent
     this.secondFormGroup = this._formBuilder.group({
       secondCtrl: ['', Validators.required],
     });
+    effect(() => {
+      const exceeded = this.isWeightExceeded();
+
+      if (exceeded) {
+        // Limit aşıldı - toast göster (eğer zaten gösterilmiyorsa)
+        if (!this.weightWarningToast) {
+          this.weightWarningToast = this.toastService.stickyError(
+            this.translate.instant('PALLET_CONTROL.WEIGHT_LIMIT_EXCEEDED'),
+            this.translate.instant('COMMON.WARNING')
+          );
+        }
+      } else {
+        // Limit aşılmadı - toast'ı kapat
+        if (this.weightWarningToast) {
+          this.toastService.clear(this.weightWarningToast.toastId);
+          this.weightWarningToast = null;
+        }
+      }
+    });
+
   }
 
   ngOnInit(): void {
