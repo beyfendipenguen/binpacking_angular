@@ -2,7 +2,7 @@
 deployment:
   tasks:
     # 1. Hedef klasör (Domainin root klasörü, genelde public_html)
-    - export DEPLOYPATH=/home/ind16aricodecom/test.industricode.com/
+    - export DEPLOYPATH=/home/ind16aricodecom/public_html/
 
     # 2. Eski dosyaları temizle (İsteğe bağlı, temiz kurulum için)
     - /bin/rm -rf $DEPLOYPATH/*
