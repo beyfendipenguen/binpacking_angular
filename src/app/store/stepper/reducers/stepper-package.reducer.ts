@@ -11,7 +11,6 @@ import { PackageDetailReadDto } from '@app/features/interfaces/package-detail.in
 import { toInteger } from 'lodash';
 import { mapPackageReadDtoListToIUiPackageList } from '@app/features/mappers/package.mapper';
 import { IUiPackage } from '@app/features/stepper/interfaces/ui-interfaces/ui-package.interface';
-import { PackageReadDto } from '@app/features/interfaces/package.interface';
 
 // Helper Functions
 const consolidatePackageDetails = (packageDetails: PackageDetailReadDto[]): PackageDetailReadDto[] => {

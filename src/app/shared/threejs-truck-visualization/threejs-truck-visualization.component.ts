@@ -406,7 +406,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
 
       this.renderManager.requestRender();
     } catch (error) {
-      this.toastService.error(this.translate.instant('ERROR_PAGE.UNKNOWN_ERROR') );
+      this.toastService.error(this.translate.instant('ERROR_PAGE.UNKNOWN_ERROR'));
     } finally {
       this.isLoadingData = false;
       this.isDataLoadingSignal.set(false);
@@ -661,8 +661,85 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     }
   }
 
+  /**
+ * Tüm paketlere gravity uygula - boşlukta kalanları indir
+ */
+  private applyGravityToAllPackages(): void {
+    // Tüm paketleri Z yüksekliğine göre sırala (alttakiler önce işlensin)
+    const sortedPackages = [...this.processedPackagesSignal()].sort((a, b) => a.z - b.z);
+
+    let changed = false;
+
+    for (const pkg of sortedPackages) {
+      const lowestZ = this.findLowestValidZ(pkg);
+
+      if (lowestZ < pkg.z) {
+        pkg.z = lowestZ;
+        if (pkg.mesh) {
+          pkg.mesh.position.y = lowestZ + pkg.height / 2;
+        }
+        changed = true;
+      }
+    }
+
+    if (changed) {
+      this.orderResultChange();
+      this.renderManager.requestRender();
+      this.cdr.detectChanges();
+    }
+  }
+
+  /**
+   * Package için en düşük geçerli Z pozisyonunu bul
+   */
+  private findLowestValidZ(pkg: PackageData): number {
+    let lowestZ = 0; // Ground level
+
+    for (const otherPkg of this.processedPackagesSignal()) {
+      if (otherPkg.pkgId === pkg.pkgId) continue;
+
+      // X ve Y overlap var mı?
+      const xOverlap = pkg.x < otherPkg.x + otherPkg.length &&
+        pkg.x + pkg.length > otherPkg.x;
+      const yOverlap = pkg.y < otherPkg.y + otherPkg.width &&
+        pkg.y + pkg.width > otherPkg.y;
+
+      if (xOverlap && yOverlap) {
+        // Bu package'ın üstünde olmalı
+        const potentialZ = otherPkg.z + otherPkg.height;
+        lowestZ = Math.max(lowestZ, potentialZ);
+      }
+    }
+
+    return lowestZ;
+  }
+
   private handleWheel(event: WheelEvent): void {
     event.preventDefault();
+
+    // ✅ Shift + Scroll = Z-axis hareket (drag ederken)
+    if (this.isDragging && this.draggedPackage && event.shiftKey) {
+      const zStep = 100; // Her scroll'da 100mm
+      const delta = event.deltaY > 0 ? -zStep : zStep; // Ters yön (doğal hissetmesi için)
+
+      const newZ = Math.max(0, this.draggedPackage.z + delta);
+      const truckHeight = this.truckDimension()[2];
+
+      // Truck height kontrolü
+      if (newZ + this.draggedPackage.height <= truckHeight) {
+        this.draggedPackage.z = newZ;
+
+        if (this.draggedPackage.mesh) {
+          this.draggedPackage.mesh.position.y = newZ + this.draggedPackage.height / 2;
+        }
+
+        this.orderResultChange();
+        this.renderManager.requestRender();
+      }
+      return;
+    }
+
+    // Normal zoom (mevcut kod)
     const zoomSpeed = 1;
     const delta = event.deltaY > 0 ? 1 : -1;
     const newZoom = Math.max(this.minZoom, Math.min(this.maxZoom, this.zoomLevel + delta * zoomSpeed));
@@ -812,10 +889,10 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     if (packageData.mesh) {
       this.raycaster.setFromCamera(this.mouse, this.camera);
 
-      const packageY = packageData.mesh.position.y;
+      // ✅ Her zaman ground level'da plane
       this.dragPlane.setFromNormalAndCoplanarPoint(
         new THREE.Vector3(0, 1, 0),
-        new THREE.Vector3(0, packageY, 0)
+        new THREE.Vector3(0, 0, 0)
       );
 
       const intersectionPoint = new THREE.Vector3();
@@ -864,13 +941,14 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
         const testPosition = {
           x: snappedPosition.x - pkg.length / 2,
           y: snappedPosition.z - pkg.width / 2,
-          z: pkg.z
+          z: snappedPosition.y - pkg.height / 2  // ✅ Z pozisyonu mesh'ten al
         };
 
         if (!this.checkCollisionPrecise(pkg, testPosition)) {
           pkg.mesh?.position.copy(snappedPosition);
           pkg.x = testPosition.x;
           pkg.y = testPosition.y;
+          pkg.z = testPosition.z; // ✅ Z'yi güncelle
           this.lastDragPosition.copy(snappedPosition);
           this.clearCollisionWarning();
           this.orderResultChange();
@@ -899,6 +977,9 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     if (this.selectedPackageSignal()) {
       this.highlightSelectedPackage();
     }
+
+    // ✅ Gravity uygula
+    this.applyGravityToAllPackages();
 
     this.renderManager.requestRender();
   }
@@ -952,43 +1033,74 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     const pkgPos = {
       x: targetPos.x - pkg.length / 2,
       y: targetPos.z - pkg.width / 2,
-      z: pkg.z
+      z: 0  // ✅ Her zaman ground'dan başla
     };
 
     let snappedX = pkgPos.x;
     let snappedY = pkgPos.y;
+    let snappedZ = 0; // Default ground level
 
+    // ✅ 1. ADIM: Horizontal snap (X ve Y)
     for (const otherPkg of this.processedPackagesSignal()) {
       if (otherPkg.pkgId === pkg.pkgId || !otherPkg.mesh) continue;
 
       // X-axis snapping
       const distToLeft = Math.abs(pkgPos.x - (otherPkg.x + otherPkg.length));
-      if (distToLeft < snapThreshold && distToLeft < Math.abs(pkgPos.x - otherPkg.x)) {
+      if (distToLeft < snapThreshold) {
         snappedX = otherPkg.x + otherPkg.length;
       }
 
       const distToRight = Math.abs((pkgPos.x + pkg.length) - otherPkg.x);
-      if (distToRight < snapThreshold && distToRight < distToLeft) {
+      if (distToRight < snapThreshold) {
         snappedX = otherPkg.x - pkg.length;
       }
 
       // Y-axis snapping
       const distToFront = Math.abs(pkgPos.y - (otherPkg.y + otherPkg.width));
-      if (distToFront < snapThreshold && distToFront < Math.abs(pkgPos.y - otherPkg.y)) {
+      if (distToFront < snapThreshold) {
         snappedY = otherPkg.y + otherPkg.width;
       }
 
       const distToBack = Math.abs((pkgPos.y + pkg.width) - otherPkg.y);
-      if (distToBack < snapThreshold && distToBack < distToFront) {
+      if (distToBack < snapThreshold) {
         snappedY = otherPkg.y - pkg.width;
       }
     }
 
+    // ✅ 2. ADIM: Bu X,Y pozisyonunda altında package var mı bak
+    const truckHeight = this.truckDimension()[2];
+    let maxZBelow = 0; // Ground level
+
+    for (const otherPkg of this.processedPackagesSignal()) {
+      if (otherPkg.pkgId === pkg.pkgId || !otherPkg.mesh) continue;
+
+      // X ve Y overlap var mı?
+      const xOverlap = snappedX < otherPkg.x + otherPkg.length &&
+        snappedX + pkg.length > otherPkg.x;
+      const yOverlap = snappedY < otherPkg.y + otherPkg.width &&
+        snappedY + pkg.width > otherPkg.y;
+
+      if (xOverlap && yOverlap) {
+        // Bu package'ın üstüne konabilir
+        const potentialZ = otherPkg.z + otherPkg.height;
+
+        // Truck height'ı aşmıyor mu kontrol et
+        if (potentialZ + pkg.height <= truckHeight) {
+          // En yüksek olanı bul (cascade stacking)
+          maxZBelow = Math.max(maxZBelow, potentialZ);
+        }
+      }
+    }
+
+    snappedZ = maxZBelow;
+
     snappedPos.x = snappedX + pkg.length / 2;
     snappedPos.z = snappedY + pkg.width / 2;
+    snappedPos.y = snappedZ + pkg.height / 2; // Mesh Y position
 
     return snappedPos;
   }
+
 
   // ========================================
   // PACKAGE SELECTION & HIGHLIGHTS
@@ -1152,6 +1264,10 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
       this.packagesStateService.moveToDeleted(deletedPackage.pkgId);
       this.store.dispatch(StepperResultActions.changeDeletedPackageIsRemaining({ packageIds: [deletedPackage.pkgId] }))
       this.packagesStateService.clearSelection();
+
+      // ✅ Gravity uygula
+      this.applyGravityToAllPackages();
+
       this.orderResultChange();
     }
   }
@@ -1251,28 +1367,63 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     }
   }
 
+  /**
+ * 3D space'te geçerli pozisyon bul
+ * Öncelik: ground level → 1. kat → 2. kat → ...
+ */
   private findValidPosition(packageData: PackageData): { x: number, y: number, z: number } | null {
-    if (!this.checkCollisionPrecise(packageData, {
-      x: packageData.x,
-      y: packageData.y,
-      z: packageData.z
-    })) {
-      return { x: packageData.x, y: packageData.y, z: packageData.z };
-    }
-
     const truckDims = this.truckDimension();
     const stepSize = 100;
 
-    for (let x = 0; x <= truckDims[0] - packageData.length; x += stepSize) {
-      for (let y = 0; y <= truckDims[1] - packageData.width; y += stepSize) {
-        const testPosition = { x, y, z: 0 };
-        if (!this.checkCollisionPrecise(packageData, testPosition)) {
-          return testPosition;
+    // ✅ Z seviyelerine göre önceliklendir (ground level önce)
+    const maxZ = truckDims[2] - packageData.height;
+
+    for (let z = 0; z <= maxZ; z += stepSize) {
+      for (let x = 0; x <= truckDims[0] - packageData.length; x += stepSize) {
+        for (let y = 0; y <= truckDims[1] - packageData.width; y += stepSize) {
+          const testPosition = { x, y, z };
+
+          // ✅ Support kontrolü - z > 0 ise altında destek olmalı
+          if (z > 0 && !this.hasSupport(packageData, testPosition)) {
+            continue;
+          }
+
+          if (!this.checkCollisionPrecise(packageData, testPosition)) {
+            return testPosition;
+          }
         }
       }
     }
 
     return null;
+  }
+
+  /**
+   * Package'ın altında destek var mı kontrol et
+   */
+  private hasSupport(pkg: PackageData, pos: { x: number, y: number, z: number }): boolean {
+    // Ground level ise her zaman destekli
+    if (pos.z === 0) return true;
+
+    const supportThreshold = 10; // 10mm tolerance
+
+    // Altında package var mı kontrol et
+    for (const otherPkg of this.processedPackagesSignal()) {
+      // X ve Y overlap var mı?
+      const xOverlap = pos.x < otherPkg.x + otherPkg.length &&
+        pos.x + pkg.length > otherPkg.x;
+      const yOverlap = pos.y < otherPkg.y + otherPkg.width &&
+        pos.y + pkg.width > otherPkg.y;
+
+      // Tam altında mı? (package'ın üst yüzeyi bu package'ın alt yüzeyine yakın)
+      const isDirectlyBelow = Math.abs((otherPkg.z + otherPkg.height) - pos.z) < supportThreshold;
+
+      if (xOverlap && yOverlap && isDirectlyBelow) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   // ========================================
@@ -1529,7 +1680,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
    * - State'leri ve signals'ları sıfırlar
    * - Store'u günceller
    */
-  reset(): void {
+  public reset(): void {
 
     if (this.isDragging) {
       this.cancelDragging();
