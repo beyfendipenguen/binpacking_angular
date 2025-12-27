@@ -1,0 +1,13 @@
+---
+deployment:
+  tasks:
+    # 1. Hedef klasör (Domainin root klasörü, genelde public_html)
+    - export DEPLOYPATH=/home/ind16aricodecom/test.industricode.com/
+
+    # 2. Eski dosyaları temizle (İsteğe bağlı, temiz kurulum için)
+    - /bin/rm -rf $DEPLOYPATH/*
+
+    # 3. Dist klasöründeki build dosyalarını ana dizine kopyala
+    # DİKKAT: 'proje-adi' kısmını kendi proje isminle,
+    # Angular 17+ ise '/browser' kısmını da ekleyerek güncelle.
+    - /bin/cp -R dist/binpacking_angular/browser/* $DEPLOYPATH
