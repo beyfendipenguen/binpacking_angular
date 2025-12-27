@@ -69,10 +69,10 @@
     }
 
     <!-- ENHANCED: ThreeJS Truck Visualization Component with NEW dataChanged event -->
-    @if (hasResultsSignal() && !hasThreeJSError) {
-    <app-threejs-truck-visualization #threeJSComponent (error)="onThreeJSError($event)">
+
+    <app-threejs-truck-visualization #threeJSComponent (error)="onThreeJSError($event)" [style.display]="hasResultsSignal() && !hasThreeJSError ? 'block' : 'none'">
     </app-threejs-truck-visualization>
-    }
+
 
     <!-- Enhanced Three.js Error Display -->
     @if (hasThreeJSError) {

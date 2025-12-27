@@ -17,7 +17,7 @@ export const StepperPackageActions = createActionGroup({
     'Get Pallets': emptyProps(),
     'Get Pallets Success': props<{ pallets: UiPallet[] }>(),
     'Pallet Control Submit': emptyProps(),
-    'Add Pallet To Available': props<{pallet: UiPallet}>(),
+    'Add Pallet To Available': props<{ pallet: UiPallet }>(),
     // Paket Hesaplama
     'Calculate Package Detail': emptyProps(),
     'Calculate Package Detail Success': props<{ packages: PackageReadDto[] }>(),
