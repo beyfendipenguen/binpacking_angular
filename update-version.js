@@ -10,4 +10,4 @@ export const environment = {
 };`;
 
 fs.writeFileSync('./src/environments/environment.prod.ts', envFile);
-console.log('Build versiyonu güncellendi: ' + version);
+console.log('Build versiyonu güncellendi:  ' + version);
