@@ -1,6 +1,6 @@
 ---
 deployment:
   tasks:
-    - export DEPLOYPATH=/home/ind16aricodecom/test.industricode.com/
+    - export DEPLOYPATH=/home/ind16aricodecom/public_html/
     - /bin/rm -rf $DEPLOYPATH/*
     - /bin/cp -R dist/binpacking/browser/* $DEPLOYPATH
