@@ -259,9 +259,10 @@
     "NO_CHANGES_MADE": "No changes were made"
   },
   "DIMENSIONS": {
-    "PRODUCT_NAME": "Product Name",
-    "PRODUCT_CODE": "Product Code",
-    "PRODUCT_TYPE": "Product Type",
+    "PRODUCT_NAME": "Name",
+    "PRODUCT_SHORT_NAME": "Short Name",
+    "PRODUCT_CODE": "Code",
+    "PRODUCT_TYPE": "Type",
     "WIDTH": "Width",
     "HEIGHT": "Height",
     "DEPTH": "Depth",
@@ -555,9 +556,10 @@
     "PRODUCTS_COUNT": "products",
     "TEMPLATE_DOWNLOAD_ERROR": "Template could not be downloaded",
     "TABLE": {
-      "PRODUCT_NAME": "Product Name",
-      "PRODUCT_TYPE": "Product Type",
-      "PRODUCT_CODE": "Product Code",
+      "PRODUCT_NAME": "Name",
+      "PRODUCT_SHORT_NAME": "Short Name",
+      "PRODUCT_TYPE": "Type",
+      "PRODUCT_CODE": "Code",
       "WIDTH": "Width",
       "DEPTH": "Depth",
       "COUNT": "Count"
