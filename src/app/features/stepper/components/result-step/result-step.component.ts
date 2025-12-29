@@ -94,6 +94,7 @@ export class ResultStepComponent implements OnInit, OnDestroy {
   /**
    * Effect: Auto-open file after save
    */
+
   private fileOpenEffect = effect(() => {
     const isDirty = this.isDirtySignal();
     // Store'daki güncel dosya listesini al
