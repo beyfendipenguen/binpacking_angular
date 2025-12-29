@@ -68,8 +68,8 @@
               " disableRipple>
             <mat-icon [class.rotated]="sortAscending()">sort</mat-icon>
           </button>
-          <button mat-icon-button class="header-action-button"
-            [matTooltip]="'PALLET_CONTROL.MERGE' | translate" (click)="merge()" disableRipple>
+          <button mat-icon-button class="header-action-button" [matTooltip]="'PALLET_CONTROL.MERGE' | translate"
+            (click)="merge()" disableRipple>
             <mat-icon>merge</mat-icon>
           </button>
         </div>
@@ -196,7 +196,7 @@
           </div>
 
           <!-- Palet İstatistikleri - Aynı satırda -->
-          <div class="pallet-stats-inline">
+          <!-- <div class="pallet-stats-inline">
             <div class="stat-item heaviest">
               <mat-icon>fitness_center</mat-icon>
               <div class="stat-info">
@@ -220,7 +220,7 @@
                 <span class="stat-value">{{ averagePalletWeight() }} kg</span>
               </div>
             </div>
-          </div>
+          </div> -->
         </div>
 
         <button mat-button class="clear-button" (click)="removeAllPackage()"
@@ -291,15 +291,14 @@
                     <span class="product-count">{{ packageDetail.count }} {{'DIMENSIONS.QUANTITY' | translate}}</span>
                   </div>
                   <div class="button-container">
-                    <button mat-icon-button class="action-button" (click)="reducePackageDetail(packageDetail.id)" disableRipple>
+                    <button class="segment-button segment-left" (click)="reducePackageDetail(packageDetail.id)">
                       <mat-icon>remove</mat-icon>
                     </button>
-                    <button mat-icon-button class="action-button" (click)="addPackageDetail(packageDetail.id)" disableRipple>
+                    <button class="segment-button segment-middle" (click)="addPackageDetail(packageDetail.id)">
                       <mat-icon>add</mat-icon>
                     </button>
-                    <button mat-icon-button class="action-button"
-                      (click)="removePackageDetailFromPackage(package.id, j)"
-                      [matTooltip]="'PALLET_CONTROL.REMOVE_PRODUCT'| translate" disableRipple>
+                    <button class="segment-button segment-right" (click)="removePackageDetailFromPackage(package.id, j)"
+                      [matTooltip]="'PALLET_CONTROL.REMOVE_PRODUCT'| translate">
                       <mat-icon>close</mat-icon>
                     </button>
                   </div>
