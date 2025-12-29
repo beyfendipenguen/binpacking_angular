@@ -259,6 +259,7 @@
   },
   "DIMENSIONS": {
     "PRODUCT_NAME": "Название продукта",
+    "PRODUCT_SHORT_NAME": "Краткое название",
     "PRODUCT_CODE": "Код продукта",
     "PRODUCT_TYPE": "Тип продукта",
     "WIDTH": "Ширина",
@@ -555,6 +556,7 @@
     "TEMPLATE_DOWNLOAD_ERROR": "Не удалось загрузить шаблон",
     "TABLE": {
       "PRODUCT_NAME": "Название продукта",
+      "PRODUCT_SHORT_NAME": "Краткое название",
       "PRODUCT_TYPE": "Тип продукта",
       "PRODUCT_CODE": "Код продукта",
       "WIDTH": "Ширина",

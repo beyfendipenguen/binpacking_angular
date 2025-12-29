@@ -257,9 +257,10 @@
     "NO_CHANGES_MADE": "Hiçbir değişiklik yapılmadı"
   },
   "DIMENSIONS": {
-    "PRODUCT_NAME": "Ürün Adı",
-    "PRODUCT_CODE": "Ürün Kodu",
-    "PRODUCT_TYPE": "Ürün Tipi",
+    "PRODUCT_NAME": "Ad",
+    "PRODUCT_SHORT_NAME": "Kısa Ad",
+    "PRODUCT_CODE": "Kod",
+    "PRODUCT_TYPE": "Tip",
     "WIDTH": "Genişlik",
     "HEIGHT": "Yükseklik",
     "DEPTH": "Derinlik",
@@ -553,9 +554,10 @@
     "PRODUCTS_COUNT": "adet ürün",
     "TEMPLATE_DOWNLOAD_ERROR": "Şablon indirilemedi",
     "TABLE": {
-      "PRODUCT_NAME": "Ürün Adı",
-      "PRODUCT_TYPE": "Ürün Tipi",
-      "PRODUCT_CODE": "Ürün Kodu",
+      "PRODUCT_NAME": "Ad",
+      "PRODUCT_SHORT_NAME": "Kısa Ad",
+      "PRODUCT_TYPE": "Tip",
+      "PRODUCT_CODE": "Kod",
       "WIDTH": "Genişlik",
       "DEPTH": "Derinlik",
       "COUNT": "Adet"
