@@ -50,7 +50,6 @@ export class ResultStepComponent implements OnInit, OnDestroy {
   private translate = inject(TranslateService);
   @ViewChild('threeJSComponent') threeJSComponent!: ThreeJSTruckVisualizationComponent;
   @Output() shipmentCompleted = new EventEmitter<void>();
-
   // Services
   private readonly destroy$ = new Subject<void>();
   private readonly store = inject(Store<AppState>);
@@ -181,8 +180,6 @@ export class ResultStepComponent implements OnInit, OnDestroy {
             reportFiles: result.reportFiles
           }));
 
-          this.threeJSComponent.reset();
-          this.threeJSComponent.safeProcessData();
           this.piecesData = result.orderResult;
 
 
@@ -191,8 +188,6 @@ export class ResultStepComponent implements OnInit, OnDestroy {
           if (this.piecesData.find(pkg => pkg[0] === -1 && pkg[1] === -1 && pkg[2] === -1)) {
             this.store.dispatch(StepperResultActions.setIsDirty({ isDirty: true }));
           }
-
-          this.cdr.markForCheck();
         },
         error: (error) => {
           this.store.dispatch(StepperUiActions.setGlobalError({
