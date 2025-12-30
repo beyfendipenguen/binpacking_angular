@@ -40,12 +40,13 @@ export class ProductsComponent implements OnInit {
   // API'den dönen verilerde product_type, dimension ve weight_type doğrudan
   // nesne olarak döndüğü için kolonları değişiyoruz
   displayedColumns: string[] = [
+    'type_name',
     'name',
-    'product_type.code',
     'product_type.type',
+    'product_type.code',
     'dimension.width',
-    'dimension.height',
     'dimension.depth',
+    'dimension.height',
     'weight_type.std',
     'weight_type.eco',
     'weight_type.pre',
@@ -71,9 +72,10 @@ export class ProductsComponent implements OnInit {
 
   // İlişkili nesne sütunları için özel görüntüleme ayarları
   nestedDisplayColumns: { [key: string]: string } = {
-    'name': this.translate.instant('DIMENSIONS.PRODUCT_NAME'),
-    'product_type.code': this.translate.instant('DIMENSIONS.PRODUCT_CODE'),
+    'type_name': this.translate.instant('DIMENSIONS.PRODUCT_NAME'),
+    'name': this.translate.instant('DIMENSIONS.PRODUCT_SHORT_NAME'),
     'product_type.type': this.translate.instant('DIMENSIONS.PRODUCT_TYPE'),
+    'product_type.code': this.translate.instant('DIMENSIONS.PRODUCT_CODE'),
     'dimension.width': this.translate.instant('DIMENSIONS.WIDTH'),
     'dimension.height': this.translate.instant('DIMENSIONS.HEIGHT'),
     'dimension.depth': this.translate.instant('DIMENSIONS.DEPTH'),

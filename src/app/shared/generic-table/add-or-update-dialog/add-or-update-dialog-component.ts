@@ -271,9 +271,25 @@ export class AddOrUpdateDialogComponent implements OnInit {
    * Belirli alanları form oluşturma sürecinden hariç tutmak için kullanılır
    */
   private shouldExcludeField(key: string): boolean {
-    const excludedFields = ['id', 'createdAt', 'updatedAt', 'actions'];
-    return excludedFields.includes(key);
+  // System alanları ve actions
+  const excludedFields = [
+    'id',
+    'created_at',
+    'updated_at',
+    'created_by',
+    'updated_by',
+    'actions'
+  ];
+
+  // Key'in kendisi excluded mi?
+  if (excludedFields.includes(key)) {
+    return true;
   }
+
+  // Nested key'in son kısmı excluded mi? (örn: 'user.created_at')
+  const lastPart = key.split('.').pop() || '';
+  return excludedFields.includes(lastPart);
+}
 
   /**
    * Anahtar adını kullanıcı dostu bir etikete dönüştürür
