@@ -92,14 +92,19 @@
           <span class="dashboard-label">{{ 'INVOICE_UPLOAD.CUSTOMER' | translate }}</span>
           <div class="dashboard-value-container">
             <mat-form-field class="edit-field" appearance="outline">
-              <mat-select [value]="orderSignal()?.company_relation" (selectionChange)="onCompanyChange($event.value)"
-                [placeholder]="'INVOICE_UPLOAD.SELECT_CUSTOMER' | translate" [compareWith]="compareCompanies" required>
-                @for (company of targetCompanies; track company.id) {
+              <input matInput type="text" [formControl]="companySearchControl" [matAutocomplete]="autoCompany"
+                [placeholder]="'INVOICE_UPLOAD.SELECT_CUSTOMER' | translate">
+              <mat-autocomplete #autoCompany="matAutocomplete" [displayWith]="displayCompanyName"
+                (optionSelected)="onCompanyChange($event.option.value)">
+                @for (company of filteredCompanies(); track company.id) {
                 <mat-option [value]="company">
-                  {{ company.target_company.company_name }} </mat-option>}
-              </mat-select>
+                  {{ company.target_company.company_name }}
+                </mat-option>
+                }
+              </mat-autocomplete>
               @if(!orderSignal()?.company_relation){
-              <mat-error>{{ 'INVOICE_UPLOAD.CUSTOMER_REQUIRED' | translate }}</mat-error>}
+              <mat-error>{{ 'INVOICE_UPLOAD.CUSTOMER_REQUIRED' | translate }}</mat-error>
+              }
             </mat-form-field>
           </div>
         </div>
@@ -247,7 +252,8 @@
     </div>
   </div>
   <!-- Navigation Controls -->
-  <button mat-button class="next-button" (click)="submit()" [disabled]="!orderSignal() || !isFormValid()" [appDisableAuth]="['orders.add_orderdetail']">
+  <button mat-button class="next-button" (click)="submit()" [disabled]="!orderSignal() || !isFormValid()"
+    [appDisableAuth]="['orders.add_orderdetail']">
     <mat-icon>arrow_forward</mat-icon>
     <span>{{(isOrderDetailsDirtySignal() || isOrderDirtySignal() ? 'COMMON.SAVE' : 'COMMON.NEXT') | translate}}</span>
   </button>

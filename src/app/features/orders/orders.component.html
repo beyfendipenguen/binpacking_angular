@@ -27,7 +27,7 @@
       (cellButtonClick)="onCellButtonClick($event)" (rowClick)="onRowClick($event)"
       [deletePermission]="['orders.delete_order']" [addPermission]="['orders.add_order']"
       [updatePermission]="['orders.change_order']"
-      [columnPermissions]="{'created_at': ['access_control.view_created'],'created_by': ['access_control.view_created']}">
+      [columnPermissions]="{'created_at': ['access_control.view_audited_fields'],'created_by': ['access_control.view_audited_fields']}">
     </app-generic-table>
   </div>
 
