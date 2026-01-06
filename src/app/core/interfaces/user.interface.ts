@@ -1,5 +1,5 @@
 import { Company } from "@app/features/interfaces/company.interface";
-import { PermissionType } from "../auth/permission.interface";
+import { PermissionType } from "./permission.interface";
 
 export interface User {
   password: string;

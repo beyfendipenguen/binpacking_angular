@@ -46,11 +46,11 @@ const NAV_LIST_ITEM: INavListItem[] = [
         title: 'CUSTOMER.TITLE',
         icon: 'assignment_ind'
       },
-      // {
-      //   routerLink: ['/permissions'],
-      //   title: 'MENU.PERMISSION_MANAGEMENT',
-      //   icon: 'lock_person'
-      // },
+      {
+        routerLink: ['/permissions'],
+        title: 'MENU.PERMISSION_MANAGEMENT',
+        icon: 'lock_person'
+      },
     ]
   }
 ];

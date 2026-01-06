@@ -30,6 +30,7 @@ import { STORE_CONFIG, DEVTOOLS_CONFIG, metaReducers } from './ngrx.config';
 import { loadingInterceptor } from './shared/loading/loading.interceptor';
 import { LanguageService } from './core/services/language.service';
 import { VersionCheckService } from './core/services/version-check.service';
+import { languageInterceptor } from './core/interceptors/language.interceptor';
 
 export function checkVersion() {
   const versionCheckService = inject(VersionCheckService);
@@ -84,7 +85,8 @@ export const appConfig: ApplicationConfig = {
     provideHttpClient(
       withInterceptors([
         AuthInterceptor,
-        loadingInterceptor
+        loadingInterceptor,
+        languageInterceptor
       ])
     ),
     provideAnimations(),

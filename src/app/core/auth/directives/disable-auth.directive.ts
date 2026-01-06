@@ -1,5 +1,5 @@
 import { Directive, ElementRef, inject, Input, isDevMode, OnChanges, Renderer2, SimpleChanges } from '@angular/core';
-import { PERMISSION_FORMAT_REGEX, PermissionType } from '../permission.interface';
+import { PERMISSION_FORMAT_REGEX, PermissionType } from '../../interfaces/permission.interface';
 import { Store } from '@ngrx/store';
 import { selectUserPermissions } from '@app/store';
 

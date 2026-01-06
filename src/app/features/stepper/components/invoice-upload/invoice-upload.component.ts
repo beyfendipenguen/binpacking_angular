@@ -28,9 +28,11 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import {
-  Observable,
+  debounceTime,
+  startWith,
   Subject,
   Subscription,
+  takeUntil,
 } from 'rxjs';
 
 
@@ -55,6 +57,7 @@ import { StepperPackageActions } from '@app/store/stepper/actions/stepper-packag
 import { StepperUiActions } from '@app/store/stepper/actions/stepper-ui.actions';
 import { DisableAuthDirective } from '@app/core/auth/directives/disable-auth.directive';
 import { HasPermissionDirective } from '@app/core/auth/directives/has-permission.directive';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
 
 @Component({
   selector: 'app-invoice-upload',
@@ -79,7 +82,8 @@ import { HasPermissionDirective } from '@app/core/auth/directives/has-permission
     MatNativeDateModule,
     TranslateModule,
     DisableAuthDirective,
-    HasPermissionDirective
+    HasPermissionDirective,
+    MatAutocompleteModule
   ],
   templateUrl: './invoice-upload.component.html',
   styleUrl: './invoice-upload.component.scss',
@@ -126,6 +130,9 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
 
   // NgRx Observables
   public isEditMode$ = this.store.select(selectIsEditMode);
+
+  companySearchControl = new FormControl<string | any>('');
+  filteredCompanies = signal<any[]>([]);
 
   // Form and data
   uploadForm!: FormGroup;
@@ -193,10 +200,23 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
       const unitProductCount = palletHeight / unitProductHeight;
       this.unitsControl.setValue(unitProductCount, { emitEvent: false });
     });
+
+    effect(() => {
+      const currentOrder = this.orderSignal();
+      if (currentOrder?.company_relation) {
+        this.companySearchControl.setValue(
+          currentOrder.company_relation,
+          { emitEvent: false }
+        );
+      } else {
+        this.companySearchControl.setValue('', { emitEvent: false });
+      }
+    });
   }
 
   ngOnInit(): void {
     this.initializeComponent();
+    this.initializeCompanySearch()
     this.getTemplateFile();
     setTimeout(() => {
       this.showMessageBalloon.set(true);
@@ -227,6 +247,8 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
     const dataSub = this.dataLoaderService.loadAllReferenceData().subscribe({
       next: (data) => {
         this.referenceData = data;
+        this.filteredCompanies.set([...this.targetCompanies]);
+        this.initializeCompanySearch();
       }
     });
     this.subscriptions.push(dataSub);
@@ -351,6 +373,38 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
       }
     });
   }
+
+  private initializeCompanySearch(): void {
+    this.companySearchControl.valueChanges
+      .pipe(
+        startWith(''),
+        debounceTime(300),
+        takeUntil(this.destroy$)
+      )
+      .subscribe(searchTerm => {
+        if (typeof searchTerm === 'string') {
+          this.filterCompanies(searchTerm);
+        }
+      });
+  }
+
+  private filterCompanies(searchTerm: string): void {
+    if (!searchTerm || searchTerm.length === 0) {
+      this.filteredCompanies.set([...this.targetCompanies]);
+      return;
+    }
+
+    const filtered = this.targetCompanies.filter(company =>
+      company.target_company.company_name
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase())
+    );
+    this.filteredCompanies.set(filtered);
+  }
+
+  displayCompanyName = (company: any): string => {
+    return company?.target_company?.company_name || '';
+  };
 
   onTruckChange(selectedTruck: any): void {
     let currentOrder = this.orderSignal();

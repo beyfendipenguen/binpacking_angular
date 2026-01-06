@@ -1176,7 +1176,6 @@ form {
 .metric {
   display: flex;
   align-items: center;
-  gap: 6px;
 
   mat-icon {
     font-size: 16px;
@@ -1194,7 +1193,6 @@ form {
   .efficiency-container {
     display: flex;
     flex-direction: column;
-    gap: 2px;
   }
 
   .efficiency-value {

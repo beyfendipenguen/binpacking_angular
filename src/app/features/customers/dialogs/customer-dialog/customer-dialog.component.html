@@ -87,7 +87,7 @@
         @if (selectedCompany) {
         <div class="selected-company-info">
           <mat-icon>check_circle</mat-icon>
-          <span>{{ 'CUSTOMER.SELECTED' | translate }} <strong>{{ selectedCompany.company_name }}</strong> ({{
+          <span>{{ 'COMMON.SELECTED' | translate }} <strong>{{ selectedCompany.company_name }}</strong> ({{
             selectedCompany.country }})</span>
         </div>
         }
@@ -222,7 +222,7 @@
   </mat-dialog-content>
 
   <mat-dialog-actions class="dialog-actions">
-    <button mat-button (click)="onCancel()" [disabled]="isSaving">{{ 'HEADER.CANCEL' | translate }}</button>
+    <button mat-button (click)="onCancel()" [disabled]="isSaving">{{ 'COMMON.CANCEL' | translate }}</button>
     <button mat-raised-button color="primary" (click)="onSave()" [disabled]="form.invalid || isSaving">
       @if (isSaving) {
       <mat-spinner diameter="20" class="button-spinner"></mat-spinner>

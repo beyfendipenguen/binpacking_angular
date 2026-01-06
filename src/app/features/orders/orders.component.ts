@@ -11,9 +11,7 @@ import { FilesDialogComponent } from './dialogs/files-dialog/files-dialog.compon
 import { FileService } from '@core/services/file.service';
 import { GenericTableComponent, ColumnDefinition, CellButtonClickEvent } from '@shared/generic-table/generic-table.component';
 import { Order } from '../interfaces/order.interface';
-import { OrderDetailService } from '../services/order-detail.service';
 import { OrderService } from '../services/order.service';
-import { PackageDetailService } from '../services/package-detail.service';
 import { HasPermissionDirective } from "@app/core/auth/directives/has-permission.directive";
 
 @Component({
