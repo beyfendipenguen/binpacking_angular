@@ -331,6 +331,7 @@ export class PermissionsComponent implements OnInit, OnDestroy {
         this.allUsers.set(response.results);
       },
       error: (error) => {
+        if(error.status !== 403)
         this.toastService.error(this.translate.instant('PERMISSIONS.MESSAGES.USERS_LOAD_ERROR'));
       }
     });
@@ -644,7 +645,7 @@ export class PermissionsComponent implements OnInit, OnDestroy {
       takeUntil(this.destroy$)
     ).subscribe({
       next: () => {
-        this.toastService.error(this.translate.instant('PERMISSIONS.MESSAGES.USER_UPDATED'));
+        this.toastService.success(this.translate.instant('PERMISSIONS.MESSAGES.USER_UPDATED'));
 
         // --- DEĞİŞİKLİK BURADA ---
         this.isLoadingGroups.set(true);

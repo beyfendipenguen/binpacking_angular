@@ -577,7 +577,7 @@
       "INVALID_FILE_TYPE": "Geçersiz dosya türü. Lütfen uygun formatta Excel dosyası yükleyin ya da örnek ISB raporunu indirin",
       "FILE_TOO_LARGE": "Dosya boyutu 10 MB sınırını aşıyor",
       "FILE_PROCESSING": "Dosya işlenirken bir hata oluştu",
-      "COMPANY_LOADING": "Profil bilgisi yüklenirken hata oluştu CompanyRelation",
+      "COMPANY_LOADING": "Profil bilgisi yüklenirken hata oluştu",
       "TRUCK_LOADING": "Tır bilgisi yüklenirken hata oluştu",
       "OPERATION_ERROR": "İşlem sırasında hata oluştu: "
     },
