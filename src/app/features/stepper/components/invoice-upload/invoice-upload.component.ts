@@ -211,7 +211,7 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
       } else {
         this.companySearchControl.setValue('', { emitEvent: false });
       }
-    }, { allowSignalWrites: true });
+    });
   }
 
   ngOnInit(): void {

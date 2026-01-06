@@ -66,204 +66,513 @@ $white: #ffffff;
     flex: 1;
     overflow: hidden;
 
-    // Sol Panel: Gruplar
-    .groups-panel {
+    // Sol Panel: Gruplar (Üst) + Kullanıcılar (Alt) - 50/50 Split
+    .left-panel {
       width: 340px;
       border-right: 2px solid $border-color;
       display: flex;
       flex-direction: column;
       background-color: $white;
 
-      .panel-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 20px 24px;
-        background-color: rgba(0, 106, 106, 0.05);
-        border-bottom: 1px solid $border-color;
-
-        h3 {
-          margin: 0;
-          font-size: 1.1rem;
-          font-weight: 600;
-          color: $primary-color;
-        }
-
-        button[mat-mini-fab] {
-          background-color: $primary-color;
-          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-          transition: all 0.3s ease;
-
-          &:hover:not([disabled]) {
-            background-color: $accent-color;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-          }
-
-          &:active {
-            transform: translateY(0);
-          }
-
-          mat-icon {
-            color: $white;
-          }
-        }
-      }
-
-      .groups-list {
+      // Gruplar Bölümü (Üst %50)
+      .groups-section {
         flex: 1;
-        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        border-bottom: 2px solid $border-color;
+        overflow: hidden;
 
-        mat-list {
-          padding: 0;
+        .panel-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 20px 24px;
+          background-color: rgba(0, 106, 106, 0.05);
+          border-bottom: 1px solid $border-color;
+          flex-shrink: 0;
 
-          mat-list-item {
-            height: auto;
-            padding: 0;
-            border-bottom: 1px solid $border-color;
-            cursor: pointer;
+          h3 {
+            margin: 0;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: $primary-color;
+          }
+
+          button[mat-mini-fab] {
+            background-color: $primary-color;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             transition: all 0.3s ease;
 
-            &:hover:not(.global-group) {
-              background-color: rgba(0, 106, 106, 0.05);
+            &:hover:not([disabled]) {
+              background-color: $accent-color;
+              transform: translateY(-2px);
+              box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
             }
 
-            &.selected {
-              background-color: rgba(0, 106, 106, 0.15);
-              border-left: 4px solid $primary-color;
+            &:active {
+              transform: translateY(0);
+            }
 
-              .group-item {
-                padding-left: 20px;
+            mat-icon {
+              color: $white;
+            }
+          }
+        }
+
+        .search-box {
+          display: flex;
+          align-items: center;
+          padding: 8px 16px;
+          background-color: $white;
+          border-bottom: 1px solid $border-color;
+          gap: 8px;
+          flex-shrink: 0;
+
+          .search-icon {
+            font-size: 18px;
+            width: 18px;
+            height: 18px;
+            color: $primary-color;
+            flex-shrink: 0;
+          }
+
+          .search-input {
+            flex: 1;
+            border: none;
+            outline: none;
+            background: transparent;
+            font-size: 0.85rem;
+            color: $text-dark;
+            padding: 4px 0;
+
+            &::placeholder {
+              color: $text-light;
+              font-size: 0.8rem;
+            }
+
+            &:focus::placeholder {
+              color: $primary-color;
+              opacity: 0.6;
+            }
+          }
+
+          .clear-btn {
+            width: 24px;
+            height: 24px;
+            padding: 0;
+            flex-shrink: 0;
+            color: $text-light;
+            transition: all 0.3s ease;
+
+            mat-icon {
+              font-size: 16px;
+              width: 16px;
+              height: 16px;
+            }
+
+            &:hover {
+              color: $primary-color;
+              background-color: rgba(0, 106, 106, 0.1);
+              transform: rotate(90deg);
+            }
+          }
+        }
+
+        .list-content {
+          flex: 1;
+          overflow-y: auto;
+
+          mat-list {
+            padding: 0;
+
+            mat-list-item {
+              height: auto;
+              padding: 0;
+              border-bottom: 1px solid $border-color;
+              cursor: pointer;
+              transition: all 0.3s ease;
+
+              &:hover:not(.global-group) {
+                background-color: rgba(0, 106, 106, 0.05);
               }
-            }
-
-            &.global-group {
-              background-color: rgba(214, 187, 134, 0.05);
-              cursor: default;
 
               &.selected {
-                background-color: rgba(214, 187, 134, 0.15);
-                border-left: 4px solid $secondary-color;
+                background-color: rgba(0, 106, 106, 0.15);
+                border-left: 4px solid $primary-color;
+
+                .list-item-content {
+                  padding-left: 20px;
+                }
               }
 
-              .group-name {
-                color: $text-light;
-              }
-            }
+              &.global-group {
+                background-color: rgba(214, 187, 134, 0.05);
+                cursor: default;
 
-            .group-item {
-              padding: 16px 24px;
-              width: 100%;
-              display: flex;
-              flex-direction: column;
-              gap: 10px;
-
-              .group-info {
-                display: flex;
-                align-items: center;
-                gap: 8px;
-
-                .group-name {
-                  font-weight: 600;
-                  color: $text-dark;
-                  flex: 1;
-                  font-size: 1rem;
+                &.selected {
+                  background-color: rgba(214, 187, 134, 0.15);
+                  border-left: 4px solid $secondary-color;
                 }
 
-                .group-badge {
+                .item-name {
+                  color: $text-light;
+                }
+              }
+
+              .list-item-content {
+                padding: 16px 24px;
+                width: 100%;
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+
+                .item-info {
                   display: flex;
                   align-items: center;
-                  gap: 4px;
-                  font-size: 0.7rem;
-                  color: $secondary-color;
-                  background-color: rgba(214, 187, 134, 0.2);
-                  padding: 4px 10px;
-                  border-radius: 12px;
-                  font-weight: 600;
+                  gap: 8px;
 
-                  mat-icon {
-                    font-size: 14px;
-                    height: 14px;
-                    width: 14px;
+                  .item-name {
+                    font-weight: 600;
+                    color: $text-dark;
+                    flex: 1;
+                    font-size: 0.95rem;
+                  }
+
+                  .item-detail {
+                    font-size: 0.75rem;
+                    color: $text-light;
+                    margin-top: 4px;
+                  }
+
+                  .group-badge {
+                    display: flex;
+                    align-items: center;
+                    gap: 4px;
+                    font-size: 0.7rem;
+                    color: $secondary-color;
+                    background-color: rgba(214, 187, 134, 0.2);
+                    padding: 4px 10px;
+                    border-radius: 12px;
+                    font-weight: 600;
+
+                    mat-icon {
+                      font-size: 14px;
+                      height: 14px;
+                      width: 14px;
+                    }
                   }
                 }
-              }
 
-              .group-stats {
-                display: flex;
-                gap: 16px;
-
-                .stat-item {
+                .item-stats {
                   display: flex;
-                  align-items: center;
-                  gap: 6px;
-                  font-size: 0.85rem;
-                  color: $text-light;
+                  gap: 16px;
 
-                  mat-icon {
-                    font-size: 16px;
-                    height: 16px;
-                    width: 16px;
-                    color: $secondary-color;
+                  .stat-item {
+                    display: flex;
+                    align-items: center;
+                    gap: 6px;
+                    font-size: 0.85rem;
+                    color: $text-light;
+
+                    mat-icon {
+                      font-size: 16px;
+                      height: 16px;
+                      width: 16px;
+                      color: $secondary-color;
+                    }
                   }
                 }
               }
             }
           }
+
+          .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 24px;
+            text-align: center;
+
+            mat-icon {
+              font-size: 48px;
+              height: 48px;
+              width: 48px;
+              margin-bottom: 16px;
+              color: $secondary-color;
+              opacity: 0.5;
+            }
+
+            p {
+              margin: 4px 0;
+              font-size: 0.9rem;
+              color: $text-light;
+            }
+          }
+
+          &::-webkit-scrollbar {
+            width: 6px;
+          }
+
+          &::-webkit-scrollbar-track {
+            background: $background-color;
+          }
+
+          &::-webkit-scrollbar-thumb {
+            background: $secondary-color;
+            border-radius: 3px;
+
+            &:hover {
+              background: $light-accent;
+            }
+          }
         }
 
-        .empty-state {
+        .loading-state {
           display: flex;
           flex-direction: column;
           align-items: center;
           justify-content: center;
-          padding: 60px 24px;
-          text-align: center;
+          padding: 40px 24px;
+          flex: 1;
 
-          mat-icon {
-            font-size: 56px;
-            height: 56px;
-            width: 56px;
-            margin-bottom: 20px;
-            color: $secondary-color;
-            opacity: 0.5;
+          mat-spinner {
+            ::ng-deep circle {
+              stroke: $primary-color;
+            }
           }
 
           p {
-            margin: 8px 0;
-            font-size: 1rem;
+            margin-top: 16px;
             color: $text-light;
-
-            &.hint {
-              font-size: 0.85rem;
-              color: #bbb;
-            }
+            font-size: 0.9rem;
           }
         }
       }
 
-      .loading-state {
+      // Kullanıcılar Bölümü (Alt %50)
+      .users-section {
+        flex: 1;
         display: flex;
         flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        padding: 60px 24px;
+        overflow: hidden;
 
-        mat-spinner {
-          ::ng-deep circle {
-            stroke: $primary-color;
+        .panel-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 20px 24px;
+          background-color: rgba(0, 106, 106, 0.05);
+          border-bottom: 1px solid $border-color;
+          flex-shrink: 0;
+
+          h3 {
+            margin: 0;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: $primary-color;
           }
         }
 
-        p {
-          margin-top: 16px;
-          color: $text-light;
-          font-size: 0.95rem;
+        .search-box {
+          display: flex;
+          align-items: center;
+          padding: 8px 16px;
+          background-color: $white;
+          border-bottom: 1px solid $border-color;
+          gap: 8px;
+          flex-shrink: 0;
+
+          .search-icon {
+            font-size: 18px;
+            width: 18px;
+            height: 18px;
+            color: $primary-color;
+            flex-shrink: 0;
+          }
+
+          .search-input {
+            flex: 1;
+            border: none;
+            outline: none;
+            background: transparent;
+            font-size: 0.85rem;
+            color: $text-dark;
+            padding: 4px 0;
+
+            &::placeholder {
+              color: $text-light;
+              font-size: 0.8rem;
+            }
+
+            &:focus::placeholder {
+              color: $primary-color;
+              opacity: 0.6;
+            }
+          }
+
+          .clear-btn {
+            width: 24px;
+            height: 24px;
+            padding: 0;
+            flex-shrink: 0;
+            color: $text-light;
+            transition: all 0.3s ease;
+
+            mat-icon {
+              font-size: 16px;
+              width: 16px;
+              height: 16px;
+            }
+
+            &:hover {
+              color: $primary-color;
+              background-color: rgba(0, 106, 106, 0.1);
+              transform: rotate(90deg);
+            }
+          }
+        }
+
+        .list-content {
+          flex: 1;
+          overflow-y: auto;
+
+          mat-list {
+            padding: 0;
+
+            mat-list-item {
+              height: auto;
+              padding: 0;
+              border-bottom: 1px solid $border-color;
+              cursor: pointer;
+              transition: all 0.3s ease;
+
+              &:hover {
+                background-color: rgba(0, 106, 106, 0.05);
+              }
+
+              &.selected {
+                background-color: rgba(0, 106, 106, 0.15);
+                border-left: 4px solid $primary-color;
+
+                .list-item-content {
+                  padding-left: 20px;
+                }
+              }
+
+              .list-item-content {
+                padding: 16px 24px;
+                width: 100%;
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+
+                .item-info {
+                  display: flex;
+                  flex-direction: column;
+                  gap: 4px;
+
+                  .item-name {
+                    font-weight: 600;
+                    color: $text-dark;
+                    font-size: 0.95rem;
+                  }
+
+                  .item-detail {
+                    font-size: 0.75rem;
+                    color: $text-light;
+                  }
+                }
+
+                .item-stats {
+                  display: flex;
+                  gap: 16px;
+
+                  .stat-item {
+                    display: flex;
+                    align-items: center;
+                    gap: 6px;
+                    font-size: 0.85rem;
+                    color: $text-light;
+
+                    mat-icon {
+                      font-size: 16px;
+                      height: 16px;
+                      width: 16px;
+                      color: $secondary-color;
+                    }
+                  }
+                }
+              }
+            }
+          }
+
+          .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 24px;
+            text-align: center;
+
+            mat-icon {
+              font-size: 48px;
+              height: 48px;
+              width: 48px;
+              margin-bottom: 16px;
+              color: $secondary-color;
+              opacity: 0.5;
+            }
+
+            p {
+              margin: 4px 0;
+              font-size: 0.9rem;
+              color: $text-light;
+            }
+          }
+
+          &::-webkit-scrollbar {
+            width: 6px;
+          }
+
+          &::-webkit-scrollbar-track {
+            background: $background-color;
+          }
+
+          &::-webkit-scrollbar-thumb {
+            background: $secondary-color;
+            border-radius: 3px;
+
+            &:hover {
+              background: $light-accent;
+            }
+          }
+        }
+
+        .loading-state {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          padding: 40px 24px;
+          flex: 1;
+
+          mat-spinner {
+            ::ng-deep circle {
+              stroke: $primary-color;
+            }
+          }
+
+          p {
+            margin-top: 16px;
+            color: $text-light;
+            font-size: 0.9rem;
+          }
         }
       }
     }
 
-    // Sağ Panel: Detaylar
+    // Sağ Panel: Detaylar (Grup veya User)
     .details-panel {
       flex: 1;
       display: flex;
@@ -304,13 +613,24 @@ $white: #ffffff;
         }
       }
 
-      .group-form {
+      .detail-form {
         display: flex;
         flex-direction: column;
         gap: 20px;
 
         .full-width {
           width: 100%;
+        }
+
+        .half-width {
+          flex: 1;
+        }
+
+        .user-info-section {
+          .user-info-row {
+            display: flex;
+            gap: 16px;
+          }
         }
 
         ::ng-deep {
@@ -365,8 +685,7 @@ $white: #ffffff;
           }
         }
 
-        .permissions-section,
-        .users-section {
+        .section {
           margin-top: 8px;
 
           .section-header {
@@ -409,6 +728,30 @@ $white: #ffffff;
               background-color: $background-color;
               overflow: hidden;
 
+              .list-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 10px 12px;
+                background-color: rgba(0, 106, 106, 0.1);
+                border-bottom: 1px solid $border-color;
+
+                .list-title {
+                  font-size: 0.9rem;
+                  font-weight: 600;
+                  color: $primary-color;
+                }
+
+                .list-count {
+                  font-size: 0.85rem;
+                  font-weight: 600;
+                  color: $text-light;
+                  background-color: $white;
+                  padding: 2px 8px;
+                  border-radius: 10px;
+                }
+              }
+
               .search-box {
                 display: flex;
                 align-items: center;
@@ -439,11 +782,9 @@ $white: #ffffff;
                     font-size: 0.8rem;
                   }
 
-                  &:focus {
-                    &::placeholder {
-                      color: $primary-color;
-                      opacity: 0.6;
-                    }
+                  &:focus::placeholder {
+                    color: $primary-color;
+                    opacity: 0.6;
                   }
                 }
 
@@ -466,38 +807,6 @@ $white: #ffffff;
                     background-color: rgba(0, 106, 106, 0.1);
                     transform: rotate(90deg);
                   }
-                }
-
-                &:focus-within {
-                  background-color: rgba(0, 106, 106, 0.02);
-
-                  .search-icon {
-                    color: $accent-color;
-                  }
-                }
-              }
-
-              .list-header {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                padding: 10px 12px;
-                background-color: rgba(0, 106, 106, 0.1);
-                border-bottom: 1px solid $border-color;
-
-                .list-title {
-                  font-size: 0.9rem;
-                  font-weight: 600;
-                  color: $primary-color;
-                }
-
-                .list-count {
-                  font-size: 0.85rem;
-                  font-weight: 600;
-                  color: $text-light;
-                  background-color: $white;
-                  padding: 2px 8px;
-                  border-radius: 10px;
                 }
               }
 
@@ -709,7 +1018,7 @@ $white: #ffffff;
     }
   }
 
-  // Action Buttons (Alt kısım)
+  // Action Buttons
   .action-buttons {
     padding: 20px 32px;
     border-top: 2px solid $border-color;
@@ -791,8 +1100,7 @@ $white: #ffffff;
 
   // Responsive
   @media (max-width: 1200px) {
-    .permissions-section,
-    .users-section {
+    .section {
       .dual-list-container {
         flex-direction: column;
         gap: 12px;
@@ -818,15 +1126,22 @@ $white: #ffffff;
     .content-wrapper {
       flex-direction: column;
 
-      .groups-panel {
+      .left-panel {
         width: 100%;
-        max-height: 250px;
+        flex-direction: row;
         border-right: none;
         border-bottom: 2px solid $border-color;
-      }
+        max-height: 400px;
 
-      .details-panel {
-        flex: 1;
+        .groups-section,
+        .users-section {
+          flex: 1;
+          border-bottom: none;
+        }
+
+        .groups-section {
+          border-right: 2px solid $border-color;
+        }
       }
     }
   }
@@ -855,8 +1170,14 @@ $white: #ffffff;
     }
 
     .content-wrapper {
-      .groups-panel .panel-header {
-        padding: 16px 20px;
+      .left-panel {
+        flex-direction: column;
+        max-height: none;
+
+        .groups-section {
+          border-right: none;
+          border-bottom: 2px solid $border-color;
+        }
       }
 
       .details-panel {
@@ -881,26 +1202,6 @@ $white: #ffffff;
           width: 100%;
         }
       }
-    }
-  }
-}
-
-// Scrollbar - Genel
-.groups-list {
-  &::-webkit-scrollbar {
-    width: 8px;
-  }
-
-  &::-webkit-scrollbar-track {
-    background: $background-color;
-  }
-
-  &::-webkit-scrollbar-thumb {
-    background: $secondary-color;
-    border-radius: 4px;
-
-    &:hover {
-      background: $light-accent;
     }
   }
 }

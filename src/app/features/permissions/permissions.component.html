@@ -12,67 +12,146 @@
 
   <!-- Main Content -->
   <div class="content-wrapper">
-    <!-- Sol Panel: Grup Listesi -->
-    <div class="groups-panel">
-      <div class="panel-header">
-        <h3>{{ 'PERMISSIONS.GROUPS' | translate }}</h3>
-        <button
-          mat-mini-fab
-          color="primary"
-          (click)="createNewGroup()"
-          [disabled]="isLoadingGroups()"
-          [matTooltip]="'PERMISSIONS.NEW_GROUP' | translate"
-          [appDisableAuth]="['auth.add_group']">
-          <mat-icon>add</mat-icon>
-        </button>
+    <div class="left-panel">
+      <div class="groups-section">
+        <div class="panel-header">
+          <h3>{{ 'PERMISSIONS.GROUPS' | translate }}</h3>
+          <button
+            mat-mini-fab
+            color="primary"
+            (click)="createNewGroup()"
+            [disabled]="isLoadingGroups()"
+            [matTooltip]="'PERMISSIONS.NEW_GROUP' | translate"
+            [appDisableAuth]="['auth.add_group']">
+            <mat-icon>add</mat-icon>
+          </button>
+        </div>
+
+        <div class="search-box">
+          <mat-icon class="search-icon">search</mat-icon>
+          <input
+            type="text"
+            class="search-input"
+            [placeholder]="'PERMISSIONS.SEARCH_GROUPS' | translate"
+            [formControl]="searchGroupsControl">
+          <button
+            mat-icon-button
+            class="clear-btn"
+            *ngIf="searchGroupsControl.value"
+            (click)="clearGroupsSearch()">
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+
+        <div class="list-content" *ngIf="!isLoadingGroups(); else loadingGroups">
+          <mat-list>
+            <mat-list-item
+              *ngFor="let group of filteredGroups()"
+              [class.selected]="selectedGroup()?.id === group.id"
+              [class.global-group]="group.group_profile?.type === 'global'"
+              (click)="selectGroup(group)">
+              <div class="list-item-content">
+                <div class="item-info">
+                  <span class="item-name">{{ group.name }}</span>
+                  <span class="group-badge" *ngIf="group.group_profile?.type === 'global'">
+                    <mat-icon>lock</mat-icon>{{ 'PERMISSIONS.GLOBAL' | translate }}
+                  </span>
+                </div>
+                <div class="item-stats">
+                  <span class="stat-item">
+                    <mat-icon>shield</mat-icon>
+                    {{ getPermissionCount(group) }}
+                  </span>
+                  <span class="stat-item" *ngIf="group.annotated_member_count !== undefined">
+                    <mat-icon>people</mat-icon>
+                    {{ group.annotated_member_count }}
+                  </span>
+                </div>
+              </div>
+            </mat-list-item>
+          </mat-list>
+
+          <div class="empty-state" *ngIf="filteredGroups().length === 0">
+            <mat-icon>{{ searchGroupsControl.value ? 'search_off' : 'folder_open' }}</mat-icon>
+            <p>{{ (searchGroupsControl.value ? 'PERMISSIONS.NO_RESULTS' : 'PERMISSIONS.NO_GROUPS') | translate }}</p>
+          </div>
+        </div>
+
+        <ng-template #loadingGroups>
+          <div class="loading-state">
+            <mat-spinner diameter="40"></mat-spinner>
+            <p>{{ 'PERMISSIONS.LOADING_GROUPS' | translate }}</p>
+          </div>
+        </ng-template>
       </div>
 
-      <div class="groups-list" *ngIf="!isLoadingGroups(); else loadingGroups">
-        <mat-list>
-          <mat-list-item
-            *ngFor="let group of groups()"
-            [class.selected]="selectedGroup()?.id === group.id"
-            [class.global-group]="group.group_profile?.type === 'global'"
-            (click)="selectGroup(group)">
-            <div class="group-item">
-              <div class="group-info">
-                <span class="group-name">{{ group.name }}</span>
-                <span class="group-badge" *ngIf="group.group_profile?.type === 'global'">
-                  <mat-icon>lock</mat-icon>{{ 'PERMISSIONS.GLOBAL' | translate }}
-                </span>
-              </div>
-              <div class="group-stats">
-                <span class="stat-item">
-                  <mat-icon>shield</mat-icon>
-                  {{ getPermissionCount(group) }} {{ 'PERMISSIONS.PERMISSIONS' | translate }}
-                </span>
-                <span class="stat-item" *ngIf="group.annotated_member_count !== undefined">
-                  <mat-icon>people</mat-icon>
-                  {{ group.annotated_member_count }} {{ 'PERMISSIONS.USERS' | translate }}
-                </span>
-              </div>
-            </div>
-          </mat-list-item>
-        </mat-list>
-
-        <div class="empty-state" *ngIf="groups().length === 0">
-          <mat-icon>folder_open</mat-icon>
-          <p>{{ 'PERMISSIONS.NO_GROUPS' | translate }}</p>
-          <p class="hint">{{ 'PERMISSIONS.CREATE_GROUP_TIP' | translate }}</p>
+      <!-- Alt: Kullanıcı Listesi -->
+      <div class="users-section">
+        <div class="panel-header">
+          <h3>{{ 'PERMISSIONS.USERS' | translate }}</h3>
         </div>
+
+        <!-- Search Box -->
+        <div class="search-box">
+          <mat-icon class="search-icon">search</mat-icon>
+          <input
+            type="text"
+            class="search-input"
+            [placeholder]="'PERMISSIONS.SEARCH_USERS' | translate"
+            [formControl]="searchUsersControl">
+          <button
+            mat-icon-button
+            class="clear-btn"
+            *ngIf="searchUsersControl.value"
+            (click)="clearUsersSearch()">
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+
+        <div class="list-content" *ngIf="!isLoadingUsers(); else loadingUsers">
+          <mat-list>
+            <mat-list-item
+              *ngFor="let user of filteredUsers()"
+              [class.selected]="selectedUser()?.id === user.id"
+              (click)="selectUser(user)">
+              <div class="list-item-content">
+                <div class="item-info">
+                  <span class="item-name">{{ getUserFullName(user) }}</span>
+                  <span class="item-detail">{{ user.email }}</span>
+                </div>
+                <div class="item-stats">
+                  <span class="stat-item">
+                    <mat-icon>group</mat-icon>
+                    {{ getUserGroupCount(user) }}
+                  </span>
+                  <span class="stat-item">
+                    <mat-icon>shield</mat-icon>
+                    {{ getUserPermissionCount(user) }}
+                  </span>
+                </div>
+              </div>
+            </mat-list-item>
+          </mat-list>
+
+          <div class="empty-state" *ngIf="filteredUsers().length === 0">
+            <mat-icon>{{ searchUsersControl.value ? 'search_off' : 'people_outline' }}</mat-icon>
+            <p>{{ (searchUsersControl.value ? 'PERMISSIONS.NO_RESULTS' : 'PERMISSIONS.NO_USERS') | translate }}</p>
+          </div>
+        </div>
+
+        <ng-template #loadingUsers>
+          <div class="loading-state">
+            <mat-spinner diameter="40"></mat-spinner>
+            <p>{{ 'PERMISSIONS.LOADING_USERS' | translate }}</p>
+          </div>
+        </ng-template>
       </div>
-
-      <ng-template #loadingGroups>
-        <div class="loading-state">
-          <mat-spinner diameter="40"></mat-spinner>
-          <p>{{ 'PERMISSIONS.LOADING_GROUPS' | translate }}</p>
-        </div>
-      </ng-template>
     </div>
 
-    <!-- Sağ Panel: Grup Detayları -->
+    <!-- Sağ Panel: Grup veya Kullanıcı Detayları -->
     <div class="details-panel">
-      <div *ngIf="selectedGroup() || isNewGroup(); else noSelection">
+      <!-- GROUP DETAIL -->
+      <div *ngIf="selectedGroup() || isNewGroup(); else checkUserSelection">
         <div class="panel-header">
           <h3>{{ (isNewGroup() ? 'PERMISSIONS.NEW_GROUP' : 'PERMISSIONS.GROUP_DETAILS') | translate }}</h3>
           <span class="global-warning" *ngIf="isGlobalGroup()">
@@ -80,7 +159,7 @@
           </span>
         </div>
 
-        <form [formGroup]="groupForm" class="group-form">
+        <form [formGroup]="groupForm" class="detail-form">
           <!-- Grup Adı -->
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>{{ 'PERMISSIONS.GROUP_NAME' | translate }}</mat-label>
@@ -94,8 +173,8 @@
             </mat-error>
           </mat-form-field>
 
-          <!-- Permissions Bölümü -->
-          <div class="permissions-section">
+          <!-- Permissions Section -->
+          <div class="section">
             <div class="section-header">
               <h4>{{ 'PERMISSIONS.PERMISSIONS' | translate }}</h4>
               <span class="selection-count">
@@ -104,7 +183,7 @@
             </div>
 
             <div class="dual-list-container" *ngIf="!isLoadingPermissions(); else loadingPermissions">
-              <!-- Sol Liste: Mevcut Permissions -->
+              <!-- Available Permissions -->
               <div class="list-box">
                 <div class="list-header">
                   <span class="list-title">{{ 'PERMISSIONS.AVAILABLE_PERMISSIONS' | translate }}</span>
@@ -139,12 +218,9 @@
                       [appDisableAuth]="['auth.add_group', 'auth.change_group']">
                     </mat-checkbox>
                     <div class="item-info">
-                      <span class="item-name">
-                        {{ permission.name }}
-                      </span>
+                      <span class="item-name">{{ permission.name }}</span>
                     </div>
                   </div>
-
                   <div class="empty-list" *ngIf="availablePermissions().length === 0">
                     <mat-icon>{{ searchAvailablePermissionsControl.value ? 'search_off' : 'check_circle' }}</mat-icon>
                     <p>{{ (searchAvailablePermissionsControl.value ? 'PERMISSIONS.NO_RESULTS' : 'PERMISSIONS.ALL_ADDED') | translate }}</p>
@@ -152,42 +228,27 @@
                 </div>
               </div>
 
-              <!-- Ortada: Transfer Butonları -->
+              <!-- Transfer Buttons -->
               <div class="transfer-buttons">
-                <button
-                  mat-icon-button
-                  class="transfer-btn"
-                  (click)="addSelectedPermissionsToGroup()"
+                <button mat-icon-button class="transfer-btn" (click)="addSelectedPermissionsToGroup()"
                   [disabled]="tempSelectedAvailablePermissions().size === 0 || isGlobalGroup()"
                   [matTooltip]="'PERMISSIONS.ADD_SELECTED' | translate"
                   [appDisableAuth]="['auth.add_group', 'auth.change_group']">
                   <mat-icon>arrow_forward</mat-icon>
                 </button>
-
-                <button
-                  mat-icon-button
-                  class="transfer-btn"
-                  (click)="addAllPermissionsToGroup()"
+                <button mat-icon-button class="transfer-btn" (click)="addAllPermissionsToGroup()"
                   [disabled]="availablePermissions().length === 0 || isGlobalGroup()"
                   [matTooltip]="'PERMISSIONS.ADD_ALL' | translate"
                   [appDisableAuth]="['auth.add_group', 'auth.change_group']">
                   <mat-icon>keyboard_double_arrow_right</mat-icon>
                 </button>
-
-                <button
-                  mat-icon-button
-                  class="transfer-btn"
-                  (click)="removeSelectedPermissionsFromGroup()"
+                <button mat-icon-button class="transfer-btn" (click)="removeSelectedPermissionsFromGroup()"
                   [disabled]="tempSelectedInGroupPermissions().size === 0 || isGlobalGroup()"
                   [matTooltip]="'PERMISSIONS.REMOVE_SELECTED' | translate"
                   [appDisableAuth]="['auth.add_group', 'auth.change_group']">
                   <mat-icon>arrow_back</mat-icon>
                 </button>
-
-                <button
-                  mat-icon-button
-                  class="transfer-btn"
-                  (click)="removeAllPermissionsFromGroup()"
+                <button mat-icon-button class="transfer-btn" (click)="removeAllPermissionsFromGroup()"
                   [disabled]="selectedPermissions().length === 0 || isGlobalGroup()"
                   [matTooltip]="'PERMISSIONS.REMOVE_ALL' | translate"
                   [appDisableAuth]="['auth.add_group', 'auth.change_group']">
@@ -195,7 +256,7 @@
                 </button>
               </div>
 
-              <!-- Sağ Liste: Seçili Permissions -->
+              <!-- Selected Permissions -->
               <div class="list-box">
                 <div class="list-header">
                   <span class="list-title">{{ 'PERMISSIONS.GROUP_PERMISSIONS' | translate }}</span>
@@ -230,12 +291,9 @@
                       [appDisableAuth]="['auth.add_group', 'auth.change_group']">
                     </mat-checkbox>
                     <div class="item-info">
-                      <span class="item-name">
-                        {{ permission.name }}
-                      </span>
+                      <span class="item-name">{{ permission.name }}</span>
                     </div>
                   </div>
-
                   <div class="empty-list" *ngIf="selectedPermissions().length === 0">
                     <mat-icon>{{ searchSelectedPermissionsControl.value ? 'search_off' : 'inbox' }}</mat-icon>
                     <p>{{ (searchSelectedPermissionsControl.value ? 'PERMISSIONS.NO_RESULTS' : 'PERMISSIONS.NO_PERMISSIONS_ADDED') | translate }}</p>
@@ -252,8 +310,8 @@
             </ng-template>
           </div>
 
-          <!-- Users Bölümü -->
-          <div class="users-section">
+          <!-- Users Section -->
+          <div class="section">
             <div class="section-header">
               <h4>{{ 'PERMISSIONS.USERS' | translate }}</h4>
               <span class="selection-count">
@@ -261,8 +319,8 @@
               </span>
             </div>
 
-            <div class="dual-list-container" *ngIf="!isLoadingUsers(); else loadingUsers">
-              <!-- Sol Liste: Mevcut Users -->
+            <div class="dual-list-container" *ngIf="!isLoadingUsers(); else loadingUsersInGroup">
+              <!-- Available Users -->
               <div class="list-box">
                 <div class="list-header">
                   <span class="list-title">{{ 'PERMISSIONS.AVAILABLE_USERS' | translate }}</span>
@@ -301,7 +359,6 @@
                       <span class="item-detail">{{ user.email }}</span>
                     </div>
                   </div>
-
                   <div class="empty-list" *ngIf="availableUsers().length === 0">
                     <mat-icon>{{ searchAvailableUsersControl.value ? 'search_off' : 'check_circle' }}</mat-icon>
                     <p>{{ (searchAvailableUsersControl.value ? 'PERMISSIONS.NO_RESULTS' : 'PERMISSIONS.ALL_USERS_ADDED') | translate }}</p>
@@ -309,42 +366,27 @@
                 </div>
               </div>
 
-              <!-- Ortada: Transfer Butonları -->
+              <!-- Transfer Buttons -->
               <div class="transfer-buttons">
-                <button
-                  mat-icon-button
-                  class="transfer-btn"
-                  (click)="addSelectedUsersToGroup()"
+                <button mat-icon-button class="transfer-btn" (click)="addSelectedUsersToGroup()"
                   [disabled]="tempSelectedAvailableUsers().size === 0 || isGlobalGroup()"
                   [matTooltip]="'PERMISSIONS.ADD_SELECTED' | translate"
                   [appDisableAuth]="['auth.add_group', 'auth.change_group']">
                   <mat-icon>arrow_forward</mat-icon>
                 </button>
-
-                <button
-                  mat-icon-button
-                  class="transfer-btn"
-                  (click)="addAllUsersToGroup()"
+                <button mat-icon-button class="transfer-btn" (click)="addAllUsersToGroup()"
                   [disabled]="availableUsers().length === 0 || isGlobalGroup()"
                   [matTooltip]="'PERMISSIONS.ADD_ALL' | translate"
                   [appDisableAuth]="['auth.add_group', 'auth.change_group']">
                   <mat-icon>keyboard_double_arrow_right</mat-icon>
                 </button>
-
-                <button
-                  mat-icon-button
-                  class="transfer-btn"
-                  (click)="removeSelectedUsersFromGroup()"
+                <button mat-icon-button class="transfer-btn" (click)="removeSelectedUsersFromGroup()"
                   [disabled]="tempSelectedInGroupUsers().size === 0 || isGlobalGroup()"
                   [matTooltip]="'PERMISSIONS.REMOVE_SELECTED' | translate"
                   [appDisableAuth]="['auth.add_group', 'auth.change_group']">
                   <mat-icon>arrow_back</mat-icon>
                 </button>
-
-                <button
-                  mat-icon-button
-                  class="transfer-btn"
-                  (click)="removeAllUsersFromGroup()"
+                <button mat-icon-button class="transfer-btn" (click)="removeAllUsersFromGroup()"
                   [disabled]="selectedUsers().length === 0 || isGlobalGroup()"
                   [matTooltip]="'PERMISSIONS.REMOVE_ALL' | translate"
                   [appDisableAuth]="['auth.add_group', 'auth.change_group']">
@@ -352,7 +394,7 @@
                 </button>
               </div>
 
-              <!-- Sağ Liste: Seçili Users -->
+              <!-- Selected Users -->
               <div class="list-box">
                 <div class="list-header">
                   <span class="list-title">{{ 'PERMISSIONS.GROUP_USERS' | translate }}</span>
@@ -391,7 +433,6 @@
                       <span class="item-detail">{{ user.email }}</span>
                     </div>
                   </div>
-
                   <div class="empty-list" *ngIf="selectedUsers().length === 0">
                     <mat-icon>{{ searchSelectedUsersControl.value ? 'search_off' : 'inbox' }}</mat-icon>
                     <p>{{ (searchSelectedUsersControl.value ? 'PERMISSIONS.NO_RESULTS' : 'PERMISSIONS.NO_USERS_ADDED') | translate }}</p>
@@ -400,7 +441,7 @@
               </div>
             </div>
 
-            <ng-template #loadingUsers>
+            <ng-template #loadingUsersInGroup>
               <div class="loading-state small">
                 <mat-spinner diameter="30"></mat-spinner>
                 <p>{{ 'PERMISSIONS.LOADING_USERS' | translate }}</p>
@@ -410,10 +451,294 @@
         </form>
       </div>
 
+      <!-- USER DETAIL -->
+      <ng-template #checkUserSelection>
+        <div *ngIf="selectedUser(); else noSelection">
+          <div class="panel-header">
+            <h3>{{ 'PERMISSIONS.USER_DETAILS' | translate }}</h3>
+          </div>
+
+          <form [formGroup]="userForm" class="detail-form">
+            <!-- User Info -->
+            <div class="user-info-section">
+              <div class="user-info-row">
+                <mat-form-field appearance="outline" class="half-width">
+                  <mat-label>{{ 'COMMON.FIRST_NAME' | translate }}</mat-label>
+                  <input matInput formControlName="first_name" readonly>
+                </mat-form-field>
+                <mat-form-field appearance="outline" class="half-width">
+                  <mat-label>{{ 'COMMON.LAST_NAME' | translate }}</mat-label>
+                  <input matInput formControlName="last_name" readonly>
+                </mat-form-field>
+              </div>
+            </div>
+
+            <!-- Groups Section -->
+            <div class="section">
+              <div class="section-header">
+                <h4>{{ 'PERMISSIONS.GROUPS' | translate }}</h4>
+                <span class="selection-count">
+                  {{ selectedUserGroupIds().size }} {{ 'PERMISSIONS.SELECTED' | translate }}
+                </span>
+              </div>
+
+              <div class="dual-list-container" *ngIf="!isLoadingGroups(); else loadingGroupsForUser">
+                <!-- Available Groups -->
+                <div class="list-box">
+                  <div class="list-header">
+                    <span class="list-title">{{ 'PERMISSIONS.AVAILABLE_GROUPS' | translate }}</span>
+                    <span class="list-count">{{ userAvailableGroups().length }}</span>
+                  </div>
+                  <div class="search-box">
+                    <mat-icon class="search-icon">search</mat-icon>
+                    <input
+                      type="text"
+                      class="search-input"
+                      [placeholder]="'PERMISSIONS.SEARCH_GROUPS' | translate"
+                      [formControl]="searchUserAvailableGroupsControl">
+                    <button
+                      mat-icon-button
+                      class="clear-btn"
+                      *ngIf="searchUserAvailableGroupsControl.value"
+                      (click)="clearUserAvailableGroupsSearch()">
+                      <mat-icon>close</mat-icon>
+                    </button>
+                  </div>
+                  <div class="list-items">
+                    <div
+                      class="list-item"
+                      *ngFor="let group of userAvailableGroups()"
+                      [class.selected]="tempSelectedAvailableUserGroups().has(group.id)"
+                      (click)="toggleUserAvailableGroupSelection(group.id)">
+                      <mat-checkbox
+                        [checked]="tempSelectedAvailableUserGroups().has(group.id)"
+                        (click)="$event.stopPropagation()"
+                        (change)="toggleUserAvailableGroupSelection(group.id)">
+                      </mat-checkbox>
+                      <div class="item-info">
+                        <span class="item-name">{{ group.name }}</span>
+                      </div>
+                    </div>
+                    <div class="empty-list" *ngIf="userAvailableGroups().length === 0">
+                      <mat-icon>{{ searchUserAvailableGroupsControl.value ? 'search_off' : 'check_circle' }}</mat-icon>
+                      <p>{{ (searchUserAvailableGroupsControl.value ? 'PERMISSIONS.NO_RESULTS' : 'PERMISSIONS.ALL_ADDED') | translate }}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Transfer Buttons -->
+                <div class="transfer-buttons">
+                  <button mat-icon-button class="transfer-btn" (click)="addSelectedGroupsToUser()"
+                    [disabled]="tempSelectedAvailableUserGroups().size === 0"
+                    [matTooltip]="'PERMISSIONS.ADD_SELECTED' | translate">
+                    <mat-icon>arrow_forward</mat-icon>
+                  </button>
+                  <button mat-icon-button class="transfer-btn" (click)="addAllGroupsToUser()"
+                    [disabled]="userAvailableGroups().length === 0"
+                    [matTooltip]="'PERMISSIONS.ADD_ALL' | translate">
+                    <mat-icon>keyboard_double_arrow_right</mat-icon>
+                  </button>
+                  <button mat-icon-button class="transfer-btn" (click)="removeSelectedGroupsFromUser()"
+                    [disabled]="tempSelectedInUserGroups().size === 0"
+                    [matTooltip]="'PERMISSIONS.REMOVE_SELECTED' | translate">
+                    <mat-icon>arrow_back</mat-icon>
+                  </button>
+                  <button mat-icon-button class="transfer-btn" (click)="removeAllGroupsFromUser()"
+                    [disabled]="userSelectedGroups().length === 0"
+                    [matTooltip]="'PERMISSIONS.REMOVE_ALL' | translate">
+                    <mat-icon>keyboard_double_arrow_left</mat-icon>
+                  </button>
+                </div>
+
+                <!-- Selected Groups -->
+                <div class="list-box">
+                  <div class="list-header">
+                    <span class="list-title">{{ 'PERMISSIONS.USER_GROUPS' | translate }}</span>
+                    <span class="list-count">{{ userSelectedGroups().length }}</span>
+                  </div>
+                  <div class="search-box">
+                    <mat-icon class="search-icon">search</mat-icon>
+                    <input
+                      type="text"
+                      class="search-input"
+                      [placeholder]="'PERMISSIONS.SEARCH_GROUPS' | translate"
+                      [formControl]="searchUserSelectedGroupsControl">
+                    <button
+                      mat-icon-button
+                      class="clear-btn"
+                      *ngIf="searchUserSelectedGroupsControl.value"
+                      (click)="clearUserSelectedGroupsSearch()">
+                      <mat-icon>close</mat-icon>
+                    </button>
+                  </div>
+                  <div class="list-items">
+                    <div
+                      class="list-item"
+                      *ngFor="let group of userSelectedGroups()"
+                      [class.selected]="tempSelectedInUserGroups().has(group.id)"
+                      (click)="toggleUserSelectedGroupSelection(group.id)">
+                      <mat-checkbox
+                        [checked]="tempSelectedInUserGroups().has(group.id)"
+                        (click)="$event.stopPropagation()"
+                        (change)="toggleUserSelectedGroupSelection(group.id)">
+                      </mat-checkbox>
+                      <div class="item-info">
+                        <span class="item-name">{{ group.name }}</span>
+                      </div>
+                    </div>
+                    <div class="empty-list" *ngIf="userSelectedGroups().length === 0">
+                      <mat-icon>{{ searchUserSelectedGroupsControl.value ? 'search_off' : 'inbox' }}</mat-icon>
+                      <p>{{ (searchUserSelectedGroupsControl.value ? 'PERMISSIONS.NO_RESULTS' : 'PERMISSIONS.NO_GROUPS_ADDED') | translate }}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <ng-template #loadingGroupsForUser>
+                <div class="loading-state small">
+                  <mat-spinner diameter="30"></mat-spinner>
+                  <p>{{ 'PERMISSIONS.LOADING_GROUPS' | translate }}</p>
+                </div>
+              </ng-template>
+            </div>
+
+            <!-- Permissions Section -->
+            <div class="section">
+              <div class="section-header">
+                <h4>{{ 'PERMISSIONS.PERMISSIONS' | translate }}</h4>
+                <span class="selection-count">
+                  {{ selectedUserPermissionIds().size }} {{ 'PERMISSIONS.SELECTED' | translate }}
+                </span>
+              </div>
+
+              <div class="dual-list-container" *ngIf="!isLoadingPermissions(); else loadingPermissionsForUser">
+                <!-- Available Permissions -->
+                <div class="list-box">
+                  <div class="list-header">
+                    <span class="list-title">{{ 'PERMISSIONS.AVAILABLE_PERMISSIONS' | translate }}</span>
+                    <span class="list-count">{{ userAvailablePermissions().length }}</span>
+                  </div>
+                  <div class="search-box">
+                    <mat-icon class="search-icon">search</mat-icon>
+                    <input
+                      type="text"
+                      class="search-input"
+                      [placeholder]="'PERMISSIONS.SEARCH_PERMISSIONS' | translate"
+                      [formControl]="searchUserAvailablePermissionsControl">
+                    <button
+                      mat-icon-button
+                      class="clear-btn"
+                      *ngIf="searchUserAvailablePermissionsControl.value"
+                      (click)="clearUserAvailablePermissionsSearch()">
+                      <mat-icon>close</mat-icon>
+                    </button>
+                  </div>
+                  <div class="list-items">
+                    <div
+                      class="list-item"
+                      *ngFor="let permission of userAvailablePermissions()"
+                      [class.selected]="tempSelectedAvailableUserPermissions().has(permission.id)"
+                      (click)="toggleUserAvailablePermissionSelection(permission.id)">
+                      <mat-checkbox
+                        [checked]="tempSelectedAvailableUserPermissions().has(permission.id)"
+                        (click)="$event.stopPropagation()"
+                        (change)="toggleUserAvailablePermissionSelection(permission.id)">
+                      </mat-checkbox>
+                      <div class="item-info">
+                        <span class="item-name">{{ permission.name }}</span>
+                      </div>
+                    </div>
+                    <div class="empty-list" *ngIf="userAvailablePermissions().length === 0">
+                      <mat-icon>{{ searchUserAvailablePermissionsControl.value ? 'search_off' : 'check_circle' }}</mat-icon>
+                      <p>{{ (searchUserAvailablePermissionsControl.value ? 'PERMISSIONS.NO_RESULTS' : 'PERMISSIONS.ALL_ADDED') | translate }}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Transfer Buttons -->
+                <div class="transfer-buttons">
+                  <button mat-icon-button class="transfer-btn" (click)="addSelectedPermissionsToUser()"
+                    [disabled]="tempSelectedAvailableUserPermissions().size === 0"
+                    [matTooltip]="'PERMISSIONS.ADD_SELECTED' | translate">
+                    <mat-icon>arrow_forward</mat-icon>
+                  </button>
+                  <button mat-icon-button class="transfer-btn" (click)="addAllPermissionsToUser()"
+                    [disabled]="userAvailablePermissions().length === 0"
+                    [matTooltip]="'PERMISSIONS.ADD_ALL' | translate">
+                    <mat-icon>keyboard_double_arrow_right</mat-icon>
+                  </button>
+                  <button mat-icon-button class="transfer-btn" (click)="removeSelectedPermissionsFromUser()"
+                    [disabled]="tempSelectedInUserPermissions().size === 0"
+                    [matTooltip]="'PERMISSIONS.REMOVE_SELECTED' | translate">
+                    <mat-icon>arrow_back</mat-icon>
+                  </button>
+                  <button mat-icon-button class="transfer-btn" (click)="removeAllPermissionsFromUser()"
+                    [disabled]="userSelectedPermissions().length === 0"
+                    [matTooltip]="'PERMISSIONS.REMOVE_ALL' | translate">
+                    <mat-icon>keyboard_double_arrow_left</mat-icon>
+                  </button>
+                </div>
+
+                <!-- Selected Permissions -->
+                <div class="list-box">
+                  <div class="list-header">
+                    <span class="list-title">{{ 'PERMISSIONS.USER_PERMISSIONS' | translate }}</span>
+                    <span class="list-count">{{ userSelectedPermissions().length }}</span>
+                  </div>
+                  <div class="search-box">
+                    <mat-icon class="search-icon">search</mat-icon>
+                    <input
+                      type="text"
+                      class="search-input"
+                      [placeholder]="'PERMISSIONS.SEARCH_PERMISSIONS' | translate"
+                      [formControl]="searchUserSelectedPermissionsControl">
+                    <button
+                      mat-icon-button
+                      class="clear-btn"
+                      *ngIf="searchUserSelectedPermissionsControl.value"
+                      (click)="clearUserSelectedPermissionsSearch()">
+                      <mat-icon>close</mat-icon>
+                    </button>
+                  </div>
+                  <div class="list-items">
+                    <div
+                      class="list-item"
+                      *ngFor="let permission of userSelectedPermissions()"
+                      [class.selected]="tempSelectedInUserPermissions().has(permission.id)"
+                      (click)="toggleUserSelectedPermissionSelection(permission.id)">
+                      <mat-checkbox
+                        [checked]="tempSelectedInUserPermissions().has(permission.id)"
+                        (click)="$event.stopPropagation()"
+                        (change)="toggleUserSelectedPermissionSelection(permission.id)">
+                      </mat-checkbox>
+                      <div class="item-info">
+                        <span class="item-name">{{ permission.name }}</span>
+                      </div>
+                    </div>
+                    <div class="empty-list" *ngIf="userSelectedPermissions().length === 0">
+                      <mat-icon>{{ searchUserSelectedPermissionsControl.value ? 'search_off' : 'inbox' }}</mat-icon>
+                      <p>{{ (searchUserSelectedPermissionsControl.value ? 'PERMISSIONS.NO_RESULTS' : 'PERMISSIONS.NO_PERMISSIONS_ADDED') | translate }}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <ng-template #loadingPermissionsForUser>
+                <div class="loading-state small">
+                  <mat-spinner diameter="30"></mat-spinner>
+                  <p>{{ 'PERMISSIONS.LOADING_PERMISSIONS' | translate }}</p>
+                </div>
+              </ng-template>
+            </div>
+          </form>
+        </div>
+      </ng-template>
+
+      <!-- No Selection -->
       <ng-template #noSelection>
         <div class="no-selection">
           <mat-icon>touch_app</mat-icon>
-          <p>{{ 'PERMISSIONS.SELECT_GROUP_TO_EDIT' | translate }}</p>
+          <p>{{ 'PERMISSIONS.SELECT_GROUP_OR_USER' | translate }}</p>
           <p class="hint">{{ 'PERMISSIONS.OR_CREATE_NEW' | translate }}</p>
         </div>
       </ng-template>
@@ -421,13 +746,13 @@
   </div>
 
   <!-- Action Buttons -->
-  <div class="action-buttons" *ngIf="selectedGroup() || isNewGroup()">
+  <div class="action-buttons" *ngIf="isEditMode()">
     <div class="actions-left">
       <button
         mat-stroked-button
         color="warn"
         (click)="deleteGroup()"
-        *ngIf="!isNewGroup() && selectedGroup() && !isGlobalGroup()"
+        *ngIf="selectedGroup() && !isNewGroup() && !isGlobalGroup()"
         [disabled]="isSaving()"
         [appDisableAuth]="['auth.delete_group']">
         <mat-icon>delete</mat-icon>
@@ -437,18 +762,28 @@
     <div class="actions-right">
       <button
         mat-button
-        (click)="selectedGroup.set(null); isNewGroup.set(false)"
+        (click)="cancelEdit()"
         [disabled]="isSaving()">
         {{ 'COMMON.CANCEL' | translate }}
       </button>
       <button
         mat-raised-button
         color="primary"
+        *ngIf="selectedGroup() || isNewGroup()"
         (click)="saveGroup()"
         [disabled]="groupForm.invalid || isSaving() || isGlobalGroup()"
         [appDisableAuth]="['auth.change_group']">
         <mat-spinner diameter="20" class="btn-spinner" *ngIf="isSaving()"></mat-spinner>
         <span *ngIf="!isSaving()">{{ (isNewGroup() ? 'COMMON.CREATE' : 'COMMON.UPDATE') | translate }}</span>
+      </button>
+      <button
+        mat-raised-button
+        color="primary"
+        *ngIf="selectedUser()"
+        (click)="saveUser()"
+        [disabled]="userForm.invalid || isSaving()">
+        <mat-spinner diameter="20" class="btn-spinner" *ngIf="isSaving()"></mat-spinner>
+        <span *ngIf="!isSaving()">{{ 'COMMON.UPDATE' | translate }}</span>
       </button>
     </div>
   </div>

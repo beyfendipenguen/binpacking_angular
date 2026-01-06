@@ -36,7 +36,7 @@
 
       <div class="action-options">
         <button mat-raised-button class="action-button" (click)="createOrder()"
-          [appDisableAuth]="['orders.add_orderdetail']">
+          [appDisableAuth]="['orders.add_order']">
           <mat-icon>add</mat-icon>
           <span>{{ 'INVOICE_UPLOAD.MANUAL_ENTRY' | translate }}</span>
         </button>
@@ -47,7 +47,7 @@
 
         <div class="file-upload-container">
           <button mat-raised-button class="action-button secondary" (click)="fileInput.click()"
-            [appDisableAuth]="['orders.add_orderdetail']">
+            [appDisableAuth]="['orders.add_order']">
             <mat-icon>file_upload</mat-icon>
             <span>{{ file?.name || 'INVOICE_UPLOAD.SELECT_EXCEL' | translate}}</span>
           </button>
@@ -219,8 +219,8 @@
         [parentIdFieldName]="'order_id'" [title]="''" [showRowNumbers]="true" (addClick)="openOrderDetailAddDialog()"
         (externalDataUpdate)="updateOrderDetail($event)" (externalDataDelete)="deleteOrderDetail($event)"
         [excludeFields]="excludeFields" [showDeleteButton]="!hasPackages()" [showAddButton]="!hasPackages()"
-        [showUpdateButton]="!hasPackages()" [deletePermission]="['orders.delete_orderdetail']"
-        [addPermission]="['orders.add_orderdetail']" [updatePermission]="['orders.change_orderdetail']">
+        [showUpdateButton]="!hasPackages()" [deletePermission]="['orders.delete_order']"
+        [addPermission]="['orders.add_order']" [updatePermission]="['orders.change_order']">
       </app-generic-table>
 
       <div class="summary-footer">
@@ -253,7 +253,7 @@
   </div>
   <!-- Navigation Controls -->
   <button mat-button class="next-button" (click)="submit()" [disabled]="!orderSignal() || !isFormValid()"
-    [appDisableAuth]="['orders.add_orderdetail']">
+    [appDisableAuth]="['orders.add_order']">
     <mat-icon>arrow_forward</mat-icon>
     <span>{{(isOrderDetailsDirtySignal() || isOrderDirtySignal() ? 'COMMON.SAVE' : 'COMMON.NEXT') | translate}}</span>
   </button>
