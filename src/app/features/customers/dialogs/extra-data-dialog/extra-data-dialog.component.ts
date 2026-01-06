@@ -229,7 +229,9 @@ export class ExtraDataDialogComponent implements OnInit, OnDestroy {
         this.isLoading = false;
       },
       error: (error) => {
-        this.toastService.error(this.translate.instant('CUSTOMER_MESSAGES.DATA_LOAD_ERROR'));
+        if (error.status !== 403) {
+          this.toastService.error(this.translate.instant('COMMON.DATA_LOAD_ERROR'));
+        }
         this.isLoading = false;
       }
     });

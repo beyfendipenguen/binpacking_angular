@@ -4,6 +4,7 @@ import { AuthGuard } from './core/auth/guards/auth.guard'; // ← BU SATIRI EKLE
 import ADMIN_ROUTES from './features/admin.routes';
 import { LayoutComponent } from './features/layout/layout.component';
 import { ErrorComponent } from './shared/error/error.component';
+import { PermissionDeniedComponent } from './shared/permission-denied/permission-denied.component';
 
 export const routes: Routes = [
     {
@@ -19,6 +20,10 @@ export const routes: Routes = [
     {
         path: 'error',
         component: ErrorComponent,
+    },
+    {
+        path: 'unauthorized',
+        component: PermissionDeniedComponent,
     },
     {
         path: '**',
