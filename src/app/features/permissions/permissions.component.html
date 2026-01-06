@@ -73,7 +73,7 @@
 
           <div class="empty-state" *ngIf="filteredGroups().length === 0">
             <mat-icon>{{ searchGroupsControl.value ? 'search_off' : 'folder_open' }}</mat-icon>
-            <p>{{ (searchGroupsControl.value ? 'PERMISSIONS.NO_RESULTS' : 'PERMISSIONS.NO_GROUPS') | translate }}</p>
+            <p>{{ (searchGroupsControl.value ? 'COMMON.NO_RESULTS' : 'PERMISSIONS.NO_GROUPS') | translate }}</p>
           </div>
         </div>
 
@@ -135,7 +135,7 @@
 
           <div class="empty-state" *ngIf="filteredUsers().length === 0">
             <mat-icon>{{ searchUsersControl.value ? 'search_off' : 'people_outline' }}</mat-icon>
-            <p>{{ (searchUsersControl.value ? 'PERMISSIONS.NO_RESULTS' : 'PERMISSIONS.NO_USERS') | translate }}</p>
+            <p>{{ (searchUsersControl.value ? 'COMMON.NO_RESULTS' : 'PERMISSIONS.NO_USERS') | translate }}</p>
           </div>
         </div>
 
@@ -178,7 +178,7 @@
             <div class="section-header">
               <h4>{{ 'PERMISSIONS.PERMISSIONS' | translate }}</h4>
               <span class="selection-count">
-                {{ selectedPermissionIds().size }} {{ 'PERMISSIONS.SELECTED' | translate }}
+                {{ selectedPermissionIds().size }} {{ 'COMMON.SELECTED' | translate }}
               </span>
             </div>
 
@@ -223,7 +223,7 @@
                   </div>
                   <div class="empty-list" *ngIf="availablePermissions().length === 0">
                     <mat-icon>{{ searchAvailablePermissionsControl.value ? 'search_off' : 'check_circle' }}</mat-icon>
-                    <p>{{ (searchAvailablePermissionsControl.value ? 'PERMISSIONS.NO_RESULTS' : 'PERMISSIONS.ALL_ADDED') | translate }}</p>
+                    <p>{{ (searchAvailablePermissionsControl.value ? 'COMMON.NO_RESULTS' : 'PERMISSIONS.ALL_ADDED') | translate }}</p>
                   </div>
                 </div>
               </div>
@@ -232,25 +232,25 @@
               <div class="transfer-buttons">
                 <button mat-icon-button class="transfer-btn" (click)="addSelectedPermissionsToGroup()"
                   [disabled]="tempSelectedAvailablePermissions().size === 0 || isGlobalGroup()"
-                  [matTooltip]="'PERMISSIONS.ADD_SELECTED' | translate"
+                  [matTooltip]="'COMMON.ADD_SELECTED' | translate"
                   [appDisableAuth]="['auth.add_group', 'auth.change_group']">
                   <mat-icon>arrow_forward</mat-icon>
                 </button>
                 <button mat-icon-button class="transfer-btn" (click)="addAllPermissionsToGroup()"
                   [disabled]="availablePermissions().length === 0 || isGlobalGroup()"
-                  [matTooltip]="'PERMISSIONS.ADD_ALL' | translate"
+                  [matTooltip]="'COMMON.ADD_ALL' | translate"
                   [appDisableAuth]="['auth.add_group', 'auth.change_group']">
                   <mat-icon>keyboard_double_arrow_right</mat-icon>
                 </button>
                 <button mat-icon-button class="transfer-btn" (click)="removeSelectedPermissionsFromGroup()"
                   [disabled]="tempSelectedInGroupPermissions().size === 0 || isGlobalGroup()"
-                  [matTooltip]="'PERMISSIONS.REMOVE_SELECTED' | translate"
+                  [matTooltip]="'COMMON.REMOVE_SELECTED' | translate"
                   [appDisableAuth]="['auth.add_group', 'auth.change_group']">
                   <mat-icon>arrow_back</mat-icon>
                 </button>
                 <button mat-icon-button class="transfer-btn" (click)="removeAllPermissionsFromGroup()"
                   [disabled]="selectedPermissions().length === 0 || isGlobalGroup()"
-                  [matTooltip]="'PERMISSIONS.REMOVE_ALL' | translate"
+                  [matTooltip]="'COMMON.REMOVE_ALL' | translate"
                   [appDisableAuth]="['auth.add_group', 'auth.change_group']">
                   <mat-icon>keyboard_double_arrow_left</mat-icon>
                 </button>
@@ -296,7 +296,7 @@
                   </div>
                   <div class="empty-list" *ngIf="selectedPermissions().length === 0">
                     <mat-icon>{{ searchSelectedPermissionsControl.value ? 'search_off' : 'inbox' }}</mat-icon>
-                    <p>{{ (searchSelectedPermissionsControl.value ? 'PERMISSIONS.NO_RESULTS' : 'PERMISSIONS.NO_PERMISSIONS_ADDED') | translate }}</p>
+                    <p>{{ (searchSelectedPermissionsControl.value ? 'COMMON.NO_RESULTS' : 'PERMISSIONS.NO_PERMISSIONS_ADDED') | translate }}</p>
                   </div>
                 </div>
               </div>
@@ -315,7 +315,7 @@
             <div class="section-header">
               <h4>{{ 'PERMISSIONS.USERS' | translate }}</h4>
               <span class="selection-count">
-                {{ selectedUserIds().size }} {{ 'PERMISSIONS.SELECTED' | translate }}
+                {{ selectedUserIds().size }} {{ 'COMMON.SELECTED' | translate }}
               </span>
             </div>
 
@@ -361,7 +361,7 @@
                   </div>
                   <div class="empty-list" *ngIf="availableUsers().length === 0">
                     <mat-icon>{{ searchAvailableUsersControl.value ? 'search_off' : 'check_circle' }}</mat-icon>
-                    <p>{{ (searchAvailableUsersControl.value ? 'PERMISSIONS.NO_RESULTS' : 'PERMISSIONS.ALL_USERS_ADDED') | translate }}</p>
+                    <p>{{ (searchAvailableUsersControl.value ? 'COMMON.NO_RESULTS' : 'PERMISSIONS.ALL_USERS_ADDED') | translate }}</p>
                   </div>
                 </div>
               </div>
@@ -370,25 +370,25 @@
               <div class="transfer-buttons">
                 <button mat-icon-button class="transfer-btn" (click)="addSelectedUsersToGroup()"
                   [disabled]="tempSelectedAvailableUsers().size === 0 || isGlobalGroup()"
-                  [matTooltip]="'PERMISSIONS.ADD_SELECTED' | translate"
+                  [matTooltip]="'COMMON.ADD_SELECTED' | translate"
                   [appDisableAuth]="['auth.add_group', 'auth.change_group']">
                   <mat-icon>arrow_forward</mat-icon>
                 </button>
                 <button mat-icon-button class="transfer-btn" (click)="addAllUsersToGroup()"
                   [disabled]="availableUsers().length === 0 || isGlobalGroup()"
-                  [matTooltip]="'PERMISSIONS.ADD_ALL' | translate"
+                  [matTooltip]="'COMMON.ADD_ALL' | translate"
                   [appDisableAuth]="['auth.add_group', 'auth.change_group']">
                   <mat-icon>keyboard_double_arrow_right</mat-icon>
                 </button>
                 <button mat-icon-button class="transfer-btn" (click)="removeSelectedUsersFromGroup()"
                   [disabled]="tempSelectedInGroupUsers().size === 0 || isGlobalGroup()"
-                  [matTooltip]="'PERMISSIONS.REMOVE_SELECTED' | translate"
+                  [matTooltip]="'COMMON.REMOVE_SELECTED' | translate"
                   [appDisableAuth]="['auth.add_group', 'auth.change_group']">
                   <mat-icon>arrow_back</mat-icon>
                 </button>
                 <button mat-icon-button class="transfer-btn" (click)="removeAllUsersFromGroup()"
                   [disabled]="selectedUsers().length === 0 || isGlobalGroup()"
-                  [matTooltip]="'PERMISSIONS.REMOVE_ALL' | translate"
+                  [matTooltip]="'COMMON.REMOVE_ALL' | translate"
                   [appDisableAuth]="['auth.add_group', 'auth.change_group']">
                   <mat-icon>keyboard_double_arrow_left</mat-icon>
                 </button>
@@ -435,7 +435,7 @@
                   </div>
                   <div class="empty-list" *ngIf="selectedUsers().length === 0">
                     <mat-icon>{{ searchSelectedUsersControl.value ? 'search_off' : 'inbox' }}</mat-icon>
-                    <p>{{ (searchSelectedUsersControl.value ? 'PERMISSIONS.NO_RESULTS' : 'PERMISSIONS.NO_USERS_ADDED') | translate }}</p>
+                    <p>{{ (searchSelectedUsersControl.value ? 'COMMON.NO_RESULTS' : 'PERMISSIONS.NO_USERS_ADDED') | translate }}</p>
                   </div>
                 </div>
               </div>
@@ -478,7 +478,7 @@
               <div class="section-header">
                 <h4>{{ 'PERMISSIONS.GROUPS' | translate }}</h4>
                 <span class="selection-count">
-                  {{ selectedUserGroupIds().size }} {{ 'PERMISSIONS.SELECTED' | translate }}
+                  {{ selectedUserGroupIds().size }} {{ 'COMMON.SELECTED' | translate }}
                 </span>
               </div>
 
@@ -521,7 +521,7 @@
                     </div>
                     <div class="empty-list" *ngIf="userAvailableGroups().length === 0">
                       <mat-icon>{{ searchUserAvailableGroupsControl.value ? 'search_off' : 'check_circle' }}</mat-icon>
-                      <p>{{ (searchUserAvailableGroupsControl.value ? 'PERMISSIONS.NO_RESULTS' : 'PERMISSIONS.ALL_ADDED') | translate }}</p>
+                      <p>{{ (searchUserAvailableGroupsControl.value ? 'COMMON.NO_RESULTS' : 'PERMISSIONS.ALL_ADDED') | translate }}</p>
                     </div>
                   </div>
                 </div>
@@ -530,22 +530,22 @@
                 <div class="transfer-buttons">
                   <button mat-icon-button class="transfer-btn" (click)="addSelectedGroupsToUser()"
                     [disabled]="tempSelectedAvailableUserGroups().size === 0"
-                    [matTooltip]="'PERMISSIONS.ADD_SELECTED' | translate">
+                    [matTooltip]="'COMMON.ADD_SELECTED' | translate">
                     <mat-icon>arrow_forward</mat-icon>
                   </button>
                   <button mat-icon-button class="transfer-btn" (click)="addAllGroupsToUser()"
                     [disabled]="userAvailableGroups().length === 0"
-                    [matTooltip]="'PERMISSIONS.ADD_ALL' | translate">
+                    [matTooltip]="'COMMON.ADD_ALL' | translate">
                     <mat-icon>keyboard_double_arrow_right</mat-icon>
                   </button>
                   <button mat-icon-button class="transfer-btn" (click)="removeSelectedGroupsFromUser()"
                     [disabled]="tempSelectedInUserGroups().size === 0"
-                    [matTooltip]="'PERMISSIONS.REMOVE_SELECTED' | translate">
+                    [matTooltip]="'COMMON.REMOVE_SELECTED' | translate">
                     <mat-icon>arrow_back</mat-icon>
                   </button>
                   <button mat-icon-button class="transfer-btn" (click)="removeAllGroupsFromUser()"
                     [disabled]="userSelectedGroups().length === 0"
-                    [matTooltip]="'PERMISSIONS.REMOVE_ALL' | translate">
+                    [matTooltip]="'COMMON.REMOVE_ALL' | translate">
                     <mat-icon>keyboard_double_arrow_left</mat-icon>
                   </button>
                 </div>
@@ -588,7 +588,7 @@
                     </div>
                     <div class="empty-list" *ngIf="userSelectedGroups().length === 0">
                       <mat-icon>{{ searchUserSelectedGroupsControl.value ? 'search_off' : 'inbox' }}</mat-icon>
-                      <p>{{ (searchUserSelectedGroupsControl.value ? 'PERMISSIONS.NO_RESULTS' : 'PERMISSIONS.NO_GROUPS_ADDED') | translate }}</p>
+                      <p>{{ (searchUserSelectedGroupsControl.value ? 'COMMON.NO_RESULTS' : 'PERMISSIONS.NO_GROUPS_ADDED') | translate }}</p>
                     </div>
                   </div>
                 </div>
@@ -607,7 +607,7 @@
               <div class="section-header">
                 <h4>{{ 'PERMISSIONS.PERMISSIONS' | translate }}</h4>
                 <span class="selection-count">
-                  {{ selectedUserPermissionIds().size }} {{ 'PERMISSIONS.SELECTED' | translate }}
+                  {{ selectedUserPermissionIds().size }} {{ 'COMMON.SELECTED' | translate }}
                 </span>
               </div>
 
@@ -650,7 +650,7 @@
                     </div>
                     <div class="empty-list" *ngIf="userAvailablePermissions().length === 0">
                       <mat-icon>{{ searchUserAvailablePermissionsControl.value ? 'search_off' : 'check_circle' }}</mat-icon>
-                      <p>{{ (searchUserAvailablePermissionsControl.value ? 'PERMISSIONS.NO_RESULTS' : 'PERMISSIONS.ALL_ADDED') | translate }}</p>
+                      <p>{{ (searchUserAvailablePermissionsControl.value ? 'COMMON.NO_RESULTS' : 'PERMISSIONS.ALL_ADDED') | translate }}</p>
                     </div>
                   </div>
                 </div>
@@ -659,22 +659,22 @@
                 <div class="transfer-buttons">
                   <button mat-icon-button class="transfer-btn" (click)="addSelectedPermissionsToUser()"
                     [disabled]="tempSelectedAvailableUserPermissions().size === 0"
-                    [matTooltip]="'PERMISSIONS.ADD_SELECTED' | translate">
+                    [matTooltip]="'COMMON.ADD_SELECTED' | translate">
                     <mat-icon>arrow_forward</mat-icon>
                   </button>
                   <button mat-icon-button class="transfer-btn" (click)="addAllPermissionsToUser()"
                     [disabled]="userAvailablePermissions().length === 0"
-                    [matTooltip]="'PERMISSIONS.ADD_ALL' | translate">
+                    [matTooltip]="'COMMON.ADD_ALL' | translate">
                     <mat-icon>keyboard_double_arrow_right</mat-icon>
                   </button>
                   <button mat-icon-button class="transfer-btn" (click)="removeSelectedPermissionsFromUser()"
                     [disabled]="tempSelectedInUserPermissions().size === 0"
-                    [matTooltip]="'PERMISSIONS.REMOVE_SELECTED' | translate">
+                    [matTooltip]="'COMMON.REMOVE_SELECTED' | translate">
                     <mat-icon>arrow_back</mat-icon>
                   </button>
                   <button mat-icon-button class="transfer-btn" (click)="removeAllPermissionsFromUser()"
                     [disabled]="userSelectedPermissions().length === 0"
-                    [matTooltip]="'PERMISSIONS.REMOVE_ALL' | translate">
+                    [matTooltip]="'COMMON.REMOVE_ALL' | translate">
                     <mat-icon>keyboard_double_arrow_left</mat-icon>
                   </button>
                 </div>
@@ -717,7 +717,7 @@
                     </div>
                     <div class="empty-list" *ngIf="userSelectedPermissions().length === 0">
                       <mat-icon>{{ searchUserSelectedPermissionsControl.value ? 'search_off' : 'inbox' }}</mat-icon>
-                      <p>{{ (searchUserSelectedPermissionsControl.value ? 'PERMISSIONS.NO_RESULTS' : 'PERMISSIONS.NO_PERMISSIONS_ADDED') | translate }}</p>
+                      <p>{{ (searchUserSelectedPermissionsControl.value ? 'COMMON.NO_RESULTS' : 'PERMISSIONS.NO_PERMISSIONS_ADDED') | translate }}</p>
                     </div>
                   </div>
                 </div>

@@ -23,7 +23,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatPaginatorModule } from '@angular/material/paginator';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { DisableAuthDirective } from '@app/core/auth/directives/disable-auth.directive';
 import { IGroup, IPermission } from '@app/core/interfaces/permission.interface';
 import { GroupService } from '@app/core/services/group.service';
@@ -72,6 +72,7 @@ export class PermissionsComponent implements OnInit, OnDestroy {
   private groupService = inject(GroupService);
   private companyUserService = inject(CompanyUserService);
   private toastService = inject(ToastService);
+  private translate = inject(TranslateService);
   private destroy$ = new Subject<void>();
 
   // Signals - Groups
@@ -300,7 +301,7 @@ export class PermissionsComponent implements OnInit, OnDestroy {
         this.groups.set(response.results);
       },
       error: (error) => {
-        this.toastService.error('Failed to load groups');
+        this.toastService.error(this.translate.instant('PERMISSIONS.MESSAGES.GROUPS_LOAD_ERROR'));
       }
     });
   }
@@ -315,7 +316,7 @@ export class PermissionsComponent implements OnInit, OnDestroy {
         this.allPermissions.set(response.results);
       },
       error: (error) => {
-        this.toastService.error('Failed to load permissions');
+        this.toastService.error(this.translate.instant('PERMISSIONS.MESSAGES.PERMISSIONS_LOAD_ERROR'));
       }
     });
   }
@@ -330,7 +331,7 @@ export class PermissionsComponent implements OnInit, OnDestroy {
         this.allUsers.set(response.results);
       },
       error: (error) => {
-        this.toastService.error('Failed to load users');
+        this.toastService.error(this.translate.instant('PERMISSIONS.MESSAGES.USERS_LOAD_ERROR'));
       }
     });
   }
@@ -578,7 +579,7 @@ export class PermissionsComponent implements OnInit, OnDestroy {
         ).subscribe({
           next: () => {
             this.toastService.success(
-              this.isNewGroup() ? 'Group created successfully' : 'Group updated successfully'
+              this.isNewGroup() ? this.translate.instant('PERMISSIONS.MESSAGES.GROUP_CREATED') : this.translate.instant('PERMISSIONS.MESSAGES.GROUP_UPDATED')
             );
 
             // --- DEĞİŞİKLİK BURADA BAŞLIYOR ---
@@ -614,13 +615,13 @@ export class PermissionsComponent implements OnInit, OnDestroy {
             });
           },
           error: (error) => {
-            this.toastService.error('Group saved but failed to update users');
+            this.toastService.error(this.translate.instant('PERMISSIONS.MESSAGES.GROUP_SAVE_ERROR'));
             this.isSaving.set(false);
           }
         });
       },
       error: (error) => {
-        this.toastService.error('Failed to save group');
+        this.toastService.error(this.translate.instant('PERMISSIONS.MESSAGES.GROUP_USERS_UPDATE_ERROR'));
         this.isSaving.set(false);
       }
     });
@@ -643,7 +644,7 @@ export class PermissionsComponent implements OnInit, OnDestroy {
       takeUntil(this.destroy$)
     ).subscribe({
       next: () => {
-        this.toastService.success('User updated successfully');
+        this.toastService.error(this.translate.instant('PERMISSIONS.MESSAGES.USER_UPDATED'));
 
         // --- DEĞİŞİKLİK BURADA ---
         this.isLoadingGroups.set(true);
@@ -675,29 +676,31 @@ export class PermissionsComponent implements OnInit, OnDestroy {
         });
       },
       error: (error) => {
-        this.toastService.error('Failed to save user');
+        this.toastService.error(this.translate.instant('PERMISSIONS.MESSAGES.USER_SAVE_ERROR'));
         this.isSaving.set(false);
       }
     });
   }
   deleteGroup(): void {
     const group = this.selectedGroup();
+
     if (!group || this.isGlobalGroup() || this.isNewGroup()) return;
 
-    if (confirm(`Are you sure you want to delete "${group.name}"?`)) {
+    const confirmMessage = this.translate.instant('PERMISSIONS.MESSAGES.DELETE_CONFIRM', { name: group.name });
+    if (confirm(confirmMessage)) {
       this.isSaving.set(true);
       this.groupService.delete(group.id).pipe(
         takeUntil(this.destroy$)
       ).subscribe({
         next: () => {
-          this.toastService.success('Group deleted successfully');
+          this.toastService.error(this.translate.instant('PERMISSIONS.MESSAGES.GROUP_DELETED'));
           this.cancelEdit();
           this.loadGroups();
           this.loadAllUsers();
           this.isSaving.set(false);
         },
         error: (error) => {
-          this.toastService.error('Failed to delete group');
+          this.toastService.error(this.translate.instant('PERMISSIONS.MESSAGES.GROUP_DELETE_ERROR'));
           this.isSaving.set(false);
         }
       });
