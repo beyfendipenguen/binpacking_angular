@@ -577,7 +577,7 @@
       "INVALID_FILE_TYPE": "Invalid file type. Please upload an Excel file in the appropriate format or download the sample ISB report",
       "FILE_TOO_LARGE": "File size exceeds 10 MB limit",
       "FILE_PROCESSING": "An error occurred while processing file",
-      "COMPANY_LOADING": "An error occurred while loading profile information CompanyRelation",
+      "COMPANY_LOADING": "An error occurred while loading profile information",
       "TRUCK_LOADING": "An error occurred while loading truck information",
       "OPERATION_ERROR": "An error occurred during operation: "
     },
