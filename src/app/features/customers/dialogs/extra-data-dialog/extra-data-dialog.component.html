@@ -36,7 +36,7 @@
       <!-- Search Bar -->
       <div class="search-bar">
         <mat-form-field appearance="outline" class="search-field">
-          <mat-label>{{ 'CUSTOMER.SEARCH' | translate }}</mat-label>
+          <mat-label>{{ 'COMMON.SEARCH' | translate }}</mat-label>
           <input matInput [formControl]="searchControl" [placeholder]="'CUSTOMER.SEARCH_PLACEHOLDER' | translate" />
           <mat-icon matPrefix>search</mat-icon>
           @if (searchControl.value) {
@@ -343,7 +343,7 @@
 
   <mat-dialog-actions class="dialog-actions">
     @if (currentStep === 1) {
-    <button mat-button (click)="onCancel()">{{ 'HEADER.CANCEL' | translate }}</button>
+    <button mat-button (click)="onCancel()">{{ 'COMMON.CANCEL' | translate }}</button>
     <button mat-raised-button color="primary" (click)="nextStep()" [disabled]="selectedCount === 0">
       {{ 'COMMON.NEXT' | translate }}
       <mat-icon>arrow_forward</mat-icon>

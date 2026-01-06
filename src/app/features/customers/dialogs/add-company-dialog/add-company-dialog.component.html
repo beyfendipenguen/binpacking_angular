@@ -107,18 +107,29 @@
         <div class="form-row">
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>{{ 'COMMON.COUNTRY' | translate }}</mat-label>
-            <input matInput formControlName="country" [placeholder]="'CUSTOMER.COUNTRY_PLACEHOLDER' | translate"
-              autocomplete="off" />
             <mat-icon matPrefix>flag</mat-icon>
+
+            <input type="text" matInput formControlName="country" [matAutocomplete]="auto"
+              [placeholder]="'CUSTOMER.COUNTRY_PLACEHOLDER' | translate">
+
+            <mat-autocomplete #auto="matAutocomplete" [displayWith]="displayFn">
+
+              @for (c of filteredCountries | async; track c.code) {
+              <mat-option [value]="c">
+                <img [src]="'https://flagcdn.com/w20/' + c.code + '.png'"
+                  style="vertical-align: middle; margin-right: 8px;" height="15" alt="flag" />
+
+                <span>{{ c.name }}</span>
+              </mat-option>
+              }
+
+            </mat-autocomplete>
+
             @if (form.get('country')?.hasError('required') && form.get('country')?.touched) {
             <mat-error>{{ 'PROFILE.COUNTRY_REQUIRED' | translate }}</mat-error>
             }
-            @if (form.get('country')?.hasError('minlength')) {
-            <mat-error>{{ 'PROFILE.COUNTRY_MIN' | translate }}</mat-error>
-            }
           </mat-form-field>
         </div>
-
         <!-- Logo Upload Section -->
         <div class="form-row logo-section">
           <label class="logo-label">

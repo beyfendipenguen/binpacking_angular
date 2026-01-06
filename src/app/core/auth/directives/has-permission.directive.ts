@@ -1,6 +1,6 @@
 // has-permission.directive.ts
 import { Directive, Input, OnInit, OnChanges, SimpleChanges, TemplateRef, ViewContainerRef, inject, isDevMode } from '@angular/core';
-import { PERMISSION_FORMAT_REGEX, PermissionType } from '../permission.interface';
+import { PERMISSION_FORMAT_REGEX, PermissionType } from '../../interfaces/permission.interface';
 import { Store } from '@ngrx/store';
 import { selectUserPermissions } from '@app/store';
 import { PermissionDeniedComponent } from '@app/shared/permission-denied/permission-denied.component';

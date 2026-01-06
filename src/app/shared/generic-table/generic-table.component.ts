@@ -39,7 +39,7 @@ import { BaseResponse } from '@app/core/interfaces/base-response.interface';
 import { DisableAuthDirective } from '@app/core/auth/directives/disable-auth.directive';
 import { Store } from '@ngrx/store';
 import { AppState, selectUserPermissions } from '@app/store';
-import { PermissionType } from '@app/core/auth/permission.interface';
+import { PermissionType } from '@app/core/interfaces/permission.interface';
 
 // Interface for external data source
 export interface ExternalDataParams {

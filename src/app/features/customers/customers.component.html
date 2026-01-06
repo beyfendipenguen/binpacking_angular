@@ -39,7 +39,7 @@
     <div class="search-bar">
       <mat-form-field appearance="outline" class="search-field"
         [appDisableAuth]="['organizations.add_companyrelation','organizations.change_companyrelation']">
-        <mat-label>{{ 'CUSTOMER.SEARCH' | translate }}</mat-label>
+        <mat-label>{{ 'COMMON.SEARCH' | translate }}</mat-label>
         <input matInput [placeholder]="'CUSTOMER.SEARCH_PLACEHOLDER' | translate" [(ngModel)]="searchTerm"
           (input)="onSearch($event)" />
         <mat-icon matPrefix>search</mat-icon>

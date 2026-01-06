@@ -263,6 +263,17 @@ export class PalletControlComponent
     return Math.round(totalWeight * 100) / 100;
   }
 
+  packageTotalMeter(pkg: UiPackage): number {
+    const totalMm = pkg.package_details.reduce((total, packageDetail) => {
+      const depth = Number(packageDetail.product.dimension?.depth) || 0;
+      const count = Number(packageDetail.count) || 0;
+      return total + (depth * count);
+    }, 0);
+
+    // Sonucu noktadan sonra 2 haneye yuvarla
+    return Math.round((totalMm / 1000) * 100) / 100;
+  }
+
   // Dimension and fit checking methods
   canFitPackageDetailToPallet(
     packageDetail: PackageDetailReadDto,

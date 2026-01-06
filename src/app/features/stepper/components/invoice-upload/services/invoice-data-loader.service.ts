@@ -8,6 +8,7 @@ import { LocalStorageService } from '@app/features/stepper/services/local-storag
 import { RepositoryService } from '@app/features/stepper/services/repository.service';
 import { AppState, selectUser } from '@app/store';
 import { ReferenceData } from '../models/invoice-upload-interfaces';
+import { TranslateService } from '@ngx-translate/core';
 
 @Injectable({
   providedIn: 'root'
@@ -17,6 +18,7 @@ export class InvoiceDataLoaderService {
   private readonly toastService = inject(ToastService);
   private readonly store = inject(Store<AppState>);
   private readonly localStorageService = inject(LocalStorageService);
+  private readonly translateService = inject(TranslateService);
   user$ = this.store.select(selectUser);
   private readonly CACHE_KEY = 'invoice_reference_data';
 
@@ -59,7 +61,7 @@ export class InvoiceDataLoaderService {
             })
           );
         } else {
-          this.toastService.error(INVOICE_UPLOAD_CONSTANTS.MESSAGES.ERROR.COMPANY_LOADING);
+          this.toastService.error(this.translateService.instant(INVOICE_UPLOAD_CONSTANTS.MESSAGES.ERROR.COMPANY_LOADING));
           return of([]);
         }
       })
@@ -111,7 +113,8 @@ export class InvoiceDataLoaderService {
           checkCompletion();
         },
         error: (error) => {
-          this.toastService.error(INVOICE_UPLOAD_CONSTANTS.MESSAGES.ERROR.COMPANY_LOADING);
+          if(error.status !== 403)
+          this.toastService.error(this.translateService.instant(INVOICE_UPLOAD_CONSTANTS.MESSAGES.ERROR.COMPANY_LOADING));
           checkCompletion();
         }
       });
@@ -123,7 +126,8 @@ export class InvoiceDataLoaderService {
           checkCompletion();
         },
         error: (error) => {
-          this.toastService.error(INVOICE_UPLOAD_CONSTANTS.MESSAGES.ERROR.TRUCK_LOADING);
+          if(error.status !== 403)
+          this.toastService.error(this.translateService.instant(INVOICE_UPLOAD_CONSTANTS.MESSAGES.ERROR.TRUCK_LOADING));
           checkCompletion();
         }
       });

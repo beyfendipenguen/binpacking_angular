@@ -67,7 +67,7 @@
           @if (filterableColumns.includes(column)) {
           <button mat-icon-button class="filter-icon" [class.active-filter]="isFilterActive(column)"
             (click)="openFilterDialog(column, $event)" [matTooltip]="
-              (isFilterActive(column) ? 'GENERIC_TABLE.EDIT_FILTER' : 'GENERIC_TABLE.FILTER') | translate
+              (isFilterActive(column) ? 'GENERIC_TABLE.EDIT_FILTER' : 'COMMON.FILTER') | translate
             ">
             <mat-icon>filter_alt</mat-icon>
           </button>

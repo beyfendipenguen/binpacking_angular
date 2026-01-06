@@ -37,7 +37,7 @@
             <button
               mat-stroked-button
               color="primary"
-              *ngIf="showContactButton"
+              *ngIf="false"
               (click)="onContactAdmin()">
               <mat-icon>support_agent</mat-icon>
               {{ 'PERMISSION.CONTACT_ADMIN' | translate }}
@@ -45,7 +45,6 @@
 
             <button
               mat-button
-              *ngIf="showBackButton"
               (click)="onGoBack()">
               <mat-icon>arrow_back</mat-icon>
               {{ 'COMMON.GO_BACK' | translate }}

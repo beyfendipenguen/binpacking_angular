@@ -15,10 +15,18 @@ import { Company } from '../../../interfaces/company.interface';
 import { Observable, Subject, of } from 'rxjs';
 import { map, startWith, debounceTime, distinctUntilChanged, switchMap, catchError, takeUntil } from 'rxjs/operators';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import countries from 'i18n-iso-countries';
+import en from 'i18n-iso-countries/langs/en.json';
+import { MatSelectModule } from '@angular/material/select';
 
 export interface CompanyDialogData {
   mode: 'create' | 'edit';
   existingCompanies?: Company[];
+}
+
+interface Country {
+  name: string;
+  code: string;
 }
 
 @Component({
@@ -32,6 +40,7 @@ export interface CompanyDialogData {
     MatInputModule,
     MatButtonModule,
     MatIconModule,
+    MatSelectModule,
     MatProgressSpinnerModule,
     MatAutocompleteModule,
     TranslateModule,
@@ -50,6 +59,8 @@ export class AddCompanyDialogComponent implements OnInit, OnDestroy {
   form!: FormGroup;
   isSaving = false;
   isUploadingLogo = false;
+countryList: Country[] = [];
+  filteredCountries!: Observable<Country[]>;
 
   // Edit mode için
   selectedCompany: Company | null = null;
@@ -69,11 +80,42 @@ export class AddCompanyDialogComponent implements OnInit, OnDestroy {
   ) { }
 
   ngOnInit(): void {
+    countries.registerLocale(en);
+
+    // getNames bir obje döner: { "TR": "Turkey", "US": "United States" ... }
+    const countryNamesObject = countries.getNames('en', { select: 'official' });
+
+    // Bunu {name, code} dizisine çeviriyoruz
+    this.countryList = Object.entries(countryNamesObject).map(([code, name]) => ({
+      code: code.toLowerCase(), // flagcdn için küçük harf lazım (tr, us)
+      name: name.toUpperCase()  // Görünen isim
+    }));
     this.initForm();
+
+   this.filteredCountries = this.form.get('country')!.valueChanges.pipe(
+      startWith(''),
+      map(value => {
+        // value bir string (kullanıcının yazdığı) ya da bir obje (seçim yapınca) olabilir
+        // Bu yüzden string kontrolü yapıyoruz
+        const name = typeof value === 'string' ? value : value?.name;
+        return name ? this._filter(name as string) : this.countryList.slice();
+      })
+    );
 
     if (this.data.mode === 'edit') {
       this.setupCompanyAutocomplete();
     }
+  }
+
+  private _filter(name: string): Country[] {
+    const filterValue = name.toLowerCase();
+    return this.countryList.filter(option =>
+      option.name.toLowerCase().includes(filterValue)
+    );
+  }
+
+  displayFn(country: Country): string {
+    return country && country.name ? country.name : '';
   }
 
   ngOnDestroy(): void {
