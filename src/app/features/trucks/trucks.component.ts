@@ -6,6 +6,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { GenericTableComponent } from '@app/shared/generic-table/generic-table.component';
 import { TruckService } from '../services/truck.service';
 import { HasPermissionDirective } from '@app/core/auth/directives/has-permission.directive';
+import { InvoiceDataLoaderService } from '../stepper/components/invoice-upload/services/invoice-data-loader.service';
 
 @Component({
   selector: 'app-trucks',
@@ -22,6 +23,7 @@ import { HasPermissionDirective } from '@app/core/auth/directives/has-permission
 export class TrucksComponent {
 
 
+  private invoiceDataLoaderService = inject(InvoiceDataLoaderService);
   private translate = inject(TranslateService);
   truckService = inject(TruckService)
   // Loading durumu
@@ -63,4 +65,9 @@ export class TrucksComponent {
 
   ngOnInit(): void {
   }
+
+  refreshReferenceData() {
+    this.invoiceDataLoaderService.loadAllReferenceData();
+  }
+
 }

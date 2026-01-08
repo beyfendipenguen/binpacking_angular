@@ -23,6 +23,7 @@ import { MatMenuModule } from "@angular/material/menu";
 import { ExtraDataDialogComponent } from './dialogs/extra-data-dialog/extra-data-dialog.component';
 import { debounceTime, distinctUntilChanged, Subject } from 'rxjs';
 import { FormsModule } from '@angular/forms';
+import { InvoiceDataLoaderService } from '../stepper/components/invoice-upload/services/invoice-data-loader.service';
 
 @Component({
   selector: 'app-customers',
@@ -50,6 +51,9 @@ export class CustomersComponent implements OnInit, OnDestroy {
   private companyRelationService = inject(CompanyRelationService);
   private dialog = inject(MatDialog);
   private toastService = inject(ToastService);
+
+  private invoiceDataLoaderService = inject(InvoiceDataLoaderService);
+
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
@@ -155,7 +159,7 @@ export class CustomersComponent implements OnInit, OnDestroy {
         this.isLoading = false;
       },
       error: (error) => {
-        if(error.status !== 403){
+        if (error.status !== 403) {
           this.toastService.error(this.translate.instant('COMMON.DATA_LOAD_ERROR'));
         }
         this.isLoading = false;
@@ -210,6 +214,7 @@ export class CustomersComponent implements OnInit, OnDestroy {
     dialogRef.afterClosed().subscribe((result) => {
       if (result) {
         this.loadData(); // Refresh table
+        this.refreshReferenceData();
       }
     });
   }
@@ -225,6 +230,7 @@ export class CustomersComponent implements OnInit, OnDestroy {
 
     dialogRef.afterClosed().subscribe((result) => {
       this.loadData(); // Refresh table
+      this.refreshReferenceData();
     });
   }
 
@@ -241,6 +247,7 @@ export class CustomersComponent implements OnInit, OnDestroy {
     dialogRef.afterClosed().subscribe((result) => {
       if (result) {
         this.loadData(); // Refresh table
+        this.refreshReferenceData();
       }
     });
   }
@@ -272,6 +279,7 @@ export class CustomersComponent implements OnInit, OnDestroy {
           next: () => {
             this.toastService.success(this.translate.instant('CUSTOMER_MESSAGES.CUSTOMER_DELETED'));
             this.loadData();
+            this.refreshReferenceData();
           },
           error: (error) => {
             this.toastService.error(this.translate.instant('CUSTOMER_MESSAGES.DELETE_ERROR'));
@@ -295,5 +303,10 @@ export class CustomersComponent implements OnInit, OnDestroy {
       'actions': this.translate.instant('MENU.OPERATIONS')
     };
     return names[column] || column;
+  }
+
+  refreshReferenceData() {
+    this.invoiceDataLoaderService.loadAllReferenceData();
+    this.invoiceDataLoaderService.refreshCompanyRelationSettings$.next(true);
   }
 }

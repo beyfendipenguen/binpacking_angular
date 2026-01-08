@@ -131,6 +131,8 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
   // NgRx Observables
   public isEditMode$ = this.store.select(selectIsEditMode);
 
+  private selectedCompanyRelation = signal(null);
+
   companySearchControl = new FormControl<string | any>('');
   filteredCompanies = signal<any[]>([]);
 
@@ -218,6 +220,12 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
     this.initializeComponent();
     this.initializeCompanySearch()
     this.getTemplateFile();
+    this.dataLoaderService.refreshCompanyRelationSettings$.subscribe(
+      () => {
+        if (this.selectedCompanyRelation())
+          this.loadCompanyRelationSettings(this.selectedCompanyRelation())
+      }
+    );
     setTimeout(() => {
       this.showMessageBalloon.set(true);
       setTimeout(() => {
@@ -244,7 +252,7 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
 
 
   private loadReferenceData(): void {
-    const dataSub = this.dataLoaderService.loadAllReferenceData().subscribe({
+    const dataSub = this.dataLoaderService.referenceData$.subscribe({
       next: (data) => {
         this.referenceData = data;
         this.filteredCompanies.set([...this.targetCompanies]);
@@ -337,6 +345,7 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
   }
 
   onCompanyChange(selectedCompany: any): void {
+    this.selectedCompanyRelation.set(selectedCompany);
     let currentOrder = this.orderSignal();
     if (currentOrder && selectedCompany?.id) {
       this.loadCompanyRelationSettings(selectedCompany);

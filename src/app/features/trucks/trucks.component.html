@@ -14,12 +14,11 @@
 
 
   <div class="content-section" [class.loading]="isLoading">
-    <app-generic-table [service]="truckService" [displayedColumns]="displayedColumns"
-      [filterableColumns]="filterableColumns" [nestedDisplayColumns]="nestedDisplayColumns" [title]="'TRUCK.VEHICLES' | translate"
-      [deletePermission]="['logistics.delete_truck']"
-      [addPermission]="['logistics.add_truck']"
-      [updatePermission]="['logistics.change_truck']"
-      [showRowNumbers]="true"
+    <app-generic-table (itemAdded)="refreshReferenceData();" (updateItem)="refreshReferenceData();"
+      (rowDeleted)="refreshReferenceData();" [service]="truckService" [displayedColumns]="displayedColumns"
+      [filterableColumns]="filterableColumns" [nestedDisplayColumns]="nestedDisplayColumns"
+      [title]="'TRUCK.VEHICLES' | translate" [deletePermission]="['logistics.delete_truck']"
+      [addPermission]="['logistics.add_truck']" [updatePermission]="['logistics.change_truck']" [showRowNumbers]="true"
       [columnTypes]="columnTypes"
       [columnPermissions]="{'created_at': ['access_control.view_audited_fields'],'created_by': ['access_control.view_audited_fields']}">
     </app-generic-table>

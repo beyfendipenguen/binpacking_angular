@@ -141,6 +141,9 @@ export class GenericTableComponent<T> implements OnInit, AfterViewInit {
   @Output() rowClick = new EventEmitter<T>();
   @Output() rowDeleted = new EventEmitter<any>();
   @Output() addClick = new EventEmitter<void>(); // Yeni ekleme düğmesi tıklama olayı
+  // TODO:
+  // updatedItem olmasi daha uygun. cunku itemAdded ile uyumsuz oluyor anlasilamsi zor.
+  // update edilecek datayi mi yoksa update edilmis datayi mi geri dondurdugu belli degil.
   @Output() updateItem = new EventEmitter<T>();
   @Output() itemAdded = new EventEmitter<T>(); // Yeni öğe eklendiğinde tetiklenecek olay
 
