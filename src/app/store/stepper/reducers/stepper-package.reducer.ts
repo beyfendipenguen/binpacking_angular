@@ -963,7 +963,6 @@ export const stepperPackageHandlers = [
         addedPackages: changes.added,
         modifiedPackages: changes.modified,
         deletedPackageIds: changes.deletedIds,
-        isDirty: isDirty
       }
     };
   }),

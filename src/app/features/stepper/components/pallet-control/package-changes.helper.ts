@@ -130,7 +130,7 @@ function findMatchingPackage(
 ): PackageReadDto | null {
 
   const match = candidates.find(
-    candidate => candidate.id === pkg.id && candidate.pallet.id === pkg.pallet?.id
+    candidate => candidate.id === pkg.id
   );
 
   return match || null;
