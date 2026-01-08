@@ -200,7 +200,8 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
       if (!unitProductHeight) return;
 
       const unitProductCount = palletHeight / unitProductHeight;
-      this.unitsControl.setValue(unitProductCount, { emitEvent: false });
+
+      this.unitsControl.setValue(~~unitProductCount, { emitEvent: false });
     });
 
     effect(() => {
@@ -363,7 +364,7 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
           const palletHeight = settings.max_pallet_height;
           const unitProductHeight = this.unitProductHeight();
           const unitProductCount = palletHeight / unitProductHeight;
-          this.unitsControl.setValue(unitProductCount);
+          this.unitsControl.setValue(~~unitProductCount);
           // Order'ı settings ile güncelle
           const updatedOrder = structuredClone({
             ...currentOrder,
