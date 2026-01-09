@@ -384,7 +384,7 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
       .subscribe(searchTerm => {
         if (typeof searchTerm === 'string') {
           // Backend'e search isteği at
-          this.dataLoaderService.searchCompanyRelations(searchTerm, 20).subscribe({
+          this.dataLoaderService.searchCompanyRelations(searchTerm, 5).subscribe({
             next: (companies) => {
               this.filteredCompanies.set(companies);
             },
