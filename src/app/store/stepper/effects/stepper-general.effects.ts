@@ -74,6 +74,7 @@ export class StepperGeneralEffects {
               StepperPackageActions.getPalletsSuccess({ pallets }),
             ];
 
+
             if (orderResult && orderResult.length > 0 && orderResult[0]) {
               const cleanedResult = orderResult[0].result as PackagePosition[] || [];
               const orderResultId = orderResult[0].id;
@@ -96,8 +97,7 @@ export class StepperGeneralEffects {
         )
       )
     )
-  );
-
+  )
   //Order name i edit modda rev1 2 artirmak icin
   reviseOrder$ = createEffect(() =>
     this.actions$.pipe(

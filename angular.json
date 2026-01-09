@@ -18,7 +18,8 @@
           "builder": "@angular/build:application",
           "options": {
             "allowedCommonJsDependencies": [
-              "lodash"
+              "lodash",
+              "i18n-iso-countries"
             ],
             "outputPath": "dist/binpacking",
             "index": "src/index.html",
@@ -57,12 +58,12 @@
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "3MB",
+                  "maximumWarning": "4MB",
                   "maximumError": "8MB"
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "3MB",
+                  "maximumWarning": "4MB",
                   "maximumError": "8MB"
                 }
               ]

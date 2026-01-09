@@ -1,0 +1,11 @@
+Model Information:
+* title:	DHL Truck
+* source:	https://sketchfab.com/3d-models/dhl-truck-59c45e1342bb465283102b60f0dc487f
+* author:	Alien1974555 (https://sketchfab.com/Alien1974555)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "DHL Truck" (https://sketchfab.com/3d-models/dhl-truck-59c45e1342bb465283102b60f0dc487f) by Alien1974555 (https://sketchfab.com/Alien1974555) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

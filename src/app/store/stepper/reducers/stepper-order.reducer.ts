@@ -3,12 +3,8 @@ import { StepperState } from '../stepper.state';
 import { StepperInvoiceUploadActions } from '../actions/stepper-invoice-upload.actions';
 import { Order } from '@app/features/interfaces/order.interface';
 import { OrderDetailDiffCalculator } from '@features/utils/order-detail-diff.util';
-import { mapUiPackagesToOrderDetails } from '@features/mappers/ui-package-to-order-detail.mapper';
 import { StepperUiActions } from '../actions/stepper-ui.actions';
-import { IUiProduct } from '@app/features/stepper/interfaces/ui-interfaces/ui-product.interface';
-import { update } from 'lodash';
 import { IUiPackage } from '@app/features/stepper/interfaces/ui-interfaces/ui-package.interface';
-import { count } from 'd3';
 import { PackageDetailReadDto } from '@app/features/interfaces/package-detail.interface';
 
 const consolidatePackageDetails = (packageDetails: PackageDetailReadDto[]): PackageDetailReadDto[] => {
