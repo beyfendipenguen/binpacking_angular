@@ -102,7 +102,7 @@
             @if(filteredProducts().length === 0) {
             <mat-option disabled>
               <mat-icon>search_off</mat-icon>
-              <span>{{ 'PALLET.NO_RESULTS' | translate }}</span>
+              <span>{{ 'COMMON.NO_RESULTS' | translate }}</span>
             </mat-option>
             }
             @for(product of filteredProducts(); track product.id) {

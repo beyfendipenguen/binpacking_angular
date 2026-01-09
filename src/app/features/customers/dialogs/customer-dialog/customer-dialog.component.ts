@@ -363,7 +363,7 @@ export class CustomerDialogComponent implements OnInit, OnDestroy {
    * Get title based on mode
    */
   getTitle(): string {
-    return this.data.mode === 'create' ? this.translate.instant('CUSTOMER.ADD_NEW') : this.translate.instant('CUSTOMER.EDIT');
+    return this.data.mode === 'create' ? this.translate.instant('CUSTOMER.ADD_NEW') : this.translate.instant('COMMON.EDIT');
   }
 
   /**

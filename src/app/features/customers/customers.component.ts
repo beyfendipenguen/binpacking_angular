@@ -155,7 +155,7 @@ export class CustomersComponent implements OnInit, OnDestroy {
         this.isLoading = false;
       },
       error: (error) => {
-        if(error.status !== 403){
+        if (error.status !== 403) {
           this.toastService.error(this.translate.instant('COMMON.DATA_LOAD_ERROR'));
         }
         this.isLoading = false;

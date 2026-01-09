@@ -21,7 +21,6 @@ import { HasPermissionDirective } from '@app/core/auth/directives/has-permission
 })
 export class TrucksComponent {
 
-
   private translate = inject(TranslateService);
   truckService = inject(TruckService)
   // Loading durumu
@@ -63,4 +62,5 @@ export class TrucksComponent {
 
   ngOnInit(): void {
   }
+
 }
