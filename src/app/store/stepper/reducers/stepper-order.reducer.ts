@@ -44,13 +44,6 @@ export const stepperOrderHandlers = [
     } as Order
   })),
 
-  // Edit Mode
-  on(StepperUiActions.enableEditMode, (state: StepperState) => ({
-    ...state,
-    isEditMode: true,
-    loading: true
-  })),
-
   // Order Save Success
   on(StepperInvoiceUploadActions.saveSuccess, StepperInvoiceUploadActions.saveSuccess, (state: StepperState, { order }) => ({
     ...state,
