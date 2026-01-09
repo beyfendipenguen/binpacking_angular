@@ -96,7 +96,7 @@ export class AuthService {
   clearLocalAndStoreForEditMode(): void {
     localStorage.removeItem('invoice_reference_data');
     localStorage.removeItem('enhanced_stepper_draft_data');
-    this.store.dispatch(StepperUiActions.resetStepper());
+    this.store.dispatch(StepperUiActions.resetStepperForEditMode());
   }
 
   // Error handling
