@@ -5,6 +5,7 @@ import { OrderDetailAddDialogComponent } from '../order-detail-add-dialog/order-
 import { INVOICE_UPLOAD_CONSTANTS } from '../constants/invoice-upload.constants';
 import { ToastService } from '@app/core/services/toast.service';
 import { OrderDetailRead } from '@app/features/interfaces/order-detail.interface';
+import { TranslateService } from '@ngx-translate/core';
 
 @Injectable({
   providedIn: 'root'
@@ -12,7 +13,7 @@ import { OrderDetailRead } from '@app/features/interfaces/order-detail.interface
 export class OrderDetailManager {
   private readonly dialog = inject(MatDialog);
   private readonly toastService = inject(ToastService);
-
+  private readonly translateService = inject(TranslateService)
   private orderDetails: OrderDetailRead[] = [];
 
   setOrderDetails(orderDetails: OrderDetailRead[]): void {
@@ -34,7 +35,7 @@ export class OrderDetailManager {
       dialogRef.afterClosed().subscribe({
         next: (result) => {
           if (result && result.orderDetail) {
-            this.toastService.success(INVOICE_UPLOAD_CONSTANTS.MESSAGES.SUCCESS.ORDER_DETAIL_ADDED);
+            this.toastService.success(this.translateService.instant( INVOICE_UPLOAD_CONSTANTS.MESSAGES.SUCCESS.ORDER_DETAIL_ADDED));
             observer.next(result.orderDetail);
           } else {
             observer.next(null);
