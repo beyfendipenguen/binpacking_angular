@@ -131,8 +131,6 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
   // NgRx Observables
   public isEditMode$ = this.store.select(selectIsEditMode);
 
-  private selectedCompanyRelation = signal(null);
-
   companySearchControl = new FormControl<string | any>('');
   filteredCompanies = signal<any[]>([]);
 
@@ -218,15 +216,21 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.initializeComponent();
-    this.initializeCompanySearch()
-    this.getTemplateFile();
-    this.dataLoaderService.refreshCompanyRelationSettings$.subscribe(
-      () => {
-        if (this.selectedCompanyRelation())
-          this.loadCompanyRelationSettings(this.selectedCompanyRelation())
+    this.uploadForm = this.orderFormManager.initializeForm();
+
+    // Trucks'ı ilk yüklemede limit ile çek
+    this.dataLoaderService.loadTrucksLimited(10).subscribe({
+      next: (trucks) => {
+        this.referenceData.trucks = trucks;
+      },
+      error: (error) => {
+        console.error('Trucks load error:', error);
       }
-    );
+    });
+
+    this.initializeCompanySearch();
+    this.getTemplateFile();
+
     setTimeout(() => {
       this.showMessageBalloon.set(true);
       setTimeout(() => {
@@ -248,19 +252,6 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
 
   private initializeComponent(): void {
     this.uploadForm = this.orderFormManager.initializeForm();
-    this.loadReferenceData();
-  }
-
-
-  private loadReferenceData(): void {
-    const dataSub = this.dataLoaderService.referenceData$.subscribe({
-      next: (data) => {
-        this.referenceData = data;
-        this.filteredCompanies.set([...this.targetCompanies]);
-        this.initializeCompanySearch();
-      }
-    });
-    this.subscriptions.push(dataSub);
   }
 
   downloadTemplate() {
@@ -346,7 +337,6 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
   }
 
   onCompanyChange(selectedCompany: any): void {
-    this.selectedCompanyRelation.set(selectedCompany);
     let currentOrder = this.orderSignal();
     if (currentOrder && selectedCompany?.id) {
       this.loadCompanyRelationSettings(selectedCompany);
@@ -388,29 +378,24 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
     this.companySearchControl.valueChanges
       .pipe(
         startWith(''),
-        debounceTime(300),
+        debounceTime(300), // Kullanıcı yazmayı bıraktıktan 300ms sonra ara
         takeUntil(this.destroy$)
       )
       .subscribe(searchTerm => {
         if (typeof searchTerm === 'string') {
-          this.filterCompanies(searchTerm);
+          // Backend'e search isteği at
+          this.dataLoaderService.searchCompanyRelations(searchTerm, 20).subscribe({
+            next: (companies) => {
+              this.filteredCompanies.set(companies);
+            },
+            error: (error) => {
+              this.filteredCompanies.set([]);
+            }
+          });
         }
       });
   }
 
-  private filterCompanies(searchTerm: string): void {
-    if (!searchTerm || searchTerm.length === 0) {
-      this.filteredCompanies.set([...this.targetCompanies]);
-      return;
-    }
-
-    const filtered = this.targetCompanies.filter(company =>
-      company.target_company.company_name
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase())
-    );
-    this.filteredCompanies.set(filtered);
-  }
 
   displayCompanyName = (company: any): string => {
     return company?.target_company?.company_name || '';

@@ -15,81 +15,39 @@ import { TranslateService } from '@ngx-translate/core';
 })
 export class InvoiceDataLoaderService {
   private readonly repositoryService = inject(RepositoryService);
-  private readonly toastService = inject(ToastService);
   private readonly store = inject(Store<AppState>);
-  private readonly translateService = inject(TranslateService);
   user$ = this.store.select(selectUser);
-  public referenceData$: BehaviorSubject<ReferenceData> = new BehaviorSubject<ReferenceData>({
-    targetCompanies: [],
-    trucks: []
-  })
-  public refreshCompanyRelationSettings$ = new Subject();
 
   constructor() {
-    this.loadAllReferenceData();
   }
 
-  loadTargetCompanies(): Observable<any[]> {
+  searchCompanyRelations(searchTerm: string = '', limit: number = 5): Observable<any[]> {
     return this.user$.pipe(
       switchMap((response) => {
-        if (response && response.company && response.company.id) {
-          return this.repositoryService.companyRelations(response.company.id).pipe(
-          );
+        if (response?.company?.id) {
+          // Query params oluştur
+          const params: any = {
+            active_only: 'true',
+            limit: limit.toString()
+          };
+
+          // Search terimi varsa ekle
+          if (searchTerm.trim()) {
+            params.search = searchTerm.trim();
+          }
+
+          return this.repositoryService.companyRelations(response.company.id, params);
         } else {
-          this.toastService.error(this.translateService.instant(INVOICE_UPLOAD_CONSTANTS.MESSAGES.ERROR.COMPANY_LOADING));
           return of([]);
         }
       })
     );
   }
 
-  loadTrucks(): Observable<Truck[]> {
-    return this.repositoryService.getTrucks().pipe(
+
+  loadTrucksLimited(limit: number = 50): Observable<Truck[]> {
+    return this.repositoryService.getTrucks({ limit: limit.toString() }).pipe(
       map((response) => response.results)
     );
-  }
-
-  loadAllReferenceData(): void {
-
-    const referenceData: ReferenceData = {
-      targetCompanies: [],
-      trucks: []
-    };
-
-    let completedRequests = 0;
-    const totalRequests = 2;
-
-    const checkCompletion = () => {
-      completedRequests++;
-      if (completedRequests === totalRequests) {
-        this.referenceData$.next(referenceData);
-      }
-    };
-
-    // Load target companies
-    this.loadTargetCompanies().subscribe({
-      next: (companies) => {
-        referenceData.targetCompanies = companies;
-        checkCompletion();
-      },
-      error: (error) => {
-        if (error.status !== 403)
-          this.toastService.error(this.translateService.instant(INVOICE_UPLOAD_CONSTANTS.MESSAGES.ERROR.COMPANY_LOADING));
-        checkCompletion();
-      }
-    });
-
-    // Load trucks
-    this.loadTrucks().subscribe({
-      next: (trucks) => {
-        referenceData.trucks = trucks;
-        checkCompletion();
-      },
-      error: (error) => {
-        if (error.status !== 403)
-          this.toastService.error(this.translateService.instant(INVOICE_UPLOAD_CONSTANTS.MESSAGES.ERROR.TRUCK_LOADING));
-        checkCompletion();
-      }
-    });
   }
 }
