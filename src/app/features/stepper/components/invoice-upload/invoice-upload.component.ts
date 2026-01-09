@@ -198,7 +198,8 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
       if (!unitProductHeight) return;
 
       const unitProductCount = palletHeight / unitProductHeight;
-      this.unitsControl.setValue(unitProductCount, { emitEvent: false });
+
+      this.unitsControl.setValue(~~unitProductCount, { emitEvent: false });
     });
 
     effect(() => {
@@ -215,9 +216,21 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.initializeComponent();
-    this.initializeCompanySearch()
+    this.uploadForm = this.orderFormManager.initializeForm();
+
+    // Trucks'ı ilk yüklemede limit ile çek
+    this.dataLoaderService.loadTrucksLimited(10).subscribe({
+      next: (trucks) => {
+        this.referenceData.trucks = trucks;
+      },
+      error: (error) => {
+        console.error('Trucks load error:', error);
+      }
+    });
+
+    this.initializeCompanySearch();
     this.getTemplateFile();
+
     setTimeout(() => {
       this.showMessageBalloon.set(true);
       setTimeout(() => {
@@ -239,19 +252,6 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
 
   private initializeComponent(): void {
     this.uploadForm = this.orderFormManager.initializeForm();
-    this.loadReferenceData();
-  }
-
-
-  private loadReferenceData(): void {
-    const dataSub = this.dataLoaderService.loadAllReferenceData().subscribe({
-      next: (data) => {
-        this.referenceData = data;
-        this.filteredCompanies.set([...this.targetCompanies]);
-        this.initializeCompanySearch();
-      }
-    });
-    this.subscriptions.push(dataSub);
   }
 
   downloadTemplate() {
@@ -354,7 +354,7 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
           const palletHeight = settings.max_pallet_height;
           const unitProductHeight = this.unitProductHeight();
           const unitProductCount = palletHeight / unitProductHeight;
-          this.unitsControl.setValue(unitProductCount);
+          this.unitsControl.setValue(~~unitProductCount);
           // Order'ı settings ile güncelle
           const updatedOrder = structuredClone({
             ...currentOrder,
@@ -378,29 +378,24 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
     this.companySearchControl.valueChanges
       .pipe(
         startWith(''),
-        debounceTime(300),
+        debounceTime(300), // Kullanıcı yazmayı bıraktıktan 300ms sonra ara
         takeUntil(this.destroy$)
       )
       .subscribe(searchTerm => {
         if (typeof searchTerm === 'string') {
-          this.filterCompanies(searchTerm);
+          // Backend'e search isteği at
+          this.dataLoaderService.searchCompanyRelations(searchTerm, 20).subscribe({
+            next: (companies) => {
+              this.filteredCompanies.set(companies);
+            },
+            error: (error) => {
+              this.filteredCompanies.set([]);
+            }
+          });
         }
       });
   }
 
-  private filterCompanies(searchTerm: string): void {
-    if (!searchTerm || searchTerm.length === 0) {
-      this.filteredCompanies.set([...this.targetCompanies]);
-      return;
-    }
-
-    const filtered = this.targetCompanies.filter(company =>
-      company.target_company.company_name
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase())
-    );
-    this.filteredCompanies.set(filtered);
-  }
 
   displayCompanyName = (company: any): string => {
     return company?.target_company?.company_name || '';

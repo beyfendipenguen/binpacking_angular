@@ -24,7 +24,7 @@ export interface CompanyDialogData {
   existingCompanies?: Company[];
 }
 
-interface Country {
+interface CountryCode {
   name: string;
   code: string;
 }
@@ -59,8 +59,8 @@ export class AddCompanyDialogComponent implements OnInit, OnDestroy {
   form!: FormGroup;
   isSaving = false;
   isUploadingLogo = false;
-countryList: Country[] = [];
-  filteredCountries!: Observable<Country[]>;
+  countryList: CountryCode[] = [];
+  filteredCountries!: Observable<CountryCode[]>;
 
   // Edit mode için
   selectedCompany: Company | null = null;
@@ -92,7 +92,7 @@ countryList: Country[] = [];
     }));
     this.initForm();
 
-   this.filteredCountries = this.form.get('country')!.valueChanges.pipe(
+    this.filteredCountries = this.form.get('country')!.valueChanges.pipe(
       startWith(''),
       map(value => {
         // value bir string (kullanıcının yazdığı) ya da bir obje (seçim yapınca) olabilir
@@ -107,14 +107,14 @@ countryList: Country[] = [];
     }
   }
 
-  private _filter(name: string): Country[] {
+  private _filter(name: string): CountryCode[] {
     const filterValue = name.toLowerCase();
     return this.countryList.filter(option =>
       option.name.toLowerCase().includes(filterValue)
     );
   }
 
-  displayFn(country: Country): string {
+  displayFn(country: CountryCode): string {
     return country && country.name ? country.name : '';
   }
 
@@ -323,7 +323,7 @@ countryList: Country[] = [];
   private createCompany(): void {
     const formData = new FormData();
     formData.append('company_name', this.form.value.company_name);
-    formData.append('country', this.form.value.country);
+    formData.append('country', this.form.value.country.name);
 
     if (this.selectedLogoFile) {
       formData.append('logo', this.selectedLogoFile);
@@ -367,7 +367,7 @@ countryList: Country[] = [];
     }
 
     if (hasCountryChanged) {
-      formData.append('country', this.form.value.country);
+      formData.append('country', this.form.value.country.name);
     }
 
     if (hasLogoChanged) {

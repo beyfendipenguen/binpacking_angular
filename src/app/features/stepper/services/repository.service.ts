@@ -91,15 +91,17 @@ export class RepositoryService {
       );
   }
 
-  getTrucks(): Observable<any> {
-    return this.http.get<Truck>(`${this.api.getApiUrl()}/logistics/trucks/`, {
-      params: new HttpParams().set('limit', 30).set('offset', 0),
-    });
+  getTrucks(params?: any): Observable<{ results: Truck[] }> {
+    return this.http.get<{ results: Truck[] }>(
+      `${this.api.getApiUrl()}/logistics/trucks/`,
+      { params: params || {} }
+    );
   }
 
-  companyRelations(company_id: string): Observable<any> {
-    return this.http.get<CompanyRelation>(
-      `${this.api.getApiUrl()}/organizations/companies/${company_id}/relations/`
+  companyRelations(companyId: string, params?: any): Observable<any[]> {
+    return this.http.get<any[]>(
+      `${this.api.getApiUrl()}/organizations/companies/${companyId}/relations/`,
+      { params: params || {} }
     );
   }
 

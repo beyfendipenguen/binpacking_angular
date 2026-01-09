@@ -996,7 +996,7 @@ export class PalletControlComponent
           info: this.translate.instant('PALLET_CONTROL.CONTINUE_WARNING'),
           confirmButtonText: this.translate.instant('PALLET_CONTROL.CONTINUE_ANYWAY'),
           showYesButton: true,
-          rejectButtonText: this.translate.instant('PALLET_CONTROL.GO_BACK')
+          rejectButtonText: this.translate.instant('COMMON.GO_BACK')
         }
       });
 
