@@ -17,6 +17,7 @@ import { OrderResultService } from '@app/features/services/order-result.service'
 import { FileService } from '@app/core/services/file.service';
 import { ReportFile } from '@app/features/stepper/components/result-step/result-step.service';
 import { PackagePosition } from '@app/features/interfaces/order-result.interface';
+import { AuthService } from '@app/core/auth/services/auth.service';
 
 @Injectable()
 export class StepperGeneralEffects {
@@ -30,12 +31,16 @@ export class StepperGeneralEffects {
   private packageService = inject(PackageService)
   private orderResultService = inject(OrderResultService)
   private fileService = inject(FileService)
-
+  private authService = inject(AuthService);
 
   // Edit Modu: Sipariş, detaylar ve paketleri paralel yükler
   enableEditMode$ = createEffect(() =>
     this.actions$.pipe(
       ofType(StepperUiActions.enableEditMode),
+      tap(() => {
+        // 🧹 Yeni sipariş açılırken önce tüm state'i temizle
+        this.authService.clearLocalAndStoreForEditMode()
+      }),
       switchMap((action) =>
         forkJoin({
           order: this.orderService.getById(action.orderId),
@@ -45,7 +50,7 @@ export class StepperGeneralEffects {
           ),
           pallets: this.repositoryService.getPalletsByOrder(action.orderId),
           orderResult: this.orderResultService.getByOrderId(action.orderId).pipe(
-            catchError(() => of([])) // Hata olursa boş array döndür
+            catchError(() => of([]))
           ),
           files: this.fileService.getAll({ order_id: action.orderId, limit: 30, offset: 0 }).pipe(
             map((response: any) => response.results.map((file: any) => ({
@@ -62,7 +67,6 @@ export class StepperGeneralEffects {
               file.name.includes(order.name)
             );
 
-            // Base actions - her zaman dispatch edilecek
             const baseActions = [
               StepperInvoiceUploadActions.saveSuccess({ order }),
               StepperInvoiceUploadActions.upsertManySuccess({ orderDetails }),
@@ -70,7 +74,6 @@ export class StepperGeneralEffects {
               StepperPackageActions.getPalletsSuccess({ pallets }),
             ];
 
-            // OrderResult varsa ekstra action'ları ekle
             if (orderResult && orderResult.length > 0 && orderResult[0]) {
               const cleanedResult = orderResult[0].result as PackagePosition[] || [];
               const orderResultId = orderResult[0].id;
@@ -85,7 +88,6 @@ export class StepperGeneralEffects {
               ];
             }
 
-            // OrderResult yoksa sadece base action'ları döndür
             return baseActions;
           }),
           catchError((error) => {

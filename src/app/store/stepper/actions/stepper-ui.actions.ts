@@ -23,6 +23,7 @@ export const StepperUiActions = createActionGroup({
     'Init': emptyProps(),
     'Initialize Stepper': props<{ editMode?: boolean; editOrderId?: string }>(),
     'Reset Stepper': emptyProps(),
+    'Reset Stepper For Edit Mode': emptyProps(),
 
     // Step Yönetimi
     'Navigate To Step': props<{ stepIndex: number }>(),
