@@ -35,7 +35,7 @@ import { TranslateModule } from '@ngx-translate/core';
     MatStepperModule, FormsModule, LoadingComponent, ReactiveFormsModule,
     MatFormFieldModule, MatInputModule, MatButtonModule, AsyncPipe,
     InvoiceUploadComponent, PalletControlComponent, LoadingComponent,
-    ResultStepComponent, CommonModule,TranslateModule
+    ResultStepComponent, CommonModule, TranslateModule
   ],
   providers: [
   ],
@@ -45,7 +45,6 @@ import { TranslateModule } from '@ngx-translate/core';
 })
 export class StepperComponent implements OnInit {
 
-  // View References
   @ViewChild('stepper') stepper!: MatStepper;
   private readonly localStorageService = inject(LocalStorageService);
   private readonly legacyToastService = inject(ToastService);
@@ -77,7 +76,6 @@ export class StepperComponent implements OnInit {
 
   }
 
-
   onShipmentCompleted = (): void => {
     try {
       this.router.navigate(['/'], {
@@ -92,23 +90,7 @@ export class StepperComponent implements OnInit {
     this.store.dispatch(StepperUiActions.navigateToStep({ stepIndex: event.selectedIndex }))
   }
 
-
   ngOnInit(): void {
-    // TODO:
-    // localdan okuyup store a yazama islemini tamamla
-    // edit mode senaryolarini dene
-    // app component restore yapti ve busayfa acildi
-    // eger edit mode dan geldiyse store u ezmesi gerekiyor.
-    // eger edit mode dan geldiyse ve mevcut local data da bulunan step veri tabanina gimediyse ilk invoice upload component verisi varsa sadece
-    // bu veri silinir ve uzerine edit mode dan gelen veriler yazilir.
-    // eger kullanici ilerle ve kaydet demisse zaten ilgili isleme geri donmek icin duzenle butonunu
-    // siparis sayfasindan tiklayarak gelebilir.
-    // eger edit mode dan geldiyse ve store daki order id ayni ise  backende gitmeden devam etmesi lazim
-    // bu durumda ekranda kullaniciya bu durumu bildirmek gerekir
-    // bu zaten en  son yarim kalan siparisiniz demesi lazim bunun gibi bir bildirim cikmasi lazim
-    // eger edit mode dan gelmediyse zaten app component her turlu store doldurmus oluyor herhangi bir problem yok
-
-
     const editModeOrderId = this.route.snapshot.queryParamMap.get('orderId');
     const localData = this.localStorageService.getStepperData();
     const localOrderId = localData?.order?.id;
@@ -119,8 +101,5 @@ export class StepperComponent implements OnInit {
     } else if (editModeOrderId) {
       this.store.dispatch(StepperUiActions.enableEditMode({ orderId: editModeOrderId }));
     }
-
   }
-
-
 }
