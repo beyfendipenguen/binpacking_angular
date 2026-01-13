@@ -30,6 +30,7 @@ import { DisableAuthDirective } from "@app/core/auth/directives/disable-auth.dir
 import { HasPermissionDirective } from '@app/core/auth/directives/has-permission.directive';
 import { Observable, Subject, of } from 'rxjs'; // ← Subject ve of ekle
 import { debounceTime, distinctUntilChanged, switchMap, catchError, takeUntil } from 'rxjs/operators'; // ← Operatörleri ekle
+import { EXTRA_DATA_FIELDS } from '../../config/extra-data-fields.config';
 
 export interface CustomerDialogData {
   mode: 'create' | 'edit';
@@ -89,43 +90,9 @@ export class CustomerDialogComponent implements OnInit, OnDestroy {
   // Pallet Groups
   palletGroups: PalletGroup[] = [];
   isLoadingPalletGroups = false;
+  extraDataFields = EXTRA_DATA_FIELDS;
 
   private destroy$ = new Subject<void>();
-
-  extraDataFields: ExtraDataFieldConfig[] = [
-    {
-      key: 'show_logo',
-      label: 'CUSTOMER.EXTRA_DATA.SHOW_LOGO',
-      type: 'boolean',
-      icon: 'image'
-    },
-    {
-      key: 'max_pallet_height',
-      label: 'CUSTOMER.MAX_PALLET_HEIGHT',
-      type: 'number',
-      icon: 'height',
-      placeholder: '2400',
-      suffix: 'DIMENSIONS.MM',
-      validators: [Validators.required, Validators.min(1)]
-    },
-    {
-      key: 'truck_weight_limit',
-      label: 'CUSTOMER.TRUCK_WEIGHT_LIMIT',
-      type: 'number',
-      icon: 'local_shipping',
-      placeholder: '25000',
-      suffix: 'DIMENSIONS.KG',
-      validators: [Validators.required, Validators.min(1)]
-    },
-    {
-      key: 'default_pallet_group_id',
-      label: 'CUSTOMER.DEFAULT_PALLET_GROUP',
-      type: 'select',
-      icon: 'inventory_2',
-      hint: 'CUSTOMER.PALLET_HINT',
-      isSpecial: true
-    }
-  ];
 
   constructor(
     public dialogRef: MatDialogRef<CustomerDialogComponent>,

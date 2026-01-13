@@ -247,7 +247,13 @@
       "FIELD_UPDATED": "Field updated",
       "FIELD_REMOVED": "Field removed",
       "INVALID_NUMBER": "Invalid number format",
-      "SHOW_LOGO": "Show Logo on Pallet Label"
+      "SHOW_LOGO": "Show Logo on Pallet Label",
+      "HAS_CONSOLE": "Protective Bracket",
+      "CORE_TYPE": "Core Type",
+      "FUMIGATION_TYPE": "Fumigation Type",
+      "SIDE_COVER_TYPE": "Metal Side Cover Type",
+      "IS_MADE_IN_TURKEY": "Made in Turkey Label",
+      "LABEL_NAME": "Label Name"
     }
   },
   "CUSTOMER_MESSAGES": {

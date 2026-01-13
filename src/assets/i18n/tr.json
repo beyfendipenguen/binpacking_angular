@@ -247,7 +247,13 @@
       "FIELD_UPDATED": "Alan güncellendi",
       "FIELD_REMOVED": "Alan kaldırıldı",
       "INVALID_NUMBER": "Geçersiz sayı formatı",
-      "SHOW_LOGO": "Palet Etiketinde Logo Göster"
+      "SHOW_LOGO": "Palet Etiketinde Logo Göster",
+      "HAS_CONSOLE": "Mensol",
+      "CORE_TYPE": "Çekirdek",
+      "FUMIGATION_TYPE": "Fumigasyon Tipi",
+      "SIDE_COVER_TYPE": "Metal Yan Kapak Tipi",
+      "IS_MADE_IN_TURKEY": "Türkiye'de Üretildi Etiketi",
+      "LABEL_NAME": "Etiket İsmi"
     }
   },
   "CUSTOMER_MESSAGES": {

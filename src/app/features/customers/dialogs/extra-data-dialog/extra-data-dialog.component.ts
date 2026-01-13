@@ -22,24 +22,11 @@ import { PalletGroupService } from '../../../services/pallet-group.service';
 import { ToastService } from '@app/core/services/toast.service';
 import { CompanyRelation } from '../../../interfaces/company-relation.interface';
 import { PalletGroup } from '../../../interfaces/pallet-group.interface';
-import { AuthService } from '@app/core/auth/services/auth.service';
 import { PalletGroupDialogComponent } from '@app/features/pallets/pallet-group-dialog/pallet-group-dialog.component';
 import { DisableAuthDirective } from "@app/core/auth/directives/disable-auth.directive";
 import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged, takeUntil } from 'rxjs/operators';
-
-interface ExtraDataFieldConfig {
-  key: string;
-  label: string;
-  type: 'number' | 'string' | 'boolean' | 'select';
-  icon: string;
-  placeholder?: string;
-  suffix?: string;
-  hint?: string;
-  validators?: any[];
-  options?: { value: any; label: string }[];
-  isSpecial?: boolean;
-}
+import { EXTRA_DATA_FIELDS, ExtraDataFieldConfig } from '../../config/extra-data-fields.config';
 
 interface DynamicField {
   key: string;
@@ -117,41 +104,7 @@ export class ExtraDataDialogComponent implements OnInit, OnDestroy {
   detectedExtraDataFields: { key: string; type: string; sample: any }[] = [];
 
   // ExtraData field configuration
-  extraDataFields: ExtraDataFieldConfig[] = [
-    {
-      key: 'show_logo',
-      label: 'CUSTOMER.EXTRA_DATA.SHOW_LOGO',
-      type: 'boolean',
-      icon: 'image',
-    },
-    {
-      key: 'max_pallet_height',
-      label: 'CUSTOMER.MAX_PALLET_HEIGHT',
-      type: 'number',
-      icon: 'height',
-      placeholder: '2400',
-      suffix: 'DIMENSIONS.MM',
-      validators: [Validators.required, Validators.min(1)]
-    },
-    {
-      key: 'truck_weight_limit',
-      label: 'CUSTOMER.TRUCK_WEIGHT_LIMIT',
-      type: 'number',
-      icon: 'local_shipping',
-      placeholder: '25000',
-      suffix: 'DIMENSIONS.KG',
-      validators: [Validators.required, Validators.min(1)]
-    },
-    {
-      key: 'default_pallet_group_id',
-      label: 'CUSTOMER.DEFAULT_PALLET_GROUP',
-      type: 'select',
-      icon: 'inventory_2',
-      hint: 'CUSTOMER.PALLET_HINT',
-      isSpecial: true,
-      validators: [Validators.required]
-    }
-  ];
+  extraDataFields = EXTRA_DATA_FIELDS;
 
   ngOnInit(): void {
     this.initForms();
