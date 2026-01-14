@@ -156,6 +156,87 @@ $white: #ffffff;
 }
 
 // ========================================
+// FULLSCREEN CONTROLS
+// ========================================
+.fullscreen-controls {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  z-index: 10;
+  
+  .fullscreen-btn,
+  .exit-fullscreen-btn {
+    background: linear-gradient(135deg, $primary-color, $primary-dark);
+    color: $white;
+    border: none;
+    border-radius: 8px;
+    width: 2.5rem;
+    height: 2.5rem;
+    cursor: pointer;
+    font-size: 1.2rem;
+    font-weight: 700;
+    box-shadow: var(--shadow-md);
+    transition: var(--transition-base);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    
+    &:hover {
+      transform: scale(1.1);
+      box-shadow: var(--shadow-lg);
+      background: linear-gradient(135deg, $primary-dark, color.adjust($primary-dark, $lightness: -10%));
+    }
+    
+    &:active {
+      transform: scale(0.95);
+    }
+  }
+  
+  .exit-fullscreen-btn {
+    background: linear-gradient(135deg, $error-red, $error-dark);
+    
+    &:hover {
+      background: linear-gradient(135deg, $error-dark, color.adjust($error-dark, $lightness: -10%));
+    }
+  }
+}
+
+// Fullscreen modda container'ı tam ekran yap
+.threejs-visualization-container:fullscreen {
+  height: 100vh !important;
+  border-radius: 0 !important;
+  
+  .fullscreen-controls {
+    z-index: 1000;
+  }
+  
+  .package-info-panel,
+  .package-products-panel,
+  .deleted-packages-panel,
+  .weight-display-panel {
+    z-index: 999;
+  }
+}
+
+// Webkit desteği
+.threejs-visualization-container:-webkit-full-screen {
+  height: 100vh !important;
+  border-radius: 0 !important;
+}
+
+// Mozilla desteği
+.threejs-visualization-container:-moz-full-screen {
+  height: 100vh !important;
+  border-radius: 0 !important;
+}
+
+// MS desteği
+.threejs-visualization-container:-ms-fullscreen {
+  height: 100vh !important;
+  border-radius: 0 !important;
+}
+
+// ========================================
 // PACKAGE INFO PANEL (Top Right)
 // ========================================
 .package-info-panel {

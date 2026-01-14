@@ -29,6 +29,22 @@
   </div>
   }
 
+  @if (!isLoadingModels && !isLoadingData && piecesDataSignal() && piecesDataSignal().length > 0) {
+  <div class="fullscreen-controls">
+    @if (!isFullscreen) {
+    <button class="fullscreen-btn" (click)="toggleFullscreen()" [title]="'TRUCK_VISUALIZATION.FULLSCREEN' | translate">
+      ⛶
+    </button>
+    }
+    @if (isFullscreen) {
+    <button class="exit-fullscreen-btn" (click)="toggleFullscreen()"
+      [title]="'TRUCK_VISUALIZATION.EXIT_FULLSCREEN' | translate">
+      ✕
+    </button>
+    }
+  </div>
+  }
+
   <!-- Package Products Panel (Top Left) -->
   @if (selectedPackageSignal(); as selected) {
   @if (!isLoadingModels && !isLoadingData && selectedPackageProducts.length > 0) {

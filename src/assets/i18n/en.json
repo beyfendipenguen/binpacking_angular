@@ -735,7 +735,9 @@
     "LOADING_3D": "Loading 3D models...",
     "TRUCK_MODEL": "Truck Model",
     "WHEEL_MODEL": "Wheel Model",
-    "PLACING_PACKAGES": "Placing packages..."
+    "PLACING_PACKAGES": "Placing packages...",
+    "FULLSCREEN": "Full Screen",
+    "EXIT_FULLSCREEN": "Exit Full Screen"
   },
   "STEPPER": {
     "ERROR": "Error",

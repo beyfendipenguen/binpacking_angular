@@ -45,6 +45,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
   @ViewChild('threeContainer', { static: true }) threeContainer!: ElementRef;
 
   showHelp: boolean = true;
+  isFullscreen = false;
   showWeightDisplay: boolean = true;
   weightCalculationDepth: number = 3000;
   private destroy$ = new Subject<void>();
@@ -168,6 +169,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
           this.safeProcessData();
         }
       });
+    document.addEventListener('fullscreenchange', this.handleFullscreenChange.bind(this));
   }
 
   /**
@@ -212,6 +214,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
   }
 
   ngOnDestroy(): void {
+    document.removeEventListener('fullscreenchange', this.handleFullscreenChange.bind(this));
     this.destroy$.next();
     this.destroy$.complete();
     this.isDestroyed = true;
@@ -1490,6 +1493,43 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     this.setView('isometric');
   }
 
+  toggleFullscreen(): void {
+    const container = this.threeContainer.nativeElement.parentElement;
+
+    if (!this.isFullscreen) {
+      // Fullscreen'e geç
+      if (container.requestFullscreen) {
+        container.requestFullscreen();
+      } else if ((container as any).webkitRequestFullscreen) {
+        (container as any).webkitRequestFullscreen();
+      } else if ((container as any).msRequestFullscreen) {
+        (container as any).msRequestFullscreen();
+      }
+    } else {
+      // Fullscreen'den çık
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+      } else if ((document as any).webkitExitFullscreen) {
+        (document as any).webkitExitFullscreen();
+      } else if ((document as any).msExitFullscreen) {
+        (document as any).msExitFullscreen();
+      }
+    }
+  }
+
+  private handleFullscreenChange(): void {
+    this.isFullscreen = !!document.fullscreenElement;
+
+    // Fullscreen değişince canvas'ı yeniden boyutlandır
+    setTimeout(() => {
+      this.onWindowResize();
+    }, 100);
+
+    this.ngZone.run(() => {
+      this.cdr.detectChanges();
+    });
+  }
+
   // ========================================
   // WEIGHT CALCULATION
   // ========================================
@@ -1584,6 +1624,12 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     if (this.isDragging) return;
 
     switch (event.key) {
+      case 'f':
+      case 'F':
+        event.preventDefault();
+        this.toggleFullscreen();
+        break;
+
       case 'r':
       case 'R':
         if (this.selectedPackageSignal()) {
