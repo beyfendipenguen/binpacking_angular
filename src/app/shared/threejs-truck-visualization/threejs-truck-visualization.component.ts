@@ -19,7 +19,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import * as THREE from 'three';
 import { Store } from '@ngrx/store';
-import { AppState, selectOrderResult, selectStep3IsDirty, selectTruck, StepperResultActions } from '../../store';
+import { AppState, selectOrderResult, selectPackages, selectStep3IsDirty, selectTruck, StepperResultActions } from '../../store';
 import { StepperUiActions } from '@app/store/stepper/actions/stepper-ui.actions';
 import { ThreeJSRenderManagerService } from './services/threejs-render-manager.service';
 import { ThreeJSComponents, ThreeJSInitializationService } from './services/threejs-initialization.service';
@@ -67,6 +67,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
   deletedPackagesSignal = this.packagesStateService.deletedPackages;
   processedPackagesSignal = this.packagesStateService.processedPackages;
   selectedPackageSignal = this.packagesStateService.selectedPackage;
+  packagesSignal = this.store.selectSignal(selectPackages);
   private piecesData$ = toObservable(this.piecesDataSignal);
 
   // Three.js components
@@ -224,6 +225,18 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
 
     const truckLength = this.truckDimension()[0];
     return truckLength - (selected.x + selected.length);
+  }
+
+  get selectedPackageProducts(): any[] {
+    const selected = this.selectedPackageSignal();
+    if (!selected) return [];
+
+    const packages = this.packagesSignal();
+    const matchedPackage = Object.values(packages).find(
+      (pkg: any) => pkg.id === selected.pkgId
+    );
+
+    return matchedPackage?.package_details || [];
   }
 
   get selectedPackageDistanceToEndDisplay(): string {
