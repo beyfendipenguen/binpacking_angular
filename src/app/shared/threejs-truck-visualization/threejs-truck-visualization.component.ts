@@ -684,6 +684,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     let changed = false;
 
     for (const pkg of sortedPackages) {
+      // ⭐ Force placed package'lara da gravity uygula (drag bitince)
       const lowestZ = this.findLowestValidZ(pkg);
 
       if (lowestZ < pkg.z) {
@@ -1046,12 +1047,12 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     const pkgPos = {
       x: targetPos.x - pkg.length / 2,
       y: targetPos.z - pkg.width / 2,
-      z: 0  // ✅ Her zaman ground'dan başla
+      z: pkg.z  // ⭐ Mevcut Z pozisyonunu kullan
     };
 
     let snappedX = pkgPos.x;
     let snappedY = pkgPos.y;
-    let snappedZ = 0; // Default ground level
+    let snappedZ = pkg.z; // ⭐ Default olarak mevcut Z'yi koru
 
     // ✅ 1. ADIM: Horizontal snap (X ve Y)
     for (const otherPkg of this.processedPackagesSignal()) {
@@ -1080,32 +1081,35 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
       }
     }
 
-    // ✅ 2. ADIM: Bu X,Y pozisyonunda altında package var mı bak
-    const truckHeight = this.truckDimension()[2];
-    let maxZBelow = 0; // Ground level
+    // ⭐ 2. ADIM: Z pozisyonu - SADECE force placed DEĞİLSE hesapla
+    if (!pkg.isForcePlaced) {
+      const truckHeight = this.truckDimension()[2];
+      let maxZBelow = 0; // Ground level
 
-    for (const otherPkg of this.processedPackagesSignal()) {
-      if (otherPkg.pkgId === pkg.pkgId || !otherPkg.mesh) continue;
+      for (const otherPkg of this.processedPackagesSignal()) {
+        if (otherPkg.pkgId === pkg.pkgId || !otherPkg.mesh) continue;
 
-      // X ve Y overlap var mı?
-      const xOverlap = snappedX < otherPkg.x + otherPkg.length &&
-        snappedX + pkg.length > otherPkg.x;
-      const yOverlap = snappedY < otherPkg.y + otherPkg.width &&
-        snappedY + pkg.width > otherPkg.y;
+        // X ve Y overlap var mı?
+        const xOverlap = snappedX < otherPkg.x + otherPkg.length &&
+          snappedX + pkg.length > otherPkg.x;
+        const yOverlap = snappedY < otherPkg.y + otherPkg.width &&
+          snappedY + pkg.width > otherPkg.y;
 
-      if (xOverlap && yOverlap) {
-        // Bu package'ın üstüne konabilir
-        const potentialZ = otherPkg.z + otherPkg.height;
+        if (xOverlap && yOverlap) {
+          // Bu package'ın üstüne konabilir
+          const potentialZ = otherPkg.z + otherPkg.height;
 
-        // Truck height'ı aşmıyor mu kontrol et
-        if (potentialZ + pkg.height <= truckHeight) {
-          // En yüksek olanı bul (cascade stacking)
-          maxZBelow = Math.max(maxZBelow, potentialZ);
+          // Truck height'ı aşmıyor mu kontrol et
+          if (potentialZ + pkg.height <= truckHeight) {
+            // En yüksek olanı bul (cascade stacking)
+            maxZBelow = Math.max(maxZBelow, potentialZ);
+          }
         }
       }
-    }
 
-    snappedZ = maxZBelow;
+      snappedZ = maxZBelow;
+    }
+    // ⭐ Force placed ise snappedZ = pkg.z olarak kalır (yukarıda set ettik)
 
     snappedPos.x = snappedX + pkg.length / 2;
     snappedPos.z = snappedY + pkg.width / 2;
