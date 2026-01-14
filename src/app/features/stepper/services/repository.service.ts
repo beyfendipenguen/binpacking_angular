@@ -214,14 +214,21 @@ export class RepositoryService {
     )
   }
 
-  partialUpdateOrderResult(orderResultId: string, orderResult: PackagePosition[]): Observable<any> {
-    const updateData = {
+  partialUpdateOrderResult(orderResultId: string, orderResult: any[]): Observable<any> {
+
+    const payload = {
       result: orderResult
     };
 
-    return this.http.patch<any>(
-      `${this.api.getApiUrl()}/orders/order-results/${orderResultId}/`,
-      updateData
+    const url = `${this.api.getApiUrl()}/orders/order-results/${orderResultId}/partial-update-order-result/`;
+
+    return this.http.post<any>(url, payload).pipe(
+      map(response => {
+        return response;
+      }),
+      catchError(err => {
+        throw err;
+      })
     );
   }
 }
