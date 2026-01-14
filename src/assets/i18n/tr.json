@@ -735,7 +735,9 @@
     "LOADING_3D": "3D modeller yükleniyor...",
     "TRUCK_MODEL": "Tır Modeli",
     "WHEEL_MODEL": "Tekerlek Modeli",
-    "PLACING_PACKAGES": "Paketler yerleştiriliyor..."
+    "PLACING_PACKAGES": "Paketler yerleştiriliyor...",
+    "FULLSCREEN": "Tam Ekran",
+    "EXIT_FULLSCREEN": "Tam Ekrandan Çık"
   },
   "STEPPER": {
     "ERROR": "Hatası",

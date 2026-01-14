@@ -29,6 +29,41 @@
   </div>
   }
 
+  @if (!isLoadingModels && !isLoadingData && piecesDataSignal() && piecesDataSignal().length > 0) {
+  <div class="fullscreen-controls">
+    @if (!isFullscreen) {
+    <button class="fullscreen-btn" (click)="toggleFullscreen()" [title]="'TRUCK_VISUALIZATION.FULLSCREEN' | translate">
+      ⛶
+    </button>
+    }
+    @if (isFullscreen) {
+    <button class="exit-fullscreen-btn" (click)="toggleFullscreen()"
+      [title]="'TRUCK_VISUALIZATION.EXIT_FULLSCREEN' | translate">
+      ✕
+    </button>
+    }
+  </div>
+  }
+
+  <!-- Package Products Panel (Top Left) -->
+  @if (selectedPackageSignal(); as selected) {
+  @if (!isLoadingModels && !isLoadingData && selectedPackageProducts.length > 0) {
+  <div class="package-products-panel">
+    <div class="products-content">
+      <h4>📦 {{'PERMISSION.MODELS.PACKAGEDETAIL' | translate}}</h4>
+
+      <div class="products-list">
+        @for (detail of selectedPackageProducts; track detail.id) {
+        <div class="product-item">
+          <span class="product-name">{{ detail.product.name }}</span>
+          <span class="product-count">{{ detail.count }}x</span>
+        </div>
+        }
+      </div>
+    </div>
+  </div>
+  }
+  }
   <!-- Package Info Panel (Top Right) -->
   @if (selectedPackageSignal(); as selected) {
   @if (!isLoadingModels && !isLoadingData) {

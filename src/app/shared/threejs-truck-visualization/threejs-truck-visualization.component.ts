@@ -19,7 +19,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import * as THREE from 'three';
 import { Store } from '@ngrx/store';
-import { AppState, selectOrderResult, selectStep3IsDirty, selectTruck, StepperResultActions } from '../../store';
+import { AppState, selectOrderResult, selectPackages, selectStep3IsDirty, selectTruck, StepperResultActions } from '../../store';
 import { StepperUiActions } from '@app/store/stepper/actions/stepper-ui.actions';
 import { ThreeJSRenderManagerService } from './services/threejs-render-manager.service';
 import { ThreeJSComponents, ThreeJSInitializationService } from './services/threejs-initialization.service';
@@ -45,6 +45,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
   @ViewChild('threeContainer', { static: true }) threeContainer!: ElementRef;
 
   showHelp: boolean = true;
+  isFullscreen = false;
   showWeightDisplay: boolean = true;
   weightCalculationDepth: number = 3000;
   private destroy$ = new Subject<void>();
@@ -67,6 +68,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
   deletedPackagesSignal = this.packagesStateService.deletedPackages;
   processedPackagesSignal = this.packagesStateService.processedPackages;
   selectedPackageSignal = this.packagesStateService.selectedPackage;
+  packagesSignal = this.store.selectSignal(selectPackages);
   private piecesData$ = toObservable(this.piecesDataSignal);
 
   // Three.js components
@@ -167,6 +169,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
           this.safeProcessData();
         }
       });
+    document.addEventListener('fullscreenchange', this.handleFullscreenChange.bind(this));
   }
 
   /**
@@ -211,6 +214,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
   }
 
   ngOnDestroy(): void {
+    document.removeEventListener('fullscreenchange', this.handleFullscreenChange.bind(this));
     this.destroy$.next();
     this.destroy$.complete();
     this.isDestroyed = true;
@@ -224,6 +228,18 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
 
     const truckLength = this.truckDimension()[0];
     return truckLength - (selected.x + selected.length);
+  }
+
+  get selectedPackageProducts(): any[] {
+    const selected = this.selectedPackageSignal();
+    if (!selected) return [];
+
+    const packages = this.packagesSignal();
+    const matchedPackage = Object.values(packages).find(
+      (pkg: any) => pkg.id === selected.pkgId
+    );
+
+    return matchedPackage?.package_details || [];
   }
 
   get selectedPackageDistanceToEndDisplay(): string {
@@ -671,6 +687,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     let changed = false;
 
     for (const pkg of sortedPackages) {
+      // ⭐ Force placed package'lara da gravity uygula (drag bitince)
       const lowestZ = this.findLowestValidZ(pkg);
 
       if (lowestZ < pkg.z) {
@@ -1033,12 +1050,12 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     const pkgPos = {
       x: targetPos.x - pkg.length / 2,
       y: targetPos.z - pkg.width / 2,
-      z: 0  // ✅ Her zaman ground'dan başla
+      z: pkg.z  // ⭐ Mevcut Z pozisyonunu kullan
     };
 
     let snappedX = pkgPos.x;
     let snappedY = pkgPos.y;
-    let snappedZ = 0; // Default ground level
+    let snappedZ = pkg.z; // ⭐ Default olarak mevcut Z'yi koru
 
     // ✅ 1. ADIM: Horizontal snap (X ve Y)
     for (const otherPkg of this.processedPackagesSignal()) {
@@ -1067,32 +1084,35 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
       }
     }
 
-    // ✅ 2. ADIM: Bu X,Y pozisyonunda altında package var mı bak
-    const truckHeight = this.truckDimension()[2];
-    let maxZBelow = 0; // Ground level
+    // ⭐ 2. ADIM: Z pozisyonu - SADECE force placed DEĞİLSE hesapla
+    if (!pkg.isForcePlaced) {
+      const truckHeight = this.truckDimension()[2];
+      let maxZBelow = 0; // Ground level
 
-    for (const otherPkg of this.processedPackagesSignal()) {
-      if (otherPkg.pkgId === pkg.pkgId || !otherPkg.mesh) continue;
+      for (const otherPkg of this.processedPackagesSignal()) {
+        if (otherPkg.pkgId === pkg.pkgId || !otherPkg.mesh) continue;
 
-      // X ve Y overlap var mı?
-      const xOverlap = snappedX < otherPkg.x + otherPkg.length &&
-        snappedX + pkg.length > otherPkg.x;
-      const yOverlap = snappedY < otherPkg.y + otherPkg.width &&
-        snappedY + pkg.width > otherPkg.y;
+        // X ve Y overlap var mı?
+        const xOverlap = snappedX < otherPkg.x + otherPkg.length &&
+          snappedX + pkg.length > otherPkg.x;
+        const yOverlap = snappedY < otherPkg.y + otherPkg.width &&
+          snappedY + pkg.width > otherPkg.y;
 
-      if (xOverlap && yOverlap) {
-        // Bu package'ın üstüne konabilir
-        const potentialZ = otherPkg.z + otherPkg.height;
+        if (xOverlap && yOverlap) {
+          // Bu package'ın üstüne konabilir
+          const potentialZ = otherPkg.z + otherPkg.height;
 
-        // Truck height'ı aşmıyor mu kontrol et
-        if (potentialZ + pkg.height <= truckHeight) {
-          // En yüksek olanı bul (cascade stacking)
-          maxZBelow = Math.max(maxZBelow, potentialZ);
+          // Truck height'ı aşmıyor mu kontrol et
+          if (potentialZ + pkg.height <= truckHeight) {
+            // En yüksek olanı bul (cascade stacking)
+            maxZBelow = Math.max(maxZBelow, potentialZ);
+          }
         }
       }
-    }
 
-    snappedZ = maxZBelow;
+      snappedZ = maxZBelow;
+    }
+    // ⭐ Force placed ise snappedZ = pkg.z olarak kalır (yukarıda set ettik)
 
     snappedPos.x = snappedX + pkg.length / 2;
     snappedPos.z = snappedY + pkg.width / 2;
@@ -1473,6 +1493,43 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     this.setView('isometric');
   }
 
+  toggleFullscreen(): void {
+    const container = this.threeContainer.nativeElement.parentElement;
+
+    if (!this.isFullscreen) {
+      // Fullscreen'e geç
+      if (container.requestFullscreen) {
+        container.requestFullscreen();
+      } else if ((container as any).webkitRequestFullscreen) {
+        (container as any).webkitRequestFullscreen();
+      } else if ((container as any).msRequestFullscreen) {
+        (container as any).msRequestFullscreen();
+      }
+    } else {
+      // Fullscreen'den çık
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+      } else if ((document as any).webkitExitFullscreen) {
+        (document as any).webkitExitFullscreen();
+      } else if ((document as any).msExitFullscreen) {
+        (document as any).msExitFullscreen();
+      }
+    }
+  }
+
+  private handleFullscreenChange(): void {
+    this.isFullscreen = !!document.fullscreenElement;
+
+    // Fullscreen değişince canvas'ı yeniden boyutlandır
+    setTimeout(() => {
+      this.onWindowResize();
+    }, 100);
+
+    this.ngZone.run(() => {
+      this.cdr.detectChanges();
+    });
+  }
+
   // ========================================
   // WEIGHT CALCULATION
   // ========================================
@@ -1567,6 +1624,12 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     if (this.isDragging) return;
 
     switch (event.key) {
+      case 'f':
+      case 'F':
+        event.preventDefault();
+        this.toggleFullscreen();
+        break;
+
       case 'r':
       case 'R':
         if (this.selectedPackageSignal()) {

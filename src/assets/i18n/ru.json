@@ -735,7 +735,9 @@
     "LOADING_3D": "Загрузка 3D-моделей...",
     "TRUCK_MODEL": "Модель грузовика",
     "WHEEL_MODEL": "Модель колеса",
-    "PLACING_PACKAGES": "Размещение упаковок..."
+    "PLACING_PACKAGES": "Размещение упаковок...",
+    "FULLSCREEN": "Полноэкранный режим",
+    "EXIT_FULLSCREEN": "Выйти из полноэкранного режима"
   },
   "STEPPER": {
     "ERROR": "Ошибка",
