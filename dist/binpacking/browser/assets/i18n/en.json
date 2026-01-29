@@ -306,7 +306,9 @@
     "VIDEO": "Video",
     "AUDIO": "Audio",
     "FILE_OPENING": "Opening file...",
-    "FILE_OPEN_ERROR": "An error occurred while opening file"
+    "FILE_OPEN_ERROR": "An error occurred while opening file",
+    "CURRENT_FILES": "Current Files",
+  "OLD_FILES": "Old Files"
   },
   "ORDER": {
     "TITLE": "Shipment Management",
@@ -515,7 +517,14 @@
     "MUST_PLACE_REMAINING": "You must place the remaining products",
     "CONTINUE_WARNING": "If you continue like this, unplaced products will be removed from the order.",
     "CONTINUE_ANYWAY": "Continue anyway.",
-    "WEIGHT_LIMIT_EXCEEDED": "⚠️ Weight limit exceeded! Please check packages."
+    "WEIGHT_LIMIT_EXCEEDED": "⚠️ Weight limit exceeded! Please check packages.",
+    "CALCULATE_WITH_PARAMS": "Calculate with Parameters",
+    "PARAMS_INFO": "You can enter the quantities you want to exclude from the pallet calculation algorithm by reducing the product quantities",
+    "PARAMS_CALCULATE": "Calculate with Params",
+    "CURRENT": "Current",
+    "REDUCE_AMOUNT": "Amount to reduce",
+    "ONLY_REMAINING_PRODUCTS": "Calculate only remaining products",
+    "NO_PACKAGES_WARNING": "You must click the 'Calculate' button first."
   },
   "INVOICE_UPLOAD": {
     "TITLE": "Export Order Declaration",
