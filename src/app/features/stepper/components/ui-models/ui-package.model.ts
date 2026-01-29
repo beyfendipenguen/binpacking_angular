@@ -9,7 +9,7 @@ export class UiPackage implements IUiPackage {
   // Non-reactive properties
   pallet: IUiPallet | null;
   id: string;
-  name: string;
+  name: number;
   package_details: PackageDetailReadDto[];
   alignment: string;
   height: number;
@@ -19,7 +19,7 @@ export class UiPackage implements IUiPackage {
   constructor(init: Partial<IUiPackage>) {
     this.pallet = init.pallet || null;
     this.id = init.id || Guid();
-    this.name = init.name || "New Package";
+    this.name = init.name || 0;
     this.height = init.height || 2400;
     this.order_id = init.order_id || "";
     this.package_details = init.package_details || [];

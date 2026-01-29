@@ -19,6 +19,7 @@ import {
 import { RepositoryService } from '@features/stepper/services/repository.service';
 import { UiPallet } from '@features/stepper/components/ui-models/ui-pallet.model';
 import { TranslateService } from '@ngx-translate/core';
+import { PackageDetailReadDto } from '@app/features/interfaces/package-detail.interface';
 
 @Injectable()
 export class StepperPackageEffects {
@@ -68,18 +69,42 @@ export class StepperPackageEffects {
   // Paketleme Hesaplaması (Algoritma Çalıştırma)
   calculatePackageDetail$ = createEffect(() =>
     this.actions$.pipe(
-      ofType(StepperPackageActions.calculatePackageDetail),
+      ofType(
+        StepperPackageActions.calculatePackageDetail,
+        StepperPackageActions.calculatePackageDetailWithParams
+      ),
       withLatestFrom(this.store.select(selectVerticalSort)),
-      switchMap(([_, verticalSort]) =>
-        this.repositoryService.calculatePackageDetails(verticalSort).pipe(
-          map((response) => StepperPackageActions.calculatePackageDetailSuccess({ packages: response.packages })),
+      switchMap(([action, verticalSort]) => {
+        const isParamAction = action.type === StepperPackageActions.calculatePackageDetailWithParams.type;
+        const orderDetailParams = isParamAction && !(action as any).onlyRemaining ? (action as any).orderDetailParams : undefined;
+        const vSort = isParamAction ? (action as any).verticalSort : verticalSort;
+        const onlyRemaining = isParamAction ? (action as any).onlyRemaining : false;
+
+        // ← EKLE: onlyRemaining varsa PackageDetail → OrderDetail
+        const onlyRemainingOrderDetails = onlyRemaining && (action as any).remainingProducts
+          ? this.packageDetailsToOrderDetails((action as any).remainingProducts)
+          : undefined;
+
+        return this.repositoryService.calculatePackageDetails(
+          vSort,
+          undefined,
+          orderDetailParams,
+          onlyRemainingOrderDetails  // ← EKLE
+        ).pipe(
+          map((response) => StepperPackageActions.calculatePackageDetailSuccess({
+            packages: response.packages,
+            pendingOrderDetails: response.pending_order_details || [],
+            reducedFromParams: response.reduced_from_params || [],
+            lowFillRateOrderDetails: response.low_fill_rate_order_details || [],
+            appendMode: onlyRemaining  // ← EKLE
+          })),
           catchError((error) =>
             of(StepperUiActions.setGlobalError({
               error: { message: error.message, stepIndex: 2 }
             }))
           )
-        )
-      )
+        );
+      })
     )
   );
 
@@ -165,4 +190,14 @@ export class StepperPackageEffects {
       })
     )
   );
+
+  private packageDetailsToOrderDetails(packageDetails: PackageDetailReadDto[]): any[] {
+    return packageDetails.map(pd => ({
+      id: pd.id,
+      product: pd.product,
+      count: pd.count
+    }));
+  }
 }
+
+

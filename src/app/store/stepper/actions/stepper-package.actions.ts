@@ -3,6 +3,7 @@ import { UiPackage } from '@features/stepper/components/ui-models/ui-package.mod
 import { UiPallet } from '@features/stepper/components/ui-models/ui-pallet.model';
 import { PackageDetailReadDto } from '@app/features/interfaces/package-detail.interface';
 import { PackageReadDto } from '@app/features/interfaces/package.interface';
+import { OrderDetailRead } from '@app/features/interfaces/order-detail.interface';
 
 export const StepperPackageActions = createActionGroup({
   source: 'Stepper Package',
@@ -20,7 +21,8 @@ export const StepperPackageActions = createActionGroup({
     'Add Pallet To Available': props<{ pallet: UiPallet }>(),
     // Paket Hesaplama
     'Calculate Package Detail': emptyProps(),
-    'Calculate Package Detail Success': props<{ packages: PackageReadDto[] }>(),
+    'Calculate Package Detail Success': props<{ packages: PackageReadDto[] , pendingOrderDetails: OrderDetailRead[], reducedFromParams: OrderDetailRead[], lowFillRateOrderDetails: OrderDetailRead[], appendMode?: boolean}>(),
+    'Calculate Package Detail With Params': props<{orderDetailParams: { orderDetailId: string; count: number }[], verticalSort: boolean,onlyRemaining?: boolean, remainingProducts?: PackageDetailReadDto[]}>(),
     'Set Ui Packages': props<{ packages: UiPackage[] }>(),
     'Calculate Package Changes': emptyProps(),
     'Create Package Details Success': props<{ packageDetails: any }>(),

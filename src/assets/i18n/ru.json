@@ -515,7 +515,14 @@
     "MUST_PLACE_REMAINING": "Вы должны разместить оставшиеся товары",
     "CONTINUE_WARNING": "Если вы продолжите таким образом, неразмещенные товары будут удалены из заказа.",
     "CONTINUE_ANYWAY": "Все равно продолжить.",
-    "WEIGHT_LIMIT_EXCEEDED": "⚠️ Превышен лимит веса! Пожалуйста, проверьте упаковки."
+    "WEIGHT_LIMIT_EXCEEDED": "⚠️ Превышен лимит веса! Пожалуйста, проверьте упаковки.",
+    "CALCULATE_WITH_PARAMS": "Calculate with Parameters",
+    "PARAMS_INFO": "You can enter the quantities you want to exclude from the pallet calculation algorithm by reducing the product quantities",
+    "PARAMS_CALCULATE": "Calculate with Params",
+    "CURRENT": "Current",
+    "REDUCE_AMOUNT": "Amount to reduce",
+    "ONLY_REMAINING_PRODUCTS": "Calculate only remaining products",
+    "NO_PACKAGES_WARNING": "You must click the 'Calculate' button first."
   },
   "INVOICE_UPLOAD": {
     "TITLE": "Декларация экспортного заказа",

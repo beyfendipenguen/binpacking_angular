@@ -187,12 +187,16 @@
               <span>{{ 'PALLET_CONTROL.CALCULATE' | translate }}</span>
             </button>
 
-            @if(uiPackages().length > 0) {
-            <mat-checkbox class="vertical-sort-checkbox" [checked]="verticalSortSignal()"
-              [appDisableAuth]="['logistics.change_package']" (change)="onVerticalSortChange($event.checked)">{{
-              'PALLET_CONTROL.VERTICAL_PLACEMENT' | translate
-              }}</mat-checkbox>
-            }
+            <div class="tooltip-wrapper" [matTooltip]="uiPackages().length === 0
+                ? ('PALLET_CONTROL.NO_PACKAGES_WARNING' | translate)
+                : ('PALLET_CONTROL.CALCULATE_WITH_PARAMS' | translate)">
+              <button [disabled]="uiPackages().length === 0" mat-raised-button (click)="openCalculateParamsDialog()"
+                class="calculate-button params-button">
+                <mat-icon>tune</mat-icon>
+                <span>{{ 'PALLET_CONTROL.PARAMS_CALCULATE' | translate }}</span>
+              </button>
+            </div>
+
           </div>
 
           <!-- Palet İstatistikleri - Aynı satırda -->

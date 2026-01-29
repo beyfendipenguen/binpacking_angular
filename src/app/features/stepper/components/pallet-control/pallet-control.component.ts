@@ -62,6 +62,7 @@ import {
   selectIsPackagesDirty,
   AppState,
   selectIsWeightLimitExceeded,
+  selectOrderDetails,
 } from '@app/store';
 import {
   catchError,
@@ -96,6 +97,7 @@ import { Pallet } from '@app/features/interfaces/pallet.interface';
 import { PalletService } from '@app/features/services/pallet.service';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActiveToast } from 'ngx-toastr';
+import { CalculateParamsDialogComponent } from './calculate-params-dialog/calculate-params-dialog.component';
 
 @Component({
   selector: 'app-pallet-control',
@@ -982,6 +984,45 @@ export class PalletControlComponent
     this.store.dispatch(StepperPackageActions.deleteRemainingProducts({ packageDetailIds }));
   }
 
+  openCalculateParamsDialog() {
+    const dialogRef = this.dialog.open(CalculateParamsDialogComponent, {
+      width: '600px',
+      maxWidth: '95vw',
+      maxHeight: '100vh',
+      disableClose: true
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        // orderDetails'tan product bilgisini al
+        const orderDetails = this.store.selectSignal(selectOrderDetails);
+
+        const remainingProducts: PackageDetailReadDto[] = result.orderDetailParams
+          .map(({ orderDetailId, count }: { orderDetailId: string; count: number }) => {
+            const orderDetail = orderDetails().find(od => od.id === orderDetailId);
+            return orderDetail ? {
+              id: Guid(),
+              product: orderDetail.product,
+              count,
+              priority: 0,
+              package_id: ''
+            } : null;
+          })
+          .filter((item: any): item is PackageDetailReadDto => item !== null);
+
+        this.store.dispatch(StepperPackageActions.setRemainingProducts({ remainingProducts }));
+        this.store.dispatch(
+          StepperPackageActions.calculatePackageDetailWithParams({
+            orderDetailParams: result.orderDetailParams,
+            verticalSort: result.verticalSort,
+            onlyRemaining: result.onlyRemaining,  // ← Bu var mı result'ta?
+            remainingProducts: result.remainingProducts
+          })
+        );
+
+      }
+    });
+  }
 
   submitForm(): void {
     if (this.remainingProductCount() > 0) {

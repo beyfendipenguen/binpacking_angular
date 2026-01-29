@@ -41,7 +41,7 @@ export type PackagePosition = [
   number,  // width
   number,  // height
   number,  // depth
-  string,  // id
+  number,  // id
   number,  // weight
   string   // pkgId
 ];

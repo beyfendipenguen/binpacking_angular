@@ -515,7 +515,15 @@
     "MUST_PLACE_REMAINING": "Kalan ürünleri yerleştirmeniz gerekmektedir",
     "CONTINUE_WARNING": "Eğer bu şekilde devam etmek isterseniz yerleştirilmeyen ürünler siparişten kaldırılacaktır.",
     "CONTINUE_ANYWAY": "Yine de devam et.",
-    "WEIGHT_LIMIT_EXCEEDED": "⚠️ Ağırlık limiti aşıldı! Lütfen paketleri kontrol edin."
+    "WEIGHT_LIMIT_EXCEEDED": "⚠️ Ağırlık limiti aşıldı! Lütfen paketleri kontrol edin.",
+
+    "CALCULATE_WITH_PARAMS": "Parametreli Hesaplama",
+    "PARAMS_INFO": "Ürünlerin adetlerini düşürerek palet hesaplama algoritmasına çıkartmak istediğiniz adetleri yazabilirsiniz",
+    "PARAMS_CALCULATE": "Parametreli Hesapla",
+    "CURRENT": "Mevcut",
+    "REDUCE_AMOUNT": "Çıkartılacak adet",
+    "ONLY_REMAINING_PRODUCTS": "Sadece kalan ürünleri hesapla",
+    "NO_PACKAGES_WARNING": "Önce 'Hesapla' butonuna basmalısınız."
   },
   "INVOICE_UPLOAD": {
     "TITLE": "İhracat Sipariş Bildirimi",

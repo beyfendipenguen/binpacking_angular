@@ -11,6 +11,7 @@ import { PackageDetailReadDto } from '@app/features/interfaces/package-detail.in
 import { toInteger } from 'lodash';
 import { mapPackageReadDtoListToIUiPackageList } from '@app/features/mappers/package.mapper';
 import { IUiPackage } from '@app/features/stepper/interfaces/ui-interfaces/ui-package.interface';
+import { OrderDetailRead } from '@app/features/interfaces/order-detail.interface';
 
 // Helper Functions
 const consolidatePackageDetails = (packageDetails: PackageDetailReadDto[]): PackageDetailReadDto[] => {
@@ -38,7 +39,7 @@ const createEmptyPackage = (packageNo: number, order: any) => (
   {
     id: Guid(),
     order_id: order.id,
-    name: `${packageNo}`,
+    name: packageNo,
     pallet: null,
     height: 2400,
     package_details: [],
@@ -96,53 +97,36 @@ export const stepperPackageHandlers = [
   }),
 
   // Calculate Package Detail Success
-  on(StepperPackageActions.calculatePackageDetailSuccess, (state: StepperState, { packages }) => {
+  on(StepperPackageActions.calculatePackageDetailSuccess, (
+    state: StepperState,
+    { packages, pendingOrderDetails, reducedFromParams, lowFillRateOrderDetails, appendMode }
+  ) => {
     const { order } = state;
     if (!order) return state;
 
-    let remainingProducts: any[] = [];
-
     const uiPackages = mapPackageReadDtoListToIUiPackageList(packages);
 
-    const filteredPackages = uiPackages.filter((pkg) => {
-      const palletVolume =
-        parseFloat(pkg.pallet?.dimension.width.toString() ?? '0') *
-        parseFloat(pkg.pallet?.dimension.depth.toString() ?? '0') *
-        parseFloat(order.max_pallet_height.toString() ?? '0');
+    const remainingProducts = [
+      ...orderDetailsToPackageDetails(pendingOrderDetails),
+      ...orderDetailsToPackageDetails(reducedFromParams),
+      ...orderDetailsToPackageDetails(lowFillRateOrderDetails)
+    ];
 
-      const productsVolume = pkg.package_details.reduce((sum: number, packageDetail: PackageDetailReadDto) => {
-        const productVolume =
-          packageDetail.product.dimension.width *
-          packageDetail.product.dimension.height *
-          packageDetail.product.dimension.depth *
-          packageDetail.count;
-        return sum + productVolume;
-      }, 0);
 
-      const fillRate = (productsVolume / palletVolume) * 100;
-
-      if (fillRate < 30) {
-        remainingProducts.push(...pkg.package_details);
-        return false;
-      }
-
-      return true;
-    });
-
-    const sortedPackages = [...filteredPackages].sort((a, b) =>
-      a.name.localeCompare(b.name, undefined, { numeric: true })
-    );
+    const sortedPackages = [...uiPackages].sort((a, b) => a.name - b.name);
 
     return {
       ...state,
       step2State: {
         ...state.step2State,
-        packages: ensureEmptyPackageAdded(sortedPackages, state.order),
+        packages: ensureEmptyPackageAdded(sortedPackages, state.order),  // ← REPLACE
         originalPackages: packages,
         addedPackages: [],
         modifiedPackages: [],
         deletedPackageIds: [],
-        remainingProducts: remainingProducts,
+        remainingProducts: appendMode
+          ? [...state.step2State.remainingProducts, ...remainingProducts]  // ← APPEND
+          : remainingProducts,  // ← REPLACE
       }
     };
   }),
@@ -745,7 +729,7 @@ export const stepperPackageHandlers = [
     if (!packageToDelete) return state;
 
     let updatedPackages = currentPackages.filter(p => p.id !== packageId);
-    updatedPackages.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }))
+    updatedPackages.sort((a, b) => a.name - b.name)
 
     const remainingProducts = consolidatePackageDetails(
       state.step2State.remainingProducts.concat(packageToDelete.package_details || [])
@@ -920,9 +904,7 @@ export const stepperPackageHandlers = [
 
   // Package Details Upsert Many Success
   on(StepperPackageActions.upsertManySuccess, (state: StepperState, { packages }) => {
-    const sortedPackages = [...packages].sort((a, b) =>
-      a.name.localeCompare(b.name, undefined, { numeric: true })
-    );
+    const sortedPackages = [...packages].sort((a, b) => a.name - b.name);
 
     const emptyPackageNo = toInteger(sortedPackages.at(-1)?.name) + 1;
     const uiPackages = mapPackageReadDtoListToIUiPackageList(sortedPackages);
@@ -999,4 +981,14 @@ function getPalletFillPercentage(
   const usedVolume = calculateUsedVolume(packageDetails);
 
   return Math.round((usedVolume / palletTotalVolume) * 100);
+}
+
+function orderDetailsToPackageDetails(orderDetails: OrderDetailRead[]): PackageDetailReadDto[] {
+  return orderDetails.map(od => ({
+    id: Guid(),
+    product: od.product,
+    count: od.count,
+    priority: 0,
+    package_id: ''
+  }));
 }

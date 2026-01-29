@@ -110,7 +110,7 @@ export class PackageDialogComponent implements OnInit {
       return;
     }
 
-    this.groupedPackages = packages.toSorted((a,b)=>a.name.localeCompare(b.name, undefined, { numeric: true })). map(pkg => {
+    this.groupedPackages = packages.toSorted((a,b)=>a.name- b.name). map(pkg => {
       const dimension = pkg.pallet?.dimension;
       const dimensionStr = dimension
         ? `${dimension.width} × ${dimension.depth} ${dimension.unit || this.translate.instant('DIMENSIONS.MM')}`
