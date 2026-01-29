@@ -1,0 +1,40 @@
+<h2 mat-dialog-title>{{ 'PALLET_CONTROL.CALCULATE_WITH_PARAMS' | translate }}</h2>
+
+<mat-dialog-content>
+  <div class="info-message">
+    <mat-icon>info</mat-icon>
+    <p>{{ 'PALLET_CONTROL.PARAMS_INFO' | translate }}</p>
+  </div>
+
+  <form [formGroup]="form">
+    <div class="order-details-list" formGroupName="params">
+      @for(detail of orderDetailsSignal(); track detail.id) {
+      <div class="detail-row">
+        <span class="product-name">{{ detail.product.name }}</span>
+        <span class="current-count">{{ 'PALLET_CONTROL.CURRENT' | translate }}: {{ detail.count }}</span>
+        <mat-form-field>
+          <input matInput type="number" [formControlName]="detail.id" [min]="0" [max]="detail.count"
+            [placeholder]="'PALLET_CONTROL.REDUCE_AMOUNT' | translate">
+        </mat-form-field>
+      </div>
+      }
+    </div>
+
+    <mat-checkbox formControlName="verticalSort">
+      {{ 'PALLET_CONTROL.VERTICAL_PLACEMENT' | translate }}
+    </mat-checkbox>
+    @if(remainingProductsSignal().length > 0){
+    <mat-checkbox [disabled]="remainingProductsSignal().length > 0 && isDirtySignal()" formControlName="onlyRemaining">
+      {{ 'PALLET_CONTROL.ONLY_REMAINING_PRODUCTS' | translate }}
+    </mat-checkbox>
+    }
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions>
+  <button mat-button (click)="onCancel()">{{ 'COMMON.CANCEL' | translate }}</button>
+  <button mat-raised-button color="primary" (click)="onCalculate()">
+    <mat-icon>calculate</mat-icon>
+    {{ 'PALLET_CONTROL.CALCULATE' | translate }}
+  </button>
+</mat-dialog-actions>

@@ -5,7 +5,7 @@ import { PackageDetailReadDto, PackageDetailWriteDto } from './package-detail.in
 export interface PackageReadDto extends Base {
   pallet: Pallet;
   order_id: string;
-  name: string;
+  name: number;
   is_remaining: boolean;
   alignment: string;
   height: number;
@@ -15,7 +15,7 @@ export interface PackageReadDto extends Base {
 export interface PackageWriteDto extends Base {
   pallet_id: string;
   order_id: string;
-  name: string;
+  name: number;
   is_remaining: boolean;
   alignment: string;
   height: number;

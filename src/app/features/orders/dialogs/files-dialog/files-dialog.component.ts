@@ -37,6 +37,9 @@ export class FilesDialogComponent implements OnInit {
   fileService = inject(FileService);
 
   files: FileItem[] = [];
+  currentFiles: FileItem[] = [];
+  oldFiles: FileItem[] = [];
+  isOldFilesExpanded = false;
   isLoading: boolean = false;
 
   constructor(
@@ -73,12 +76,30 @@ export class FilesDialogComponent implements OnInit {
           file: file.file,
           icon: this.getFileIcon(file.type)
         }));
+
+        this.filterFiles();
         this.isLoading = false;
       },
       error: (error) => {
         this.isLoading = false;
       }
     });
+  }
+
+  filterFiles(): void {
+    const orderName = this.data.orderName.toLowerCase();
+
+    this.currentFiles = this.files.filter(file =>
+      file.name.toLowerCase().includes(orderName)
+    );
+
+    this.oldFiles = this.files.filter(file =>
+      !file.name.toLowerCase().includes(orderName)
+    );
+  }
+
+  toggleOldFiles(): void {
+    this.isOldFilesExpanded = !this.isOldFilesExpanded;
   }
 
   /**

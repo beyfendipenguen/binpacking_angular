@@ -123,8 +123,7 @@ export const stepperOrderHandlers = [
     );
 
     const sortedPackages = [...keptPackages].sort((a, b) =>
-      a.name.localeCompare(b.name, undefined, { numeric: true })
-    );
+      a.name - b.name);
 
     const remainingProducts = consolidatePackageDetails(extractedPackageDetails).map(p => p.id === orderDetail.product.id ? { ...p, count: orderDetail.count } : p);
 

@@ -17,6 +17,14 @@ import { PackageChanges } from "../components/pallet-control/package-changes.hel
 import { PackagePosition } from "@app/features/interfaces/order-result.interface";
 import { BaseResponse } from "@app/core/interfaces/base-response.interface";
 
+export interface CalculatePackageResponse {
+  message: string;
+  packages: PackageReadDto[];
+  pending_order_details: OrderDetailRead[];
+  reduced_from_params: OrderDetailRead[];
+  low_fill_rate_order_details: OrderDetailRead[];
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -139,11 +147,24 @@ export class RepositoryService {
     }>(`${this.api.getApiUrl()}/orders/process-file/`, formData);
   }
 
-  calculatePackageDetails(verticalSort: boolean, order_id: string = this.getOrderId()): Observable<{ packages: PackageReadDto[] }> {
-    const params = new HttpParams().set('vertical_sort', verticalSort.toString());
+  calculatePackageDetails(
+    verticalSort: boolean,
+    order_id: string = this.getOrderId(),
+    orderDetailParams?: { orderDetailId: string; count: number }[],
+    onlyRemainingOrderDetails?: any[]  // ← EKLE
+  ): Observable<CalculatePackageResponse> {
+    const body: any = { vertical_sort: verticalSort };
+
+    if (orderDetailParams && orderDetailParams.length > 0) {
+      body.order_detail_params = orderDetailParams;
+    }
+
+    if (onlyRemainingOrderDetails && onlyRemainingOrderDetails.length > 0) {
+      body.only_remaining_order_details = onlyRemainingOrderDetails;  // ← EKLE
+    }
 
     return this.http
-      .post<any>(`${this.api.getApiUrl()}/logistics/calculate-packages/${order_id}/`, { params })
+      .post<CalculatePackageResponse>(`${this.api.getApiUrl()}/logistics/calculate-packages/${order_id}/`, body)
       .pipe();
   }
 

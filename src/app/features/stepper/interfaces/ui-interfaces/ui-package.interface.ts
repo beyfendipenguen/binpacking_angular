@@ -7,7 +7,7 @@ export interface IUiPackage {
   order_id: string;
   package_details: PackageDetailReadDto[];
   is_remaining: boolean;
-  name: string;
+  name: number;
   alignment: string;
   height: number;
 }

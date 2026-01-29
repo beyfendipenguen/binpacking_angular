@@ -1,0 +1,56 @@
+.info-message {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px;
+  background-color: rgba(0, 106, 106, 0.05);
+  border-left: 4px solid #006a6a;
+  border-radius: 4px;
+  margin-bottom: 20px;
+
+  mat-icon {
+    color: #006a6a;
+    font-size: 20px;
+  }
+
+  p {
+    margin: 0;
+    font-size: 14px;
+    color: #333;
+  }
+}
+
+.order-details-list {
+  max-height: 400px;
+  overflow-y: auto;
+  margin-bottom: 16px;
+}
+
+.detail-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;  // ← 12px'den 16px'e
+  padding: 1px;
+  border-bottom: 1px solid #e0e0e0;
+
+  .product-name {
+    flex: 1;
+    font-weight: 500;
+  }
+
+  .current-count {
+    font-size: 12px;
+    color: #666;
+    text-align: center;
+    min-width: 100px;  // ← EKLE
+  }
+
+  mat-form-field {
+    width: 200px;  // ← Daha geniş
+  }
+}
+
+::ng-deep mat-dialog-content {
+  overflow: visible !important;  // ← Dialog scroll'u kapat
+  max-height: none !important;
+}

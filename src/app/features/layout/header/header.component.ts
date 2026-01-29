@@ -111,7 +111,7 @@ export class HeaderComponent implements OnInit {
         info: 'DIALOG.CANCEL_CONFIRMATION_INFO',
         confirmButtonText: 'DIALOG.YES_CANCEL',
         showYesButton: true,
-        rejectButtonText: 'DIALOG.NO'
+        rejectButtonText: 'COMMON.NO'
       }
     });
 
