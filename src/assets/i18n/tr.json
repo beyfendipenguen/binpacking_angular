@@ -306,7 +306,9 @@
     "VIDEO": "Video",
     "AUDIO": "Ses",
     "FILE_OPENING": "Dosya açılıyor...",
-    "FILE_OPEN_ERROR": "Dosya açılırken hata oluştu"
+    "FILE_OPEN_ERROR": "Dosya açılırken hata oluştu",
+    "CURRENT_FILES": "Güncel Dosyalar",
+  "OLD_FILES": "Eski Dosyalar"
   },
   "ORDER": {
     "TITLE": "Sevkiyat Yönetimi",
@@ -525,6 +527,7 @@
     "ONLY_REMAINING_PRODUCTS": "Sadece kalan ürünleri hesapla",
     "NO_PACKAGES_WARNING": "Önce 'Hesapla' butonuna basmalısınız."
   },
+
   "INVOICE_UPLOAD": {
     "TITLE": "İhracat Sipariş Bildirimi",
     "SUBTITLE": "Siparişlerin detaylarını yönetin ve takip edin",

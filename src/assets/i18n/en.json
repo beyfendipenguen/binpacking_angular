@@ -306,7 +306,9 @@
     "VIDEO": "Video",
     "AUDIO": "Audio",
     "FILE_OPENING": "Opening file...",
-    "FILE_OPEN_ERROR": "An error occurred while opening file"
+    "FILE_OPEN_ERROR": "An error occurred while opening file",
+    "CURRENT_FILES": "Current Files",
+  "OLD_FILES": "Old Files"
   },
   "ORDER": {
     "TITLE": "Shipment Management",
