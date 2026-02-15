@@ -4,6 +4,11 @@ $primary-darker: #004A4A;
 $accent-gold: #D6BB86;
 $accent-gold-light: #E8D5A8;
 
+// Breakpoints
+$breakpoint-tablet: 1024px;
+$breakpoint-mobile: 768px;
+$breakpoint-small: 480px;
+
 .table-container {
   position: relative;
   background: white;
@@ -14,7 +19,11 @@ $accent-gold-light: #E8D5A8;
     display: flex;
     align-items: center;
     padding: 24px;
-    background: linear-gradient(135deg, rgba($primary-dark, 0.05) 0%, rgba($accent-gold, 0.05) 100%);
+    background: linear-gradient(
+      135deg,
+      rgba($primary-dark, 0.05) 0%,
+      rgba($accent-gold, 0.05) 100%
+    );
     border-bottom: 2px solid rgba($primary-dark, 0.1);
 
     h2 {
@@ -47,6 +56,9 @@ $accent-gold-light: #E8D5A8;
     backdrop-filter: blur(2px);
   }
 
+  // ==================
+  // ACTIVE FILTERS
+  // ==================
   .active-filters {
     padding: 16px 24px;
     background: rgba($accent-gold, 0.1);
@@ -94,16 +106,52 @@ $accent-gold-light: #E8D5A8;
     }
   }
 
+  // ==================
+  // TABLE (Desktop)
+  // ==================
+  .table-scroll-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+
+    // Scroll indicator gradient
+    &.has-scroll {
+      position: relative;
+
+      &::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        width: 32px;
+        background: linear-gradient(to left, rgba(white, 0.9), transparent);
+        pointer-events: none;
+        z-index: 2;
+        opacity: 1;
+        transition: opacity 0.3s ease;
+      }
+
+      &.scrolled-end::after {
+        opacity: 0;
+      }
+    }
+  }
+
   table {
     width: 100%;
 
     th.mat-header-cell {
-      background: linear-gradient(135deg, rgba($primary-dark, 0.03) 0%, rgba($accent-gold, 0.03) 100%);
+      background: linear-gradient(
+        135deg,
+        rgba($primary-dark, 0.03) 0%,
+        rgba($accent-gold, 0.03) 100%
+      );
       color: $primary-dark;
       font-weight: 600;
       font-size: 14px;
       padding: 16px;
       border-bottom: 2px solid rgba($primary-dark, 0.15);
+      white-space: nowrap;
 
       &.text-center {
         text-align: center;
@@ -160,7 +208,7 @@ $accent-gold-light: #E8D5A8;
         font-variant-numeric: tabular-nums;
       }
 
-      // Button Cell Styling
+      // Button Cell
       &.button-cell {
         text-align: center;
 
@@ -173,7 +221,6 @@ $accent-gold-light: #E8D5A8;
 
           &.mat-primary {
             color: $primary-dark;
-
             &:hover {
               background: rgba($primary-dark, 0.1);
             }
@@ -181,7 +228,6 @@ $accent-gold-light: #E8D5A8;
 
           &.mat-accent {
             color: $accent-gold;
-
             &:hover {
               background: rgba($accent-gold, 0.1);
             }
@@ -215,7 +261,11 @@ $accent-gold-light: #E8D5A8;
       cursor: pointer;
 
       &:hover {
-        background: linear-gradient(90deg, rgba($primary-dark, 0.08) 0%, rgba($accent-gold, 0.08) 100%);
+        background: linear-gradient(
+          90deg,
+          rgba($primary-dark, 0.08) 0%,
+          rgba($accent-gold, 0.08) 100%
+        );
         transform: translateX(4px);
         box-shadow: -4px 0 0 0 $primary-dark;
 
@@ -226,11 +276,125 @@ $accent-gold-light: #E8D5A8;
 
       &:active {
         transform: translateX(2px);
-        background: linear-gradient(90deg, rgba($primary-dark, 0.12) 0%, rgba($accent-gold, 0.12) 100%);
+        background: linear-gradient(
+          90deg,
+          rgba($primary-dark, 0.12) 0%,
+          rgba($accent-gold, 0.12) 100%
+        );
       }
     }
   }
 
+  // ==================
+  // MOBILE CARD VIEW
+  // ==================
+  .mobile-card-list {
+    display: none; // Sadece mobilde gösterilecek
+    padding: 12px;
+    gap: 12px;
+    flex-direction: column;
+  }
+
+  .mobile-card {
+    background: white;
+    border: 1px solid rgba($primary-dark, 0.12);
+    border-radius: 12px;
+    overflow: hidden;
+    transition: all 0.2s ease;
+    -webkit-tap-highlight-color: transparent;
+
+    &:active {
+      transform: scale(0.98);
+      background: rgba($primary-dark, 0.03);
+    }
+
+    .mobile-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 16px;
+      background: linear-gradient(
+        135deg,
+        rgba($primary-dark, 0.04) 0%,
+        rgba($accent-gold, 0.04) 100%
+      );
+      border-bottom: 1px solid rgba($primary-dark, 0.08);
+
+      .mobile-card-number {
+        font-weight: 700;
+        font-size: 13px;
+        color: white;
+        background: $primary-dark;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .mobile-card-actions {
+        display: flex;
+        gap: 4px;
+
+        button {
+          width: 36px;
+          height: 36px;
+
+          mat-icon {
+            font-size: 20px;
+          }
+        }
+      }
+    }
+
+    .mobile-card-body {
+      padding: 12px 16px;
+    }
+
+    .mobile-card-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      padding: 10px 0;
+      border-bottom: 1px solid rgba($primary-dark, 0.05);
+      gap: 12px;
+
+      &:last-child {
+        border-bottom: none;
+        padding-bottom: 4px;
+      }
+
+      .mobile-card-label {
+        font-size: 12px;
+        font-weight: 600;
+        color: rgba($primary-dark, 0.7);
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        flex-shrink: 0;
+        min-width: 0;
+        max-width: 45%;
+      }
+
+      .mobile-card-value {
+        font-size: 14px;
+        color: #333;
+        text-align: right;
+        font-weight: 500;
+        word-break: break-word;
+        min-width: 0;
+        flex: 1;
+
+        &.numeric {
+          font-variant-numeric: tabular-nums;
+        }
+      }
+    }
+  }
+
+  // ==================
+  // EMPTY STATE
+  // ==================
   .empty-state {
     display: flex;
     flex-direction: column;
@@ -250,6 +414,7 @@ $accent-gold-light: #E8D5A8;
     p {
       margin: 8px 0;
       font-size: 16px;
+      text-align: center;
     }
 
     button {
@@ -263,13 +428,22 @@ $accent-gold-light: #E8D5A8;
     }
   }
 
+  // ==================
+  // PAGINATOR
+  // ==================
   .mat-mdc-paginator {
     border-top: 2px solid rgba($primary-dark, 0.1);
-    background: linear-gradient(135deg, rgba($primary-dark, 0.02) 0%, rgba($accent-gold, 0.02) 100%);
+    background: linear-gradient(
+      135deg,
+      rgba($primary-dark, 0.02) 0%,
+      rgba($accent-gold, 0.02) 100%
+    );
   }
 }
 
-// Material overrides for theme colors
+// ==========================================
+// MATERIAL OVERRIDES
+// ==========================================
 ::ng-deep {
   .mat-mdc-button.mat-primary,
   .mat-mdc-icon-button.mat-primary {
@@ -300,34 +474,215 @@ $accent-gold-light: #E8D5A8;
   }
 }
 
-// Responsive
-@media (max-width: 768px) {
+// ==========================================
+// RESPONSIVE — TABLET (≤1024px)
+// ==========================================
+@media (max-width: $breakpoint-tablet) {
   .table-container {
     .table-header {
-      flex-direction: column;
-      gap: 16px;
-      align-items: flex-start;
+      padding: 20px;
 
       h2 {
-        font-size: 20px;
+        font-size: 22px;
       }
     }
 
     table {
-      font-size: 12px;
-
       th.mat-header-cell,
       td.mat-cell {
-        padding: 12px 8px;
+        padding: 12px 10px;
+        font-size: 13px;
+      }
+
+      td.mat-cell {
+        .action-buttons {
+          gap: 4px;
+        }
       }
     }
   }
 }
 
-//------------//
-//STATUS STYLE//
-//------------//
+// ==========================================
+// RESPONSIVE — MOBILE (≤768px)
+// ==========================================
+@media (max-width: $breakpoint-mobile) {
+  .table-container {
+    border-radius: 12px;
 
+    .table-header {
+      flex-direction: column;
+      gap: 12px;
+      align-items: stretch;
+      padding: 16px;
+
+      h2 {
+        font-size: 20px;
+      }
+
+      .spacer {
+        display: none;
+      }
+
+      button {
+        margin-left: 0;
+        align-self: flex-end;
+      }
+    }
+
+    // Filtre alanı mobil uyumu
+    .active-filters {
+      padding: 12px 16px;
+
+      .chip-list {
+        gap: 6px;
+
+        .filter-label {
+          width: 100%;
+          margin-bottom: 4px;
+          font-size: 13px;
+        }
+
+        .filter-chip {
+          padding: 4px 10px;
+
+          .chip-label {
+            font-size: 12px;
+          }
+
+          // Daha büyük dokunma hedefi
+          .chip-remove {
+            width: 24px;
+            height: 24px;
+            min-width: 24px;
+
+            mat-icon {
+              font-size: 16px;
+            }
+          }
+        }
+      }
+    }
+
+    // Masaüstü tabloyu gizle, kart görünümünü göster
+    .table-scroll-wrapper,
+    table {
+      display: none;
+    }
+
+    .mobile-card-list {
+      display: flex;
+    }
+
+    // Paginator mobil uyumu
+    ::ng-deep .mat-mdc-paginator {
+      .mat-mdc-paginator-container {
+        flex-wrap: wrap;
+        justify-content: center;
+        padding: 8px 4px;
+        gap: 4px;
+      }
+
+      .mat-mdc-paginator-page-size {
+        margin-right: 0;
+
+        .mat-mdc-paginator-page-size-label {
+          display: none;
+        }
+      }
+
+      .mat-mdc-paginator-range-label {
+        margin: 0 8px;
+        font-size: 12px;
+      }
+
+      .mat-mdc-paginator-range-actions {
+        gap: 0;
+      }
+
+      .mat-mdc-icon-button {
+        width: 36px;
+        height: 36px;
+        padding: 6px;
+      }
+    }
+
+    // Boş durum mobil
+    .empty-state {
+      padding: 40px 16px;
+
+      mat-icon {
+        font-size: 48px;
+        width: 48px;
+        height: 48px;
+      }
+
+      p {
+        font-size: 14px;
+      }
+    }
+  }
+}
+
+// ==========================================
+// RESPONSIVE — SMALL MOBILE (≤480px)
+// ==========================================
+@media (max-width: $breakpoint-small) {
+  .table-container {
+    border-radius: 8px;
+
+    .table-header {
+      padding: 12px;
+
+      h2 {
+        font-size: 18px;
+      }
+    }
+
+    .active-filters {
+      padding: 10px 12px;
+    }
+
+    .mobile-card-list {
+      padding: 8px;
+      gap: 10px;
+    }
+
+    .mobile-card {
+      border-radius: 10px;
+
+      .mobile-card-header {
+        padding: 10px 12px;
+      }
+
+      .mobile-card-body {
+        padding: 8px 12px;
+      }
+
+      .mobile-card-row {
+        padding: 8px 0;
+        flex-direction: column;
+        gap: 4px;
+
+        .mobile-card-label {
+          max-width: 100%;
+        }
+
+        .mobile-card-value {
+          text-align: left;
+        }
+      }
+    }
+
+    .empty-state {
+      padding: 32px 12px;
+    }
+  }
+}
+
+// ==========================================
+// STATUS STYLES
+// ==========================================
 .status-container {
   display: flex;
   align-items: center;
@@ -335,7 +690,6 @@ $accent-gold-light: #E8D5A8;
   padding: 4px 0;
 }
 
-// Status Indicator (yanıp sönen nokta)
 .status-indicator {
   width: 12px;
   height: 12px;
@@ -344,7 +698,6 @@ $accent-gold-light: #E8D5A8;
   position: relative;
   flex-shrink: 0;
 
-  // Outer pulse ring
   &::before {
     content: '';
     position: absolute;
@@ -357,7 +710,6 @@ $accent-gold-light: #E8D5A8;
   }
 }
 
-// Success (Yeşil - Tamamlandı)
 .status-success {
   background: linear-gradient(135deg, #66bb6a 0%, #43a047 100%);
   box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.7);
@@ -368,7 +720,6 @@ $accent-gold-light: #E8D5A8;
   }
 }
 
-// Warning (Kırmızı/Turuncu - Eksik)
 .status-warning {
   background: linear-gradient(135deg, #ff7043 0%, #f4511e 100%);
   box-shadow: 0 0 0 0 rgba(255, 112, 67, 0.7);
@@ -379,7 +730,6 @@ $accent-gold-light: #E8D5A8;
   }
 }
 
-// Status Text Styling
 .status-text {
   font-weight: 500;
   font-size: 13px;
@@ -395,7 +745,44 @@ $accent-gold-light: #E8D5A8;
   color: #d84315;
 }
 
-// Dot pulse animation
+// Mobile status — badge şeklinde
+.mobile-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+
+  &.success {
+    background: rgba(76, 175, 80, 0.12);
+    color: #2e7d32;
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #43a047;
+    }
+  }
+
+  &.warning {
+    background: rgba(255, 112, 67, 0.12);
+    color: #d84315;
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #f4511e;
+    }
+  }
+}
+
+// ==========================================
+// ANIMATIONS
+// ==========================================
 @keyframes pulse-dot {
   0% {
     box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.7);
@@ -408,7 +795,6 @@ $accent-gold-light: #E8D5A8;
   }
 }
 
-// Ring pulse animation
 @keyframes pulse-ring {
   0% {
     transform: scale(0.8);
@@ -421,5 +807,106 @@ $accent-gold-light: #E8D5A8;
   100% {
     transform: scale(0.8);
     opacity: 0;
+  }
+}
+
+// ==========================================
+// LANDSCAPE MOBİL
+// ==========================================
+@media (max-height: 500px) and (orientation: landscape) {
+  .table-container {
+    .table-header {
+      padding: 12px 16px;
+
+      h2 {
+        font-size: 18px;
+      }
+    }
+
+    .mobile-card-list {
+      padding: 8px;
+      gap: 8px;
+    }
+
+    .mobile-card {
+      .mobile-card-header {
+        padding: 8px 12px;
+      }
+
+      .mobile-card-row {
+        padding: 6px 0;
+      }
+    }
+
+    .empty-state {
+      padding: 24px 12px;
+    }
+  }
+}
+
+// ==========================================
+// TOUCH DEVİCE OPTİMİZASYONU
+// ==========================================
+@media (hover: none) and (pointer: coarse) {
+  .table-container {
+    table {
+      tr.mat-row {
+        &:hover {
+          transform: none;
+          box-shadow: none;
+          background: transparent;
+        }
+
+        &:active {
+          background: linear-gradient(
+            90deg,
+            rgba($primary-dark, 0.08) 0%,
+            rgba($accent-gold, 0.08) 100%
+          );
+        }
+      }
+    }
+
+    // Tüm butonlar için minimum 44px dokunma hedefi (WCAG)
+    .mobile-card-actions button,
+    .action-buttons button {
+      min-width: 44px;
+      min-height: 44px;
+    }
+
+    .filter-chip .chip-remove {
+      min-width: 32px;
+      min-height: 32px;
+    }
+  }
+}
+
+// ==========================================
+// PRINT STİLLERİ
+// ==========================================
+@media print {
+  .table-container {
+    border-radius: 0;
+    box-shadow: none;
+
+    .table-header button,
+    .active-filters .chip-remove,
+    .action-buttons,
+    .mobile-card-actions,
+    .mat-mdc-paginator {
+      display: none !important;
+    }
+
+    .mobile-card-list {
+      display: none !important;
+    }
+
+    table {
+      display: table !important;
+    }
+
+    .loading-shade {
+      display: none !important;
+    }
   }
 }

@@ -1573,107 +1573,6 @@ form {
   }
 }
 
-/* Mobil - Alt tarafa yatay butonlar */
-@media (max-width: 768px) {
-  .next-button {
-    right: 12px;
-    left: auto;
-    top: auto;
-    bottom: 16px;
-    transform: none;
-
-    width: 100px !important;
-    height: 6px !important;
-    min-width: 100px !important;
-    border-radius: 8px 8px 0 0 !important;
-
-    span {
-      writing-mode: horizontal-tb;
-      font-size: 11px;
-    }
-
-    mat-icon {
-      transform: rotate(90deg);
-      font-size: 18px;
-      width: 18px;
-      height: 18px;
-      margin: 0 6px !important;
-    }
-
-    &:hover:not([disabled]) {
-      width: 100px !important;
-      height: 44px !important;
-    }
-
-    &:active:not([disabled]) {
-      height: 40px !important;
-    }
-  }
-
-  .prev-button,
-  .back-button {
-    left: 12px;
-    right: auto;
-    top: auto;
-    bottom: 16px;
-    transform: none;
-
-    width: 100px !important;
-    height: 6px !important;
-    min-width: 100px !important;
-    border-radius: 8px 8px 0 0 !important;
-
-    span {
-      writing-mode: horizontal-tb;
-      font-size: 11px;
-    }
-
-    mat-icon {
-      transform: rotate(90deg);
-      font-size: 18px;
-      width: 18px;
-      height: 18px;
-      margin: 0 6px !important;
-    }
-
-    &:hover:not([disabled]) {
-      width: 100px !important;
-      height: 44px !important;
-    }
-
-    &:active:not([disabled]) {
-      height: 40px !important;
-    }
-  }
-}
-
-/* Küçük mobil */
-@media (max-width: 480px) {
-
-  .next-button,
-  .prev-button,
-  .back-button {
-    width: 80px !important;
-    min-width: 80px !important;
-    height: 5px !important;
-
-    &:hover:not([disabled]) {
-      width: 80px !important;
-      height: 40px !important;
-    }
-  }
-
-  .next-button {
-    right: 8px;
-    bottom: 12px;
-  }
-
-  .prev-button,
-  .back-button {
-    left: 8px;
-    bottom: 12px;
-  }
-}
 
 /* =====================
    16. RESPONSIVE
@@ -1697,91 +1596,352 @@ form {
 }
 
 @media (max-width: 768px) {
+  // Form padding
+  form {
+    padding: 12px;
+    padding-bottom: 80px; // Alt butonlar için boşluk
+  }
+
+  // Header daha kompakt
+  .logistics-header {
+    margin-bottom: 12px;
+
+    .header-icon {
+      width: 40px;
+      height: 40px;
+      margin-right: 12px;
+
+      mat-icon {
+        font-size: 20px;
+        width: 20px;
+        height: 20px;
+      }
+    }
+
+    .header-titles h1 {
+      font-size: 18px;
+    }
+
+    .header-subtitle {
+      font-size: 12px;
+    }
+  }
+
+  // Dashboard tek sütun
   .logistics-dashboard {
     flex-direction: column;
+    gap: 8px;
+    margin-bottom: 16px;
+
+    .dashboard-item {
+      min-width: 100%;
+      padding: 12px;
+
+      .dashboard-value {
+        font-size: 16px;
+      }
+    }
   }
 
-  .dashboard-item {
-    min-width: 100%;
+  // Container - Scroll yerine auto height
+  .logistics-container {
+    flex-direction: column;
+    height: auto;
+    gap: 12px;
   }
 
+  // Her section auto height, scroll ile
+  .inventory-section {
+    flex: 0 0 auto;
+    height: auto;
+    max-height: 300px;
+  }
+
+  .pallets-section {
+    flex: 0 0 auto;
+    height: auto;
+    max-height: 200px;
+  }
+
+  .packages-section {
+    flex: 0 0 auto;
+    height: auto;
+    min-height: 400px;
+    max-height: none;
+  }
+
+  // Package grid tek sütun
   .packages-grid {
     grid-template-columns: 1fr;
+    gap: 12px;
+    padding: 12px;
   }
 
+  // Package card yükseklik auto
+  .package-card {
+    height: auto;
+    min-height: 200px;
+  }
+
+  // Section header stack
   .section-header.with-action {
     flex-direction: column;
     gap: 8px;
+    padding: 10px 12px;
   }
 
   .header-content-inline {
     flex-direction: column;
+    gap: 8px;
+    width: 100%;
   }
 
+  .header-title-section {
+    flex-wrap: wrap;
+    gap: 8px;
+
+    h2 {
+      font-size: 14px;
+      white-space: normal;
+    }
+  }
+
+  // Calculate butonları yan yana yerine alt alta
+  .calculate-button {
+    font-size: 11px !important;
+    height: 28px !important;
+    padding: 0 10px !important;
+
+    span {
+      font-size: 11px !important;
+    }
+  }
+
+  // Pallet stats
   .pallet-stats-inline {
     width: 100%;
     justify-content: space-between;
+    gap: 6px;
   }
 
+  // Search daha kompakt
   .search-container .search-input-wrapper {
     padding: 6px 8px;
     min-height: 32px;
   }
 
+  // Product item daha kompakt
+  .product-item {
+    padding: 8px;
+    min-height: 40px;
+
+    .product-info .product-name {
+      font-size: 13px;
+    }
+  }
+
+  // Split input daha küçük
+  .split-product-container {
+    margin-top: 12px;
+    height: 28px;
+  }
+
   .mini-split-input {
-    @include split-input-base(28px, 22px, 10px);
+    width: 28px !important;
+    height: 22px !important;
+    font-size: 10px !important;
+  }
+
+  // Segment button daha küçük
+  .button-container {
+    margin-top: 12px;
   }
 
   .segment-button {
-    min-width: 32px;
+    min-width: 30px;
+    height: 24px;
+
+    mat-icon {
+      font-size: 14px !important;
+      width: 14px !important;
+      height: 14px !important;
+    }
+  }
+
+  // Pallet footer metrics
+  .pallet-metrics {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .metric {
+    font-size: 11px;
+
+    mat-icon {
+      font-size: 14px;
+    }
+
+    span {
+      font-size: 11px;
+    }
+  }
+
+  // Orientation toggle
+  .orientation-toggle {
+    width: 28px;
     height: 28px;
-
-    mat-icon {
-      font-size: 16px !important;
-      width: 16px !important;
-      height: 16px !important;
-    }
+    margin-left: 8px;
   }
 
-  .next-button,
-  .prev-button {
-    padding: 10px 16px;
-    font-size: 12px;
-
-    mat-icon {
-      font-size: 18px;
-      width: 18px;
-      height: 18px;
-    }
-  }
-
-  .next-button {
-    right: 12px;
-    bottom: 12px;
-  }
-
-  .prev-button {
-    left: 12px;
-    bottom: 12px;
+  // Clear button
+  .clear-button {
+    font-size: 11px;
+    height: 28px;
+    padding: 0 8px;
+    align-self: flex-end;
   }
 }
 
 @media (max-width: 480px) {
+  form {
+    padding: 8px;
+    padding-bottom: 70px;
+  }
+
+  .logistics-header {
+    margin-bottom: 8px;
+
+    .header-titles h1 {
+      font-size: 16px;
+    }
+  }
+
+  .logistics-dashboard {
+    gap: 6px;
+    margin-bottom: 12px;
+
+    .dashboard-item {
+      padding: 10px;
+
+      .dashboard-icon {
+        width: 32px;
+        height: 32px;
+        margin-right: 8px;
+
+        mat-icon {
+          font-size: 16px;
+          width: 16px;
+          height: 16px;
+        }
+      }
+
+      .dashboard-label { font-size: 11px; }
+      .dashboard-value { font-size: 14px; }
+    }
+  }
+
+  .inventory-section {
+    max-height: 250px;
+  }
+
+  .pallets-section {
+    max-height: 150px;
+  }
+
   .pallet-stats-inline {
     flex-direction: column;
     gap: 4px;
   }
 
+  // Calculate butonlarında text gizle
   .calculate-button span {
     display: none;
   }
 
-  .next-button,
-  .prev-button {
-    padding: 8px 12px;
+  // Product item'da split ve delete butonları daha küçük
+  .split-product-container {
+    margin-top: 8px;
+    height: 24px;
+  }
 
-    span {
-      display: none;
+  .split-button,
+  .action-button {
+    width: 28px !important;
+    height: 28px !important;
+    min-width: 28px !important;
+  }
+
+  // Package card
+  .package-card {
+    min-height: 180px;
+
+    .package-header {
+      padding: 6px 10px;
+
+      .package-title {
+        gap: 8px;
+
+        span { font-size: 13px; }
+      }
     }
+  }
+
+  // Pallet content
+  .pallet-content {
+    min-height: 80px;
+    padding: 6px;
+  }
+
+  .pallet-item {
+    padding: 3px 5px;
+    min-height: 24px;
+
+    .pallet-name { font-size: 12px; }
+  }
+}
+
+// Pallet Control - Touch optimizasyonu
+@media (hover: none) and (pointer: coarse) {
+  .product-item,
+  .pallet-item {
+    min-height: 48px; // WCAG dokunma hedefi
+
+    // Drag handle görsel ipucu
+    &[cdkDrag] {
+      cursor: grab;
+      position: relative;
+
+      &::after {
+        content: '⠿';
+        position: absolute;
+        right: 8px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #ccc;
+        font-size: 16px;
+      }
+    }
+  }
+
+  .segment-button {
+    min-width: 40px;
+    min-height: 36px;
+  }
+
+  .split-button,
+  .action-button {
+    min-width: 40px !important;
+    min-height: 40px !important;
+  }
+
+  .calculate-button {
+    min-height: 36px !important;
+  }
+
+  // Hover efektlerini kaldır
+  .product-item:hover,
+  .pallet-item:hover {
+    transform: none;
+    box-shadow: none;
   }
 }

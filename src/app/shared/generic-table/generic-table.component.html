@@ -23,7 +23,6 @@
     <div class="chip-list">
       <span class="filter-label">{{ 'GENERIC_TABLE.ACTIVE_FILTERS' | translate }}</span>
 
-      <!-- Her aktif filtre için çip -->
       @for (column of filterableColumns; track column) { @if
       (isFilterActive(column)) {
       <div class="filter-chip">
@@ -39,98 +38,186 @@
   </div>
   }
 
-  <!-- Table -->
-  <table mat-table [dataSource]="dataSource" matSort matSortDisableClear>
-    <ng-container matColumnDef="rowNumber">
-      <th mat-header-cell *matHeaderCellDef class="text-center">
-        @if (showAddButton) {
-        <button mat-icon-button (click)="onAddButtonClick($event)" [matTooltip]="'GENERIC_TABLE.ADD_NEW' | translate"
-          [appDisableAuth]="addPermission">
-          <mat-icon>add_circle</mat-icon>
-        </button>
-        }
-      </th>
-      <td mat-cell *matCellDef="let row; let i = index" class="row-number-cell">
-        {{ getRowNumber(i) }}
-      </td>
-    </ng-container>
-
-    <!-- Dynamic Columns -->
-    @for (column of displayedColumns; track column) {
-    @if (hasColumnPermission(column)) {
-    <ng-container [matColumnDef]="column">
-      <th mat-header-cell *matHeaderCellDef mat-sort-header>
-        <div class="header-content">
-          {{ getColumnDisplayName(column) | translate}}
-
-          <!-- Filtre ikonu -->
-          @if (filterableColumns.includes(column)) {
-          <button mat-icon-button class="filter-icon" [class.active-filter]="isFilterActive(column)"
-            (click)="openFilterDialog(column, $event)" [matTooltip]="
-              (isFilterActive(column) ? 'GENERIC_TABLE.EDIT_FILTER' : 'COMMON.FILTER') | translate
-            ">
-            <mat-icon>filter_alt</mat-icon>
+  <!-- ===================== -->
+  <!-- DESKTOP: Table View   -->
+  <!-- ===================== -->
+  <div class="table-scroll-wrapper">
+    <table mat-table [dataSource]="dataSource" matSort matSortDisableClear>
+      <ng-container matColumnDef="rowNumber">
+        <th mat-header-cell *matHeaderCellDef class="text-center">
+          @if (showAddButton) {
+          <button id="tour-table-add-button" mat-icon-button (click)="onAddButtonClick($event)"
+            [matTooltip]="'GENERIC_TABLE.ADD_NEW' | translate"
+            [appDisableAuth]="addPermission">
+            <mat-icon>add_circle</mat-icon>
           </button>
           }
-        </div>
-      </th>
+        </th>
+        <td mat-cell *matCellDef="let row; let i = index" class="row-number-cell">
+          {{ getRowNumber(i) }}
+        </td>
+      </ng-container>
 
-      <td mat-cell *matCellDef="let row" [class.numeric-cell]="
-          !isButtonColumn(column) &&
-          isNumeric(getNestedPropertyValue(row, column))
-        " [class.button-cell]="isButtonColumn(column)">
-        <!-- Button Column Template -->
-        @if (isButtonColumn(column)) { @if (getButtonConfig(column); as
-        btnConfig) {
-        <button mat-icon-button [color]="btnConfig.color || 'primary'" [matTooltip]="btnConfig.tooltip || ''"
-          [class]="btnConfig.class || ''" (click)="onCellButtonClick(row, column, $event)">
-          <mat-icon>{{ btnConfig.icon || "more_vert" }}</mat-icon>
-          @if (btnConfig.text) {
-          <span class="button-text">{{ btnConfig.text }}</span>
-          }
-        </button>
-        } } @else if (columnTypes[column] === 'status') {
-        <div class="status-container">
-          @if (row[column] === true) {
-          <span class="status-indicator status-success"></span>
-          <span class="status-text status-success-text">{{ 'COMMON.COMPLETED' | translate }}</span>
+      <!-- Dynamic Columns -->
+      @for (column of displayedColumns; track column) {
+      @if (hasColumnPermission(column)) {
+      <ng-container [matColumnDef]="column">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>
+          <div class="header-content">
+            {{ getColumnDisplayName(column) | translate}}
+
+            @if (filterableColumns.includes(column)) {
+            <button mat-icon-button class="filter-icon" [class.active-filter]="isFilterActive(column)"
+              (click)="openFilterDialog(column, $event)" [matTooltip]="
+                (isFilterActive(column) ? 'GENERIC_TABLE.EDIT_FILTER' : 'COMMON.FILTER') | translate
+              ">
+              <mat-icon>filter_alt</mat-icon>
+            </button>
+            }
+          </div>
+        </th>
+
+        <td mat-cell *matCellDef="let row" [class.numeric-cell]="
+            !isButtonColumn(column) &&
+            isNumeric(getNestedPropertyValue(row, column))
+          " [class.button-cell]="isButtonColumn(column)">
+          @if (isButtonColumn(column)) { @if (getButtonConfig(column); as
+          btnConfig) {
+          <button mat-icon-button [color]="btnConfig.color || 'primary'" [matTooltip]="btnConfig.tooltip || ''"
+            [class]="btnConfig.class || ''" (click)="onCellButtonClick(row, column, $event)">
+            <mat-icon>{{ btnConfig.icon || "more_vert" }}</mat-icon>
+            @if (btnConfig.text) {
+            <span class="button-text">{{ btnConfig.text }}</span>
+            }
+          </button>
+          } } @else if (columnTypes[column] === 'status') {
+          <div class="status-container">
+            @if (row[column] === true) {
+            <span class="status-indicator status-success"></span>
+            <span class="status-text status-success-text">{{ 'COMMON.COMPLETED' | translate }}</span>
+            } @else {
+            <span class="status-indicator status-warning"></span>
+            <span class="status-text status-warning-text">{{ 'ORDER.INCOMPLETE_ORDER' | translate }}</span>
+            }
+          </div>
           } @else {
-          <span class="status-indicator status-warning"></span>
-          <span class="status-text status-warning-text">{{ 'ORDER.INCOMPLETE_ORDER' | translate }}</span>
+          <span>{{ getNestedPropertyValue(row, column) }}</span>
           }
-        </div>
-        } @else {
-        <!-- Regular Cell Content -->
-        <span>{{ getNestedPropertyValue(row, column) }}</span>
-        }
-      </td>
-    </ng-container>
-    }
+        </td>
+      </ng-container>
+      }
+      }
+
+      <!-- Actions Column -->
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef>{{ 'MENU.OPERATIONS' | translate }}</th>
+        <td mat-cell *matCellDef="let row">
+          <div class="action-buttons">
+            @if (showDeleteButton) {
+            <button class="btn" mat-icon-button color="warn" (click)="confirmDelete(row.id); $event.stopPropagation()"
+              [matTooltip]="'COMMON.DELETE'| translate" [appDisableAuth]="deletePermission">
+              <mat-icon>delete</mat-icon>
+            </button>
+            } @if (showUpdateButton) {
+            <button class="btn" mat-icon-button (click)="openAddOrUpdateDialog(row); $event.stopPropagation()"
+              [matTooltip]="'COMMON.UPDATE'| translate" [appDisableAuth]="updatePermission">
+              <mat-icon>update</mat-icon>
+            </button>
+            }
+          </div>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="getDisplayColumnWithActions()"></tr>
+      <tr mat-row *matRowDef="let row; columns: getDisplayColumnWithActions()" (click)="onRowClick(row)"></tr>
+    </table>
+  </div>
+
+  <!-- ========================= -->
+  <!-- MOBILE: Card View         -->
+  <!-- ========================= -->
+  <div class="mobile-card-list">
+    <!-- Mobil ekleme butonu -->
+    @if (showAddButton) {
+    <button mat-raised-button color="primary" (click)="onAddButtonClick($event)"
+      [appDisableAuth]="addPermission"
+      style="width: 100%; margin-bottom: 4px;">
+      <mat-icon>add_circle</mat-icon>
+      {{ 'GENERIC_TABLE.ADD_NEW' | translate }}
+    </button>
     }
 
-    <!-- Actions Column -->
-    <ng-container matColumnDef="actions">
-      <th mat-header-cell *matHeaderCellDef>{{ 'MENU.OPERATIONS' | translate }}</th>
-      <td mat-cell *matCellDef="let row">
-        <div class="action-buttons">
+    @for (row of dataSource.data; track row; let i = $index) {
+    <div class="mobile-card" (click)="onRowClick(row)">
+      <!-- Kart Başlığı: sıra numarası + işlem butonları -->
+      <div class="mobile-card-header">
+        <span class="mobile-card-number">{{ getRowNumber(i) }}</span>
+        <div class="mobile-card-actions">
+          @if (showUpdateButton) {
+          <button mat-icon-button color="primary"
+            (click)="openAddOrUpdateDialog(row); $event.stopPropagation()"
+            [appDisableAuth]="updatePermission">
+            <mat-icon>edit</mat-icon>
+          </button>
+          }
           @if (showDeleteButton) {
-          <button class="btn" mat-icon-button color="warn" (click)="confirmDelete(row.id); $event.stopPropagation()"
-            [matTooltip]="'COMMON.DELETE'| translate" [appDisableAuth]="deletePermission">
+          <button mat-icon-button color="warn"
+            (click)="confirmDelete($any(row).id); $event.stopPropagation()"
+            [appDisableAuth]="deletePermission">
             <mat-icon>delete</mat-icon>
           </button>
-          } @if (showUpdateButton) {
-          <button class="btn" mat-icon-button (click)="openAddOrUpdateDialog(row); $event.stopPropagation()"
-            [matTooltip]="'COMMON.UPDATE'| translate" [appDisableAuth]="updatePermission">
-            <mat-icon>update</mat-icon>
-          </button>
           }
         </div>
-      </td>
-    </ng-container>
+      </div>
 
-    <tr mat-header-row *matHeaderRowDef="getDisplayColumnWithActions()"></tr>
-    <tr mat-row *matRowDef="let row; columns: getDisplayColumnWithActions()" (click)="onRowClick(row)"></tr>
-  </table>
+      <!-- Kart İçeriği: her sütun bir satır olarak -->
+      <div class="mobile-card-body">
+        @for (column of displayedColumns; track column) {
+        @if (hasColumnPermission(column)) {
+        <div class="mobile-card-row">
+          <span class="mobile-card-label">{{ getColumnDisplayName(column) | translate }}</span>
+
+          <!-- Button Column → Mobilde buton olarak göster -->
+          @if (isButtonColumn(column)) {
+            @if (getButtonConfig(column); as btnConfig) {
+            <span class="mobile-card-value">
+              <button mat-icon-button [color]="btnConfig.color || 'primary'"
+                (click)="onCellButtonClick(row, column, $event)">
+                <mat-icon>{{ btnConfig.icon || "more_vert" }}</mat-icon>
+              </button>
+            </span>
+            }
+          }
+          <!-- Status Column → Mobilde badge olarak göster -->
+          @else if (columnTypes[column] === 'status') {
+          <span class="mobile-card-value">
+            @if ($any(row)[column] === true) {
+            <span class="mobile-status-badge success">
+              <span class="status-dot"></span>
+              {{ 'COMMON.COMPLETED' | translate }}
+            </span>
+            } @else {
+            <span class="mobile-status-badge warning">
+              <span class="status-dot"></span>
+              {{ 'ORDER.INCOMPLETE_ORDER' | translate }}
+            </span>
+            }
+          </span>
+          }
+          <!-- Normal Column -->
+          @else {
+          <span class="mobile-card-value"
+            [class.numeric]="isNumeric(getNestedPropertyValue(row, column))">
+            {{ getNestedPropertyValue(row, column) }}
+          </span>
+          }
+        </div>
+        }
+        }
+      </div>
+    </div>
+    }
+  </div>
 
   <!-- Empty state -->
   @if (dataSource.data.length === 0 && !isLoading) {

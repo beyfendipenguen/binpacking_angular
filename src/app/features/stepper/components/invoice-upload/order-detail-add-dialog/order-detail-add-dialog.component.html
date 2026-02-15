@@ -12,7 +12,7 @@
       <mat-form-field appearance="outline" class="full-width">
         <mat-label>{{ 'INVOICE_UPLOAD.SEARCH_PRODUCT' | translate }}</mat-label>
         <mat-icon matPrefix>inventory_2</mat-icon>
-        <input type="text" [placeholder]="'INVOICE_UPLOAD.SEARCH_PLACEHOLDER' | translate" matInput
+        <input id="tour-product-search-input" type="text" [placeholder]="'INVOICE_UPLOAD.SEARCH_PLACEHOLDER' | translate" matInput
           formControlName="product" [matAutocomplete]="auto">
         <mat-autocomplete #auto="matAutocomplete" [displayWith]="displayProductFn.bind(this)">
           @if(isLoading) {
@@ -53,7 +53,7 @@
       <mat-form-field appearance="outline" class="full-width">
         <mat-label>{{ 'INVOICE_UPLOAD.QUANTITY' | translate }}</mat-label>
         <mat-icon matPrefix>numbers</mat-icon>
-        <input type="number" matInput formControlName="count" min="1">
+        <input id="tour-quantity-input" type="number" matInput formControlName="count" min="1">
         @if(orderDetailForm.get('count')?.hasError('required')) {
           <mat-error>{{ 'INVOICE_UPLOAD.QUANTITY_REQUIRED' | translate }}</mat-error>
         }
@@ -112,7 +112,7 @@
       <mat-icon>close</mat-icon>
       <span>{{ 'COMMON.CANCEL' | translate }}</span>
     </button>
-    <button mat-raised-button color="primary" [disabled]="orderDetailForm.invalid"
+    <button id="tour-dialog-submit-button" mat-raised-button color="primary" [disabled]="orderDetailForm.invalid"
       (click)="onSubmit()" class="save-button">
       <mat-icon>save</mat-icon>
       <span>{{ 'COMMON.SAVE' | translate }}</span>

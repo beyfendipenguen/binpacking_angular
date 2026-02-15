@@ -163,7 +163,7 @@ $white: #ffffff;
   top: 1rem;
   right: 1rem;
   z-index: 10;
-  
+
   .fullscreen-btn,
   .exit-fullscreen-btn {
     background: linear-gradient(135deg, $primary-color, $primary-dark);
@@ -180,21 +180,21 @@ $white: #ffffff;
     display: flex;
     align-items: center;
     justify-content: center;
-    
+
     &:hover {
       transform: scale(1.1);
       box-shadow: var(--shadow-lg);
       background: linear-gradient(135deg, $primary-dark, color.adjust($primary-dark, $lightness: -10%));
     }
-    
+
     &:active {
       transform: scale(0.95);
     }
   }
-  
+
   .exit-fullscreen-btn {
     background: linear-gradient(135deg, $error-red, $error-dark);
-    
+
     &:hover {
       background: linear-gradient(135deg, $error-dark, color.adjust($error-dark, $lightness: -10%));
     }
@@ -205,11 +205,11 @@ $white: #ffffff;
 .threejs-visualization-container:fullscreen {
   height: 100vh !important;
   border-radius: 0 !important;
-  
+
   .fullscreen-controls {
     z-index: 1000;
   }
-  
+
   .package-info-panel,
   .package-products-panel,
   .deleted-packages-panel,
@@ -944,108 +944,356 @@ $white: #ffffff;
 // ========================================
 @media (max-width: 768px) {
   .package-actions {
-    grid-template-columns: 1fr !important; // Mobilde her zaman tek sütun
+    grid-template-columns: 1fr !important;
   }
 
   .threejs-visualization-container {
-    height: 600px;
+    height: 70vh; // Viewport yüksekliğine göre
+    min-height: 400px;
+    max-height: 700px;
+    border-radius: 8px;
+    // Touch action - browser scroll'u engelle, kendi touch'ımızı kullanalım
+    touch-action: none;
 
-    .weight-display-panel {
-      position: static;
-      transform: none;
-      margin-bottom: 0.8rem;
-      min-width: auto;
+    .threejs-canvas-container {
+      touch-action: none;
 
-      &:hover {
-        transform: scale(1.02);
+      canvas {
+        touch-action: none;
       }
     }
 
-    .package-info-panel,
-    .deleted-packages-panel {
-      position: static;
-      margin-bottom: 1rem;
-      min-width: auto;
-      max-width: none;
-      padding: 1rem;
-    }
-
-    .collision-warning {
-      position: fixed;
-      top: 20%;
+    // Weight panel — üstte kompakt
+    .weight-display-panel {
+      top: 0.5rem;
       left: 50%;
       transform: translateX(-50%);
-      max-width: 90vw;
+      padding: 0.4rem 1rem;
+      min-width: 140px;
+      border-radius: 6px;
+
+      &:hover {
+        transform: translateX(-50%); // Mobilde scale yok
+      }
+
+      .weight-content {
+        h4 { font-size: 0.6rem; }
+        .weight-value { font-size: 1.1rem; }
+        .weight-description { font-size: 0.55rem; }
+      }
+    }
+
+    // Fullscreen butonu — daha büyük dokunma hedefi
+    .fullscreen-controls {
+      top: 0.5rem;
+      right: 0.5rem;
+
+      .fullscreen-btn,
+      .exit-fullscreen-btn {
+        width: 3rem;
+        height: 3rem;
+        font-size: 1.4rem;
+      }
+    }
+
+    // Package info panel — altta drawer olarak
+    .package-info-panel {
+      position: absolute;
+      top: auto;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      max-width: none;
+      min-width: auto;
+      border-radius: 16px 16px 0 0;
+      padding: 1rem;
+      max-height: 55vh;
+      overflow-y: auto;
+      animation: slideInUp 0.3s ease-out;
+      z-index: 10;
+
+      .info-content {
+        h4 {
+          font-size: 0.9rem;
+          margin-bottom: 0.75rem;
+          padding-bottom: 0.5rem;
+        }
+
+        .package-details {
+          .detail-row {
+            margin-bottom: 0.5rem;
+            font-size: 0.8rem;
+
+            .label { min-width: 70px; font-size: 0.75rem; }
+            .value { padding: 0.25rem 0.5rem; font-size: 0.75rem; }
+          }
+        }
+
+        .package-actions {
+          gap: 0.5rem;
+          margin-top: 0.75rem;
+          padding-top: 0.75rem;
+
+          .action-btn {
+            padding: 0.7rem;
+            font-size: 0.75rem;
+            // Minimum dokunma hedefi
+            min-height: 44px;
+          }
+        }
+
+        .close-btn {
+          top: -0.5rem;
+          right: 0.5rem;
+          width: 2.5rem;
+          height: 2.5rem;
+        }
+      }
+    }
+
+    // Products panel — sol üstte küçük
+    .package-products-panel {
+      top: 0.5rem;
+      left: 0.5rem;
+      max-width: 180px;
+      min-width: 150px;
+      padding: 0.5rem 0.75rem;
+
+      .products-content {
+        h4 { font-size: 0.75rem; }
+
+        .products-list {
+          max-height: 120px;
+
+          .product-item {
+            padding: 0.35rem 0.5rem;
+            margin-bottom: 0.35rem;
+
+            .product-name { font-size: 0.65rem; }
+            .product-count { font-size: 0.6rem; padding: 0.2rem 0.4rem; }
+          }
+        }
+      }
+    }
+
+    // Deleted packages panel — altta drawer
+    .deleted-packages-panel {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      top: auto;
+      max-width: none;
+      min-width: auto;
+      max-height: 45vh;
+      border-radius: 16px 16px 0 0;
+      padding: 1rem;
+      z-index: 9;
+
+      &.below-selection {
+        // Seçim paneli açıkken gizle (üst üste binmesin)
+        display: none;
+      }
+
+      .deleted-content {
+        h4 { font-size: 0.9rem; }
+
+        .deleted-list {
+          .deleted-item {
+            padding: 0.6rem;
+            margin-bottom: 0.5rem;
+
+            .deleted-info {
+              .deleted-id { font-size: 0.8rem; }
+              .deleted-dims { font-size: 0.65rem; }
+              .deleted-weight { font-size: 0.6rem; }
+            }
+
+            .restore-btn {
+              padding: 0.5rem 0.7rem;
+              font-size: 0.7rem;
+              min-height: 44px;
+              min-width: 44px;
+            }
+          }
+        }
+
+        .bulk-actions {
+          .bulk-btn {
+            padding: 0.7rem;
+            font-size: 0.7rem;
+            min-height: 44px;
+          }
+        }
+      }
+    }
+
+    // No data mesajı
+    .no-data-message .no-data-content {
+      padding: 2rem 1.5rem;
+
+      .empty-icon { font-size: 3rem; }
+      h4 { font-size: 1.2rem; }
+      p { font-size: 0.9rem; }
+    }
+
+    // Collision warning
+    .collision-warning {
+      position: fixed;
+      top: auto;
+      bottom: 20%;
+      left: 50%;
+      transform: translateX(-50%);
+      max-width: 85vw;
+      padding: 0.75rem 1.25rem;
       z-index: 9999;
-      padding: 1rem 1.5rem;
+
+      .warning-content {
+        gap: 0.5rem;
+        .warning-icon { font-size: 1.5rem; }
+        .warning-text { font-size: 0.85rem; }
+      }
     }
   }
 }
 
 @media (max-width: 480px) {
   .threejs-visualization-container {
-    height: 500px;
+    height: 60vh;
+    min-height: 350px;
+    max-height: 550px;
+    border-radius: 4px;
 
     .weight-display-panel {
-      padding: 0.5rem 1rem;
+      padding: 0.3rem 0.7rem;
+      min-width: 120px;
 
       .weight-content {
-        h4 {
-          font-size: 0.65rem;
-        }
-
-        .weight-value {
-          font-size: 1.1rem;
-        }
-
-        .weight-description {
-          font-size: 0.6rem;
-        }
+        h4 { font-size: 0.55rem; }
+        .weight-value { font-size: 0.95rem; }
+        .weight-description { font-size: 0.5rem; }
       }
     }
 
     .package-info-panel {
       padding: 0.75rem;
+      max-height: 50vh;
 
-      .package-actions .action-btn {
-        padding: 0.5rem;
-        font-size: 0.65rem;
+      .info-content {
+        h4 { font-size: 0.8rem; }
+
+        .package-details .detail-row {
+          flex-direction: column;
+          gap: 0.25rem;
+          align-items: flex-start;
+
+          .label { min-width: auto; }
+          .value { width: 100%; text-align: left; }
+        }
+
+        .package-actions .action-btn {
+          padding: 0.6rem;
+          font-size: 0.7rem;
+        }
+      }
+    }
+
+    .package-products-panel {
+      max-width: 150px;
+      min-width: auto;
+      padding: 0.4rem 0.6rem;
+
+      .products-content {
+        h4 { font-size: 0.7rem; }
+        .products-list { max-height: 80px; }
       }
     }
 
     .deleted-packages-panel {
       padding: 0.75rem;
-      max-height: 300px;
+      max-height: 40vh;
 
       .deleted-content {
         .deleted-list .deleted-item {
           padding: 0.5rem;
+          flex-direction: column;
+          gap: 0.5rem;
+          align-items: stretch;
 
-          .deleted-info {
-            .deleted-id {
-              font-size: 0.75rem;
-            }
-
-            .deleted-dims {
-              font-size: 0.65rem;
-            }
-
-            .deleted-weight {
-              font-size: 0.6rem;
-            }
-          }
-
-          .restore-btn {
-            padding: 0.4rem 0.6rem;
-            font-size: 0.65rem;
-          }
+          .restore-btn { width: 100%; text-align: center; }
         }
 
-        .bulk-actions .bulk-btn {
-          padding: 0.5rem;
-          font-size: 0.65rem;
+        .bulk-actions {
+          flex-direction: column;
+          gap: 0.5rem;
+
+          .bulk-btn { padding: 0.6rem; }
         }
       }
+    }
+  }
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .threejs-visualization-container {
+    // Touch cihazlarda hover efektlerini kaldır
+    .package-info-panel:hover,
+    .deleted-packages-panel:hover,
+    .package-products-panel:hover,
+    .weight-display-panel:hover {
+      transform: none;
+    }
+
+    .weight-display-panel:hover {
+      transform: translateX(-50%); // Orijinal pozisyonu koru
+    }
+
+    // Tüm butonlar için minimum dokunma hedefi (WCAG 2.5.5)
+    .action-btn,
+    .restore-btn,
+    .bulk-btn,
+    .close-btn,
+    .fullscreen-btn,
+    .exit-fullscreen-btn {
+      min-width: 44px;
+      min-height: 44px;
+    }
+
+    // Deleted item hover efektini kaldır
+    .deleted-packages-panel .deleted-content .deleted-list .deleted-item:hover {
+      transform: none;
+    }
+
+    // Package row hover efektini kaldır
+    .package-info-panel .info-content .package-actions .action-btn:hover {
+      transform: none;
+    }
+  }
+}
+
+// Landscape mobil
+@media (max-height: 500px) and (orientation: landscape) {
+  .threejs-visualization-container {
+    height: 100vh;
+    max-height: 100vh;
+
+    .package-info-panel {
+      max-height: 80vh;
+      top: 0.5rem;
+      bottom: auto;
+      right: 0.5rem;
+      left: auto;
+      max-width: 280px;
+      border-radius: 8px;
+    }
+
+    .deleted-packages-panel {
+      max-height: 80vh;
+      bottom: 0.5rem;
+      right: 0.5rem;
+      left: auto;
+      max-width: 280px;
+      border-radius: 8px;
     }
   }
 }

@@ -78,6 +78,15 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
   private renderer!: THREE.WebGLRenderer;
   private packagesGroup!: THREE.Group;
 
+  // Touch support
+  private activeTouches: Map<number, Touch> = new Map();
+  private lastTouchDistance = 0;
+  private lastTouchAngle = 0;
+  private isTouchDragging = false;
+  private isTouchRotating = false;
+  private touchStartTime = 0;
+  private touchMoved = false;
+
   // State
   modelsLoaded = { truck: false, trailerWheel: false };
   isLoadingModels = true;
@@ -580,9 +589,10 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
   // MOUSE EVENTS
   // ========================================
 
-  private setupMouseEvents(): void {
+    private setupMouseEvents(): void {
     const canvas = this.renderer.domElement;
 
+    // Mouse events
     canvas.addEventListener('mousedown', this.handleMouseDown.bind(this), { passive: false });
     canvas.addEventListener('mousemove', this.handleMouseMove.bind(this), { passive: false });
     canvas.addEventListener('mouseup', this.handleMouseUp.bind(this), { passive: false });
@@ -593,6 +603,178 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
       e.stopPropagation();
       return false;
     }, { passive: false });
+
+    // Touch events
+    canvas.addEventListener('touchstart', this.handleTouchStart.bind(this), { passive: false });
+    canvas.addEventListener('touchmove', this.handleTouchMove.bind(this), { passive: false });
+    canvas.addEventListener('touchend', this.handleTouchEnd.bind(this), { passive: false });
+    canvas.addEventListener('touchcancel', this.handleTouchEnd.bind(this), { passive: false });
+  }
+
+  private handleTouchStart(event: TouchEvent): void {
+    event.preventDefault();
+
+    // Touch'ları kaydet
+    for (let i = 0; i < event.changedTouches.length; i++) {
+      const touch = event.changedTouches[i];
+      this.activeTouches.set(touch.identifier, touch);
+    }
+
+    const touchCount = this.activeTouches.size;
+
+    if (touchCount === 1) {
+      // Tek parmak: sürükleme veya seçim
+      const touch = event.touches[0];
+      this.touchStartTime = Date.now();
+      this.touchMoved = false;
+      this.updateMouseFromTouch(touch);
+
+      const intersectedPackage = this.getIntersectedPackage();
+      if (intersectedPackage && this.dragModeEnabled) {
+        this.isTouchDragging = true;
+        this.initiateDragging(intersectedPackage);
+      }
+    } else if (touchCount === 2) {
+      // İki parmak: kamera döndürme veya pinch zoom
+      // Eğer sürükleme varsa iptal et
+      if (this.isTouchDragging) {
+        this.cancelDragging();
+        this.isTouchDragging = false;
+      }
+
+      this.isTouchRotating = true;
+      const t1 = event.touches[0];
+      const t2 = event.touches[1];
+      this.lastTouchDistance = this.getTouchDistance(t1, t2);
+      this.lastTouchAngle = this.getTouchAngle(t1, t2);
+      this.lastMouseX = (t1.clientX + t2.clientX) / 2;
+      this.lastMouseY = (t1.clientY + t2.clientY) / 2;
+    }
+  }
+
+  private handleTouchMove(event: TouchEvent): void {
+    event.preventDefault();
+    this.touchMoved = true;
+
+    // Touch'ları güncelle
+    for (let i = 0; i < event.changedTouches.length; i++) {
+      const touch = event.changedTouches[i];
+      this.activeTouches.set(touch.identifier, touch);
+    }
+
+    const touchCount = event.touches.length;
+
+    if (touchCount === 1 && this.isTouchDragging && this.isDragging) {
+      // Tek parmak sürükleme
+      this.updateMouseFromTouch(event.touches[0]);
+      this.updateDraggedPackageWithSnapping();
+      this.renderManager.requestRender();
+    } else if (touchCount === 1 && !this.isTouchDragging) {
+      // Tek parmak kamera döndürme (paket tutulmadıysa)
+      const touch = event.touches[0];
+      const deltaX = (touch.clientX - this.lastMouseX) * 0.005;
+      const deltaY = (touch.clientY - this.lastMouseY) * 0.005;
+      this.rotateViewAroundTarget(deltaX, deltaY);
+      this.lastMouseX = touch.clientX;
+      this.lastMouseY = touch.clientY;
+      this.renderManager.requestRender();
+    } else if (touchCount === 2) {
+      const t1 = event.touches[0];
+      const t2 = event.touches[1];
+
+      // Pinch zoom
+      const currentDistance = this.getTouchDistance(t1, t2);
+      if (this.lastTouchDistance > 0) {
+        const scale = currentDistance / this.lastTouchDistance;
+        const zoomDelta = (1 - scale) * 5;
+        const newZoom = Math.max(this.minZoom, Math.min(this.maxZoom, this.zoomLevel + zoomDelta));
+        this.setZoomLevelPreserveTarget(newZoom);
+      }
+      this.lastTouchDistance = currentDistance;
+
+      // İki parmak pan
+      const midX = (t1.clientX + t2.clientX) / 2;
+      const midY = (t1.clientY + t2.clientY) / 2;
+      const panDeltaX = midX - this.lastMouseX;
+      const panDeltaY = midY - this.lastMouseY;
+
+      if (Math.abs(panDeltaX) > 1 || Math.abs(panDeltaY) > 1) {
+        const distance = this.camera.position.distanceTo(this.cameraTarget);
+        const panSensitivity = distance * 0.001;
+
+        const cameraRight = new THREE.Vector3().setFromMatrixColumn(this.camera.matrix, 0);
+        const cameraUp = new THREE.Vector3().setFromMatrixColumn(this.camera.matrix, 1);
+
+        const panOffset = new THREE.Vector3();
+        panOffset.add(cameraRight.multiplyScalar(-panDeltaX * panSensitivity));
+        panOffset.add(cameraUp.multiplyScalar(panDeltaY * panSensitivity));
+
+        this.camera.position.add(panOffset);
+        this.cameraTarget.add(panOffset);
+      }
+
+      this.lastMouseX = midX;
+      this.lastMouseY = midY;
+      this.renderManager.requestRender();
+    }
+  }
+
+  private handleTouchEnd(event: TouchEvent): void {
+    event.preventDefault();
+
+    // Biten touch'ları kaldır
+    for (let i = 0; i < event.changedTouches.length; i++) {
+      this.activeTouches.delete(event.changedTouches[i].identifier);
+    }
+
+    const touchCount = event.touches.length;
+
+    if (touchCount === 0) {
+      const clickDuration = Date.now() - this.touchStartTime;
+
+      // Sürükleme bittiyse
+      if (this.isDragging) {
+        this.completeDragging();
+      }
+
+      // Tap = seçim (kısa dokunuş, hareket etmediyse)
+      if (!this.touchMoved && clickDuration < 300 && !this.isTouchDragging) {
+        const intersectedPackage = this.getIntersectedPackage();
+        if (intersectedPackage) {
+          this.selectPackage(intersectedPackage.pkgId);
+        } else {
+          this.clearSelection();
+        }
+      }
+
+      // Reset
+      this.isTouchDragging = false;
+      this.isTouchRotating = false;
+      this.lastTouchDistance = 0;
+      this.activeTouches.clear();
+    } else if (touchCount === 1) {
+      // 2 parmaktan 1'e düştü, kamera döndürmeyi durdur
+      this.isTouchRotating = false;
+      this.lastTouchDistance = 0;
+      this.lastMouseX = event.touches[0].clientX;
+      this.lastMouseY = event.touches[0].clientY;
+    }
+  }
+
+  private updateMouseFromTouch(touch: Touch): void {
+    const rect = this.renderer.domElement.getBoundingClientRect();
+    this.mouse.x = ((touch.clientX - rect.left) / rect.width) * 2 - 1;
+    this.mouse.y = -((touch.clientY - rect.top) / rect.height) * 2 + 1;
+  }
+
+  private getTouchDistance(t1: Touch, t2: Touch): number {
+    const dx = t1.clientX - t2.clientX;
+    const dy = t1.clientY - t2.clientY;
+    return Math.sqrt(dx * dx + dy * dy);
+  }
+
+  private getTouchAngle(t1: Touch, t2: Touch): number {
+    return Math.atan2(t2.clientY - t1.clientY, t2.clientX - t1.clientX);
   }
 
   private handleMouseDown(event: MouseEvent): void {
@@ -943,6 +1125,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
       const pkg = this.draggedPackage;
       const truckDims = this.truckDimension();
 
+      // Truck sınırları (mevcut)
       smoothPosition.x = Math.max(
         pkg.length / 2,
         Math.min(truckDims[0] - pkg.length / 2, smoothPosition.x)
@@ -955,23 +1138,84 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
       const snappedPosition = this.snapToNearbyPackages(pkg, smoothPosition);
 
       if (this.lastDragPosition.distanceTo(snappedPosition) > 0.5) {
-        const testPosition = {
+
+        // Mevcut data pozisyonu (collision olmayan son geçerli pozisyon)
+        const currentDataPos = { x: pkg.x, y: pkg.y, z: pkg.z };
+
+        // Hedeflenen pozisyon
+        const desiredPos = {
           x: snappedPosition.x - pkg.length / 2,
           y: snappedPosition.z - pkg.width / 2,
-          z: snappedPosition.y - pkg.height / 2  // ✅ Z pozisyonu mesh'ten al
+          z: snappedPosition.y - pkg.height / 2
         };
 
-        if (!this.checkCollisionPrecise(pkg, testPosition)) {
-          pkg.mesh?.position.copy(snappedPosition);
-          pkg.x = testPosition.x;
-          pkg.y = testPosition.y;
-          pkg.z = testPosition.z; // ✅ Z'yi güncelle
-          this.lastDragPosition.copy(snappedPosition);
-          this.clearCollisionWarning();
-          this.orderResultChange();
-        } else {
-          this.showCollisionWarningBriefly();
+        // ========================================
+        // SLIDING COLLISION RESPONSE
+        // Her ekseni bağımsız kontrol et
+        // ========================================
+
+        let finalX = desiredPos.x;
+        let finalY = desiredPos.y;
+        let finalZ = desiredPos.z;
+        let isSliding = false;
+
+        // 1) Önce her iki eksende birden dene
+        const bothAxesOk = !this.checkCollisionPrecise(pkg, {
+          x: desiredPos.x, y: desiredPos.y, z: desiredPos.z
+        });
+
+        if (!bothAxesOk) {
+          // 2) Sadece X ekseninde hareket et (Y eski yerinde)
+          const xOnlyOk = !this.checkCollisionPrecise(pkg, {
+            x: desiredPos.x, y: currentDataPos.y, z: desiredPos.z
+          });
+
+          // 3) Sadece Y ekseninde hareket et (X eski yerinde)
+          const yOnlyOk = !this.checkCollisionPrecise(pkg, {
+            x: currentDataPos.x, y: desiredPos.y, z: desiredPos.z
+          });
+
+          finalX = xOnlyOk ? desiredPos.x : currentDataPos.x;
+          finalY = yOnlyOk ? desiredPos.y : currentDataPos.y;
+          isSliding = true;
+
+          // 4) Tek eksen bile collision yapıyorsa → hiç kıpırdama
+          if (!xOnlyOk && !yOnlyOk) {
+            finalZ = currentDataPos.z;
+          }
         }
+
+        // Mesh pozisyonunu güncelle (center-based)
+        const finalMeshPos = new THREE.Vector3(
+          finalX + pkg.length / 2,
+          finalZ + pkg.height / 2,
+          finalY + pkg.width / 2
+        );
+
+        pkg.mesh!.position.copy(finalMeshPos);
+        this.lastDragPosition.copy(finalMeshPos);
+
+        // Data güncelle
+        pkg.x = finalX;
+        pkg.y = finalY;
+        pkg.z = finalZ;
+
+        // Görsel feedback
+        if (isSliding) {
+          this.showCollisionWarningBriefly();
+          // Kırmızı wireframe — duvara değiyor
+          const material = pkg.mesh!.material as THREE.MeshLambertMaterial;
+          material.wireframe = true;
+          material.emissive.setHex(0xff0000);
+        } else {
+          this.clearCollisionWarning();
+          // Normal drag görünümü
+          const material = pkg.mesh!.material as THREE.MeshLambertMaterial;
+          material.wireframe = false;
+          material.emissive.setHex(0x444444);
+        }
+
+        this.orderResultChange();
       }
     }
   }
@@ -1050,61 +1294,151 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     const pkgPos = {
       x: targetPos.x - pkg.length / 2,
       y: targetPos.z - pkg.width / 2,
-      z: pkg.z  // ⭐ Mevcut Z pozisyonunu kullan
+      z: pkg.z
     };
 
-    let snappedX = pkgPos.x;
-    let snappedY = pkgPos.y;
-    let snappedZ = pkg.z; // ⭐ Default olarak mevcut Z'yi koru
+    // En iyi snap'leri bul (en yakın mesafe kazanır)
+    let bestSnapX = pkgPos.x;
+    let bestSnapY = pkgPos.y;
+    let bestSnapDistX = snapThreshold;
+    let bestSnapDistY = snapThreshold;
+    let snappedZ = pkg.z;
 
-    // ✅ 1. ADIM: Horizontal snap (X ve Y)
     for (const otherPkg of this.processedPackagesSignal()) {
       if (otherPkg.pkgId === pkg.pkgId || !otherPkg.mesh) continue;
 
-      // X-axis snapping
-      const distToLeft = Math.abs(pkgPos.x - (otherPkg.x + otherPkg.length));
-      if (distToLeft < snapThreshold) {
-        snappedX = otherPkg.x + otherPkg.length;
+      const otherLeft = otherPkg.x;
+      const otherRight = otherPkg.x + otherPkg.length;
+      const otherFront = otherPkg.y;
+      const otherBack = otherPkg.y + otherPkg.width;
+
+      const pkgRight = pkgPos.x + pkg.length;
+      const pkgBack = pkgPos.y + pkg.width;
+
+      // === X-AXIS SNAP ===
+
+      // Bitişik snap: sağ kenar → sol kenar (yanyana dizme)
+      const distRightToLeft = Math.abs(pkgRight - otherLeft);
+      if (distRightToLeft < bestSnapDistX) {
+        bestSnapDistX = distRightToLeft;
+        bestSnapX = otherLeft - pkg.length;
       }
 
-      const distToRight = Math.abs((pkgPos.x + pkg.length) - otherPkg.x);
-      if (distToRight < snapThreshold) {
-        snappedX = otherPkg.x - pkg.length;
+      // Bitişik snap: sol kenar → sağ kenar
+      const distLeftToRight = Math.abs(pkgPos.x - otherRight);
+      if (distLeftToRight < bestSnapDistX) {
+        bestSnapDistX = distLeftToRight;
+        bestSnapX = otherRight;
       }
 
-      // Y-axis snapping
-      const distToFront = Math.abs(pkgPos.y - (otherPkg.y + otherPkg.width));
-      if (distToFront < snapThreshold) {
-        snappedY = otherPkg.y + otherPkg.width;
+      // ⭐ Hizalama snap: sol kenar ↔ sol kenar
+      const distLeftToLeft = Math.abs(pkgPos.x - otherLeft);
+      if (distLeftToLeft < bestSnapDistX) {
+        bestSnapDistX = distLeftToLeft;
+        bestSnapX = otherLeft;
       }
 
-      const distToBack = Math.abs((pkgPos.y + pkg.width) - otherPkg.y);
-      if (distToBack < snapThreshold) {
-        snappedY = otherPkg.y - pkg.width;
+      // ⭐ Hizalama snap: sağ kenar ↔ sağ kenar
+      const distRightToRight = Math.abs(pkgRight - otherRight);
+      if (distRightToRight < bestSnapDistX) {
+        bestSnapDistX = distRightToRight;
+        bestSnapX = otherRight - pkg.length;
+      }
+
+      // ⭐ Hizalama snap: sol kenar ↔ sağ kenar (çapraz hizalama)
+      const distLeftToRightEdge = Math.abs(pkgPos.x - otherRight);
+      if (distLeftToRightEdge < bestSnapDistX) {
+        bestSnapDistX = distLeftToRightEdge;
+        bestSnapX = otherRight;
+      }
+
+      // ⭐ Hizalama snap: sağ kenar ↔ sol kenar (çapraz hizalama)
+      const distRightToLeftEdge = Math.abs(pkgRight - otherLeft);
+      if (distRightToLeftEdge < bestSnapDistX) {
+        bestSnapDistX = distRightToLeftEdge;
+        bestSnapX = otherLeft - pkg.length;
+      }
+
+      // === Y-AXIS SNAP ===
+
+      // Bitişik snap: arka → ön
+      const distBackToFront = Math.abs(pkgBack - otherFront);
+      if (distBackToFront < bestSnapDistY) {
+        bestSnapDistY = distBackToFront;
+        bestSnapY = otherFront - pkg.width;
+      }
+
+      // Bitişik snap: ön → arka
+      const distFrontToBack = Math.abs(pkgPos.y - otherBack);
+      if (distFrontToBack < bestSnapDistY) {
+        bestSnapDistY = distFrontToBack;
+        bestSnapY = otherBack;
+      }
+
+      // ⭐ Hizalama snap: ön kenar ↔ ön kenar
+      const distFrontToFront = Math.abs(pkgPos.y - otherFront);
+      if (distFrontToFront < bestSnapDistY) {
+        bestSnapDistY = distFrontToFront;
+        bestSnapY = otherFront;
+      }
+
+      // ⭐ Hizalama snap: arka kenar ↔ arka kenar
+      const distBackToBack = Math.abs(pkgBack - otherBack);
+      if (distBackToBack < bestSnapDistY) {
+        bestSnapDistY = distBackToBack;
+        bestSnapY = otherBack - pkg.width;
       }
     }
 
-    // ⭐ 2. ADIM: Z pozisyonu - SADECE force placed DEĞİLSE hesapla
+    // === TRUCK KENARLARINA SNAP ===
+    const truckDims = this.truckDimension();
+
+    // Truck sol kenarı (x=0)
+    if (Math.abs(bestSnapX) < snapThreshold) {
+      const dist = Math.abs(bestSnapX);
+      if (dist < bestSnapDistX) {
+        bestSnapDistX = dist;
+        bestSnapX = 0;
+      }
+    }
+
+    // Truck sağ kenarı
+    const distToTruckRight = Math.abs(bestSnapX + pkg.length - truckDims[0]);
+    if (distToTruckRight < snapThreshold && distToTruckRight < bestSnapDistX) {
+      bestSnapX = truckDims[0] - pkg.length;
+    }
+
+    // Truck ön kenarı (y=0)
+    if (Math.abs(bestSnapY) < snapThreshold) {
+      const dist = Math.abs(bestSnapY);
+      if (dist < bestSnapDistY) {
+        bestSnapDistY = dist;
+        bestSnapY = 0;
+      }
+    }
+
+    // Truck arka kenarı
+    const distToTruckBack = Math.abs(bestSnapY + pkg.width - truckDims[1]);
+    if (distToTruckBack < snapThreshold && distToTruckBack < bestSnapDistY) {
+      bestSnapY = truckDims[1] - pkg.width;
+    }
+
+    // === Z-AXIS (Dikey stacking) ===
     if (!pkg.isForcePlaced) {
-      const truckHeight = this.truckDimension()[2];
-      let maxZBelow = 0; // Ground level
+      const truckHeight = truckDims[2];
+      let maxZBelow = 0;
 
       for (const otherPkg of this.processedPackagesSignal()) {
         if (otherPkg.pkgId === pkg.pkgId || !otherPkg.mesh) continue;
 
-        // X ve Y overlap var mı?
-        const xOverlap = snappedX < otherPkg.x + otherPkg.length &&
-          snappedX + pkg.length > otherPkg.x;
-        const yOverlap = snappedY < otherPkg.y + otherPkg.width &&
-          snappedY + pkg.width > otherPkg.y;
+        const xOverlap = bestSnapX < otherPkg.x + otherPkg.length &&
+          bestSnapX + pkg.length > otherPkg.x;
+        const yOverlap = bestSnapY < otherPkg.y + otherPkg.width &&
+          bestSnapY + pkg.width > otherPkg.y;
 
         if (xOverlap && yOverlap) {
-          // Bu package'ın üstüne konabilir
           const potentialZ = otherPkg.z + otherPkg.height;
-
-          // Truck height'ı aşmıyor mu kontrol et
           if (potentialZ + pkg.height <= truckHeight) {
-            // En yüksek olanı bul (cascade stacking)
             maxZBelow = Math.max(maxZBelow, potentialZ);
           }
         }
@@ -1112,11 +1446,10 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
 
       snappedZ = maxZBelow;
     }
-    // ⭐ Force placed ise snappedZ = pkg.z olarak kalır (yukarıda set ettik)
 
-    snappedPos.x = snappedX + pkg.length / 2;
-    snappedPos.z = snappedY + pkg.width / 2;
-    snappedPos.y = snappedZ + pkg.height / 2; // Mesh Y position
+    snappedPos.x = bestSnapX + pkg.length / 2;
+    snappedPos.z = bestSnapY + pkg.width / 2;
+    snappedPos.y = snappedZ + pkg.height / 2;
 
     return snappedPos;
   }
@@ -1698,6 +2031,9 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     this.isDragging = false;
     this.isRotatingCamera = false;
     this.isPanningCamera = false;
+    this.activeTouches.clear();
+    this.isTouchDragging = false;
+    this.isTouchRotating = false;
 
     if (this.hoverThrottleTimeout) {
       clearTimeout(this.hoverThrottleTimeout);
@@ -1796,6 +2132,11 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     this.lastPanMouseY = 0;
     this.mouseDownTime = 0;
     this.mouseMoved = false;
+
+    this.activeTouches.clear();
+    this.isTouchDragging = false;
+    this.isTouchRotating = false;
+    this.lastTouchDistance = 0;
 
     if (this.camera && this.threeContainer) {
       const truckDims = this.truckDimension();

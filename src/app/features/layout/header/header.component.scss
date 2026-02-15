@@ -102,22 +102,87 @@
 /* Responsive */
 @media (max-width: 768px) {
   .navbar-button-group {
-    margin-right: 8px;
+    margin-right: 4px;
+    gap: 4px;
   }
 
-  .navbar-group-button {
-    padding: 5px 10px;
+  .navbar-cancel-button {
+    padding: 6px 10px;
     font-size: 11px;
+    border-radius: 20px;
+
+    // Mobilde buton text'ini gizle, sadece icon göster
+    .button-text {
+      display: none;
+    }
 
     mat-icon {
-      font-size: 14px;
-      width: 14px;
-      height: 14px;
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+      margin: 0 !important;
     }
+  }
 
-    .button-text {
-      font-size: 11px;
+  .logo-container {
+    margin-left: 0.5rem;
+  }
+
+  .logo {
+    height: 2rem;
+    max-width: 100px;
+  }
+
+  .profile-photo {
+    height: 1.8em;
+    width: 1.8em;
+    margin-left: 8px;
+  }
+
+  // Order ID mobilde gizle
+  .debug-order-id {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .logo {
+    height: 1.6rem;
+    max-width: 80px;
+  }
+
+  .navbar-cancel-button {
+    padding: 4px 8px;
+    min-width: 36px;
+    min-height: 36px;
+
+    mat-icon {
+      font-size: 16px;
+      width: 16px;
+      height: 16px;
     }
+  }
+
+  .profile-photo {
+    height: 1.6em;
+    width: 1.6em;
+    margin-left: 4px;
+  }
+}
+
+// Touch device — daha büyük dokunma hedefleri
+@media (hover: none) and (pointer: coarse) {
+  .navbar-cancel-button {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .profile-menu {
+    min-width: 44px;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 }
 

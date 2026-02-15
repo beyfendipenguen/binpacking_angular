@@ -15,8 +15,20 @@
 }
 
 .content {
-  margin-top: 64px; // header'ın yüksekliğine göre ayarlayın
+  margin-top: 64px;
   flex: 1;
   display: flex;
   flex-direction: column;
+}
+
+@media (max-width: 768px) {
+  .content {
+    margin-top: 56px; // Mobilde toolbar daha kısa
+  }
+}
+
+@media (max-width: 480px) {
+  .content {
+    margin-top: 48px;
+  }
 }
