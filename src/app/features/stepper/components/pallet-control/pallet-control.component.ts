@@ -98,6 +98,7 @@ import { PalletService } from '@app/features/services/pallet.service';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActiveToast } from 'ngx-toastr';
 import { CalculateParamsDialogComponent } from './calculate-params-dialog/calculate-params-dialog.component';
+import { TourService } from '@app/features/services/tour.service';
 
 @Component({
   selector: 'app-pallet-control',
@@ -131,6 +132,7 @@ export class PalletControlComponent
 
   private translate = inject(TranslateService);
   private readonly dialog = inject(MatDialog);
+  private tourService = inject(TourService);
 
   //product search
   searchControl = new FormControl('');
@@ -963,8 +965,10 @@ export class PalletControlComponent
   }
 
   calculatePackageDetail() {
-    if (!this.orderDetailsIsDirtySignal())
+    if (!this.orderDetailsIsDirtySignal()){
       this.store.dispatch(StepperPackageActions.calculatePackageDetail());
+      // this.tourService.continueStep1TourAfterCalculate();
+    }
   }
 
   toggleAlignment(_package: any): void {

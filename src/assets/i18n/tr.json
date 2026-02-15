@@ -915,5 +915,59 @@
     "NOTIFICATION": "Bildirim",
     "NOTIFICATION_DESC": "Yanıt geldiğinde e-posta ile bilgilendirilirsiniz",
     "PERMISSION_DETAILS": "Yetki Detayları"
+  },
+   "TOUR": {
+    "COMMON": {
+      "BACK": "Geri",
+      "NEXT": "İleri",
+      "CONTINUE": "Devam Edelim",
+      "UNDERSTOOD": "Anladım",
+      "FINISH_TOUR": "Turu Bitir"
+    },
+    "STEP0": {
+      "TITLE": "Sipariş Oluşturma",
+      "WELCOME": "<h3>Lojistik Optimizasyon Sistemine Hoşgeldiniz! 🎉</h3><p>Bu tur ile sistemi adım adım öğreneceksiniz.</p><p><strong>1. Adım:</strong> Sipariş Oluşturma</p>",
+      "PROFILE": "<h3>Profil Menüsü</h3><p>Buradan profilinize erişebilir, dil ayarlarınızı değiştirebilirsiniz.</p>",
+      "SIDENAV": "<h3>Menü Navigasyonu</h3><p>Buradan diğer menülere erişebilirsiniz.</p>",
+      "TEMPLATE": "<h3>Excel Şablonu</h3><p>Buradan Excel şablonunu indirebilirsiniz.</p><p>Şablon ile toplu sipariş yükleyebilirsiniz.</p>",
+      "MANUAL_ENTRY": "<h3>Manuel Sipariş Girişi</h3><p>Manuel seçim yapabilir, ürünlerinizi ekleyebilirsiniz.</p><p>Hadi tıklayalım!</p>",
+      "LETS_CLICK": "Tıklayalım",
+      "ADD_BUTTON": "<h3>Ürün Ekleme</h3><p>Buradan siparişinize ürün ekleyebilirsiniz.</p><p>Hadi bir ürün ekleyelim!</p>",
+      "DIALOG": {
+        "PRODUCT_SEARCH": "<h3>Ürün Arama</h3><p>Buraya ürün adı yazarak arama yapabilirsiniz.</p><p>Örnek bir sipariş oluşturacağız.</p>",
+        "FILL_AND_SUBMIT": "Formu Doldur ve Ekle"
+      },
+      "ORDER_SUMMARY": "<h3>Sipariş Özeti</h3><p>Buradan sipariş detaylarını görüntüleyip düzenleyebilirsiniz.</p><ul><li>Sipariş tarihi</li><li>Müşteri bilgisi</li><li>Araç seçimi</li><li>Ağırlık limitleri</li></ul>",
+      "ORDER_DETAILS": "<h3>Sipariş Detayları</h3><p>Eklediğiniz ürünler burada listelenir.</p><p>Ürünleri düzenleyebilir veya silebilirsiniz.</p>",
+      "NEXT_BUTTON": "<h3>Paletleme Adımına Geç</h3><p>Şimdi <strong>İleri</strong> butonuna tıklayarak paletleme adımına geçelim.</p><p>Tur orada otomatik devam edecek! 🚀</p>"
+    },
+    "STEP1": {
+      "TITLE": "Paletleme ve Optimizasyon",
+      "WELCOME": "<h3>Paletleme Alanına Hoşgeldiniz! 📦</h3><p>Harika! Sipariş bilgilerinizi tamamladınız.</p><p><strong>2. Adım:</strong> Ürünleri paletlere yerleştirme</p>",
+      "CALCULATE": "<h3>Otomatik Hesaplama</h3><p><strong>Hesapla</strong> butonuna tıklayarak sisteme otomatik yerleşim yaptırabilirsiniz.</p><p>Genetik algoritma en optimal yerleşimi bulur! 🧬</p><p>Hadi tıklayalım!</p>",
+      "LETS_CALCULATE": "Hesapla",
+      "AFTER_CALCULATE": "<h3>Harika! ✅</h3><p>Sistem otomatik olarak ürünleri paletlere yerleştirdi.</p><p>Şimdi diğer özelliklere bakalım!</p>",
+      "PRODUCT_SEARCH": "<h3>Ürün Arama</h3><p>Hızlıca ürün bulmak için arama kutusunu kullanabilirsiniz.</p>",
+      "REMAINING_PRODUCTS": "<h3>Ürün Envanteri</h3><p>Soldaki bölümde siparişinizdeki tüm ürünler listelenir.</p><ul><li>Ürünleri drag&drop ile paletlere sürükleyebilirsiniz</li><li>Split butonu ile ürünleri bölebilirsiniz</li></ul>",
+      "PALLET_SEARCH": "<h3>Palet Arama</h3><p>Palet tiplerini arayabilirsiniz.</p>",
+      "PALLET_SECTION": "<h3>Palet Tipleri</h3><p>Sağdaki bölümde kullanılabilir palet tipleri var.</p><p>Paletleri orta bölümdeki paket kartlarına sürükleyin.</p>",
+      "PACKAGE_SECTION": "<h3>Paletleme Alanı</h3><p>Ortadaki bölümde paket kartları oluşturulur.</p><p>Her karta önce bir palet, sonra ürünleri ekleyin.</p>",
+      "PARAMS_BUTTON": "<h3>Parametreli Hesaplama</h3><p>Özel parametreler ile optimizasyon yapabilirsiniz.</p><p>Hadi deneyelim!</p>",
+      "LETS_CLICK": "Tıklayalım",
+      "PARAMS_DIALOG": "<h3>Parametre Ayarları</h3><p>Bu dialog'da optimizasyon parametrelerini ayarlayabilirsiniz.</p><p>Şimdilik kapatıp devam edelim.</p>",
+      "CLOSE_DIALOG": "Kapat",
+      "NEXT_REMINDER": "<h3>Paletleme Tamamlandı! ✅</h3><p>Artık ürünlerinizi paletlere yerleştirebilirsiniz.</p><p>Sıradaki adımda kamyon yükleme ve 3D görselleştirme olacak!</p><p>İstediğiniz zaman <strong>İleri</strong> butonuna tıklayın.</p>"
+    },
+    "STEP2": {
+      "TITLE": "Kamyon Yükleme ve 3D Görünüm",
+      "WELCOME": "<h3>Kamyon Yükleme ve 3D Görünüm! 🚚</h3><p>Son adım! Paletlerinizi kamyona yerleştirme.</p>",
+      "OPTIMIZE_BUTTON": "<h3>Optimizasyonu Başlat</h3><p>Paletlerinizi kamyona otomatik yerleştirmek için optimizasyonu başlatın.</p><p>Hadi başlatalım!</p>",
+      "LETS_OPTIMIZE": "Başlat",
+      "AFTER_OPTIMIZE": "<h3>Harika! ✅</h3><p>Optimizasyon tamamlandı!</p><p>Paletleriniz kamyona yerleştirildi.</p><p>Şimdi 3D görünümü inceleyelim.</p>",
+      "THREEJS_VIEW": "<h3>3D Kamyon Görünümü</h3><p>Paletlerin kamyona nasıl yerleştiğini 3 boyutlu olarak görüntüleyebilirsiniz.</p><ul><li>Fare ile döndürün</li><li>Scroll ile yakınlaştırın</li><li>Farklı açılardan görüntüleyin</li></ul>",
+      "VIEW_CONTROLS": "<h3>Görünüm Kontrolleri</h3><p>Bu butonlar ile farklı açılardan bakabilirsiniz:</p><ul><li><strong>Ön:</strong> Kamyonun ön görünümü</li><li><strong>Yan:</strong> Yan görünüm</li><li><strong>Üst:</strong> Üstten görünüm</li><li><strong>3D:</strong> İzometrik görünüm</li></ul>",
+      "REPORT_FILES": "<h3>Rapor Dosyaları</h3><p>Optimizasyon sonuçlarını Excel formatında indirebilirsiniz.</p><p>Raporlar detaylı yerleşim planı içerir.</p>",
+      "COMPLETE_SHIPMENT": "<h3>Sevkiyatı Tamamla</h3><p>Tüm işlemler tamamlandı!</p><p>Bu butona tıklayarak sevkiyatı onaylayabilirsiniz.</p><p><strong>Turu tamamladınız! 🎉</strong></p>"
+    }
   }
 }

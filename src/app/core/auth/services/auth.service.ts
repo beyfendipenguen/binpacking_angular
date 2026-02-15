@@ -12,6 +12,7 @@ import { Store } from '@ngrx/store';
 import { AppState, loadUser, StepperUiActions } from '../../../store';
 import { User } from '@app/core/interfaces/user.interface';
 import { TranslateService } from '@ngx-translate/core';
+import { TourService } from '@app/features/services/tour.service';
 
 @Injectable({
   providedIn: 'root',
@@ -23,7 +24,12 @@ export class AuthService {
   private toastService = inject(ToastService);
   private store = inject(Store<AppState>);
   private translate = inject(TranslateService);
-  constructor(private http: HttpClient, private router: Router) { }
+
+  constructor(
+    private http: HttpClient,
+    private router: Router,
+    private tourService: TourService
+  ) { }
 
   // Sign-up
   signUp(user: User): Observable<any> {
@@ -51,12 +57,40 @@ export class AuthService {
           this.toastService.success(this.translate.instant('AUTH.LOGIN_SUCCESS'));
 
           this.store.dispatch(loadUser({ redirectUrl: redirectUrlAfterLogin }));
+
+          // 👇 Login başarılı, user yüklendikten sonra tour kontrolü yapılacak
+          // Bu flag'i set ediyoruz, auth effect'te kontrol edeceğiz
+          localStorage.setItem('pending_tour_check', 'true');
         },
         error: (err) => {
           this.handleError(err);
           this.toastService.error(this.translate.instant('AUTH.LOGIN_ERROR'));
         },
       });
+  }
+
+  checkAndStartTour(user: User): void {
+    // 1. User var mı?
+    if (!user || !user.id) {
+      return;
+    }
+
+    // 2. Pending tour check var mı?
+    const shouldCheck = localStorage.getItem('pending_tour_check') === 'true';
+
+    if (shouldCheck) {
+      localStorage.removeItem('pending_tour_check');
+
+      // 3. Demo kullanıcı mı ve tour tamamlanmamış mı?
+      if (this.tourService.shouldShowTour(user.company.id)) {
+        // 4. Root URL'de miyiz? (Login page'de değiliz)
+        if (this.router.url === '/' || this.router.url.startsWith('/')) {
+          setTimeout(() => {
+            this.tourService.startTour();
+          }, 1500);
+        }
+      }
+    }
   }
 
   getToken(): string | null {
@@ -82,6 +116,7 @@ export class AuthService {
     localStorage.removeItem('invoice_reference_data');
     localStorage.removeItem('enhanced_stepper_draft_data');
     localStorage.removeItem('user');
+    localStorage.removeItem('pending_tour_check'); // 👈 YENİ: Logout'ta temizle
     this.store.dispatch(StepperUiActions.resetStepper());
     this.router.navigate(['/auth/login']);
   }

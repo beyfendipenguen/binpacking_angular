@@ -6,12 +6,14 @@ import { UserService } from '../../features/auth/user.service';
 import * as UserActions from './user.actions';
 import { filter } from 'rxjs/operators';
 import { Router } from '@angular/router';
+import { AuthService } from '@app/core/auth/services/auth.service';
 
 @Injectable()
 export class UserEffects {
   private actions$ = inject(Actions);
   private userService = inject(UserService);
   private router = inject(Router);
+  private authService = inject(AuthService);
 
   loadUserFromStorage$ = createEffect(() =>
     this.actions$.pipe(
@@ -57,10 +59,11 @@ export class UserEffects {
     () =>
       this.actions$.pipe(
         ofType(UserActions.loadUserSuccess),
-        tap(({ redirectUrl }) => {
+        tap(({ user, redirectUrl }) => {
           if (redirectUrl) {
             this.router.navigate([redirectUrl]);
           }
+          this.authService.checkAndStartTour(user);
         })
       ),
     { dispatch: false }

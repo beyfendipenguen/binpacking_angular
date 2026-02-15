@@ -46,7 +46,7 @@
       <ng-container matColumnDef="rowNumber">
         <th mat-header-cell *matHeaderCellDef class="text-center">
           @if (showAddButton) {
-          <button id="table-add-button" mat-icon-button (click)="onAddButtonClick($event)"
+          <button id="tour-table-add-button" mat-icon-button (click)="onAddButtonClick($event)"
             [matTooltip]="'GENERIC_TABLE.ADD_NEW' | translate"
             [appDisableAuth]="addPermission">
             <mat-icon>add_circle</mat-icon>

@@ -2,7 +2,7 @@
   <!-- Enhanced Controls Container -->
   <div class="controls-container">
     <div class="action-buttons">
-      <button mat-raised-button class="calculate-button" [disabled]="isLoading" (click)="calculateBinpacking()">
+      <button id="optimize-button" mat-raised-button class="calculate-button" [disabled]="isLoading" (click)="calculateBinpacking()">
         <mat-icon>play_arrow</mat-icon>
         {{ (isLoading ? 'RESULT_STEP.PROCESSING' : 'RESULT_STEP.RUN_OPTIMIZATION') | translate }}
       </button>
@@ -71,7 +71,7 @@
     <!-- ENHANCED: ThreeJS Truck Visualization Component with NEW dataChanged event -->
 
     @if (hasResultsSignal() && !hasThreeJSError) {
-    <app-threejs-truck-visualization #threeJSComponent (error)="onThreeJSError($event)">
+    <app-threejs-truck-visualization id="threejs-view" #threeJSComponent (error)="onThreeJSError($event)">
     </app-threejs-truck-visualization>
     }
 
@@ -94,7 +94,7 @@
 
   <!-- Enhanced Report Files Container -->
   @if (reportFilesSignal() && reportFilesSignal().length > 0) {
-  <div class="report-files-container">
+  <div id="report-files" class="report-files-container">
     <div class="report-files-header">
       <mat-icon>description</mat-icon>
       <span>{{ 'RESULT_STEP.REPORT_FILES' | translate }}</span>
@@ -151,12 +151,12 @@
   </div>
   }
 
-  <button mat-button class="prev-button" (click)="goPreviousStep()">
+  <button  mat-button class="prev-button" (click)="goPreviousStep()">
     <mat-icon>arrow_back</mat-icon>
     <span>{{ 'COMMON.BACK' | translate }}</span>
   </button>
 
-  <button mat-button class="complete-order-button" (click)="completeShipment()"
+  <button id="complete-shipment" mat-button class="complete-order-button" (click)="completeShipment()"
     [disabled]="!hasResultsSignal() && isDirtySignal()">
     <mat-icon>check_circle</mat-icon>
     <span>{{ 'RESULT_STEP.COMPLETE_SHIPMENT' | translate }}</span>

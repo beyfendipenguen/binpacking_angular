@@ -1,6 +1,6 @@
 <mat-toolbar>
   <mat-toolbar-row color="primary">
-    <button *ngIf="isToggleButton" mat-icon-button (click)="sidenavOpen.emit(null)">
+    <button id="tour-sidenav-toggle" *ngIf="isToggleButton" mat-icon-button (click)="sidenavOpen.emit(null)">
       <mat-icon>menu</mat-icon>
     </button>
 
@@ -33,14 +33,14 @@
     }
 
     <!-- Profil Menüsü -->
-    <div mat-button [matMenuTriggerFor]="profileMenu" class="profile-menu">
+    <div id="tour-profile-menu" mat-button [matMenuTriggerFor]="profileMenu" class="profile-menu">
       <img [src]="this.profilePhoto" class="profile-photo" alt="" />
     </div>
   </mat-toolbar-row>
 </mat-toolbar>
 
 <!-- Ana Profil Menüsü -->
-<mat-menu #profileMenu="matMenu" class="profile-main-menu">
+<mat-menu  #profileMenu="matMenu" class="profile-main-menu">
   <!-- Profil -->
   <button mat-menu-item [routerLink]="['/profile']" class="profile-menu-item">
     <mat-icon class="menu-icon">person</mat-icon>

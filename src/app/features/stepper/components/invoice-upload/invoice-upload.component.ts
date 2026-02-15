@@ -485,7 +485,7 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
       truck_weight_limit: 25000
     };
     this.store.dispatch(StepperInvoiceUploadActions.set({ order: newOrder }))
-    this.openOrderDetailAddDialog();
+    // this.openOrderDetailAddDialog();
   }
 
   openOrderDetailAddDialog() {

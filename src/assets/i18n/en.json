@@ -913,5 +913,60 @@
     "NOTIFICATION": "Notification",
     "NOTIFICATION_DESC": "You will be notified by email when a response arrives",
     "PERMISSION_DETAILS": "Permission Details"
+  },
+  "TOUR": {
+    "COMMON": {
+      "BACK": "Back",
+      "NEXT": "Next",
+      "CONTINUE": "Let's Continue",
+      "UNDERSTOOD": "Understood",
+      "FINISH_TOUR": "Finish Tour"
+    },
+    "STEP0": {
+      "TITLE": "Order Creation",
+      "WELCOME": "<h3>Welcome to Logistics Optimization System! 🎉</h3><p>You will learn the system step by step with this tour.</p><p><strong>Step 1:</strong> Order Creation</p>",
+      "PROFILE": "<h3>Profile Menu</h3><p>You can access your profile and change your language settings here.</p>",
+      "SIDENAV": "<h3>Menu Navigation</h3><p>You can access other menus from here.</p>",
+      "TEMPLATE": "<h3>Excel Template</h3><p>You can download the Excel template from here.</p><p>You can upload bulk orders with the template.</p>",
+      "MANUAL_ENTRY": "<h3>Manual Order Entry</h3><p>You can make manual selection and add your products.</p><p>Let's click!</p>",
+      "LETS_CLICK": "Let's Click",
+      "ADD_BUTTON": "<h3>Add Product</h3><p>You can add products to your order from here.</p><p>Let's add a product!</p>",
+      "DIALOG": {
+        "PRODUCT_SEARCH": "<h3>Product Search</h3><p>You can search by typing the product name here.</p><p>We will create a sample order.</p>",
+        "FILL_AND_SUBMIT": "Fill Form and Add"
+      },
+      "ORDER_SUMMARY": "<h3>Order Summary</h3><p>You can view and edit order details from here.</p><ul><li>Order date</li><li>Customer information</li><li>Vehicle selection</li><li>Weight limits</li></ul>",
+      "ORDER_DETAILS": "<h3>Order Details</h3><p>The products you added are listed here.</p><p>You can edit or delete products.</p>",
+      "NEXT_BUTTON": "<h3>Go to Palletization Step</h3><p>Now let's move to the palletization step by clicking the <strong>Next</strong> button.</p><p>The tour will continue automatically there! 🚀</p>"
+    },
+    "STEP1": {
+      "TITLE": "Palletization and Optimization",
+      "WELCOME": "<h3>Welcome to Palletization Area! 📦</h3><p>Great! You have completed your order information.</p><p><strong>Step 2:</strong> Placing products on pallets</p>",
+      "CALCULATE": "<h3>Automatic Calculation</h3><p>You can have the system automatically place items by clicking the <strong>Calculate</strong> button.</p><p>Genetic algorithm finds the most optimal placement! 🧬</p><p>Let's click!</p>",
+      "LETS_CALCULATE": "Calculate",
+      "AFTER_CALCULATE": "<h3>Great! ✅</h3><p>The system has automatically placed the products on pallets.</p><p>Now let's look at other features!</p>",
+      "PRODUCT_SEARCH": "<h3>Product Search</h3><p>You can use the search box to quickly find products.</p>",
+      "REMAINING_PRODUCTS": "<h3>Product Inventory</h3><p>All products in your order are listed in the left section.</p><ul><li>You can drag products to pallets with drag&drop</li><li>You can split products with the split button</li></ul>",
+      "PALLET_SEARCH": "<h3>Pallet Search</h3><p>You can search for pallet types.</p>",
+      "PALLET_SECTION": "<h3>Pallet Types</h3><p>Available pallet types are on the right section.</p><p>Drag pallets to package cards in the middle section.</p>",
+      "PACKAGE_SECTION": "<h3>Palletization Area</h3><p>Package cards are created in the middle section.</p><p>Add a pallet first, then products to each card.</p>",
+      "PARAMS_BUTTON": "<h3>Parameterized Calculation</h3><p>You can optimize with special parameters.</p><p>Let's try it!</p>",
+      "LETS_CLICK": "Let's Click",
+      "PARAMS_DIALOG": "<h3>Parameter Settings</h3><p>You can adjust optimization parameters in this dialog.</p><p>Let's close it for now and continue.</p>",
+      "CLOSE_DIALOG": "Close",
+      "NEXT_REMINDER": "<h3>Palletization Completed! ✅</h3><p>You can now place your products on pallets.</p><p>The next step will be truck loading and 3D visualization!</p><p>Click the <strong>Next</strong> button whenever you want.</p>"
+    },
+    "STEP2": {
+      "TITLE": "Truck Loading and 3D View",
+      "WELCOME": "<h3>Truck Loading and 3D View! 🚚</h3><p>Final step! Placing your pallets in the truck.</p>",
+      "OPTIMIZE_BUTTON": "<h3>Start Optimization</h3><p>Start optimization to automatically place your pallets in the truck.</p><p>Let's start!</p>",
+      "LETS_OPTIMIZE": "Start",
+      "AFTER_OPTIMIZE": "<h3>Great! ✅</h3><p>Optimization completed!</p><p>Your pallets have been placed in the truck.</p><p>Now let's examine the 3D view.</p>",
+      "THREEJS_VIEW": "<h3>3D Truck View</h3><p>You can view how pallets are placed in the truck in 3D.</p><ul><li>Rotate with mouse</li><li>Zoom with scroll</li><li>View from different angles</li></ul>",
+      "VIEW_CONTROLS": "<h3>View Controls</h3><p>You can view from different angles with these buttons:</p><ul><li><strong>Front:</strong> Front view of the truck</li><li><strong>Side:</strong> Side view</li><li><strong>Top:</strong> Top view</li><li><strong>3D:</strong> Isometric view</li></ul>",
+      "REPORT_FILES": "<h3>Report Files</h3><p>You can download optimization results in Excel format.</p><p>Reports include detailed placement plan.</p>",
+      "COMPLETE_SHIPMENT": "<h3>Complete Shipment</h3><p>All operations completed!</p><p>You can confirm the shipment by clicking this button.</p><p><strong>You have completed the tour! 🎉</strong></p>"
+    }
   }
+
 }

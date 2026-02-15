@@ -32,7 +32,7 @@
 </mat-dialog-content>
 
 <mat-dialog-actions>
-  <button mat-button (click)="onCancel()">{{ 'COMMON.CANCEL' | translate }}</button>
+  <button class="close-button" id="params-dialog" mat-button (click)="onCancel()">{{ 'COMMON.CANCEL' | translate }}</button>
   <button mat-raised-button color="primary" (click)="onCalculate()">
     <mat-icon>calculate</mat-icon>
     {{ 'PALLET_CONTROL.CALCULATE' | translate }}
