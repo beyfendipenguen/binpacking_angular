@@ -1,73 +1,24 @@
 <div class="logistics-container">
-  <div class="logistics-background">
-    <div class="warehouse-scene">
-      <!-- Warehouse Building -->
-      <div class="warehouse">
-        <div class="warehouse-wall"></div>
-        <div class="warehouse-roof"></div>
-        <div class="loading-dock"></div>
-      </div>
+  <!-- Left Side - Brand Panel -->
+  <div class="brand-panel" (mousemove)="onMouseMove($event)" (mouseleave)="onMouseLeave()">
+    <!-- Mouse glow -->
+    <div class="mouse-glow" [style.background]="glowStyle"></div>
 
-      <!-- Road and Floor -->
-      <div class="road"></div>
-      <div class="warehouse-floor"></div>
+    <!-- Floating geometric elements -->
+    <div class="geo geo-1" [style.transform]="geoTransform(3)"></div>
+    <div class="geo geo-2" [style.transform]="geoTransform(3)"></div>
+    <div class="geo geo-3" [style.transform]="geoTransform(4)"></div>
+    <div class="geo geo-4" [style.transform]="geoTransform(4)"></div>
+    <div class="geo geo-5" [style.transform]="geoTransform(3)"></div>
+    <div class="geo geo-6" [style.transform]="geoTransform(2)"></div>
 
-      <!-- Forklift with Pallet -->
-      <div class="forklift">
-        <div class="forklift-body">
-          <mat-icon>construction</mat-icon>
-        </div>
-        <div class="forklift-cargo">
-          <div class="mini-pallet"></div>
-        </div>
-      </div>
-
-      <!-- Products/Boxes -->
-      <div class="product-boxes">
-        <div class="product-box box-1"></div>
-        <div class="product-box box-2"></div>
-        <div class="product-box box-3"></div>
-      </div>
-
-      <!-- Pallets Stacked -->
-      <div class="stacked-pallets">
-        <div class="pallet-stack">
-          <div class="pallet stack-1"></div>
-          <div class="pallet stack-2"></div>
-          <div class="pallet stack-3"></div>
-        </div>
-        <div class="pallet-stack-2">
-          <div class="pallet stack-4"></div>
-          <div class="pallet stack-5"></div>
-        </div>
-      </div>
-
-      <!-- Moving Truck -->
-      <div class="truck">
-        <div class="truck-cabin">
-          <mat-icon>local_shipping</mat-icon>
-        </div>
-        <div class="truck-container"></div>
-      </div>
-
-      <!-- Loading Animation -->
-      <div class="loading-crane">
-        <div class="crane-arm"></div>
-        <div class="crane-hook"></div>
-        <div class="loading-box"></div>
-      </div>
-
-      <!-- Background Elements -->
-      <div class="background-elements">
-        <div class="building building-1"></div>
-        <div class="building building-2"></div>
-        <div class="cloud cloud-1"></div>
-        <div class="cloud cloud-2"></div>
-        <div class="cloud cloud-3"></div>
-      </div>
+    <!-- Logo -->
+    <div class="brand-logo" [style.transform]="logoTransform()">
+      <img src="assets/images/industricode.svg" alt="IndustriCode" />
     </div>
   </div>
 
+  <!-- Right Side - Login Form -->
   <div class="login-section">
     <div class="login-card">
       <div class="login-header">
@@ -85,9 +36,11 @@
 
         <mat-form-field appearance="outline">
           <mat-label>{{ 'SIGNIN.PASSWORD_LABEL' | translate }}</mat-label>
-          <input matInput formControlName="password" [type]="hide ? 'password' : 'text'" [placeholder]="'SIGNIN.PASSWORD_PLACEHOLDER' | translate">
-          <button mat-icon-button matSuffix (click)="hide = !hide" [attr.aria-label]="'Hide password'" [attr.aria-pressed]="hide">
-            <mat-icon>{{hide ? 'visibility_off' : 'visibility'}}</mat-icon>
+          <input matInput formControlName="password" [type]="hide ? 'password' : 'text'"
+            [placeholder]="'SIGNIN.PASSWORD_PLACEHOLDER' | translate">
+          <button mat-icon-button matSuffix (click)="hide = !hide" [attr.aria-label]="'Hide password'"
+            [attr.aria-pressed]="hide" type="button">
+            <mat-icon>{{ hide ? 'visibility_off' : 'visibility' }}</mat-icon>
           </button>
         </mat-form-field>
 
@@ -99,11 +52,12 @@
 
       <div class="quick-actions">
         <button mat-button class="action-link" (click)="openForgotPasswordDialog()">
-          <mat-icon>lock_open</mat-icon>{{ 'AUTH.FORGOT_PASSWORD' | translate }}</button>
+          <mat-icon>lock_open</mat-icon>{{ 'AUTH.FORGOT_PASSWORD' | translate }}
+        </button>
         <button mat-button class="action-link">
-          <mat-icon>help_outline</mat-icon>{{ 'AUTH.TECHNICAL_SUPPORT' | translate }}</button>
+          <mat-icon>help_outline</mat-icon>{{ 'AUTH.TECHNICAL_SUPPORT' | translate }}
+        </button>
       </div>
     </div>
-
   </div>
 </div>
