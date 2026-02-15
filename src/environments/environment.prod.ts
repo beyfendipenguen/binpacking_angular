@@ -3,5 +3,5 @@ export const environment = {
     production: true,
     name: 'deploy',
     apiUrl: 'https://api.industricode.com/api',
-    appVersion: '1769705442905'
+    appVersion: '1771198969319'
 };
