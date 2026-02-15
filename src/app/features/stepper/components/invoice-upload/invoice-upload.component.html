@@ -13,9 +13,14 @@
   <!-- Empty State Card -->
   @if(!orderSignal() ){
   <div class="logistics-card">
-    <!-- Template Info Button - Sağ üst köşe -->
-    <button mat-icon-button class="template-info-floating" (click)="downloadTemplate()"
-      [matTooltip]="'INVOICE_UPLOAD.DOWNLOAD_TEMPLATE' | translate" matTooltipPosition="left">
+    <!-- Template Info Button - ID EKLE 👇 -->
+    <button
+      id="tour-template-download"
+      mat-icon-button
+      class="template-info-floating"
+      (click)="downloadTemplate()"
+      [matTooltip]="'INVOICE_UPLOAD.DOWNLOAD_TEMPLATE' | translate"
+      matTooltipPosition="left">
       <mat-icon>info</mat-icon>
       @if(showMessageBalloon()) {
       <div class="message-balloon">
@@ -35,7 +40,12 @@
       </p>
 
       <div class="action-options">
-        <button mat-raised-button class="action-button" (click)="createOrder()"
+        <!-- Manuel Giriş Butonu - ID EKLE 👇 -->
+        <button
+          id="tour-manual-entry"
+          mat-raised-button
+          class="action-button"
+          (click)="createOrder()"
           [appDisableAuth]="['orders.add_order']">
           <mat-icon>add</mat-icon>
           <span>{{ 'INVOICE_UPLOAD.MANUAL_ENTRY' | translate }}</span>
@@ -45,8 +55,12 @@
           <span>{{ 'INVOICE_UPLOAD.OR' | translate }}</span>
         </div>
 
-        <div class="file-upload-container">
-          <button mat-raised-button class="action-button secondary" (click)="fileInput.click()"
+        <!-- Excel Upload Container - ID EKLE 👇 -->
+        <div id="tour-excel-upload" class="file-upload-container">
+          <button
+            mat-raised-button
+            class="action-button secondary"
+            (click)="fileInput.click()"
             [appDisableAuth]="['orders.add_order']">
             <mat-icon>file_upload</mat-icon>
             <span>{{ file?.name || 'INVOICE_UPLOAD.SELECT_EXCEL' | translate}}</span>
@@ -61,7 +75,7 @@
   @if (orderSignal()) {
   <div class="details-section">
     <!-- Order Summary -->
-    <div class="dashboard-panel">
+    <div id="tour-order-summary" class="dashboard-panel">
       <!-- Sipariş Tarihi -->
       <div class="dashboard-item">
         <div class="dashboard-icon">
@@ -205,7 +219,7 @@
     </div>
 
     <!-- Order Details Table -->
-    <div class="logistics-card">
+    <div id="tour-order-details-table" class="logistics-card">
       <div class="section-header with-action">
         <div class="header-title">
           <mat-icon>list_alt</mat-icon>
@@ -223,7 +237,7 @@
         [addPermission]="['orders.add_order']" [updatePermission]="['orders.change_order']">
       </app-generic-table>
 
-      <div class="summary-footer">
+      <div id="tour-order-summary-footer" class="summary-footer">
         <div class="summary-content">
           <div class="summary-metrics">
             <div class="metric">
@@ -252,7 +266,7 @@
     </div>
   </div>
   <!-- Navigation Controls -->
-  <button mat-button class="next-button" (click)="submit()" [disabled]="!orderSignal() || !isFormValid()"
+  <button id="tour-next-button" mat-button class="next-button" (click)="submit()" [disabled]="!orderSignal() || !isFormValid()"
     [appDisableAuth]="['orders.add_order']">
     <mat-icon>arrow_forward</mat-icon>
     <span>{{(isOrderDetailsDirtySignal() || isOrderDirtySignal() ? 'COMMON.SAVE' : 'COMMON.NEXT') | translate}}</span>

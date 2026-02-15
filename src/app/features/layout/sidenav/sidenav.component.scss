@@ -289,7 +289,8 @@ $white: #ffffff;
 // Responsive
 @media (max-width: 768px) {
   .sidenav {
-    min-width: 240px;
+    min-width: 220px;
+    max-width: 75vw; // Ekranın max %75'i
 
     .sidenav-header .logo {
       .logo-text {
@@ -299,14 +300,43 @@ $white: #ffffff;
 
     .nav-item {
       height: 44px;
+      margin: 2px 6px;
+
+      .nav-icon {
+        margin-right: 10px;
+      }
 
       .nav-title {
-        font-size: 0.9rem;
+        font-size: 0.85rem;
+      }
+    }
+
+    .children-container {
+      margin-left: 12px;
+      padding-left: 6px;
+
+      .nav-item {
+        height: 40px;
       }
     }
   }
 }
 
+@media (max-width: 480px) {
+  .sidenav {
+    min-width: 200px;
+
+    .nav-item {
+      height: 42px;
+      padding: 0 8px;
+
+      .nav-title {
+        font-size: 0.8rem;
+      }
+    }
+  }
+}
+//
 .children-container {
   overflow: hidden;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
