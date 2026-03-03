@@ -44,6 +44,14 @@
     }
   </div>
   }
+  @if (!isLoadingModels && !isLoadingData && piecesDataSignal() && piecesDataSignal().length > 0) {
+  <div class="auto-place-floating">
+    <button class="auto-place-all-btn" (click)="autoPlaceAll()"
+      [title]="'TRUCK_VISUALIZATION.AUTO_PLACE_ALL_TIP' | translate">
+      🤖 {{ 'TRUCK_VISUALIZATION.AUTO_PLACE_ALL' | translate }}
+    </button>
+  </div>
+  }
 
   <!-- Package Products Panel (Top Left) -->
   @if (selectedPackageSignal(); as selected) {
@@ -168,6 +176,10 @@
 
       <!-- Bulk Actions -->
       <div class="bulk-actions">
+        <button class="bulk-btn auto-place-btn" (click)="autoPlaceDeleted()"
+          [title]="'TRUCK_VISUALIZATION.AUTO_PLACE_DELETED_TIP' | translate">
+          🤖 {{ 'TRUCK_VISUALIZATION.AUTO_PLACE_DELETED' | translate }}
+        </button>
         <button class="bulk-btn restore-all-btn" (click)="restoreAllPackages()"
           [title]="'TRUCK_VISUALIZATION.ADD_ALL_TIP' | translate">
           ↩️ {{ 'TRUCK_VISUALIZATION.ADD_ALL' | translate }}

@@ -589,7 +589,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
   // MOUSE EVENTS
   // ========================================
 
-    private setupMouseEvents(): void {
+  private setupMouseEvents(): void {
     const canvas = this.renderer.domElement;
 
     // Mouse events
@@ -1216,6 +1216,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
         }
 
         this.orderResultChange();
+        this.cdr.markForCheck();
       }
     }
   }
@@ -1260,17 +1261,19 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
 
   private checkCollisionPrecise(
     packageToCheck: PackageData,
-    newPos: { x: number, y: number, z: number }
+    newPos: { x: number, y: number, z: number },
+    packageList?: PackageData[]
   ): boolean {
-
     if (packageToCheck.isForcePlaced) {
       return false;
     }
     const checkLength = packageToCheck.length;
     const checkWidth = packageToCheck.width;
+    const packages = packageList ?? this.processedPackagesSignal();
 
-    for (const otherPackage of this.processedPackagesSignal()) {
-      if (otherPackage.pkgId === packageToCheck.pkgId || !otherPackage.mesh) continue;
+    for (const otherPackage of packages) {
+      if (otherPackage.pkgId === packageToCheck.pkgId) continue;
+      if (!packageList && !otherPackage.mesh) continue; // sadece normal modda mesh kontrolü
 
       const otherLength = otherPackage.length;
       const otherWidth = otherPackage.width;
@@ -2178,5 +2181,288 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     }
 
     this.cdr.markForCheck();
+  }
+
+  // ========================================
+  // AUTO PLACEMENT
+  // ========================================
+
+  autoPlaceAll(): void {
+    const allPackages = [
+      ...this.processedPackagesSignal().map(p => ({ ...p, mesh: undefined, forcePlaceBorder: undefined })),
+      ...this.deletedPackagesSignal().map(p => ({ ...p, mesh: undefined, forcePlaceBorder: undefined }))
+    ];
+
+    if (allPackages.length === 0) return;
+
+    if (this.packagesGroup) {
+      this.packagesGroup.clear();
+    }
+
+    this.usedColors.clear();
+    this.packagesStateService.clearProcessedPackages();
+    this.packagesStateService.clearDeletedPackages();
+    this.packagesStateService.clearSelection();
+
+    const placed: PackageData[] = [];
+    let hasUnplaceable = false;
+
+    for (const pkg of allPackages) {
+      pkg.color = this.getUniqueColor();
+      pkg.originalColor = pkg.color;
+      pkg.isForcePlaced = false;
+
+      const pos = this.findAutoPlacePositionWidthFirst(pkg, placed);
+
+      if (pos) {
+        pkg.x = pos.x;
+        pkg.y = pos.y;
+        pkg.z = pos.z;
+      } else {
+        const fallback = this.getForcedFallbackPosition(pkg, placed);
+        pkg.x = fallback.x;
+        pkg.y = fallback.y;
+        pkg.z = fallback.z;
+        pkg.isForcePlaced = true;
+        hasUnplaceable = true;
+      }
+
+
+      this.createPackageMesh(pkg);
+      placed.push(pkg);
+    }
+    allPackages.sort((a, b) => (b.length * b.width) - (a.length * a.width));
+    this.packagesStateService.setProcessedPackages(placed);
+
+    if (hasUnplaceable) {
+      this.toastService.warning(this.translate.instant('TRUCK_VISUALIZATION.AUTO_PLACE_PARTIAL'));
+    } else {
+      this.toastService.success(this.translate.instant('TRUCK_VISUALIZATION.AUTO_PLACE_SUCCESS'));
+    }
+
+    this.orderResultChange();
+    this.renderManager.requestRender();
+    this.cdr.markForCheck();
+  }
+
+  autoPlaceDeleted(): void {
+    const deleted = [...this.deletedPackagesSignal()];
+    if (deleted.length === 0) return;
+
+    let placedCount = 0;
+    let failedCount = 0;
+
+    for (const pkg of deleted) {
+      pkg.mesh = undefined;
+      pkg.forcePlaceBorder = undefined;
+
+      const pos = this.findAutoPlacePosition(pkg);
+
+      if (pos) {
+        pkg.x = pos.x;
+        pkg.y = pos.y;
+        pkg.z = pos.z;
+        pkg.isForcePlaced = false;
+
+        if (!pkg.originalColor) {
+          pkg.color = this.getUniqueColor();
+          pkg.originalColor = pkg.color;
+        } else {
+          pkg.color = pkg.originalColor;
+          this.usedColors.add(pkg.originalColor);
+        }
+
+        this.createPackageMesh(pkg);  // önce mesh oluştur, pkg.mesh artık dolu
+        this.packagesStateService.removeFromDeletedPackages(pkg.pkgId);
+        this.packagesStateService.addToProcessedPackages(pkg);
+        this.store.dispatch(StepperResultActions.changeDeletedPackageIsRemaining({ packageIds: [pkg.pkgId] }));
+        placedCount++;
+      } else {
+        failedCount++;
+      }
+    }
+
+    if (failedCount > 0) {
+      this.toastService.warning(
+        `${failedCount} ${this.translate.instant('TRUCK_VISUALIZATION.AUTO_PLACE_NO_SPACE')}`
+      );
+    }
+
+    if (placedCount > 0) {
+      this.orderResultChange();
+      this.renderManager.requestRender();
+      this.cdr.markForCheck();
+    }
+  }
+
+  private findAutoPlacePosition(
+    packageData: PackageData,
+    existingPackages?: PackageData[]
+  ): { x: number, y: number, z: number } | null {
+    const truckDims = this.truckDimension();
+    const stepSize = 100;
+    const packages = existingPackages ?? this.processedPackagesSignal();
+
+    // 1. Önce aynı L×W ölçüdeki package'ların üstünü dene (stacking)
+    const sameDimPackages = packages.filter(p =>
+      p.pkgId !== packageData.pkgId &&
+      (
+        (p.length === packageData.length && p.width === packageData.width) ||
+        (p.length === packageData.width && p.width === packageData.length)
+      )
+    );
+
+    for (const base of sameDimPackages) {
+      // Zincir: en üstteki package'ı bul (aynı x,y'de en yüksek z)
+      let topZ = base.z + base.height;
+      for (const other of packages) {
+        if (
+          other.pkgId !== packageData.pkgId &&
+          other.x === base.x &&
+          other.y === base.y
+        ) {
+          topZ = Math.max(topZ, other.z + other.height);
+        }
+      }
+
+      if (topZ + packageData.height > truckDims[2]) continue;
+
+      const pos = { x: base.x, y: base.y, z: topZ };
+      if (!this.checkCollisionPrecise(packageData, pos, packages)) {
+        // Eğer base rotated ise bu paketi de aynı yöne döndür
+        if (base.length === packageData.width && base.width === packageData.length) {
+          packageData.length = base.length;
+          packageData.width = base.width;
+          packageData.rotation = (packageData.rotation || 0) + 90;
+          packageData.dimensions = `${packageData.length}×${packageData.width}×${packageData.height} mm`;
+        }
+        return pos;
+      }
+    }
+
+    // 2. Zemin seviyesinde tara
+    for (let x = 0; x <= truckDims[0] - packageData.length; x += stepSize) {
+      for (let y = 0; y <= truckDims[1] - packageData.width; y += stepSize) {
+        const pos = { x, y, z: 0 };
+        if (!this.checkCollisionPrecise(packageData, pos, packages)) {
+          return pos;
+        }
+      }
+    }
+
+    // 90 derece döndürülmüş yön
+    const rotLength = packageData.width;
+    const rotWidth = packageData.length;
+    for (let x = 0; x <= truckDims[0] - rotLength; x += stepSize) {
+      for (let y = 0; y <= truckDims[1] - rotWidth; y += stepSize) {
+        const pos = { x, y, z: 0 };
+        const rotatedPkg = { ...packageData, length: rotLength, width: rotWidth };
+        if (!this.checkCollisionPrecise(rotatedPkg, pos, packages)) {
+          // Paketi döndür
+          packageData.length = rotLength;
+          packageData.width = rotWidth;
+          packageData.rotation = (packageData.rotation || 0) + 90;
+          packageData.dimensions = `${packageData.length}×${packageData.width}×${packageData.height} mm`;
+          return pos;
+        }
+      }
+    }
+
+    return null;
+  }
+
+  private findAutoPlacePositionWidthFirst(
+    packageData: PackageData,
+    existingPackages: PackageData[]
+  ): { x: number, y: number, z: number } | null {
+    const truckDims = this.truckDimension();
+    const stepSize = 100;
+
+    // 1. Stacking: aynı L×W (veya rotated) üstüne koy
+    const sameDimPackages = existingPackages.filter(p =>
+      p.pkgId !== packageData.pkgId &&
+      (
+        (p.length === packageData.length && p.width === packageData.width) ||
+        (p.length === packageData.width && p.width === packageData.length)
+      )
+    );
+
+    for (const base of sameDimPackages) {
+      let topZ = base.z + base.height;
+      for (const other of existingPackages) {
+        if (other.pkgId !== packageData.pkgId &&
+          other.x === base.x && other.y === base.y) {
+          topZ = Math.max(topZ, other.z + other.height);
+        }
+      }
+      if (topZ + packageData.height > truckDims[2]) continue;
+
+      const pos = { x: base.x, y: base.y, z: topZ };
+      if (!this.checkCollisionPrecise(packageData, pos, existingPackages)) {
+        if (base.length === packageData.width && base.width === packageData.length) {
+          packageData.length = base.length;
+          packageData.width = base.width;
+          packageData.rotation = (packageData.rotation || 0) + 90;
+          packageData.dimensions = `${packageData.length}×${packageData.width}×${packageData.height} mm`;
+        }
+        return pos;
+      }
+    }
+
+    // 2. Hangi rotasyon truck genişliğini daha iyi doldurur?
+    // Truck width = truckDims[1]
+    // width değeri truckDims[1]'e daha yakın olan rotasyonu önceliklendir
+    const distOriginal = truckDims[0] % packageData.width;
+    const distRotated = truckDims[0] % packageData.length;
+
+    // Rotated daha iyi dolduruyorsa önce onu dene
+    const orientations = distRotated <= distOriginal
+      ? [
+        { length: packageData.width, width: packageData.length, rotate: true },
+        { length: packageData.length, width: packageData.width, rotate: false }
+      ]
+      : [
+        { length: packageData.length, width: packageData.width, rotate: false },
+        { length: packageData.width, width: packageData.length, rotate: true }
+      ];
+
+    // 3. Y-first tarama (genişliği önce doldur)
+    for (const orient of orientations) {
+      if (orient.length > truckDims[0] || orient.width > truckDims[1]) continue;
+
+      for (let x = 0; x <= truckDims[0] - orient.length; x += stepSize) {
+        for (let y = 0; y <= truckDims[1] - orient.width; y += stepSize) {
+          const pos = { x, y, z: 0 };
+          const testPkg = { ...packageData, length: orient.length, width: orient.width };
+
+          if (!this.checkCollisionPrecise(testPkg as PackageData, pos, existingPackages)) {
+            if (orient.rotate) {
+              packageData.length = orient.length;
+              packageData.width = orient.width;
+              packageData.rotation = (packageData.rotation || 0) + 90;
+              packageData.dimensions = `${packageData.length}×${packageData.width}×${packageData.height} mm`;
+            }
+            return pos;
+          }
+        }
+      }
+    }
+
+    return null;
+  }
+
+  private getForcedFallbackPosition(
+    pkg: PackageData,
+    existingPackages: PackageData[]
+  ): { x: number, y: number, z: number } {
+    let maxZ = 0;
+    for (const other of existingPackages) {
+      const xOverlap = 0 < other.x + other.length && pkg.length > other.x;
+      const yOverlap = 0 < other.y + other.width && pkg.width > other.y;
+      if (xOverlap && yOverlap) {
+        maxZ = Math.max(maxZ, other.z + other.height);
+      }
+    }
+    return { x: 0, y: 0, z: maxZ };
   }
 }

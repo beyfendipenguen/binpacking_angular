@@ -237,6 +237,46 @@ $white: #ffffff;
 }
 
 // ========================================
+// AUTO PLACE FLOATING BUTTON
+// ========================================
+.auto-place-floating {
+  position: absolute;
+  bottom: 1rem;
+  right: 1rem;
+  z-index: 7;
+
+  .auto-place-all-btn {
+    background: linear-gradient(135deg, $primary-color, $primary-dark);
+    color: $white;
+    border: none;
+    border-radius: 10px;
+    padding: 0.7rem 1.2rem;
+    cursor: pointer;
+    font-size: 0.8rem;
+    font-weight: 700;
+    box-shadow: var(--shadow-md);
+    transition: var(--transition-base);
+    white-space: nowrap;
+    letter-spacing: 0.3px;
+
+    &:hover {
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-lg);
+      background: linear-gradient(135deg, $primary-dark, color.adjust($primary-dark, $lightness: -10%));
+    }
+
+    &:active {
+      transform: translateY(-1px);
+    }
+  }
+}
+
+// Deleted panel açıkken floating buton yukarı kayar
+.threejs-visualization-container:has(.deleted-packages-panel) .auto-place-floating {
+  bottom: calc(1rem + 420px); // deleted panel yüksekliği kadar
+}
+
+// ========================================
 // PACKAGE INFO PANEL (Top Right)
 // ========================================
 .package-info-panel {
@@ -709,6 +749,16 @@ $white: #ffffff;
             box-shadow: 0 4px 12px rgba($error-red, 0.4);
           }
         }
+
+         &.auto-place-btn {
+          background: linear-gradient(135deg, $primary-color, $primary-dark);
+          box-shadow: 0 2px 8px rgba($primary-color, 0.3);
+
+          &:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba($primary-color, 0.4);
+          }
+        }
       }
     }
   }
@@ -962,6 +1012,20 @@ $white: #ffffff;
         touch-action: none;
       }
     }
+     .auto-place-floating {
+      bottom: 0.5rem;
+
+      right: 0.5rem;
+
+      .auto-place-all-btn {
+        padding: 0.6rem 0.9rem;
+        font-size: 0.75rem;
+      }
+    }
+
+    .threejs-visualization-container:has(.deleted-packages-panel) .auto-place-floating {
+      bottom: calc(0.5rem + 45vh);
+    }
 
     // Weight panel — üstte kompakt
     .weight-display-panel {
@@ -977,9 +1041,17 @@ $white: #ffffff;
       }
 
       .weight-content {
-        h4 { font-size: 0.6rem; }
-        .weight-value { font-size: 1.1rem; }
-        .weight-description { font-size: 0.55rem; }
+        h4 {
+          font-size: 0.6rem;
+        }
+
+        .weight-value {
+          font-size: 1.1rem;
+        }
+
+        .weight-description {
+          font-size: 0.55rem;
+        }
       }
     }
 
@@ -1024,8 +1096,15 @@ $white: #ffffff;
             margin-bottom: 0.5rem;
             font-size: 0.8rem;
 
-            .label { min-width: 70px; font-size: 0.75rem; }
-            .value { padding: 0.25rem 0.5rem; font-size: 0.75rem; }
+            .label {
+              min-width: 70px;
+              font-size: 0.75rem;
+            }
+
+            .value {
+              padding: 0.25rem 0.5rem;
+              font-size: 0.75rem;
+            }
           }
         }
 
@@ -1060,7 +1139,9 @@ $white: #ffffff;
       padding: 0.5rem 0.75rem;
 
       .products-content {
-        h4 { font-size: 0.75rem; }
+        h4 {
+          font-size: 0.75rem;
+        }
 
         .products-list {
           max-height: 120px;
@@ -1069,8 +1150,14 @@ $white: #ffffff;
             padding: 0.35rem 0.5rem;
             margin-bottom: 0.35rem;
 
-            .product-name { font-size: 0.65rem; }
-            .product-count { font-size: 0.6rem; padding: 0.2rem 0.4rem; }
+            .product-name {
+              font-size: 0.65rem;
+            }
+
+            .product-count {
+              font-size: 0.6rem;
+              padding: 0.2rem 0.4rem;
+            }
           }
         }
       }
@@ -1096,7 +1183,9 @@ $white: #ffffff;
       }
 
       .deleted-content {
-        h4 { font-size: 0.9rem; }
+        h4 {
+          font-size: 0.9rem;
+        }
 
         .deleted-list {
           .deleted-item {
@@ -1104,9 +1193,17 @@ $white: #ffffff;
             margin-bottom: 0.5rem;
 
             .deleted-info {
-              .deleted-id { font-size: 0.8rem; }
-              .deleted-dims { font-size: 0.65rem; }
-              .deleted-weight { font-size: 0.6rem; }
+              .deleted-id {
+                font-size: 0.8rem;
+              }
+
+              .deleted-dims {
+                font-size: 0.65rem;
+              }
+
+              .deleted-weight {
+                font-size: 0.6rem;
+              }
             }
 
             .restore-btn {
@@ -1132,9 +1229,17 @@ $white: #ffffff;
     .no-data-message .no-data-content {
       padding: 2rem 1.5rem;
 
-      .empty-icon { font-size: 3rem; }
-      h4 { font-size: 1.2rem; }
-      p { font-size: 0.9rem; }
+      .empty-icon {
+        font-size: 3rem;
+      }
+
+      h4 {
+        font-size: 1.2rem;
+      }
+
+      p {
+        font-size: 0.9rem;
+      }
     }
 
     // Collision warning
@@ -1150,8 +1255,14 @@ $white: #ffffff;
 
       .warning-content {
         gap: 0.5rem;
-        .warning-icon { font-size: 1.5rem; }
-        .warning-text { font-size: 0.85rem; }
+
+        .warning-icon {
+          font-size: 1.5rem;
+        }
+
+        .warning-text {
+          font-size: 0.85rem;
+        }
       }
     }
   }
@@ -1169,9 +1280,17 @@ $white: #ffffff;
       min-width: 120px;
 
       .weight-content {
-        h4 { font-size: 0.55rem; }
-        .weight-value { font-size: 0.95rem; }
-        .weight-description { font-size: 0.5rem; }
+        h4 {
+          font-size: 0.55rem;
+        }
+
+        .weight-value {
+          font-size: 0.95rem;
+        }
+
+        .weight-description {
+          font-size: 0.5rem;
+        }
       }
     }
 
@@ -1180,15 +1299,23 @@ $white: #ffffff;
       max-height: 50vh;
 
       .info-content {
-        h4 { font-size: 0.8rem; }
+        h4 {
+          font-size: 0.8rem;
+        }
 
         .package-details .detail-row {
           flex-direction: column;
           gap: 0.25rem;
           align-items: flex-start;
 
-          .label { min-width: auto; }
-          .value { width: 100%; text-align: left; }
+          .label {
+            min-width: auto;
+          }
+
+          .value {
+            width: 100%;
+            text-align: left;
+          }
         }
 
         .package-actions .action-btn {
@@ -1204,8 +1331,13 @@ $white: #ffffff;
       padding: 0.4rem 0.6rem;
 
       .products-content {
-        h4 { font-size: 0.7rem; }
-        .products-list { max-height: 80px; }
+        h4 {
+          font-size: 0.7rem;
+        }
+
+        .products-list {
+          max-height: 80px;
+        }
       }
     }
 
@@ -1220,14 +1352,19 @@ $white: #ffffff;
           gap: 0.5rem;
           align-items: stretch;
 
-          .restore-btn { width: 100%; text-align: center; }
+          .restore-btn {
+            width: 100%;
+            text-align: center;
+          }
         }
 
         .bulk-actions {
           flex-direction: column;
           gap: 0.5rem;
 
-          .bulk-btn { padding: 0.6rem; }
+          .bulk-btn {
+            padding: 0.6rem;
+          }
         }
       }
     }
@@ -1236,6 +1373,7 @@ $white: #ffffff;
 
 @media (hover: none) and (pointer: coarse) {
   .threejs-visualization-container {
+
     // Touch cihazlarda hover efektlerini kaldır
     .package-info-panel:hover,
     .deleted-packages-panel:hover,
