@@ -308,7 +308,7 @@
     "FILE_OPENING": "Opening file...",
     "FILE_OPEN_ERROR": "An error occurred while opening file",
     "CURRENT_FILES": "Current Files",
-  "OLD_FILES": "Old Files"
+    "OLD_FILES": "Old Files"
   },
   "ORDER": {
     "TITLE": "Shipment Management",
@@ -746,7 +746,16 @@
     "WHEEL_MODEL": "Wheel Model",
     "PLACING_PACKAGES": "Placing packages...",
     "FULLSCREEN": "Full Screen",
-    "EXIT_FULLSCREEN": "Exit Full Screen"
+    "EXIT_FULLSCREEN": "Exit Full Screen",
+    "AUTO_PLACE_ALL": "Auto Place All",
+    "AUTO_PLACE_ALL_TIP": "Automatically place all packages in the truck",
+    "AUTO_PLACE_DELETED": "Auto Place",
+    "AUTO_PLACE_DELETED_TIP": "Automatically place unpositioned packages",
+    "AUTO_PLACE_SUCCESS": "All packages placed successfully",
+    "AUTO_PLACE_PARTIAL": "No suitable space found for some packages, forced placement applied",
+    "AUTO_PLACE_NO_SPACE": "No suitable position found for the package",
+    "UNDO": "Undo (Ctrl+Z)",
+    "REDO": "Redo (Ctrl+Y)"
   },
   "STEPPER": {
     "ERROR": "Error",
@@ -968,5 +977,4 @@
       "COMPLETE_SHIPMENT": "<h3>Complete Shipment</h3><p>All operations completed!</p><p>You can confirm the shipment by clicking this button.</p><p><strong>You have completed the tour! 🎉</strong></p>"
     }
   }
-
 }
