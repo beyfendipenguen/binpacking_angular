@@ -18,16 +18,48 @@
   }
 
   <!-- Weight Display Panel (Top Center) -->
-  @if (showWeightDisplay && !isLoadingModels && !isLoadingData && piecesDataSignal() && piecesDataSignal().length > 0) {
-  <div class="weight-display-panel" [title]="getWeightTitle()">
-    <div class="weight-content">
-      <h4>{{'TRUCK_VISUALIZATION.FIRST' | translate}} {{ (weightCalculationDepth / 1000).toFixed(1) }}
-        {{'TRUCK_VISUALIZATION.M_WEIGHT' | translate}}</h4>
-      <div class="weight-value">{{ frontSectionWeightDisplay }}</div>
-      <div class="weight-description">{{ 'TRUCK_VISUALIZATION.FRONT_LOAD' | translate }}</div>
+ @if (!isLoadingModels && !isLoadingData && piecesDataSignal() && piecesDataSignal().length > 0) {
+<div class="top-control-bar">
+
+  <div class="top-row">
+    <!-- Sol: Undo -->
+    <button class="history-btn"
+      (click)="undo()"
+      [disabled]="!canUndo()"
+      [title]="'TRUCK_VISUALIZATION.UNDO' | translate">
+      ↩
+    </button>
+
+    <!-- Orta: Ağırlık -->
+    <div class="weight-display-panel" [title]="getWeightTitle()">
+      <div class="weight-content">
+        <h4>{{'TRUCK_VISUALIZATION.FIRST' | translate}} {{ (weightCalculationDepth / 1000).toFixed(1) }}
+          {{'TRUCK_VISUALIZATION.M_WEIGHT' | translate}}</h4>
+        <div class="weight-value">{{ frontSectionWeightDisplay }}</div>
+        <div class="weight-description">{{ 'TRUCK_VISUALIZATION.FRONT_LOAD' | translate }}</div>
+      </div>
     </div>
+
+    <!-- Sağ: Redo -->
+    <button class="history-btn"
+      (click)="redo()"
+      [disabled]="!canRedo()"
+      [title]="'TRUCK_VISUALIZATION.REDO' | translate">
+      ↪
+    </button>
   </div>
-  }
+
+  <!-- Alt: Otomatik Yerleştir -->
+  <div class="bottom-row">
+    <button class="auto-place-bar-btn"
+      (click)="autoPlaceAll()"
+      [title]="'TRUCK_VISUALIZATION.AUTO_PLACE_ALL_TIP' | translate">
+      {{ 'TRUCK_VISUALIZATION.AUTO_PLACE_ALL' | translate }}
+    </button>
+  </div>
+
+</div>
+}
 
   @if (!isLoadingModels && !isLoadingData && piecesDataSignal() && piecesDataSignal().length > 0) {
   <div class="fullscreen-controls">
@@ -42,14 +74,6 @@
       ✕
     </button>
     }
-  </div>
-  }
-  @if (!isLoadingModels && !isLoadingData && piecesDataSignal() && piecesDataSignal().length > 0) {
-  <div class="auto-place-floating">
-    <button class="auto-place-all-btn" (click)="autoPlaceAll()"
-      [title]="'TRUCK_VISUALIZATION.AUTO_PLACE_ALL_TIP' | translate">
-      🤖 {{ 'TRUCK_VISUALIZATION.AUTO_PLACE_ALL' | translate }}
-    </button>
   </div>
   }
 
@@ -178,15 +202,11 @@
       <div class="bulk-actions">
         <button class="bulk-btn auto-place-btn" (click)="autoPlaceDeleted()"
           [title]="'TRUCK_VISUALIZATION.AUTO_PLACE_DELETED_TIP' | translate">
-          🤖 {{ 'TRUCK_VISUALIZATION.AUTO_PLACE_DELETED' | translate }}
-        </button>
-        <button class="bulk-btn restore-all-btn" (click)="restoreAllPackages()"
-          [title]="'TRUCK_VISUALIZATION.ADD_ALL_TIP' | translate">
-          ↩️ {{ 'TRUCK_VISUALIZATION.ADD_ALL' | translate }}
+          {{ 'TRUCK_VISUALIZATION.AUTO_PLACE_DELETED' | translate }}
         </button>
         <button class="bulk-btn clear-all-btn" (click)="clearDeletedPackages()"
           [title]="'TRUCK_VISUALIZATION.CLEAR_TIP' | translate" [disabled]="true">
-          🗑️ {{ 'TRUCK_VISUALIZATION.CLEAR' | translate }}
+          {{ 'TRUCK_VISUALIZATION.CLEAR' | translate }}
         </button>
       </div>
     </div>

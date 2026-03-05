@@ -24,7 +24,7 @@ import { StepperUiActions } from '@app/store/stepper/actions/stepper-ui.actions'
 import { ThreeJSRenderManagerService } from './services/threejs-render-manager.service';
 import { ThreeJSComponents, ThreeJSInitializationService } from './services/threejs-initialization.service';
 import { PackagesStateService } from './services/packages-state.service';
-import { PackageData } from '@app/features/interfaces/order-result.interface';
+import { PackageData, PackageSnapshot } from '@app/features/interfaces/order-result.interface';
 import { toObservable } from '@angular/core/rxjs-interop';
 import { skip, distinctUntilChanged, takeUntil, Subject } from 'rxjs';
 import { ToastService } from '@app/core/services/toast.service';
@@ -132,6 +132,13 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
   showControls = true;
   showStats = true;
   showCollisionWarning = false;
+
+  // Undo/Redo
+  private undoStack: PackageSnapshot[][] = [];
+  private redoStack: PackageSnapshot[][] = [];
+  private readonly MAX_HISTORY = 30;
+  canUndo = signal(false);
+  canRedo = signal(false);
 
   // Data
 
@@ -263,6 +270,8 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
   forcePlacePackage(): void {
     const selected = this.selectedPackageSignal();
     if (!selected?.mesh) return;
+
+    this.saveSnapshot();
 
     // Flag'i set et
     selected.isForcePlaced = true;
@@ -1223,6 +1232,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
 
   private completeDragging(): void {
     if (!this.isDragging || !this.draggedPackage) return;
+    this.saveSnapshot();
 
     if (this.draggedPackage.mesh) {
       const material = this.draggedPackage.mesh.material as THREE.MeshLambertMaterial;
@@ -1576,6 +1586,8 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     const selected = this.selectedPackageSignal();
     if (!selected?.mesh) return;
 
+    this.saveSnapshot();
+
     if (!selected.originalLength) {
       selected.originalLength = selected.length;
       selected.originalWidth = selected.width;
@@ -1613,6 +1625,8 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     const selected = this.selectedPackageSignal();
     if (!selected) return;
 
+    this.saveSnapshot();
+
     const packages = this.processedPackagesSignal();
     const deletedPackage = packages.find(pkg => pkg.pkgId === selected.pkgId);
 
@@ -1629,6 +1643,8 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
   }
 
   restorePackage(packageData: PackageData): void {
+    this.saveSnapshot();
+
     this.packagesStateService.removeFromDeletedPackages(packageData.pkgId);
 
     let validPosition = this.findValidPosition(packageData);
@@ -1678,14 +1694,6 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
       this.store.dispatch(StepperResultActions.changeDeletedPackageIsRemaining({ packageIds: [packageData.pkgId] }))
       this.packagesStateService.addToDeletedPackages(packageData);
     }
-  }
-
-  restoreAllPackages(): void {
-    const deleted = this.deletedPackagesSignal();
-    if (deleted.length === 0) return;
-    this.store.dispatch(StepperResultActions.changeDeletedPackageIsRemaining({ packageIds: deleted.map(pkg => pkg.pkgId) }))
-    const packagesToRestore = [...deleted];
-    packagesToRestore.forEach(pkg => this.restorePackage(pkg));
   }
 
   clearDeletedPackages(): void {
@@ -1990,6 +1998,21 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
           this.clearSelection();
         }
         break;
+      case 'z':
+      case 'Z':
+        if (event.ctrlKey || event.metaKey) {
+          event.preventDefault();
+          this.undo();
+        }
+        break;
+
+      case 'y':
+      case 'Y':
+        if (event.ctrlKey || event.metaKey) {
+          event.preventDefault();
+          this.redo();
+        }
+        break;
     }
   }
 
@@ -2023,6 +2046,197 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
         this.store.dispatch(StepperUiActions.setStep3IsDirty());
       });
     }
+  }
+
+  // ========================================
+  // UNDO / REDO
+  // ========================================
+
+  private saveSnapshot(): void {
+    const all: PackageSnapshot[] = [
+      ...this.processedPackagesSignal().map(p => ({
+        pkgId: p.pkgId,
+        id: p.id,
+        x: p.x, y: p.y, z: p.z,
+        length: p.length, width: p.width, height: p.height,
+        weight: p.weight,
+        color: p.color, originalColor: p.originalColor,
+        rotation: p.rotation || 0,
+        originalLength: p.originalLength || p.length,
+        originalWidth: p.originalWidth || p.width,
+        dimensions: p.dimensions,
+        isForcePlaced: p.isForcePlaced || false,
+        isDeleted: false
+      })),
+      ...this.deletedPackagesSignal().map(p => ({
+        pkgId: p.pkgId,
+        id: p.id,
+        x: p.x, y: p.y, z: p.z,
+        length: p.length, width: p.width, height: p.height,
+        weight: p.weight,
+        color: p.color, originalColor: p.originalColor,
+        rotation: p.rotation || 0,
+        originalLength: p.originalLength || p.length,
+        originalWidth: p.originalWidth || p.width,
+        dimensions: p.dimensions,
+        isForcePlaced: p.isForcePlaced || false,
+        isDeleted: true
+      }))
+    ];
+
+    this.undoStack.push(all);
+    if (this.undoStack.length > this.MAX_HISTORY) {
+      this.undoStack.shift();
+    }
+    this.redoStack = [];
+    this.canUndo.set(this.undoStack.length > 0);
+    this.canRedo.set(false);
+  }
+
+  private applySnapshot(snapshot: PackageSnapshot[]): void {
+    // Mevcut mesh'leri temizle
+    this.packagesGroup.clear();
+    this.processedPackagesSignal().forEach(p => {
+      if (p.mesh) {
+        p.mesh.geometry.dispose();
+        (p.mesh.material as THREE.Material).dispose();
+        p.mesh = undefined;
+      }
+      if (p.forcePlaceBorder) {
+        p.forcePlaceBorder.geometry.dispose();
+        (p.forcePlaceBorder.material as THREE.Material).dispose();
+        p.forcePlaceBorder = undefined;
+      }
+    });
+
+    this.packagesStateService.clearProcessedPackages();
+    this.packagesStateService.clearDeletedPackages();
+    this.packagesStateService.clearSelection();
+    this.usedColors.clear();
+
+    const processed: PackageData[] = [];
+    const deleted: PackageData[] = [];
+
+    for (const snap of snapshot) {
+      const pkg: PackageData = {
+        pkgId: snap.pkgId,
+        id: snap.id,
+        x: snap.x, y: snap.y, z: snap.z,
+        length: snap.length, width: snap.width, height: snap.height,
+        weight: snap.weight,
+        color: snap.color, originalColor: snap.originalColor,
+        rotation: snap.rotation,
+        originalLength: snap.originalLength,
+        originalWidth: snap.originalWidth,
+        dimensions: snap.dimensions,
+        isForcePlaced: snap.isForcePlaced,
+        isBeingDragged: false
+      };
+
+      if (pkg.color) this.usedColors.add(pkg.color);
+
+      if (snap.isDeleted) {
+        deleted.push(pkg);
+      } else {
+        this.createPackageMesh(pkg);
+        processed.push(pkg);
+      }
+    }
+
+    this.packagesStateService.setProcessedPackages(processed);
+    if (deleted.length > 0) {
+      this.packagesStateService.setDeletedPackages(deleted);
+    }
+
+    this.orderResultChange();
+    this.renderManager.requestRender();
+    this.cdr.markForCheck();
+  }
+
+  undo(): void {
+    if (this.undoStack.length === 0) return;
+
+    // Mevcut state'i redo'ya kaydet
+    const current: PackageSnapshot[] = [
+      ...this.processedPackagesSignal().map(p => ({
+        pkgId: p.pkgId, id: p.id,
+        x: p.x, y: p.y, z: p.z,
+        length: p.length, width: p.width, height: p.height,
+        weight: p.weight,
+        color: p.color ?? '',
+        originalColor: p.originalColor ?? '',
+        rotation: p.rotation || 0,
+        originalLength: p.originalLength || p.length,
+        originalWidth: p.originalWidth || p.width,
+        dimensions: p.dimensions,
+        isForcePlaced: p.isForcePlaced || false,
+        isDeleted: false
+      })),
+      ...this.deletedPackagesSignal().map(p => ({
+        pkgId: p.pkgId, id: p.id,
+        x: p.x, y: p.y, z: p.z,
+        length: p.length, width: p.width, height: p.height,
+        weight: p.weight,
+        color: p.color ?? '',
+        originalColor: p.originalColor ?? '',
+        rotation: p.rotation || 0,
+        originalLength: p.originalLength || p.length,
+        originalWidth: p.originalWidth || p.width,
+        dimensions: p.dimensions,
+        isForcePlaced: p.isForcePlaced || false,
+        isDeleted: true
+      }))
+    ];
+    this.redoStack.push(current);
+
+    const snapshot = this.undoStack.pop()!;
+    this.applySnapshot(snapshot);
+
+    this.canUndo.set(this.undoStack.length > 0);
+    this.canRedo.set(this.redoStack.length > 0);
+  }
+
+  redo(): void {
+    if (this.redoStack.length === 0) return;
+
+    // Mevcut state'i undo'ya kaydet
+    const current: PackageSnapshot[] = [
+      ...this.processedPackagesSignal().map(p => ({
+        pkgId: p.pkgId, id: p.id,
+        x: p.x, y: p.y, z: p.z,
+        length: p.length, width: p.width, height: p.height,
+        weight: p.weight,
+        color: p.color ?? '',
+originalColor: p.originalColor ?? '',
+        rotation: p.rotation || 0,
+        originalLength: p.originalLength || p.length,
+        originalWidth: p.originalWidth || p.width,
+        dimensions: p.dimensions,
+        isForcePlaced: p.isForcePlaced || false,
+        isDeleted: false
+      })),
+      ...this.deletedPackagesSignal().map(p => ({
+        pkgId: p.pkgId, id: p.id,
+        x: p.x, y: p.y, z: p.z,
+        length: p.length, width: p.width, height: p.height,
+        weight: p.weight,
+        color: p.color ?? '',
+originalColor: p.originalColor ?? '',
+        rotation: p.rotation || 0,
+        originalLength: p.originalLength || p.length,
+        originalWidth: p.originalWidth || p.width,
+        dimensions: p.dimensions,
+        isForcePlaced: p.isForcePlaced || false,
+        isDeleted: true
+      }))
+    ];
+    this.undoStack.push(current);
+
+    const snapshot = this.redoStack.pop()!;
+    this.applySnapshot(snapshot);
+
+    this.canUndo.set(this.undoStack.length > 0);
+    this.canRedo.set(this.redoStack.length > 0);
   }
 
   // ========================================
@@ -2115,6 +2329,11 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
       this.packagesGroup.clear();
     }
 
+    this.undoStack = [];
+    this.redoStack = [];
+    this.canUndo.set(false);
+    this.canRedo.set(false);
+
     this.isLoadingModels = false;
     this.isLoadingData = false;
     this.hasThreeJSError = false;
@@ -2195,6 +2414,8 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
 
     if (allPackages.length === 0) return;
 
+    this.saveSnapshot();
+
     if (this.packagesGroup) {
       this.packagesGroup.clear();
     }
@@ -2248,6 +2469,8 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
   autoPlaceDeleted(): void {
     const deleted = [...this.deletedPackagesSignal()];
     if (deleted.length === 0) return;
+
+    this.saveSnapshot();
 
     let placedCount = 0;
     let failedCount = 0;

@@ -106,51 +106,142 @@ $white: #ffffff;
 }
 
 // ========================================
-// WEIGHT DISPLAY PANEL (Top Center)
+// TOP CONTROL BAR
 // ========================================
-.weight-display-panel {
+.top-control-bar {
   position: absolute;
-  top: 1rem;
+  top: 0.75rem;
   left: 50%;
   transform: translateX(-50%);
-  background: linear-gradient(135deg, rgba($primary-color, 0.95), rgba($primary-dark, 0.95));
-  border-radius: 8px;
-  padding: 0.75rem 1.5rem;
   z-index: 6;
-  min-width: 160px;
-  text-align: center;
-  transition: var(--transition-fast);
+  background: linear-gradient(135deg, rgba($primary-color, 0.97), rgba($primary-dark, 0.97));
+  border-radius: 12px;
+  padding: 0.5rem 0.6rem 0.45rem;
   box-shadow: var(--shadow-md);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  white-space: nowrap;
+  min-width: 200px;
+}
 
-  &:hover {
-    transform: translateX(-50%) scale(1.03);
-    background: linear-gradient(135deg, $primary-color, $primary-dark);
+.top-row {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  width: 100%;
+  justify-content: space-between;
+}
+
+.bottom-row {
+  width: 100%;
+  border-top: 1px solid rgba($white, 0.15);
+  padding-top: 0.4rem;
+}
+
+.history-btn {
+  background: rgba($white, 0.12);
+  color: $white;
+  border: none;
+  border-radius: 7px;
+  width: 2rem;
+  height: 2rem;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: var(--transition-base);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  &:hover:not(:disabled) {
+    background: rgba($white, 0.25);
+    transform: scale(1.1);
   }
+
+  &:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
+
+  &:active:not(:disabled) {
+    transform: scale(0.93);
+  }
+}
+
+.weight-display-panel {
+  text-align: center;
+  padding: 0.15rem 0.75rem;
+  flex: 1;
 
   .weight-content {
     h4 {
-      margin: 0 0 0.4rem;
-      color: rgba($white, 0.9);
-      font-size: 0.7rem;
+      margin: 0 0 0.15rem;
+      color: rgba($white, 0.75);
+      font-size: 0.55rem;
       font-weight: 500;
       letter-spacing: 0.5px;
       text-transform: uppercase;
     }
 
     .weight-value {
-      font-size: 1.4rem;
+      font-size: 1.1rem;
       font-weight: 800;
       color: $white;
       font-family: 'Courier New', monospace;
-      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
       line-height: 1;
-      margin-bottom: 0.2rem;
+      margin-bottom: 0.1rem;
     }
 
     .weight-description {
+      font-size: 0.5rem;
+      color: rgba($white, 0.65);
+    }
+  }
+}
+
+.auto-place-bar-btn {
+  background: rgba($white, 0.12);
+  color: $white;
+  border: none;
+  border-radius: 7px;
+  width: 100%;
+  height: 1.8rem;
+  cursor: pointer;
+  font-size: 0.7rem;
+  font-weight: 700;
+  transition: var(--transition-base);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  letter-spacing: 0.2px;
+
+  &:hover {
+    background: rgba($white, 0.22);
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+// Responsive
+@media (max-width: 768px) {
+  .top-control-bar {
+    top: 0.5rem;
+    min-width: 170px;
+    padding: 0.4rem 0.5rem 0.4rem;
+
+    .weight-display-panel .weight-content {
+      .weight-value { font-size: 0.95rem; }
+      h4 { font-size: 0.5rem; }
+    }
+
+    .auto-place-bar-btn {
       font-size: 0.65rem;
-      color: rgba($white, 0.8);
-      font-weight: 400;
     }
   }
 }
@@ -234,46 +325,6 @@ $white: #ffffff;
 .threejs-visualization-container:-ms-fullscreen {
   height: 100vh !important;
   border-radius: 0 !important;
-}
-
-// ========================================
-// AUTO PLACE FLOATING BUTTON
-// ========================================
-.auto-place-floating {
-  position: absolute;
-  bottom: 1rem;
-  right: 1rem;
-  z-index: 7;
-
-  .auto-place-all-btn {
-    background: linear-gradient(135deg, $primary-color, $primary-dark);
-    color: $white;
-    border: none;
-    border-radius: 10px;
-    padding: 0.7rem 1.2rem;
-    cursor: pointer;
-    font-size: 0.8rem;
-    font-weight: 700;
-    box-shadow: var(--shadow-md);
-    transition: var(--transition-base);
-    white-space: nowrap;
-    letter-spacing: 0.3px;
-
-    &:hover {
-      transform: translateY(-3px);
-      box-shadow: var(--shadow-lg);
-      background: linear-gradient(135deg, $primary-dark, color.adjust($primary-dark, $lightness: -10%));
-    }
-
-    &:active {
-      transform: translateY(-1px);
-    }
-  }
-}
-
-// Deleted panel açıkken floating buton yukarı kayar
-.threejs-visualization-container:has(.deleted-packages-panel) .auto-place-floating {
-  bottom: calc(1rem + 420px); // deleted panel yüksekliği kadar
 }
 
 // ========================================
@@ -750,7 +801,7 @@ $white: #ffffff;
           }
         }
 
-         &.auto-place-btn {
+        &.auto-place-btn {
           background: linear-gradient(135deg, $primary-color, $primary-dark);
           box-shadow: 0 2px 8px rgba($primary-color, 0.3);
 
@@ -997,6 +1048,32 @@ $white: #ffffff;
     grid-template-columns: 1fr !important;
   }
 
+  .top-control-bar {
+    top: 0.5rem;
+    padding: 0.4rem 0.6rem;
+    gap: 0.35rem;
+    max-width: 95vw;
+
+    .auto-place-bar-btn {
+      font-size: 0.65rem;
+      padding: 0 0.6rem;
+    }
+
+    .weight-display-panel {
+      padding: 0.25rem 0.6rem;
+
+      .weight-content {
+        .weight-value {
+          font-size: 1rem;
+        }
+
+        h4 {
+          font-size: 0.55rem;
+        }
+      }
+    }
+  }
+
   .threejs-visualization-container {
     height: 70vh; // Viewport yüksekliğine göre
     min-height: 400px;
@@ -1012,7 +1089,8 @@ $white: #ffffff;
         touch-action: none;
       }
     }
-     .auto-place-floating {
+
+    .auto-place-floating {
       bottom: 0.5rem;
 
       right: 0.5rem;
