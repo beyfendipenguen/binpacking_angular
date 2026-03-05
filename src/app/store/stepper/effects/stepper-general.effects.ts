@@ -85,7 +85,8 @@ export class StepperGeneralEffects {
                 StepperResultActions.loadOrderResultSuccess({
                   orderResult: cleanedResult,
                   reportFiles: filteredFiles
-                })
+                }),
+                StepperResultActions.changeDeletedPackageIsRemaining()
               ];
             }
 

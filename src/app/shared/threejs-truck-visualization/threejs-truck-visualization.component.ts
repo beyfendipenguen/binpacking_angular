@@ -86,6 +86,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
   private isTouchRotating = false;
   private touchStartTime = 0;
   private touchMoved = false;
+  private isLocalOperation = false;
 
   // State
   modelsLoaded = { truck: false, trailerWheel: false };
@@ -181,6 +182,10 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
         takeUntil(this.destroy$)
       )
       .subscribe((pieces) => {
+        if (this.isLocalOperation) {
+          this.isLocalOperation = false; // ← Burada sıfırla, setTimeout yok
+          return;
+        }
         if (this.isViewReady && pieces && pieces.length > 0) {
           this.safeProcessData();
         }
@@ -542,7 +547,6 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     }
 
     if (deleted.length !== 0) {
-      this.store.dispatch(StepperResultActions.changeDeletedPackageIsRemaining({ packageIds: deleted.map(p => p.pkgId) }))
       this.packagesStateService.setDeletedPackages(deleted);
     }
   }
@@ -1626,24 +1630,25 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     if (!selected) return;
 
     this.saveSnapshot();
-
-    const packages = this.processedPackagesSignal();
-    const deletedPackage = packages.find(pkg => pkg.pkgId === selected.pkgId);
+    this.isLocalOperation = true;
+    const deletedPackage = this.processedPackagesSignal()
+      .find(pkg => pkg.pkgId === selected.pkgId);
 
     if (deletedPackage) {
+      this.isLocalOperation = true;
       this.packagesStateService.moveToDeleted(deletedPackage.pkgId);
-      this.store.dispatch(StepperResultActions.changeDeletedPackageIsRemaining({ packageIds: [deletedPackage.pkgId] }))
+      this.store.dispatch(StepperResultActions.removePackageFromTruck({ pkgId: deletedPackage.pkgId }));
+      this.store.dispatch(StepperResultActions.changeDeletedPackageIsRemaining());
+
       this.packagesStateService.clearSelection();
-
-      // ✅ Gravity uygula
       this.applyGravityToAllPackages();
-
       this.orderResultChange();
     }
   }
 
   restorePackage(packageData: PackageData): void {
     this.saveSnapshot();
+    this.isLocalOperation = true; // ← En başa
 
     this.packagesStateService.removeFromDeletedPackages(packageData.pkgId);
 
@@ -1667,6 +1672,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
           packageData.originalWidth = originalLength;
         }
       } else {
+        // Boyutları geri al
         packageData.length = originalLength;
         packageData.width = originalWidth;
       }
@@ -1686,13 +1692,25 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
       }
 
       this.createPackageMesh(packageData);
-
       this.packagesStateService.addToProcessedPackages(packageData);
-      this.store.dispatch(StepperResultActions.changeDeletedPackageIsRemaining({ packageIds: [packageData.pkgId] }))
+
+      this.store.dispatch(StepperResultActions.placePackageInTruck({
+        pkgId: packageData.pkgId,
+        x: packageData.x,
+        y: packageData.y,
+        z: packageData.z
+      }));
+      this.store.dispatch(StepperResultActions.changeDeletedPackageIsRemaining());
       this.orderResultChange();
+
     } else {
-      this.store.dispatch(StepperResultActions.changeDeletedPackageIsRemaining({ packageIds: [packageData.pkgId] }))
+      // Pozisyon bulunamadı — deleted'a geri koy, store'a -1,-1,-1 gönder
       this.packagesStateService.addToDeletedPackages(packageData);
+
+      this.store.dispatch(StepperResultActions.removePackageFromTruck({
+        pkgId: packageData.pkgId  // ← placePackageInTruck değil, remove
+      }));
+      this.store.dispatch(StepperResultActions.changeDeletedPackageIsRemaining());
     }
   }
 
@@ -2207,7 +2225,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
         length: p.length, width: p.width, height: p.height,
         weight: p.weight,
         color: p.color ?? '',
-originalColor: p.originalColor ?? '',
+        originalColor: p.originalColor ?? '',
         rotation: p.rotation || 0,
         originalLength: p.originalLength || p.length,
         originalWidth: p.originalWidth || p.width,
@@ -2221,7 +2239,7 @@ originalColor: p.originalColor ?? '',
         length: p.length, width: p.width, height: p.height,
         weight: p.weight,
         color: p.color ?? '',
-originalColor: p.originalColor ?? '',
+        originalColor: p.originalColor ?? '',
         rotation: p.rotation || 0,
         originalLength: p.originalLength || p.length,
         originalWidth: p.originalWidth || p.width,
@@ -2467,6 +2485,7 @@ originalColor: p.originalColor ?? '',
   }
 
   autoPlaceDeleted(): void {
+    this.isLocalOperation = true;
     const deleted = [...this.deletedPackagesSignal()];
     if (deleted.length === 0) return;
 
@@ -2498,7 +2517,7 @@ originalColor: p.originalColor ?? '',
         this.createPackageMesh(pkg);  // önce mesh oluştur, pkg.mesh artık dolu
         this.packagesStateService.removeFromDeletedPackages(pkg.pkgId);
         this.packagesStateService.addToProcessedPackages(pkg);
-        this.store.dispatch(StepperResultActions.changeDeletedPackageIsRemaining({ packageIds: [pkg.pkgId] }));
+        this.store.dispatch(StepperResultActions.changeDeletedPackageIsRemaining());
         placedCount++;
       } else {
         failedCount++;
