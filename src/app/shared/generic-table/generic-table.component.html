@@ -147,7 +147,7 @@
     </button>
     }
 
-    @for (row of dataSource.data; track row; let i = $index) {
+    @for (row of dataSource.data; track $any(row).id; let i = $index) {
     <div class="mobile-card" (click)="onRowClick(row)">
       <!-- Kart Başlığı: sıra numarası + işlem butonları -->
       <div class="mobile-card-header">

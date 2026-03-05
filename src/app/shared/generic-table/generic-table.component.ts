@@ -104,7 +104,7 @@ export interface CellButtonClickEvent<T> {
   templateUrl: './generic-table.component.html',
   styleUrl: './generic-table.component.scss',
 })
-export class GenericTableComponent<T> implements OnInit, AfterViewInit {
+export class GenericTableComponent<T extends { id: any }> implements OnInit, AfterViewInit {
 
   private translate = inject(TranslateService);
   @Input() service?: GenericCrudService<T>; // Optional now
