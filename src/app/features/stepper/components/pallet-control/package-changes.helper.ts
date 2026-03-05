@@ -185,31 +185,32 @@ export function calculatePackageChanges(
   const modified: PackageWriteDto[] = [];
   const deletedIds: string[] = [];
 
-
-  // 1. Güncel paketleri tara (ADDED ve MODIFIED bul)
   packages.forEach(pkg => {
+    // Paletsiz ve içeriksiz paket → işleme alma
+    const isEmpty = !pkg.pallet?.id && pkg.package_details.length === 0;
+    if (isEmpty) return;
+
     const originalMatch = findMatchingPackage(pkg, originalPackages);
 
     if (!originalMatch) {
-      // Orijinalde yok → ADDED
       if (pkg.pallet?.id !== undefined)
-        added.push(mapUiPackageToPackageWriteDto(pkg))
+        added.push(mapUiPackageToPackageWriteDto(pkg));
     } else {
-      // Orijinalde var → İçerik karşılaştır
       if (!arePackagesEqual(pkg, originalMatch))
-        modified.push(mapUiPackageToPackageWriteDto(pkg))
+        modified.push(mapUiPackageToPackageWriteDto(pkg));
     }
   });
 
-  // 2. Orijinal paketleri tara (DELETED bul)
   originalPackages.forEach(originalPkg => {
-    const currentMatch = packages.find(
-      pkg => pkg.id === originalPkg.id
-    );
+    const currentMatch = packages.find(pkg => pkg.id === originalPkg.id);
 
-    if (!currentMatch) {
-      // Güncel listede yok → DELETED
-      deletedIds.push(originalPkg.id); // Orijinal halini döndür
+    // Güncel listede yok VEYA var ama palet+içerik boş → DELETED
+    const isEmptyInCurrent = currentMatch &&
+      !currentMatch.pallet?.id &&
+      currentMatch.package_details.length === 0;
+
+    if (!currentMatch || isEmptyInCurrent) {
+      deletedIds.push(originalPkg.id);
     }
   });
 

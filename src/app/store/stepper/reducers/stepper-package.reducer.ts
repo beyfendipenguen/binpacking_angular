@@ -400,10 +400,7 @@ export const stepperPackageHandlers = [
         count: targetPackageDetails[existingProductIndex].count + removedProduct.count
       };
     } else {
-      targetPackageDetails.push({
-        ...removedProduct,
-        id: Guid()
-      });
+      targetPackageDetails.push({ ...removedProduct });
     }
 
     const updatedPackage = { ...targetPackage, package_details: targetPackageDetails };
@@ -459,8 +456,7 @@ export const stepperPackageHandlers = [
     } else {
       targetPackageDetails.push({
         ...packageDetail,
-        count: maxCount,
-        id: Guid()
+        count: maxCount
       });
     }
 
@@ -861,7 +857,7 @@ export const stepperPackageHandlers = [
     } else {
       const newPackageDetail: PackageDetailReadDto = {
         ...packageDetail,
-        id: Guid(),
+        id: packageDetail.id || Guid(),
         count: 0,
       };
       updatedRemainingProducts = [...updatedRemainingProducts, newPackageDetail];
@@ -985,7 +981,7 @@ function getPalletFillPercentage(
 
 function orderDetailsToPackageDetails(orderDetails: OrderDetailRead[]): PackageDetailReadDto[] {
   return orderDetails.map(od => ({
-    id: Guid(),
+    id: od.id,
     product: od.product,
     count: od.count,
     priority: 0,
