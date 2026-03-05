@@ -1,6 +1,7 @@
 import { on } from '@ngrx/store';
 import { StepperState } from '../stepper.state';
 import { StepperResultActions } from '../actions/stepper-result.actions';
+import { PackagePosition } from '@app/features/interfaces/order-result.interface';
 
 export const stepperResultHandlers = [
 
@@ -42,28 +43,47 @@ export const stepperResultHandlers = [
     }
   })),
 
+  on(StepperResultActions.placePackageInTruck, (state: StepperState, { pkgId, x, y, z }) => ({
+    ...state,
+    step3State: {
+      ...state.step3State,
+      orderResult: state.step3State.orderResult.map(pos =>
+        pos[8] === pkgId
+          ? [x, y, z, pos[3], pos[4], pos[5], pos[6], pos[7], pkgId] as PackagePosition
+          : pos
+      )
+    }
+  })),
+
+  on(StepperResultActions.removePackageFromTruck, (state: StepperState, { pkgId }) => ({
+    ...state,
+    step3State: {
+      ...state.step3State,
+      orderResult: state.step3State.orderResult.map(pos =>
+        pos[8] === pkgId
+          ? [-1, -1, -1, pos[3], pos[4], pos[5], pos[6], pos[7], pkgId] as PackagePosition
+          : pos
+      )
+    }
+  })),
+
   // Add Deleted Package Id List
-  on(StepperResultActions.changeDeletedPackageIsRemaining, (state: StepperState, { packageIds }) => {
-    // Gelen array'i performans için Set'e çeviriyoruz (araması daha hızlıdır)
-    // Güvenlik: packageIds null/undefined gelirse diye boş dizi önlemi
-    const idsToToggle = new Set(packageIds || []);
+  on(StepperResultActions.changeDeletedPackageIsRemaining, (state: StepperState) => {
+    // orderResult'tan hangi pkgId'lerin -1,-1,-1 olduğunu bul
+    const deletedPkgIds = new Set(
+      state.step3State.orderResult
+        .filter(pos => pos[0] === -1 && pos[1] === -1 && pos[2] === -1)
+        .map(pos => pos[8]) // pkgId index 8'de
+    );
 
     return {
       ...state,
       step2State: {
         ...state.step2State,
-        packages: state.step2State.packages.map(pkg => {
-          // Eğer bu paketin ID'si, gelen listenin içindeyse:
-          if (idsToToggle.has(pkg.id)) {
-            return {
-              ...pkg,
-              is_remaining: !pkg.is_remaining // MEVCUT DEĞERİ TERSİNE ÇEVİR (Toggle)
-            };
-          }
-
-          // Listede yoksa paketi olduğu gibi bırak
-          return pkg;
-        })
+        packages: state.step2State.packages.map(pkg => ({
+          ...pkg,
+          is_remaining: !deletedPkgIds.has(pkg.id) // -1 ise true, değilse false
+        }))
       }
     };
   }),

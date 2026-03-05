@@ -1,13 +1,13 @@
 import { createActionGroup, emptyProps, props } from '@ngrx/store';
 import { ReportFile } from '@app/features/stepper/components/result-step/result-step.service';
-import { PackagePosition } from '@app/features/interfaces/order-result.interface';
+import { PackageData, PackagePosition } from '@app/features/interfaces/order-result.interface';
 
 export const StepperResultActions = createActionGroup({
   source: 'Stepper Result',
   events: {
     // Edit Mode - Data Loading
     'Load Order Result Success': props<{ orderResult: PackagePosition[], reportFiles: ReportFile[] }>(),
-    'Set Order Result': props<{orderResult:PackagePosition[]}>(),
+    'Set Order Result': props<{ orderResult: PackagePosition[] }>(),
 
     // Submit
     'Result Step Submit': props<{ orderId: string, orderResult: PackagePosition[], resetStepper: boolean }>(),
@@ -24,9 +24,15 @@ export const StepperResultActions = createActionGroup({
     //SetOrderResultId
     'Set Order Result Id': props<{ orderResultId: string }>(),
     // Delete Package
-    'Change Deleted Package Is Remaining': props<{ packageIds: string[]}>(),
+    'Change Deleted Package Is Remaining': emptyProps(),
     'Clear Deleted Packages': emptyProps(),
-
+    'Place Package In Truck': props<{
+      pkgId: string;
+      x: number;
+      y: number;
+      z: number;
+    }>(),
+    'Remove Package From Truck': props<{ pkgId: string }>(),
     // Set is dirty
     'Set Is Dirty': props<{ isDirty: boolean }>(),
 

@@ -34,6 +34,26 @@ export interface PackageData {
   forcePlaceBorder?: THREE.LineSegments;
 }
 
+export interface PackageSnapshot {
+  pkgId: string;
+  id: any;
+  x: number;
+  y: number;
+  z: number;
+  length: number;
+  width: number;
+  height: number;
+  weight: number;
+  color: string | undefined;
+  originalColor: string | undefined;
+  rotation: number;
+  originalLength: number;
+  originalWidth: number;
+  dimensions: string | undefined;
+  isForcePlaced: boolean;
+  isDeleted: boolean;
+}
+
 export type PackagePosition = [
   number,  // x
   number,  // y

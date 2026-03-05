@@ -24,7 +24,7 @@ import { StepperUiActions } from '@app/store/stepper/actions/stepper-ui.actions'
 import { ThreeJSRenderManagerService } from './services/threejs-render-manager.service';
 import { ThreeJSComponents, ThreeJSInitializationService } from './services/threejs-initialization.service';
 import { PackagesStateService } from './services/packages-state.service';
-import { PackageData } from '@app/features/interfaces/order-result.interface';
+import { PackageData, PackageSnapshot } from '@app/features/interfaces/order-result.interface';
 import { toObservable } from '@angular/core/rxjs-interop';
 import { skip, distinctUntilChanged, takeUntil, Subject } from 'rxjs';
 import { ToastService } from '@app/core/services/toast.service';
@@ -86,6 +86,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
   private isTouchRotating = false;
   private touchStartTime = 0;
   private touchMoved = false;
+  private isLocalOperation = false;
 
   // State
   modelsLoaded = { truck: false, trailerWheel: false };
@@ -133,6 +134,13 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
   showStats = true;
   showCollisionWarning = false;
 
+  // Undo/Redo
+  private undoStack: PackageSnapshot[][] = [];
+  private redoStack: PackageSnapshot[][] = [];
+  private readonly MAX_HISTORY = 30;
+  canUndo = signal(false);
+  canRedo = signal(false);
+
   // Data
 
   currentFPS = 60;
@@ -174,6 +182,10 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
         takeUntil(this.destroy$)
       )
       .subscribe((pieces) => {
+        if (this.isLocalOperation) {
+          this.isLocalOperation = false; // ← Burada sıfırla, setTimeout yok
+          return;
+        }
         if (this.isViewReady && pieces && pieces.length > 0) {
           this.safeProcessData();
         }
@@ -263,6 +275,8 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
   forcePlacePackage(): void {
     const selected = this.selectedPackageSignal();
     if (!selected?.mesh) return;
+
+    this.saveSnapshot();
 
     // Flag'i set et
     selected.isForcePlaced = true;
@@ -533,7 +547,6 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     }
 
     if (deleted.length !== 0) {
-      this.store.dispatch(StepperResultActions.changeDeletedPackageIsRemaining({ packageIds: deleted.map(p => p.pkgId) }))
       this.packagesStateService.setDeletedPackages(deleted);
     }
   }
@@ -589,7 +602,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
   // MOUSE EVENTS
   // ========================================
 
-    private setupMouseEvents(): void {
+  private setupMouseEvents(): void {
     const canvas = this.renderer.domElement;
 
     // Mouse events
@@ -1216,12 +1229,14 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
         }
 
         this.orderResultChange();
+        this.cdr.markForCheck();
       }
     }
   }
 
   private completeDragging(): void {
     if (!this.isDragging || !this.draggedPackage) return;
+    this.saveSnapshot();
 
     if (this.draggedPackage.mesh) {
       const material = this.draggedPackage.mesh.material as THREE.MeshLambertMaterial;
@@ -1260,17 +1275,19 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
 
   private checkCollisionPrecise(
     packageToCheck: PackageData,
-    newPos: { x: number, y: number, z: number }
+    newPos: { x: number, y: number, z: number },
+    packageList?: PackageData[]
   ): boolean {
-
     if (packageToCheck.isForcePlaced) {
       return false;
     }
     const checkLength = packageToCheck.length;
     const checkWidth = packageToCheck.width;
+    const packages = packageList ?? this.processedPackagesSignal();
 
-    for (const otherPackage of this.processedPackagesSignal()) {
-      if (otherPackage.pkgId === packageToCheck.pkgId || !otherPackage.mesh) continue;
+    for (const otherPackage of packages) {
+      if (otherPackage.pkgId === packageToCheck.pkgId) continue;
+      if (!packageList && !otherPackage.mesh) continue; // sadece normal modda mesh kontrolü
 
       const otherLength = otherPackage.length;
       const otherWidth = otherPackage.width;
@@ -1573,6 +1590,8 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     const selected = this.selectedPackageSignal();
     if (!selected?.mesh) return;
 
+    this.saveSnapshot();
+
     if (!selected.originalLength) {
       selected.originalLength = selected.length;
       selected.originalWidth = selected.width;
@@ -1610,22 +1629,27 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     const selected = this.selectedPackageSignal();
     if (!selected) return;
 
-    const packages = this.processedPackagesSignal();
-    const deletedPackage = packages.find(pkg => pkg.pkgId === selected.pkgId);
+    this.saveSnapshot();
+    this.isLocalOperation = true;
+    const deletedPackage = this.processedPackagesSignal()
+      .find(pkg => pkg.pkgId === selected.pkgId);
 
     if (deletedPackage) {
+      this.isLocalOperation = true;
       this.packagesStateService.moveToDeleted(deletedPackage.pkgId);
-      this.store.dispatch(StepperResultActions.changeDeletedPackageIsRemaining({ packageIds: [deletedPackage.pkgId] }))
+      this.store.dispatch(StepperResultActions.removePackageFromTruck({ pkgId: deletedPackage.pkgId }));
+      this.store.dispatch(StepperResultActions.changeDeletedPackageIsRemaining());
+
       this.packagesStateService.clearSelection();
-
-      // ✅ Gravity uygula
       this.applyGravityToAllPackages();
-
       this.orderResultChange();
     }
   }
 
   restorePackage(packageData: PackageData): void {
+    this.saveSnapshot();
+    this.isLocalOperation = true; // ← En başa
+
     this.packagesStateService.removeFromDeletedPackages(packageData.pkgId);
 
     let validPosition = this.findValidPosition(packageData);
@@ -1648,6 +1672,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
           packageData.originalWidth = originalLength;
         }
       } else {
+        // Boyutları geri al
         packageData.length = originalLength;
         packageData.width = originalWidth;
       }
@@ -1667,22 +1692,26 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
       }
 
       this.createPackageMesh(packageData);
-
       this.packagesStateService.addToProcessedPackages(packageData);
-      this.store.dispatch(StepperResultActions.changeDeletedPackageIsRemaining({ packageIds: [packageData.pkgId] }))
-      this.orderResultChange();
-    } else {
-      this.store.dispatch(StepperResultActions.changeDeletedPackageIsRemaining({ packageIds: [packageData.pkgId] }))
-      this.packagesStateService.addToDeletedPackages(packageData);
-    }
-  }
 
-  restoreAllPackages(): void {
-    const deleted = this.deletedPackagesSignal();
-    if (deleted.length === 0) return;
-    this.store.dispatch(StepperResultActions.changeDeletedPackageIsRemaining({ packageIds: deleted.map(pkg => pkg.pkgId) }))
-    const packagesToRestore = [...deleted];
-    packagesToRestore.forEach(pkg => this.restorePackage(pkg));
+      this.store.dispatch(StepperResultActions.placePackageInTruck({
+        pkgId: packageData.pkgId,
+        x: packageData.x,
+        y: packageData.y,
+        z: packageData.z
+      }));
+      this.store.dispatch(StepperResultActions.changeDeletedPackageIsRemaining());
+      this.orderResultChange();
+
+    } else {
+      // Pozisyon bulunamadı — deleted'a geri koy, store'a -1,-1,-1 gönder
+      this.packagesStateService.addToDeletedPackages(packageData);
+
+      this.store.dispatch(StepperResultActions.removePackageFromTruck({
+        pkgId: packageData.pkgId  // ← placePackageInTruck değil, remove
+      }));
+      this.store.dispatch(StepperResultActions.changeDeletedPackageIsRemaining());
+    }
   }
 
   clearDeletedPackages(): void {
@@ -1987,6 +2016,21 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
           this.clearSelection();
         }
         break;
+      case 'z':
+      case 'Z':
+        if (event.ctrlKey || event.metaKey) {
+          event.preventDefault();
+          this.undo();
+        }
+        break;
+
+      case 'y':
+      case 'Y':
+        if (event.ctrlKey || event.metaKey) {
+          event.preventDefault();
+          this.redo();
+        }
+        break;
     }
   }
 
@@ -2020,6 +2064,197 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
         this.store.dispatch(StepperUiActions.setStep3IsDirty());
       });
     }
+  }
+
+  // ========================================
+  // UNDO / REDO
+  // ========================================
+
+  private saveSnapshot(): void {
+    const all: PackageSnapshot[] = [
+      ...this.processedPackagesSignal().map(p => ({
+        pkgId: p.pkgId,
+        id: p.id,
+        x: p.x, y: p.y, z: p.z,
+        length: p.length, width: p.width, height: p.height,
+        weight: p.weight,
+        color: p.color, originalColor: p.originalColor,
+        rotation: p.rotation || 0,
+        originalLength: p.originalLength || p.length,
+        originalWidth: p.originalWidth || p.width,
+        dimensions: p.dimensions,
+        isForcePlaced: p.isForcePlaced || false,
+        isDeleted: false
+      })),
+      ...this.deletedPackagesSignal().map(p => ({
+        pkgId: p.pkgId,
+        id: p.id,
+        x: p.x, y: p.y, z: p.z,
+        length: p.length, width: p.width, height: p.height,
+        weight: p.weight,
+        color: p.color, originalColor: p.originalColor,
+        rotation: p.rotation || 0,
+        originalLength: p.originalLength || p.length,
+        originalWidth: p.originalWidth || p.width,
+        dimensions: p.dimensions,
+        isForcePlaced: p.isForcePlaced || false,
+        isDeleted: true
+      }))
+    ];
+
+    this.undoStack.push(all);
+    if (this.undoStack.length > this.MAX_HISTORY) {
+      this.undoStack.shift();
+    }
+    this.redoStack = [];
+    this.canUndo.set(this.undoStack.length > 0);
+    this.canRedo.set(false);
+  }
+
+  private applySnapshot(snapshot: PackageSnapshot[]): void {
+    // Mevcut mesh'leri temizle
+    this.packagesGroup.clear();
+    this.processedPackagesSignal().forEach(p => {
+      if (p.mesh) {
+        p.mesh.geometry.dispose();
+        (p.mesh.material as THREE.Material).dispose();
+        p.mesh = undefined;
+      }
+      if (p.forcePlaceBorder) {
+        p.forcePlaceBorder.geometry.dispose();
+        (p.forcePlaceBorder.material as THREE.Material).dispose();
+        p.forcePlaceBorder = undefined;
+      }
+    });
+
+    this.packagesStateService.clearProcessedPackages();
+    this.packagesStateService.clearDeletedPackages();
+    this.packagesStateService.clearSelection();
+    this.usedColors.clear();
+
+    const processed: PackageData[] = [];
+    const deleted: PackageData[] = [];
+
+    for (const snap of snapshot) {
+      const pkg: PackageData = {
+        pkgId: snap.pkgId,
+        id: snap.id,
+        x: snap.x, y: snap.y, z: snap.z,
+        length: snap.length, width: snap.width, height: snap.height,
+        weight: snap.weight,
+        color: snap.color, originalColor: snap.originalColor,
+        rotation: snap.rotation,
+        originalLength: snap.originalLength,
+        originalWidth: snap.originalWidth,
+        dimensions: snap.dimensions,
+        isForcePlaced: snap.isForcePlaced,
+        isBeingDragged: false
+      };
+
+      if (pkg.color) this.usedColors.add(pkg.color);
+
+      if (snap.isDeleted) {
+        deleted.push(pkg);
+      } else {
+        this.createPackageMesh(pkg);
+        processed.push(pkg);
+      }
+    }
+
+    this.packagesStateService.setProcessedPackages(processed);
+    if (deleted.length > 0) {
+      this.packagesStateService.setDeletedPackages(deleted);
+    }
+
+    this.orderResultChange();
+    this.renderManager.requestRender();
+    this.cdr.markForCheck();
+  }
+
+  undo(): void {
+    if (this.undoStack.length === 0) return;
+
+    // Mevcut state'i redo'ya kaydet
+    const current: PackageSnapshot[] = [
+      ...this.processedPackagesSignal().map(p => ({
+        pkgId: p.pkgId, id: p.id,
+        x: p.x, y: p.y, z: p.z,
+        length: p.length, width: p.width, height: p.height,
+        weight: p.weight,
+        color: p.color ?? '',
+        originalColor: p.originalColor ?? '',
+        rotation: p.rotation || 0,
+        originalLength: p.originalLength || p.length,
+        originalWidth: p.originalWidth || p.width,
+        dimensions: p.dimensions,
+        isForcePlaced: p.isForcePlaced || false,
+        isDeleted: false
+      })),
+      ...this.deletedPackagesSignal().map(p => ({
+        pkgId: p.pkgId, id: p.id,
+        x: p.x, y: p.y, z: p.z,
+        length: p.length, width: p.width, height: p.height,
+        weight: p.weight,
+        color: p.color ?? '',
+        originalColor: p.originalColor ?? '',
+        rotation: p.rotation || 0,
+        originalLength: p.originalLength || p.length,
+        originalWidth: p.originalWidth || p.width,
+        dimensions: p.dimensions,
+        isForcePlaced: p.isForcePlaced || false,
+        isDeleted: true
+      }))
+    ];
+    this.redoStack.push(current);
+
+    const snapshot = this.undoStack.pop()!;
+    this.applySnapshot(snapshot);
+
+    this.canUndo.set(this.undoStack.length > 0);
+    this.canRedo.set(this.redoStack.length > 0);
+  }
+
+  redo(): void {
+    if (this.redoStack.length === 0) return;
+
+    // Mevcut state'i undo'ya kaydet
+    const current: PackageSnapshot[] = [
+      ...this.processedPackagesSignal().map(p => ({
+        pkgId: p.pkgId, id: p.id,
+        x: p.x, y: p.y, z: p.z,
+        length: p.length, width: p.width, height: p.height,
+        weight: p.weight,
+        color: p.color ?? '',
+        originalColor: p.originalColor ?? '',
+        rotation: p.rotation || 0,
+        originalLength: p.originalLength || p.length,
+        originalWidth: p.originalWidth || p.width,
+        dimensions: p.dimensions,
+        isForcePlaced: p.isForcePlaced || false,
+        isDeleted: false
+      })),
+      ...this.deletedPackagesSignal().map(p => ({
+        pkgId: p.pkgId, id: p.id,
+        x: p.x, y: p.y, z: p.z,
+        length: p.length, width: p.width, height: p.height,
+        weight: p.weight,
+        color: p.color ?? '',
+        originalColor: p.originalColor ?? '',
+        rotation: p.rotation || 0,
+        originalLength: p.originalLength || p.length,
+        originalWidth: p.originalWidth || p.width,
+        dimensions: p.dimensions,
+        isForcePlaced: p.isForcePlaced || false,
+        isDeleted: true
+      }))
+    ];
+    this.undoStack.push(current);
+
+    const snapshot = this.redoStack.pop()!;
+    this.applySnapshot(snapshot);
+
+    this.canUndo.set(this.undoStack.length > 0);
+    this.canRedo.set(this.redoStack.length > 0);
   }
 
   // ========================================
@@ -2112,6 +2347,11 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
       this.packagesGroup.clear();
     }
 
+    this.undoStack = [];
+    this.redoStack = [];
+    this.canUndo.set(false);
+    this.canRedo.set(false);
+
     this.isLoadingModels = false;
     this.isLoadingData = false;
     this.hasThreeJSError = false;
@@ -2178,5 +2418,293 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     }
 
     this.cdr.markForCheck();
+  }
+
+  // ========================================
+  // AUTO PLACEMENT
+  // ========================================
+
+  autoPlaceAll(): void {
+    const allPackages = [
+      ...this.processedPackagesSignal().map(p => ({ ...p, mesh: undefined, forcePlaceBorder: undefined })),
+      ...this.deletedPackagesSignal().map(p => ({ ...p, mesh: undefined, forcePlaceBorder: undefined }))
+    ];
+
+    if (allPackages.length === 0) return;
+
+    this.saveSnapshot();
+
+    if (this.packagesGroup) {
+      this.packagesGroup.clear();
+    }
+
+    this.usedColors.clear();
+    this.packagesStateService.clearProcessedPackages();
+    this.packagesStateService.clearDeletedPackages();
+    this.packagesStateService.clearSelection();
+
+    const placed: PackageData[] = [];
+    let hasUnplaceable = false;
+
+    for (const pkg of allPackages) {
+      pkg.color = this.getUniqueColor();
+      pkg.originalColor = pkg.color;
+      pkg.isForcePlaced = false;
+
+      const pos = this.findAutoPlacePositionWidthFirst(pkg, placed);
+
+      if (pos) {
+        pkg.x = pos.x;
+        pkg.y = pos.y;
+        pkg.z = pos.z;
+      } else {
+        const fallback = this.getForcedFallbackPosition(pkg, placed);
+        pkg.x = fallback.x;
+        pkg.y = fallback.y;
+        pkg.z = fallback.z;
+        pkg.isForcePlaced = true;
+        hasUnplaceable = true;
+      }
+
+
+      this.createPackageMesh(pkg);
+      placed.push(pkg);
+    }
+    allPackages.sort((a, b) => (b.length * b.width) - (a.length * a.width));
+    this.packagesStateService.setProcessedPackages(placed);
+
+    if (hasUnplaceable) {
+      this.toastService.warning(this.translate.instant('TRUCK_VISUALIZATION.AUTO_PLACE_PARTIAL'));
+    } else {
+      this.toastService.success(this.translate.instant('TRUCK_VISUALIZATION.AUTO_PLACE_SUCCESS'));
+    }
+
+    this.orderResultChange();
+    this.renderManager.requestRender();
+    this.cdr.markForCheck();
+  }
+
+  autoPlaceDeleted(): void {
+    this.isLocalOperation = true;
+    const deleted = [...this.deletedPackagesSignal()];
+    if (deleted.length === 0) return;
+
+    this.saveSnapshot();
+
+    let placedCount = 0;
+    let failedCount = 0;
+
+    for (const pkg of deleted) {
+      pkg.mesh = undefined;
+      pkg.forcePlaceBorder = undefined;
+
+      const pos = this.findAutoPlacePosition(pkg);
+
+      if (pos) {
+        pkg.x = pos.x;
+        pkg.y = pos.y;
+        pkg.z = pos.z;
+        pkg.isForcePlaced = false;
+
+        if (!pkg.originalColor) {
+          pkg.color = this.getUniqueColor();
+          pkg.originalColor = pkg.color;
+        } else {
+          pkg.color = pkg.originalColor;
+          this.usedColors.add(pkg.originalColor);
+        }
+
+        this.createPackageMesh(pkg);  // önce mesh oluştur, pkg.mesh artık dolu
+        this.packagesStateService.removeFromDeletedPackages(pkg.pkgId);
+        this.packagesStateService.addToProcessedPackages(pkg);
+        this.store.dispatch(StepperResultActions.changeDeletedPackageIsRemaining());
+        placedCount++;
+      } else {
+        failedCount++;
+      }
+    }
+
+    if (failedCount > 0) {
+      this.toastService.warning(
+        `${failedCount} ${this.translate.instant('TRUCK_VISUALIZATION.AUTO_PLACE_NO_SPACE')}`
+      );
+    }
+
+    if (placedCount > 0) {
+      this.orderResultChange();
+      this.renderManager.requestRender();
+      this.cdr.markForCheck();
+    }
+  }
+
+  private findAutoPlacePosition(
+    packageData: PackageData,
+    existingPackages?: PackageData[]
+  ): { x: number, y: number, z: number } | null {
+    const truckDims = this.truckDimension();
+    const stepSize = 100;
+    const packages = existingPackages ?? this.processedPackagesSignal();
+
+    // 1. Önce aynı L×W ölçüdeki package'ların üstünü dene (stacking)
+    const sameDimPackages = packages.filter(p =>
+      p.pkgId !== packageData.pkgId &&
+      (
+        (p.length === packageData.length && p.width === packageData.width) ||
+        (p.length === packageData.width && p.width === packageData.length)
+      )
+    );
+
+    for (const base of sameDimPackages) {
+      // Zincir: en üstteki package'ı bul (aynı x,y'de en yüksek z)
+      let topZ = base.z + base.height;
+      for (const other of packages) {
+        if (
+          other.pkgId !== packageData.pkgId &&
+          other.x === base.x &&
+          other.y === base.y
+        ) {
+          topZ = Math.max(topZ, other.z + other.height);
+        }
+      }
+
+      if (topZ + packageData.height > truckDims[2]) continue;
+
+      const pos = { x: base.x, y: base.y, z: topZ };
+      if (!this.checkCollisionPrecise(packageData, pos, packages)) {
+        // Eğer base rotated ise bu paketi de aynı yöne döndür
+        if (base.length === packageData.width && base.width === packageData.length) {
+          packageData.length = base.length;
+          packageData.width = base.width;
+          packageData.rotation = (packageData.rotation || 0) + 90;
+          packageData.dimensions = `${packageData.length}×${packageData.width}×${packageData.height} mm`;
+        }
+        return pos;
+      }
+    }
+
+    // 2. Zemin seviyesinde tara
+    for (let x = 0; x <= truckDims[0] - packageData.length; x += stepSize) {
+      for (let y = 0; y <= truckDims[1] - packageData.width; y += stepSize) {
+        const pos = { x, y, z: 0 };
+        if (!this.checkCollisionPrecise(packageData, pos, packages)) {
+          return pos;
+        }
+      }
+    }
+
+    // 90 derece döndürülmüş yön
+    const rotLength = packageData.width;
+    const rotWidth = packageData.length;
+    for (let x = 0; x <= truckDims[0] - rotLength; x += stepSize) {
+      for (let y = 0; y <= truckDims[1] - rotWidth; y += stepSize) {
+        const pos = { x, y, z: 0 };
+        const rotatedPkg = { ...packageData, length: rotLength, width: rotWidth };
+        if (!this.checkCollisionPrecise(rotatedPkg, pos, packages)) {
+          // Paketi döndür
+          packageData.length = rotLength;
+          packageData.width = rotWidth;
+          packageData.rotation = (packageData.rotation || 0) + 90;
+          packageData.dimensions = `${packageData.length}×${packageData.width}×${packageData.height} mm`;
+          return pos;
+        }
+      }
+    }
+
+    return null;
+  }
+
+  private findAutoPlacePositionWidthFirst(
+    packageData: PackageData,
+    existingPackages: PackageData[]
+  ): { x: number, y: number, z: number } | null {
+    const truckDims = this.truckDimension();
+    const stepSize = 100;
+
+    // 1. Stacking: aynı L×W (veya rotated) üstüne koy
+    const sameDimPackages = existingPackages.filter(p =>
+      p.pkgId !== packageData.pkgId &&
+      (
+        (p.length === packageData.length && p.width === packageData.width) ||
+        (p.length === packageData.width && p.width === packageData.length)
+      )
+    );
+
+    for (const base of sameDimPackages) {
+      let topZ = base.z + base.height;
+      for (const other of existingPackages) {
+        if (other.pkgId !== packageData.pkgId &&
+          other.x === base.x && other.y === base.y) {
+          topZ = Math.max(topZ, other.z + other.height);
+        }
+      }
+      if (topZ + packageData.height > truckDims[2]) continue;
+
+      const pos = { x: base.x, y: base.y, z: topZ };
+      if (!this.checkCollisionPrecise(packageData, pos, existingPackages)) {
+        if (base.length === packageData.width && base.width === packageData.length) {
+          packageData.length = base.length;
+          packageData.width = base.width;
+          packageData.rotation = (packageData.rotation || 0) + 90;
+          packageData.dimensions = `${packageData.length}×${packageData.width}×${packageData.height} mm`;
+        }
+        return pos;
+      }
+    }
+
+    // 2. Hangi rotasyon truck genişliğini daha iyi doldurur?
+    // Truck width = truckDims[1]
+    // width değeri truckDims[1]'e daha yakın olan rotasyonu önceliklendir
+    const distOriginal = truckDims[0] % packageData.width;
+    const distRotated = truckDims[0] % packageData.length;
+
+    // Rotated daha iyi dolduruyorsa önce onu dene
+    const orientations = distRotated <= distOriginal
+      ? [
+        { length: packageData.width, width: packageData.length, rotate: true },
+        { length: packageData.length, width: packageData.width, rotate: false }
+      ]
+      : [
+        { length: packageData.length, width: packageData.width, rotate: false },
+        { length: packageData.width, width: packageData.length, rotate: true }
+      ];
+
+    // 3. Y-first tarama (genişliği önce doldur)
+    for (const orient of orientations) {
+      if (orient.length > truckDims[0] || orient.width > truckDims[1]) continue;
+
+      for (let x = 0; x <= truckDims[0] - orient.length; x += stepSize) {
+        for (let y = 0; y <= truckDims[1] - orient.width; y += stepSize) {
+          const pos = { x, y, z: 0 };
+          const testPkg = { ...packageData, length: orient.length, width: orient.width };
+
+          if (!this.checkCollisionPrecise(testPkg as PackageData, pos, existingPackages)) {
+            if (orient.rotate) {
+              packageData.length = orient.length;
+              packageData.width = orient.width;
+              packageData.rotation = (packageData.rotation || 0) + 90;
+              packageData.dimensions = `${packageData.length}×${packageData.width}×${packageData.height} mm`;
+            }
+            return pos;
+          }
+        }
+      }
+    }
+
+    return null;
+  }
+
+  private getForcedFallbackPosition(
+    pkg: PackageData,
+    existingPackages: PackageData[]
+  ): { x: number, y: number, z: number } {
+    let maxZ = 0;
+    for (const other of existingPackages) {
+      const xOverlap = 0 < other.x + other.length && pkg.length > other.x;
+      const yOverlap = 0 < other.y + other.width && pkg.width > other.y;
+      if (xOverlap && yOverlap) {
+        maxZ = Math.max(maxZ, other.z + other.height);
+      }
+    }
+    return { x: 0, y: 0, z: maxZ };
   }
 }

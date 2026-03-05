@@ -308,7 +308,7 @@
     "FILE_OPENING": "Dosya açılıyor...",
     "FILE_OPEN_ERROR": "Dosya açılırken hata oluştu",
     "CURRENT_FILES": "Güncel Dosyalar",
-  "OLD_FILES": "Eski Dosyalar"
+    "OLD_FILES": "Eski Dosyalar"
   },
   "ORDER": {
     "TITLE": "Sevkiyat Yönetimi",
@@ -518,7 +518,6 @@
     "CONTINUE_WARNING": "Eğer bu şekilde devam etmek isterseniz yerleştirilmeyen ürünler siparişten kaldırılacaktır.",
     "CONTINUE_ANYWAY": "Yine de devam et.",
     "WEIGHT_LIMIT_EXCEEDED": "⚠️ Ağırlık limiti aşıldı! Lütfen paketleri kontrol edin.",
-
     "CALCULATE_WITH_PARAMS": "Parametreli Hesaplama",
     "PARAMS_INFO": "Ürünlerin adetlerini düşürerek palet hesaplama algoritmasına çıkartmak istediğiniz adetleri yazabilirsiniz",
     "PARAMS_CALCULATE": "Parametreli Hesapla",
@@ -527,7 +526,6 @@
     "ONLY_REMAINING_PRODUCTS": "Sadece kalan ürünleri hesapla",
     "NO_PACKAGES_WARNING": "Önce 'Hesapla' butonuna basmalısınız."
   },
-
   "INVOICE_UPLOAD": {
     "TITLE": "İhracat Sipariş Bildirimi",
     "SUBTITLE": "Siparişlerin detaylarını yönetin ve takip edin",
@@ -748,7 +746,16 @@
     "WHEEL_MODEL": "Tekerlek Modeli",
     "PLACING_PACKAGES": "Paketler yerleştiriliyor...",
     "FULLSCREEN": "Tam Ekran",
-    "EXIT_FULLSCREEN": "Tam Ekrandan Çık"
+    "EXIT_FULLSCREEN": "Tam Ekrandan Çık",
+    "AUTO_PLACE_ALL": "Tümünü Otomatik Yerleştir",
+    "AUTO_PLACE_ALL_TIP": "Tüm paketleri otomatik olarak tıra yerleştir",
+    "AUTO_PLACE_DELETED": "Otomatik Yerleştir",
+    "AUTO_PLACE_DELETED_TIP": "Yerleştirilemeyen paketleri otomatik yerleştir",
+    "AUTO_PLACE_SUCCESS": "Tüm paketler başarıyla yerleştirildi",
+    "AUTO_PLACE_PARTIAL": "Bazı paketler için uygun alan bulunamadı, zorla yerleştirildi",
+    "AUTO_PLACE_NO_SPACE": "Paket için uygun pozisyon bulunamadı",
+    "UNDO": "Geri Al (Ctrl+Z)",
+    "REDO": "İleri Al (Ctrl+Y)"
   },
   "STEPPER": {
     "ERROR": "Hatası",
@@ -916,7 +923,7 @@
     "NOTIFICATION_DESC": "Yanıt geldiğinde e-posta ile bilgilendirilirsiniz",
     "PERMISSION_DETAILS": "Yetki Detayları"
   },
-   "TOUR": {
+  "TOUR": {
     "COMMON": {
       "BACK": "Geri",
       "NEXT": "İleri",
