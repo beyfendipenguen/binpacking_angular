@@ -13,7 +13,7 @@ import { environment } from '@environments/environment';
 })
 export class TourService {
   private tour: Tour | null = null;
-  private readonly DEMO_COMPANY_ID = "885b80c6-3d77-4b61-a5aa-a6b155eb2e42";
+  private readonly DEMO_COMPANY_ID = "b5ccfc41-e3f6-42a3-aa94-bedcf3acceb6";
   private readonly DEBUG = !environment.production;
 
   constructor(
