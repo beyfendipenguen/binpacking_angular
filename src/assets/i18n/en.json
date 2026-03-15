@@ -982,6 +982,8 @@
     "TITLE": "Statistics Dashboard",
     "SUBTITLE": "Overview of your order and export data",
     "TOTAL_ORDERS": "Total Orders",
+    "ORDER_COUNT": "Order Count",
+    "TOTAL_COUNT": "Total Count",
     "TOTAL_PRODUCTS": "Product Types",
     "TOTAL_CUSTOMERS": "Customers",
     "TOTAL_COUNTRIES": "Export Countries",
@@ -1010,6 +1012,9 @@
       "WEEKLY": "Weekly",
       "MONTHLY": "Monthly",
       "YEARLY": "Yearly"
-    }
+    },
+    "HIGH": "High",
+    "LOW": "Low",
+    "ORDER_DISTRIBUTION": "Order Distribution"
   }
 }

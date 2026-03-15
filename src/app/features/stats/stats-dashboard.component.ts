@@ -14,7 +14,7 @@ import { Store } from '@ngrx/store';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { NgxEchartsModule } from 'ngx-echarts';
 import { EChartsOption } from 'echarts';
 import * as echarts from 'echarts';
@@ -61,6 +61,7 @@ import {
 })
 export class StatsDashboardComponent implements OnInit, OnDestroy, AfterViewInit {
   private store = inject(Store<AppState>);
+  private translate = inject(TranslateService);
 
   // ─── SELECTORS → SIGNALS ────────────────────────────────
   readonly anyLoading = toSignal(this.store.select(selectAnyStatsLoading), { initialValue: false });
@@ -109,7 +110,7 @@ export class StatsDashboardComponent implements OnInit, OnDestroy, AfterViewInit
       },
       series: [
         {
-          name: 'Siparişler',
+          name: this.translate.instant('APPS.ORDERS'),
           type: 'line',
           smooth: true,
           data: data.map((d) => d.count),
@@ -150,7 +151,7 @@ export class StatsDashboardComponent implements OnInit, OnDestroy, AfterViewInit
       },
       series: [
         {
-          name: 'Toplam Adet',
+          name: this.translate.instant('APPS.ORDERS'),
           type: 'bar',
           data: data.map((d) => d.total_quantity),
           itemStyle: {
@@ -195,7 +196,7 @@ export class StatsDashboardComponent implements OnInit, OnDestroy, AfterViewInit
       },
       series: [
         {
-          name: 'Sipariş Sayısı',
+          name: this.translate.instant('APPS.ORDER_COUNT'),
           type: 'bar',
           data: data.map((d) => d.order_count),
           itemStyle: {
@@ -229,20 +230,20 @@ export class StatsDashboardComponent implements OnInit, OnDestroy, AfterViewInit
       tooltip: {
         trigger: 'item',
         formatter: (params: any) =>
-          `${params.name}<br/>Sipariş: <b>${isNaN(params.value) ? 0 : (params.value ?? 0)}</b>`,
+          `${params.name}<br/>${this.translate.instant('MODELS.ORDER')}: <b>${isNaN(params.value) ? 0 : (params.value ?? 0)}</b>`,
       },
       visualMap: {
         min: 0,
         max: max || 1,
         left: 'left',
         bottom: '20px',
-        text: ['Yüksek', 'Düşük'],
+        text: [this.translate.instant('STATS.HIGH'), this.translate.instant('STATS.LOW')],
         inRange: { color: ['#e8f5f5', '#006A6A'] },
         textStyle: { color: '#6b7280', fontSize: 11 },
       },
       series: [
         {
-          name: 'Sipariş Dağılımı',
+          name: this.translate.instant('STATS.ORDER_DISTRIBUTION'),
           type: 'map',
           map: 'world',
           roam: true,
@@ -289,7 +290,7 @@ export class StatsDashboardComponent implements OnInit, OnDestroy, AfterViewInit
         this.mapRegistered.set(true);
       })
       .catch(() => {
-        console.warn('World map could not be loaded');
+
       });
   }
 

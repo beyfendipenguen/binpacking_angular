@@ -982,6 +982,8 @@
     "TITLE": "İstatistik Paneli",
     "SUBTITLE": "Sipariş ve ihracat verilerinizin genel görünümü",
     "TOTAL_ORDERS": "Toplam Sipariş",
+    "ORDER_COUNT": "Sipariş Sayısı",
+    "TOTAL_COUNT": "Toplam Adet",
     "TOTAL_PRODUCTS": "Ürün Çeşidi",
     "TOTAL_CUSTOMERS": "Müşteri Sayısı",
     "TOTAL_COUNTRIES": "İhracat Ülkesi",
@@ -1010,6 +1012,9 @@
       "WEEKLY": "Haftalık",
       "MONTHLY": "Aylık",
       "YEARLY": "Yıllık"
-    }
+    },
+    "HIGH": "Yüksek",
+    "LOW": "Düşük",
+    "ORDER_DISTRIBUTION": "Sipariş Dağılımı"
   }
 }
