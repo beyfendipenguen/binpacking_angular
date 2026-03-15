@@ -976,5 +976,40 @@
       "REPORT_FILES": "<h3>Rapor Dosyaları</h3><p>Optimizasyon sonuçlarını Excel formatında indirebilirsiniz.</p><p>Raporlar detaylı yerleşim planı içerir.</p>",
       "COMPLETE_SHIPMENT": "<h3>Sevkiyatı Tamamla</h3><p>Tüm işlemler tamamlandı!</p><p>Bu butona tıklayarak sevkiyatı onaylayabilirsiniz.</p><p><strong>Turu tamamladınız! 🎉</strong></p>"
     }
+  },
+  "STATS": {
+    "STATS_MANAGEMENT": "İstatistikler",
+    "TITLE": "İstatistik Paneli",
+    "SUBTITLE": "Sipariş ve ihracat verilerinizin genel görünümü",
+    "TOTAL_ORDERS": "Toplam Sipariş",
+    "TOTAL_PRODUCTS": "Ürün Çeşidi",
+    "TOTAL_CUSTOMERS": "Müşteri Sayısı",
+    "TOTAL_COUNTRIES": "İhracat Ülkesi",
+    "BEST_MONTH": "En Aktif Ay",
+    "ORDERS": "sipariş",
+    "COUNTRIES": "ülke",
+    "NO_DATA": "Gösterilecek veri bulunamadı",
+    "ORDER_TREND": "Sipariş Trendi",
+    "GEOGRAPHY_TITLE": "Ülke Bazlı Sipariş Dağılımı",
+    "TOP_PRODUCTS": "En Çok Satılan Ürünler",
+    "TOP_COMPANIES": "En Çok Sipariş Veren Firmalar",
+    "PRODUCTS_BY_CUSTOMER": "Müşteri Bazlı En Çok Sipariş Edilen Ürün",
+    "COMPANY": "Firma",
+    "COUNTRY": "Ülke",
+    "TOP_PRODUCT_COL": "En Çok Sipariş Edilen Ürün",
+    "QUANTITY": "Adet",
+    "TIME_SAVING_TITLE": "Zaman Tasarrufu Analizi",
+    "TOTAL_SAVED": "Toplam Tasarruf",
+    "THIS_MONTH": "Bu Ay",
+    "THIS_YEAR": "Bu Yıl",
+    "AVG_PER_ORDER": "Sipariş Başı Ortalama",
+    "ANALYZED_ORDERS": "Analiz Edilen Sipariş",
+    "TIME_SAVING_INFO": "Hesaplama: Manuel yerleşim {{ placement }} dk + Raporlama {{ report }} dk baz alınmıştır",
+    "PERIOD": {
+      "DAILY": "Günlük",
+      "WEEKLY": "Haftalık",
+      "MONTHLY": "Aylık",
+      "YEARLY": "Yıllık"
+    }
   }
 }
