@@ -28,9 +28,12 @@ import { StepperGeneralEffects } from './store/stepper/effects/stepper-general.e
 
 import { STORE_CONFIG, DEVTOOLS_CONFIG, metaReducers } from './ngrx.config';
 import { loadingInterceptor } from './shared/loading/loading.interceptor';
-import { LanguageService } from './core/services/language.service';
+
 import { VersionCheckService } from './core/services/version-check.service';
 import { languageInterceptor } from './core/interceptors/language.interceptor';
+
+import { NgxEchartsModule } from 'ngx-echarts';
+import { StatsEffects } from './store/stats/stats.effects';
 
 export function checkVersion() {
   const versionCheckService = inject(VersionCheckService);
@@ -89,6 +92,11 @@ export const appConfig: ApplicationConfig = {
         languageInterceptor
       ])
     ),
+    importProvidersFrom(
+      NgxEchartsModule.forRoot({
+        echarts: () => import('echarts') // Lazy loading ile tüm kütüphaneyi yüklüyoruz
+      })
+    ),
     provideAnimations(),
     importProvidersFrom(
       ToastrModule.forRoot({
@@ -119,7 +127,8 @@ export const appConfig: ApplicationConfig = {
       StepperPackageEffects,
       StepperResultEffects,
       StepperGeneralEffects,
-      UserEffects
+      UserEffects,
+      StatsEffects
     ]),
 
     ...(isDevMode() ? [provideStoreDevtools(DEVTOOLS_CONFIG)] : [])

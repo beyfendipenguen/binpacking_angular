@@ -976,5 +976,40 @@
       "REPORT_FILES": "<h3>Report Files</h3><p>You can download optimization results in Excel format.</p><p>Reports include detailed placement plan.</p>",
       "COMPLETE_SHIPMENT": "<h3>Complete Shipment</h3><p>All operations completed!</p><p>You can confirm the shipment by clicking this button.</p><p><strong>You have completed the tour! 🎉</strong></p>"
     }
+  },
+  "STATS": {
+    "STATS_MANAGEMENT": "Statistics",
+    "TITLE": "Statistics Dashboard",
+    "SUBTITLE": "Overview of your order and export data",
+    "TOTAL_ORDERS": "Total Orders",
+    "TOTAL_PRODUCTS": "Product Types",
+    "TOTAL_CUSTOMERS": "Customers",
+    "TOTAL_COUNTRIES": "Export Countries",
+    "BEST_MONTH": "Most Active Month",
+    "ORDERS": "orders",
+    "COUNTRIES": "countries",
+    "NO_DATA": "No data available",
+    "ORDER_TREND": "Order Trend",
+    "GEOGRAPHY_TITLE": "Orders by Country",
+    "TOP_PRODUCTS": "Top Selling Products",
+    "TOP_COMPANIES": "Top Ordering Companies",
+    "PRODUCTS_BY_CUSTOMER": "Top Product per Customer",
+    "COMPANY": "Company",
+    "COUNTRY": "Country",
+    "TOP_PRODUCT_COL": "Top Ordered Product",
+    "QUANTITY": "Qty",
+    "TIME_SAVING_TITLE": "Time Saving Analysis",
+    "TOTAL_SAVED": "Total Saved",
+    "THIS_MONTH": "This Month",
+    "THIS_YEAR": "This Year",
+    "AVG_PER_ORDER": "Avg. per Order",
+    "ANALYZED_ORDERS": "Analyzed Orders",
+    "TIME_SAVING_INFO": "Calculation based on: manual placement {{ placement }} min + reporting {{ report }} min",
+    "PERIOD": {
+      "DAILY": "Daily",
+      "WEEKLY": "Weekly",
+      "MONTHLY": "Monthly",
+      "YEARLY": "Yearly"
+    }
   }
 }

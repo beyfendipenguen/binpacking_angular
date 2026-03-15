@@ -8,6 +8,7 @@ import { PalletsComponent } from './pallets/pallets.component';
 import { TrucksComponent } from './trucks/trucks.component';
 import { PermissionsComponent } from './permissions/permissions.component';
 import { permissionGuard } from '@app/core/auth/guards/permission.guard';
+import { StatsDashboardComponent } from './stats/stats-dashboard.component';
 
 const ADMIN_ROUTES: Routes = [
   {
@@ -49,6 +50,12 @@ const ADMIN_ROUTES: Routes = [
   {
     path: 'permissions',
     component: PermissionsComponent,
+    canActivate: [permissionGuard],
+    data: { permission: 'access_control.view_groupprofile' }
+  },
+  {
+    path: 'stats',
+    component: StatsDashboardComponent,
     canActivate: [permissionGuard],
     data: { permission: 'access_control.view_groupprofile' }
   },

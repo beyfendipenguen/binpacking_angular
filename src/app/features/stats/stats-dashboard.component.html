@@ -1,0 +1,377 @@
+<!-- features/stats/stats-dashboard.component.html -->
+
+<div class="stats-dashboard">
+
+  <!-- ═══════════════════════════════════════════
+       HEADER
+  ═══════════════════════════════════════════ -->
+  <div class="dashboard-header">
+    <div class="header-left">
+      <mat-icon>insights</mat-icon>
+      <div class="header-text">
+        <h1>{{ 'STATS.TITLE' | translate }}</h1>
+        <p>{{ 'STATS.SUBTITLE' | translate }}</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════
+       KPI KARTLARI
+  ═══════════════════════════════════════════ -->
+  <div class="kpi-grid">
+
+    <!-- Toplam Sipariş -->
+    <div class="kpi-card primary">
+      @if (overviewLoading()) {
+      <div class="kpi-skeleton"></div>
+      } @else {
+      <div class="kpi-icon-wrap">
+        <mat-icon>receipt_long</mat-icon>
+      </div>
+      <div class="kpi-content">
+        <span class="kpi-value">{{ kpi()?.total_orders ?? 0 }}</span>
+        <span class="kpi-label">{{ 'STATS.TOTAL_ORDERS' | translate }}</span>
+      </div>
+      }
+    </div>
+
+    <!-- Toplam Ürün Çeşidi -->
+    <div class="kpi-card secondary">
+      @if (overviewLoading()) {
+      <div class="kpi-skeleton"></div>
+      } @else {
+      <div class="kpi-icon-wrap">
+        <mat-icon>inventory_2</mat-icon>
+      </div>
+      <div class="kpi-content">
+        <span class="kpi-value">{{ kpi()?.total_products ?? 0 }}</span>
+        <span class="kpi-label">{{ 'STATS.TOTAL_PRODUCTS' | translate }}</span>
+      </div>
+      }
+    </div>
+
+    <!-- Toplam Müşteri -->
+    <div class="kpi-card success">
+      @if (overviewLoading()) {
+      <div class="kpi-skeleton"></div>
+      } @else {
+      <div class="kpi-icon-wrap">
+        <mat-icon>business</mat-icon>
+      </div>
+      <div class="kpi-content">
+        <span class="kpi-value">{{ kpi()?.total_customers ?? 0 }}</span>
+        <span class="kpi-label">{{ 'STATS.TOTAL_CUSTOMERS' | translate }}</span>
+      </div>
+      }
+    </div>
+
+    <!-- İhracat Yapılan Ülke -->
+    <div class="kpi-card info">
+      @if (overviewLoading()) {
+      <div class="kpi-skeleton"></div>
+      } @else {
+      <div class="kpi-icon-wrap">
+        <mat-icon>public</mat-icon>
+      </div>
+      <div class="kpi-content">
+        <span class="kpi-value">{{ kpi()?.total_countries ?? 0 }}</span>
+        <span class="kpi-label">{{ 'STATS.TOTAL_COUNTRIES' | translate }}</span>
+      </div>
+      }
+    </div>
+
+    <!-- En Aktif Ay -->
+    <div class="kpi-card amber">
+      @if (overviewLoading()) {
+      <div class="kpi-skeleton"></div>
+      } @else {
+      <div class="kpi-icon-wrap">
+        <mat-icon>star</mat-icon>
+      </div>
+      <div class="kpi-content">
+        <span class="kpi-value">{{ bestMonth()?.month ?? '-' }}</span>
+        <span class="kpi-label">
+          {{ 'STATS.BEST_MONTH' | translate }}
+          @if (bestMonth()) {
+          <span class="kpi-sub">({{ bestMonth()!.order_count }} {{ 'STATS.ORDERS' | translate }})</span>
+          }
+        </span>
+      </div>
+      }
+    </div>
+
+  </div>
+
+  <!-- ═══════════════════════════════════════════
+       ZAMAN TASARRUFU KARTI
+  ═══════════════════════════════════════════ -->
+  <div class="section-card time-saving-card">
+    <div class="card-header">
+      <mat-icon>schedule</mat-icon>
+      <span>{{ 'STATS.TIME_SAVING_TITLE' | translate }}</span>
+    </div>
+
+    @if (timeSavingLoading()) {
+    <div class="chart-loading">
+      <mat-spinner [diameter]="36"></mat-spinner>
+    </div>
+    } @else {
+    <div class="time-saving-grid">
+
+      <!-- Toplam Tasarruf -->
+      <div class="time-saving-item highlight">
+        <mat-icon>hourglass_bottom</mat-icon>
+        <div class="time-saving-content">
+          <span class="time-value">
+            {{ formatHours(timeSavingSummary()?.total_saved_hours ?? 0) }}
+          </span>
+          <span class="time-label">{{ 'STATS.TOTAL_SAVED' | translate }}</span>
+        </div>
+      </div>
+
+      <!-- Bu Ay -->
+      <div class="time-saving-item">
+        <mat-icon>calendar_today</mat-icon>
+        <div class="time-saving-content">
+          <span class="time-value">
+            {{ formatHours(timeSavingPeriod()?.this_month?.saved_hours ?? 0) }}
+          </span>
+          <span class="time-label">
+            {{ 'STATS.THIS_MONTH' | translate }}
+            <span class="order-badge">
+              {{ timeSavingPeriod()?.this_month?.orders ?? 0 }} {{ 'STATS.ORDERS' | translate }}
+            </span>
+          </span>
+        </div>
+      </div>
+
+      <!-- Bu Yıl -->
+      <div class="time-saving-item">
+        <mat-icon>calendar_month</mat-icon>
+        <div class="time-saving-content">
+          <span class="time-value">
+            {{ formatHours(timeSavingPeriod()?.this_year?.saved_hours ?? 0) }}
+          </span>
+          <span class="time-label">
+            {{ 'STATS.THIS_YEAR' | translate }}
+            <span class="order-badge">
+              {{ timeSavingPeriod()?.this_year?.orders ?? 0 }} {{ 'STATS.ORDERS' | translate }}
+            </span>
+          </span>
+        </div>
+      </div>
+
+      <!-- Ortalama / Sipariş -->
+      <div class="time-saving-item">
+        <mat-icon>av_timer</mat-icon>
+        <div class="time-saving-content">
+          <span class="time-value">
+            {{ timeSavingSummary()?.avg_saved_minutes_per_order ?? 0 | number:'1.0-0' }} dk
+          </span>
+          <span class="time-label">{{ 'STATS.AVG_PER_ORDER' | translate }}</span>
+        </div>
+      </div>
+
+      <!-- Analiz Edilen Sipariş -->
+      <div class="time-saving-item">
+        <mat-icon>analytics</mat-icon>
+        <div class="time-saving-content">
+          <span class="time-value">
+            {{ timeSavingSummary()?.total_orders_analyzed ?? 0 }}
+          </span>
+          <span class="time-label">{{ 'STATS.ANALYZED_ORDERS' | translate }}</span>
+        </div>
+      </div>
+
+      <!-- Konfigürasyon bilgisi -->
+      <!-- <div class="time-saving-info">
+        <mat-icon>info_outline</mat-icon>
+        <span>
+          {{ 'STATS.TIME_SAVING_INFO' | translate: {
+          placement: timeSavingConfig()?.manual_placement_minutes ?? 20,
+          report: timeSavingConfig()?.manual_report_minutes ?? 15
+          } }}
+        </span>
+      </div> -->
+
+    </div>
+    }
+  </div>
+
+  <!-- ═══════════════════════════════════════════
+       SİPARİŞ TREND GRAFİĞİ
+  ═══════════════════════════════════════════ -->
+  <div class="section-card">
+    <div class="card-header">
+      <mat-icon>show_chart</mat-icon>
+      <span>{{ 'STATS.ORDER_TREND' | translate }}</span>
+      <div class="period-tabs">
+        @for (p of ['daily','weekly','monthly','yearly']; track p) {
+        <button class="period-tab" [class.active]="selectedPeriod() === p" (click)="onPeriodChange($any(p))">
+          {{ 'STATS.PERIOD.' + p.toUpperCase() | translate }}
+        </button>
+        }
+      </div>
+    </div>
+
+    @if (trendLoading()) {
+    <div class="chart-loading">
+      <mat-spinner [diameter]="36"></mat-spinner>
+    </div>
+    } @else if (trendData().length === 0) {
+    <div class="empty-state">
+      <mat-icon>show_chart</mat-icon>
+      <span>{{ 'STATS.NO_DATA' | translate }}</span>
+    </div>
+    } @else {
+    <div echarts [options]="trendChartOption()" class="chart trend-chart">
+    </div>
+    }
+  </div>
+
+  <!-- ═══════════════════════════════════════════
+       DÜNYA HARİTASI
+  ═══════════════════════════════════════════ -->
+  <div class="section-card">
+    <div class="card-header">
+      <mat-icon>travel_explore</mat-icon>
+      <span>{{ 'STATS.GEOGRAPHY_TITLE' | translate }}</span>
+      @if (!geoLoading()) {
+      <span class="card-badge">
+        {{ geographyData().length }} {{ 'STATS.COUNTRIES' | translate }}
+      </span>
+      }
+    </div>
+
+    @if (geoLoading() || !mapRegistered()) {
+    <div class="chart-loading">
+      <mat-spinner [diameter]="36"></mat-spinner>
+    </div>
+    } @else if (geographyData().length === 0) {
+    <div class="empty-state">
+      <mat-icon>public_off</mat-icon>
+      <span>{{ 'STATS.NO_DATA' | translate }}</span>
+    </div>
+    } @else {
+    <div echarts [options]="geoChartOption()" class="chart map-chart">
+    </div>
+
+    <!-- Top 5 Ülke Listesi -->
+    <div class="country-list">
+      @for (country of geographyData().slice(0, 5); track country.country_code; let i = $index) {
+      <div class="country-item">
+        <span class="country-rank">{{ i + 1 }}</span>
+        <img [src]="getFlagUrl(country.country_code!)" [alt]="country.country_code" class="country-flag-img"
+          (error)="onFlagError($event)">
+        <span class="country-name">{{ country.country }}</span>
+        <div class="country-bar-wrap">
+          <div class="country-bar" [style.width.%]="(country.order_count / geographyMax()) * 100">
+          </div>
+        </div>
+        <span class="country-count">{{ country.order_count }}</span>
+      </div>
+      }
+    </div>
+    }
+  </div>
+
+  <!-- ═══════════════════════════════════════════
+       ALT GRID: TOP ÜRÜNLER + TOP ŞİRKETLER
+  ═══════════════════════════════════════════ -->
+  <div class="bottom-grid">
+
+    <!-- En Çok Satılan Ürünler -->
+    <div class="section-card">
+      <div class="card-header">
+        <mat-icon>inventory</mat-icon>
+        <span>{{ 'STATS.TOP_PRODUCTS' | translate }}</span>
+      </div>
+
+      @if (productsLoading()) {
+      <div class="chart-loading">
+        <mat-spinner [diameter]="36"></mat-spinner>
+      </div>
+      } @else if (topProductsData().length === 0) {
+      <div class="empty-state">
+        <mat-icon>inventory_2</mat-icon>
+        <span>{{ 'STATS.NO_DATA' | translate }}</span>
+      </div>
+      } @else {
+      <div echarts [options]="topProductsChartOption()" class="chart bar-chart">
+      </div>
+      }
+    </div>
+
+    <!-- En Çok Sipariş Veren Şirketler -->
+    <div class="section-card">
+      <div class="card-header">
+        <mat-icon>leaderboard</mat-icon>
+        <span>{{ 'STATS.TOP_COMPANIES' | translate }}</span>
+      </div>
+
+      @if (companiesLoading()) {
+      <div class="chart-loading">
+        <mat-spinner [diameter]="36"></mat-spinner>
+      </div>
+      } @else if (topCompanies().length === 0) {
+      <div class="empty-state">
+        <mat-icon>business</mat-icon>
+        <span>{{ 'STATS.NO_DATA' | translate }}</span>
+      </div>
+      } @else {
+      <div echarts [options]="topCompaniesChartOption()" class="chart bar-chart">
+      </div>
+      }
+    </div>
+
+  </div>
+
+  <!-- ═══════════════════════════════════════════
+       MÜŞTERİ BAZLI EN ÇOK SİPARİŞ EDİLEN ÜRÜN
+  ═══════════════════════════════════════════ -->
+  <div class="section-card">
+    <div class="card-header">
+      <mat-icon>manage_accounts</mat-icon>
+      <span>{{ 'STATS.PRODUCTS_BY_CUSTOMER' | translate }}</span>
+    </div>
+
+    @if (customerProductsLoading()) {
+    <div class="chart-loading">
+      <mat-spinner [diameter]="36"></mat-spinner>
+    </div>
+    } @else if (productsByCustomer().length === 0) {
+    <div class="empty-state">
+      <mat-icon>person_off</mat-icon>
+      <span>{{ 'STATS.NO_DATA' | translate }}</span>
+    </div>
+    } @else {
+    <div class="customer-products-table">
+      <div class="table-header">
+        <span>{{ 'STATS.COMPANY' | translate }}</span>
+        <span>{{ 'STATS.COUNTRY' | translate }}</span>
+        <span>{{ 'STATS.TOP_PRODUCT_COL' | translate }}</span>
+        <span>{{ 'STATS.QUANTITY' | translate }}</span>
+      </div>
+      @for (item of productsByCustomer(); track item.company_id) {
+      <div class="table-row">
+        <span class="company-name-cell">{{ item.company_name }}</span>
+        <span class="country-cell">
+          @if (item.country_code) {
+          <img [src]="getFlagUrl(item.country_code)" [alt]="item.country_code" class="country-flag-img"
+            (error)="onFlagError($event)">
+          {{ item.country_code }}
+          } @else {
+            <span>-</span>
+          }
+        </span>
+        <span class="product-cell">{{ item.top_product.product_name }}</span>
+        <span class="quantity-cell">
+          <span class="quantity-badge">{{ item.top_product.total_quantity }}</span>
+        </span>
+      </div>
+      }
+    </div>
+    }
+  </div>
+
+</div>

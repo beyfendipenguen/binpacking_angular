@@ -51,6 +51,11 @@ const NAV_LIST_ITEM: INavListItem[] = [
         title: 'MENU.PERMISSION_MANAGEMENT',
         icon: 'lock_person'
       },
+      {
+        routerLink: ['/stats'],
+        title: 'STATS.STATS_MANAGEMENT',
+        icon: 'query_stats'
+      },
     ]
   }
 ];
