@@ -27,10 +27,33 @@
         <p>{{ 'SIGNIN.SUBTITLE' | translate }}</p>
       </div>
 
+      <!-- Contract / aktiflik hatası -->
+      @if (loginError?.code === 'contract_expired' || loginError?.code === 'company_inactive') {
+      <div class="login-error-banner login-error-banner--contract">
+        <mat-icon>warning_amber</mat-icon>
+        <div class="banner-text">
+          <span class="banner-title">{{ loginError!.detail }}</span>
+          @if (loginError?.contract_end_date) {
+          <span class="banner-sub">
+            {{ 'AUTH.CONTRACT_END_DATE' | translate }}: {{ loginError!.contract_end_date }}
+          </span>
+          }
+        </div>
+      </div>
+      }
+
+      <!-- Normal giriş hatası -->
+      @if (loginError?.code === 'auth_error') {
+      <div class="login-error-banner login-error-banner--auth">
+        <mat-icon>error_outline</mat-icon>
+        <span>{{ loginError!.detail }}</span>
+      </div>
+      }
+
       <form class="login-form" [formGroup]="signinForm" (ngSubmit)="loginUser()">
         <mat-form-field appearance="outline">
           <mat-label>{{ 'SIGNIN.USERNAME_LABEL' | translate }}</mat-label>
-          <input matInput formControlName="username" placeholder="Lojistik kimlik numaranız">
+          <input matInput formControlName="username">
           <mat-icon matSuffix>person</mat-icon>
         </mat-form-field>
 

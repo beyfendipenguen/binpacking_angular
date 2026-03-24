@@ -6,12 +6,13 @@ import { MatInput } from '@angular/material/input';
 import { MatIcon } from '@angular/material/icon';
 import { MatButton } from '@angular/material/button';
 import { MatLabel } from '@angular/material/form-field';
-import { AuthService } from '../../../core/auth/services/auth.service';
+import { AuthService, LoginError } from '../../../core/auth/services/auth.service';
 import { MatCardModule } from '@angular/material/card';
 import { MatDialog } from '@angular/material/dialog';
 import { environment } from '../../../../environments/environment';
 import { ForgotPasswordDialogComponent } from '@features/profile/forgot-password-dialog/forgot-password-dialog.component';
 import { LanguageService } from '@app/core/services/language.service'; // ✅ Ekle
+import { Subject, takeUntil } from 'rxjs';
 
 @Component({
   selector: 'app-signin',
@@ -31,8 +32,9 @@ import { LanguageService } from '@app/core/services/language.service'; // ✅ Ek
 export class SigninComponent implements OnInit, OnDestroy {
   hide = true;
   signinForm: FormGroup;
+  loginError: LoginError | null = null;
 
-
+  private destroy$ = new Subject<void>();
   private dialog = inject(MatDialog);
   private languageService = inject(LanguageService); // ✅ Ekle - Service'i inject et
 
@@ -49,6 +51,7 @@ export class SigninComponent implements OnInit, OnDestroy {
   }
 
   loginUser() {
+    this.loginError = null; // form submit'te temizle
     this.authService.signIn(this.signinForm.value);
   }
 
@@ -78,10 +81,19 @@ export class SigninComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     if (this.animFrameId) cancelAnimationFrame(this.animFrameId);
+    this.destroy$.next();
+    this.destroy$.complete();
   }
+
   ngOnInit(): void {
     this.isMobile = window.matchMedia('(max-width: 1024px)').matches;
+    this.authService.loginError$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(err => {
+        this.loginError = err;
+      });
   }
+
   onMouseMove(event: MouseEvent): void {
     if (this.isMobile) return;
 
