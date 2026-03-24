@@ -1,8 +1,9 @@
 
 export interface Company {
-  id: string; //UUID
-  company_name: string; //string
-  country: string; //string
-  logo: string
-
+  id: string;
+  company_name: string;
+  country: string;
+  logo: string;
+  contract_end_date: string | null;
+  is_active: boolean;
 }

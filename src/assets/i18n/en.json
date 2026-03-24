@@ -134,6 +134,15 @@
     "LOGIN_ERROR": "Incorrect username or password",
     "LOGIN_SUCCESS": "Login Successful"
   },
+  "CONTRACT": {
+    "WARNING_TITLE": "Contract Expiry Warning",
+    "WARNING_MESSAGE": "Your company's contract is about to expire. Please contact your administrator to avoid service interruption.",
+    "DAYS_LEFT": "Days Left",
+    "END_DATE": "End date",
+    "CONTRACT_EXPIRED": "Your company's contract has expired. Please contact your administrator.",
+    "COMPANY_INACTIVE": "Your company is inactive. Please contact your administrator.",
+    "CONTRACT_END_DATE": "Contract end date"
+  },
   "PASSWORD": {
     "RESET_TITLE": "Password Reset",
     "RESET_SUBTITLE": "Enter your registered email address to reset your security code. Reset instructions will be sent to this address.",
