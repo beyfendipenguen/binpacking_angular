@@ -34,23 +34,15 @@
                 "glob": "**/*",
                 "input": "public"
               },
-              "src/assets",
-              {
-                "glob": "**/*",
-                "input": "node_modules/flag-icons/flags",
-                "output": "/flags"
-              }
+              "src/assets"
             ],
             "styles": [
               "src/styles.scss",
               "node_modules/ngx-toastr/toastr.css",
-              "node_modules/flag-icons/css/flag-icons.min.css",
               "node_modules/bootstrap/dist/css/bootstrap.min.css",
               "node_modules/shepherd.js/dist/css/shepherd.css"
             ],
-            "scripts": [
-              "node_modules/echarts/dist/echarts.min.js"
-            ]
+            "scripts": []
           },
           "configurations": {
             "production": {
