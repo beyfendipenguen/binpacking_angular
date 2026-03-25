@@ -1,0 +1,128 @@
+$teal: #006A6A;
+$teal-dark: #004D4D;
+$gold: #D6BB86;
+
+:host {
+  display: block;
+  width: 100%;
+  max-width: 420px;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+h2.mat-dialog-title {
+  margin: 0;
+  padding: 20px 24px;
+  background-color: rgba($teal, 0.06);
+  color: $teal-dark;
+  font-weight: 500;
+  font-size: 18px;
+  border-bottom: 1px solid rgba($teal, 0.15);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  &::before {
+    content: '';
+    display: inline-block;
+    width: 4px;
+    height: 18px;
+    background-color: $gold;
+    border-radius: 2px;
+  }
+
+  .warning-icon {
+    color: $gold;
+    font-size: 22px;
+    width: 22px;
+    height: 22px;
+  }
+}
+
+mat-dialog-content {
+  padding: 28px 24px 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.days-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  border: 3px solid $gold;
+  background: rgba($gold, 0.08);
+
+  .days-number {
+    font-size: 36px;
+    font-weight: 700;
+    color: $teal-dark;
+    line-height: 1;
+  }
+
+  .days-label {
+    font-size: 11px;
+    color: rgba($teal-dark, 0.6);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+}
+
+.warning-message {
+  margin: 0;
+  font-size: 15px;
+  color: rgba(0, 0, 0, 0.7);
+  text-align: center;
+  line-height: 1.5;
+}
+
+.end-date {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13.5px;
+  color: rgba(0, 0, 0, 0.5);
+
+  mat-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+    color: $teal;
+  }
+
+  strong {
+    color: $teal-dark;
+  }
+}
+
+mat-dialog-actions {
+  padding: 8px 24px 20px;
+  margin-bottom: 0;
+}
+
+.confirm-button {
+  background-color: $teal !important;
+  color: white !important;
+  border-radius: 4px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background-color: $teal-dark !important;
+    box-shadow: 0 2px 8px rgba($teal, 0.4);
+    transform: translateY(-1px);
+  }
+}
+
+::ng-deep .mat-dialog-container {
+  padding: 0 !important;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15) !important;
+}

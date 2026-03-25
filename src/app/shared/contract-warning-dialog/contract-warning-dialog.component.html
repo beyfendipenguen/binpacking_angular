@@ -1,0 +1,23 @@
+<h2 mat-dialog-title>
+  <mat-icon class="warning-icon">schedule</mat-icon>
+  {{ 'CONTRACT.WARNING_TITLE' | translate }}
+</h2>
+
+<mat-dialog-content>
+  <div class="days-badge">
+    <span class="days-number">{{ data.daysLeft }}</span>
+    <span class="days-label">{{ 'CONTRACT.DAYS_LEFT' | translate }}</span>
+  </div>
+  <p class="warning-message">{{ 'CONTRACT.WARNING_MESSAGE' | translate }}</p>
+  <p class="end-date">
+    <mat-icon>event</mat-icon>
+    {{ 'CONTRACT.END_DATE' | translate }}: <strong>{{ data.contractEndDate }}</strong>
+  </p>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-raised-button class="confirm-button" [mat-dialog-close]="true">
+    <mat-icon>check</mat-icon>
+    {{ 'COMMON.OK' | translate }}
+  </button>
+</mat-dialog-actions>

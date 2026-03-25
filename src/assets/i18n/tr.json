@@ -134,6 +134,15 @@
     "LOGIN_ERROR": "Kullanıcı adı veya parola yanlış",
     "LOGIN_SUCCESS": "Giriş Başarılı"
   },
+  "CONTRACT": {
+    "WARNING_TITLE": "Sözleşme Bitiş Uyarısı",
+    "WARNING_MESSAGE": "Şirketinizin sözleşme süresi dolmak üzere. Hizmet kesintisi yaşamamak için lütfen yöneticinizle iletişime geçin.",
+    "DAYS_LEFT": "Gün Kaldı",
+    "END_DATE": "Bitiş tarihi",
+    "CONTRACT_EXPIRED": "Şirketinizin sözleşme süresi dolmuştur. Lütfen yöneticinizle iletişime geçin.",
+    "COMPANY_INACTIVE": "Şirketiniz aktif değil. Lütfen yöneticinizle iletişime geçin.",
+    "CONTRACT_END_DATE": "Sözleşme bitiş tarihi"
+  },
   "PASSWORD": {
     "RESET_TITLE": "Parola Sıfırlama",
     "RESET_SUBTITLE": "Güvenlik kodunuzu sıfırlamak için sisteme kayıtlı e-posta adresinizi girin. Sıfırlama talimatları bu adrese gönderilecektir.",
@@ -982,6 +991,8 @@
     "TITLE": "İstatistik Paneli",
     "SUBTITLE": "Sipariş ve ihracat verilerinizin genel görünümü",
     "TOTAL_ORDERS": "Toplam Sipariş",
+    "ORDER_COUNT": "Sipariş Sayısı",
+    "TOTAL_COUNT": "Toplam Adet",
     "TOTAL_PRODUCTS": "Ürün Çeşidi",
     "TOTAL_CUSTOMERS": "Müşteri Sayısı",
     "TOTAL_COUNTRIES": "İhracat Ülkesi",
@@ -1010,6 +1021,9 @@
       "WEEKLY": "Haftalık",
       "MONTHLY": "Aylık",
       "YEARLY": "Yıllık"
-    }
+    },
+    "HIGH": "Yüksek",
+    "LOW": "Düşük",
+    "ORDER_DISTRIBUTION": "Sipariş Dağılımı"
   }
 }

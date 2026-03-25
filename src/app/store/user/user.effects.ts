@@ -7,6 +7,8 @@ import * as UserActions from './user.actions';
 import { filter } from 'rxjs/operators';
 import { Router } from '@angular/router';
 import { AuthService } from '@app/core/auth/services/auth.service';
+import { ContractWarningDialogComponent } from '@app/shared/contract-warning-dialog/contract-warning-dialog.component';
+import { MatDialog } from '@angular/material/dialog';
 
 @Injectable()
 export class UserEffects {
@@ -14,6 +16,7 @@ export class UserEffects {
   private userService = inject(UserService);
   private router = inject(Router);
   private authService = inject(AuthService);
+  private dialog = inject(MatDialog);
 
   loadUserFromStorage$ = createEffect(() =>
     this.actions$.pipe(
@@ -64,10 +67,49 @@ export class UserEffects {
             this.router.navigate([redirectUrl]);
           }
           this.authService.checkAndStartTour(user);
+
+          // Contract uyarısı kontrolü
+          this.checkContractWarning(user);
         })
       ),
     { dispatch: false }
   );
+
+  private checkContractWarning(user: any): void {
+    const contractEndDate = user?.company?.contract_end_date;
+    if (!contractEndDate) return;
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const endDate = new Date(contractEndDate);
+    endDate.setHours(0, 0, 0, 0);
+
+    const daysLeft = Math.ceil(
+      (endDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
+    );
+
+    if (daysLeft > 0 && daysLeft <= 7) {
+      // Her login'de bir kez göster
+      const storageKey = `contract_warning_shown_${user.company.id}`;
+      const lastShown = localStorage.getItem(storageKey);
+      const todayStr = today.toISOString().split('T')[0];
+
+      if (lastShown === todayStr) return; // Bugün zaten gösterildi
+
+      localStorage.setItem(storageKey, todayStr);
+
+      setTimeout(() => {
+        this.dialog.open(ContractWarningDialogComponent, {
+          width: '420px',
+          disableClose: true,
+          data: {
+            daysLeft,
+            contractEndDate,
+          },
+        });
+      }, 1500); // Sayfa yüklendikten sonra göster
+    }
+  }
 
   updateProfile$ = createEffect(() =>
     this.actions$.pipe(
