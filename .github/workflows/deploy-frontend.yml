@@ -38,7 +38,7 @@ jobs:
           username: ${{ secrets.VDS_USER }}
           key: ${{ secrets.VDS_SSH_KEY }}
           script: |
-            mkdir -p /var/www/trunam_frontend
+            mkdir -p /var/www/trunam_box_ui
 
       - name: Copy dist to VDS
         uses: appleboy/scp-action@v0.1.7
@@ -47,5 +47,5 @@ jobs:
           username: ${{ secrets.VDS_USER }}
           key: ${{ secrets.VDS_SSH_KEY }}
           source: "dist/binpacking/browser/*"
-          target: "/var/www/trunam_frontend"
+          target: "/var/www/trunam_box_ui"
           strip_components: 3
