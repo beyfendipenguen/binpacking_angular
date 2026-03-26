@@ -3,7 +3,7 @@ name: Deploy Frontend to VDS
 on:
   push:
     branches:
-      - main
+      - master
     paths:
       - 'src/**'
       - 'angular.json'
