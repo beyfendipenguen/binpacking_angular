@@ -48,6 +48,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
   isFullscreen = false;
   showWeightDisplay: boolean = true;
   weightCalculationDepth: number = 3000;
+  private resizeObserver?: ResizeObserver;
   private destroy$ = new Subject<void>();
   // Services
   private readonly store = inject(Store<AppState>);
@@ -147,11 +148,28 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
 
   // Color management
   private readonly COLOR_PALETTE = [
-    '#006A6A', '#D6BB86', '#004A4A', '#C0A670', '#8b5cf6',
-    '#06b6d4', '#84cc16', '#f97316', '#ec4899', '#6366f1',
-    '#14b8a6', '#fbbf24', '#34d399', '#60a5fa', '#a78bfa',
-    '#f472b6', '#fb7185', '#fbbf24', '#a3e635', '#22d3ee'
-  ];
+  '#D32F2F', // kırmızı
+  '#1976D2', // mavi
+  '#388E3C', // yeşil
+  '#F57C00', // turuncu
+  '#7B1FA2', // mor
+  '#0097A7', // cyan
+  '#FBC02D', // sarı
+  '#C2185B', // pembe
+  '#00796B', // teal
+  '#455A64', // mavi gri
+  '#E64A19', // derin turuncu
+  '#1565C0', // koyu mavi
+  '#2E7D32', // koyu yeşil
+  '#AD1457', // koyu pembe
+  '#6A1B9A', // koyu mor
+  '#00838F', // koyu cyan
+  '#F9A825', // koyu sarı
+  '#4E342E', // kahve
+  '#37474F', // antrasit
+  '#558B2F', // ordu yeşili
+];
+
   private usedColors = new Set<string>();
 
   // Throttles
@@ -220,9 +238,15 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
 
 
   async ngAfterViewInit(): Promise<void> {
-
     try {
       await this.initializeThreeJS();
+
+      // ResizeObserver: setTimeout hack yerine güvenilir boyut takibi
+      this.resizeObserver = new ResizeObserver(() => {
+        this.ngZone.runOutsideAngular(() => this.onWindowResize());
+      });
+      this.resizeObserver.observe(this.threeContainer.nativeElement);
+
     } catch (error) {
       this.hasThreeJSError = true;
       this.isLoadingSignal.set(false);
@@ -236,6 +260,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
 
   ngOnDestroy(): void {
     document.removeEventListener('fullscreenchange', this.handleFullscreenChange.bind(this));
+    this.resizeObserver?.disconnect();
     this.destroy$.next();
     this.destroy$.complete();
     this.isDestroyed = true;
@@ -285,7 +310,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     this.addForcePlaceBorder(selected);
 
     // Hafif glow ekle
-    const material = selected.mesh.material as THREE.MeshLambertMaterial;
+    const material = selected.mesh.material as THREE.MeshStandardMaterial;
     material.emissive.setHex(0x222222);
 
     this.orderResultChange();
@@ -305,7 +330,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     this.removeForcePlaceBorder(selected);
 
     // Glow'u kaldır
-    const material = selected.mesh.material as THREE.MeshLambertMaterial;
+    const material = selected.mesh.material as THREE.MeshStandardMaterial;
     material.emissive.setHex(0x000000);
 
     this.orderResultChange();
@@ -382,7 +407,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
       // Setup camera target
       this.cameraTarget.set(
         truckDims[0] / 2,
-        truckDims[2] / 2,
+        truckDims[2] / 2 + 1100,
         truckDims[1] / 2
       );
 
@@ -572,10 +597,10 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
       packageData.width
     );
 
-    const material = new THREE.MeshLambertMaterial({
+    const material = new THREE.MeshStandardMaterial({
       color: packageData.color,
-      transparent: false,
-      opacity: 1.0,
+      roughness: 0.65,
+      metalness: 0.01,
       wireframe: this.wireframeMode
     });
 
@@ -591,11 +616,130 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     mesh.receiveShadow = true;
     mesh.userData = { packageData };
 
+    // Kutu kenar çizgileri
+    const edges = new THREE.EdgesGeometry(geometry);
+    const lineMat = new THREE.LineBasicMaterial({
+      color: 0x000000, transparent: true, opacity: 0.20
+    });
+    mesh.add(new THREE.LineSegments(edges, lineMat));
+
+    // Zemin katındaki paketlerin altına palet ekle
+    // Palet mesh'in child'ı olduğu için drag sırasında birlikte hareket eder
+    if (packageData.z === 0) {
+      const pallet = this.createPalletMesh(packageData.length, packageData.width);
+      // Mesh merkezi packageData.height/2 yukarıda, palet mesh'in tam altına yaslanmalı
+
+      pallet.position.set(
+        -packageData.length / 2,
+        -packageData.height / 2 - 150,
+        -packageData.width / 2
+      );
+      mesh.add(pallet);
+    }
+
     packageData.mesh = mesh;
+
     if (packageData.isForcePlaced) {
       this.addForcePlaceBorder(packageData);
     }
+
     this.packagesGroup.add(mesh);
+  }
+
+  // =============================================================================
+  // 2. createPalletMesh — YENİ METOD (createPackageMesh'in hemen altına ekle)
+  //
+  //    Anatomisi:
+  //    ┌─┬─┬─┬─┬─┬─┬─┐  ← 7 üst tahta (lengthwise)
+  //    █   █   █      ← 9 destek bloğu (3×3 grid)
+  //    ══  ══  ══     ← 3 alt kızak (lengthwise)
+  //
+  //    Tüm boyutlar pakete göre orantılı hesaplanıyor.
+  //    Fizik/collision'a dokunmuyor — tamamen görsel.
+  // =============================================================================
+
+  private createPalletMesh(pkgLength: number, pkgWidth: number): THREE.Group {
+    const group = new THREE.Group();
+
+    // --- Boyutlar ---
+    const BOARD_THICK = Math.max(18, pkgWidth * 0.018); // üst/alt tahta kalınlığı
+    const BLOCK_H = Math.max(70, pkgLength * 0.045); // blok yüksekliği
+    const PALLET_H = BOARD_THICK * 2 + BLOCK_H;       // toplam palet yüksekliği ~140mm
+    const BOARD_GAP = pkgWidth * 0.03;                 // tahtalar arası boşluk
+    const BOARD_COUNT = 7;
+    const BLOCK_W = Math.min(pkgLength * 0.10, 120); // blok eni
+
+    // --- Malzemeler ---
+    // İki ton ahşap rengi — alternating board rengi gerçekçilik katar
+    const matLight = new THREE.MeshStandardMaterial({
+      color: 0xC4A265, roughness: 0.92, metalness: 0.0
+    });
+    const matDark = new THREE.MeshStandardMaterial({
+      color: 0xA07840, roughness: 0.95, metalness: 0.0
+    });
+
+    // --- Yardımcı: mesh oluştur ve sahneye ekle ---
+    const addBoard = (
+      w: number, h: number, d: number,
+      x: number, y: number, z: number,
+      mat: THREE.MeshStandardMaterial
+    ) => {
+      const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
+      mesh.position.set(x, y, z);
+      mesh.castShadow = true;
+      mesh.receiveShadow = true;
+      group.add(mesh);
+    };
+
+    // ── 1. ÜST TAHTALAR ─────────────────────────────────────────────────────
+    // 7 tahta, Z ekseninde eşit aralıklı, length boyunca uzanıyor
+    const totalGap = BOARD_GAP * (BOARD_COUNT - 1);
+    const boardDepth = (pkgWidth - totalGap) / BOARD_COUNT;
+    const topY = PALLET_H - BOARD_THICK / 2; // palet tepesi
+
+    for (let i = 0; i < BOARD_COUNT; i++) {
+      const zPos = boardDepth / 2 + i * (boardDepth + BOARD_GAP);
+      addBoard(
+        pkgLength, BOARD_THICK, boardDepth,
+        pkgLength / 2, topY, zPos,
+        i % 2 === 0 ? matLight : matDark
+      );
+    }
+
+    // ── 2. ORTA DESTEK BLOKLARI ──────────────────────────────────────────────
+    // 3×3 grid — hem X hem Z ekseninde 3 sıra
+    const blockXPositions = [pkgLength * 0.12, pkgLength * 0.50, pkgLength * 0.88];
+    const blockZPositions = [pkgWidth * 0.12, pkgWidth * 0.50, pkgWidth * 0.88];
+    const blockY = BOARD_THICK + BLOCK_H / 2;
+
+    for (const bx of blockXPositions) {
+      for (const bz of blockZPositions) {
+        addBoard(
+          BLOCK_W, BLOCK_H, BLOCK_W,
+          bx, blockY, bz,
+          matDark
+        );
+      }
+    }
+
+    // ── 3. ALT KIZAKLAR ──────────────────────────────────────────────────────
+    // 3 kızak, length boyunca uzanıyor, Z ekseninde blok hizasında
+    const runnerW = BLOCK_W * 1.1; // bloktan biraz geniş
+    const runnerY = BOARD_THICK / 2;
+
+    for (const rz of blockZPositions) {
+      addBoard(
+        pkgLength, BOARD_THICK, runnerW,
+        pkgLength / 2, runnerY, rz,
+        matLight
+      );
+    }
+
+    // Palet grubunun origin'i palet tabanı (y=0) → üst yüzeyi y=PALLET_H
+    // createPackageMesh'te palet.position.y = -packageData.height/2 yapıldığında
+    // palet üstü paketin tabanına tam yaslanır
+
+    return group;
   }
 
   // ========================================
@@ -1003,6 +1147,8 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
   private updateCameraPanning(event: MouseEvent): void {
     if (!this.isPanningCamera) return;
 
+    this.camera.updateMatrixWorld();
+
     const deltaX = event.clientX - this.lastPanMouseX;
     const deltaY = event.clientY - this.lastPanMouseY;
 
@@ -1217,13 +1363,13 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
         if (isSliding) {
           this.showCollisionWarningBriefly();
           // Kırmızı wireframe — duvara değiyor
-          const material = pkg.mesh!.material as THREE.MeshLambertMaterial;
+          const material = pkg.mesh!.material as THREE.MeshStandardMaterial;
           material.wireframe = true;
           material.emissive.setHex(0xff0000);
         } else {
           this.clearCollisionWarning();
           // Normal drag görünümü
-          const material = pkg.mesh!.material as THREE.MeshLambertMaterial;
+          const material = pkg.mesh!.material as THREE.MeshStandardMaterial;
           material.wireframe = false;
           material.emissive.setHex(0x444444);
         }
@@ -1239,7 +1385,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     this.saveSnapshot();
 
     if (this.draggedPackage.mesh) {
-      const material = this.draggedPackage.mesh.material as THREE.MeshLambertMaterial;
+      const material = this.draggedPackage.mesh.material as THREE.MeshStandardMaterial;
       material.wireframe = this.wireframeMode;
       material.emissive.setHex(0x000000);
     }
@@ -1504,14 +1650,14 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     this.clearHighlights();
     const selected = this.selectedPackageSignal();
     if (selected?.mesh) {
-      const material = selected.mesh.material as THREE.MeshLambertMaterial;
+      const material = selected.mesh.material as THREE.MeshStandardMaterial;
       material.emissive.setHex(0x666666);
     }
   }
 
   private highlightDraggedPackage(): void {
     if (this.draggedPackage?.mesh) {
-      const material = this.draggedPackage.mesh.material as THREE.MeshLambertMaterial;
+      const material = this.draggedPackage.mesh.material as THREE.MeshStandardMaterial;
       const isInSnapZone = this.isNearOtherPackages(this.draggedPackage, 50);
 
       if (isInSnapZone) {
@@ -1527,7 +1673,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
   private clearHighlights(): void {
     this.processedPackagesSignal().forEach(pkg => {
       if (pkg.mesh && !pkg.isBeingDragged) {
-        const material = pkg.mesh.material as THREE.MeshLambertMaterial;
+        const material = pkg.mesh.material as THREE.MeshStandardMaterial;
         material.emissive.setHex(0x000000);
         material.wireframe = this.wireframeMode;
         pkg.mesh.scale.setScalar(1.0);
@@ -1549,7 +1695,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     const hoveredPackage = this.getIntersectedPackage();
     this.processedPackagesSignal().forEach(pkg => {
       if (pkg.mesh && pkg !== this.selectedPackageSignal() && !pkg.isBeingDragged) {
-        const material = pkg.mesh.material as THREE.MeshLambertMaterial;
+        const material = pkg.mesh.material as THREE.MeshStandardMaterial;
         if (pkg === hoveredPackage) {
           material.emissive.setHex(0x333333);
         } else {
@@ -1723,7 +1869,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     const border = packageData.forcePlaceBorder;
 
     if (packageData.mesh) {
-      const material = packageData.mesh.material as THREE.MeshLambertMaterial;
+      const material = packageData.mesh.material as THREE.MeshStandardMaterial;
       material.emissive.setHex(0x000000);
 
       // Border'ı kaldır
@@ -1818,7 +1964,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
 
     this.cameraTarget.set(
       truckDims[0] / 2,
-      truckDims[2] / 2,
+      truckDims[2] / 2 + 1100,
       truckDims[1] / 2
     );
 
@@ -1960,7 +2106,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     if (!this.showCollisionWarning) {
       this.showCollisionWarning = true;
       if (this.draggedPackage?.mesh) {
-        const material = this.draggedPackage.mesh.material as THREE.MeshLambertMaterial;
+        const material = this.draggedPackage.mesh.material as THREE.MeshStandardMaterial;
         material.emissive.setHex(0xff0000);
       }
       setTimeout(() => {
@@ -1972,7 +2118,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
   private clearCollisionWarning(): void {
     this.showCollisionWarning = false;
     if (this.draggedPackage?.mesh) {
-      const material = this.draggedPackage.mesh.material as THREE.MeshLambertMaterial;
+      const material = this.draggedPackage.mesh.material as THREE.MeshStandardMaterial;
       material.emissive.setHex(0x666666);
     }
   }
@@ -2045,7 +2191,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     if (width > 0 && height > 0) {
       this.camera.aspect = width / height;
       this.camera.updateProjectionMatrix();
-      this.renderer.setSize(width, height);
+      this.renderer.setSize(width, height, false); // false → CSS'i override etme
       this.renderManager.requestRender();
     }
   }
@@ -2383,7 +2529,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
 
       this.cameraTarget.set(
         truckDims[0] / 2,
-        truckDims[2] / 2,
+        truckDims[2] / 2 + 1100,
         truckDims[1] / 2
       );
 
