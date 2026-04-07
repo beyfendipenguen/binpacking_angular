@@ -13,7 +13,7 @@ $white: #ffffff;
   flex-direction: column;
   height: calc(100vh - 64px);
   background-color: $background-color;
-
+  padding-bottom: 3em;
   // Page Header
   .permissions-header {
     display: flex;

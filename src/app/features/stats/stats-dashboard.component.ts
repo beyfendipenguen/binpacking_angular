@@ -110,7 +110,7 @@ export class StatsDashboardComponent implements OnInit, OnDestroy, AfterViewInit
       },
       series: [
         {
-          name: this.translate.instant('APPS.ORDERS'),
+          name: this.translate.instant('STATS.ORDERS'),
           type: 'line',
           smooth: true,
           data: data.map((d) => d.count),
@@ -151,7 +151,7 @@ export class StatsDashboardComponent implements OnInit, OnDestroy, AfterViewInit
       },
       series: [
         {
-          name: this.translate.instant('APPS.ORDERS'),
+          name: this.translate.instant('STATS.ORDERS'),
           type: 'bar',
           data: data.map((d) => d.total_quantity),
           itemStyle: {
@@ -196,7 +196,7 @@ export class StatsDashboardComponent implements OnInit, OnDestroy, AfterViewInit
       },
       series: [
         {
-          name: this.translate.instant('APPS.ORDER_COUNT'),
+          name: this.translate.instant('STATS.ORDER_COUNT'),
           type: 'bar',
           data: data.map((d) => d.order_count),
           itemStyle: {
@@ -230,7 +230,7 @@ export class StatsDashboardComponent implements OnInit, OnDestroy, AfterViewInit
       tooltip: {
         trigger: 'item',
         formatter: (params: any) =>
-          `${params.name}<br/>${this.translate.instant('MODELS.ORDER')}: <b>${isNaN(params.value) ? 0 : (params.value ?? 0)}</b>`,
+          `${params.name}<br/>${this.translate.instant('STATS.ORDERS')}: <b>${isNaN(params.value) ? 0 : (params.value ?? 0)}</b>`,
       },
       visualMap: {
         min: 0,

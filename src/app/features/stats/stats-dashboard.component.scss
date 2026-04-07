@@ -1,4 +1,3 @@
-// features/stats/stats-dashboard.component.scss
 @use "sass:color";
 
 // ─── TEMA ───────────────────────────────────────────────
@@ -26,7 +25,7 @@ $text-mid: #374151;
   display: flex;
   flex-direction: column;
   gap: 24px;
-  padding-bottom: 150px;
+  padding-bottom: 5em;
 
   // ─── HEADER ────────────────────────────────────────────
   .dashboard-header {
@@ -654,7 +653,7 @@ $text-mid: #374151;
 
   @media (max-width: 480px) {
     padding: 8px;
-
+    padding-bottom: 4em;
     .customer-products-table {
       .table-header {
         display: none;

@@ -7,8 +7,9 @@ $accent-gold-light: #E8D5A8;
 .orders-container {
   min-height: 100vh;
   background: linear-gradient(135deg, #f8fffe 0%, #e8f5f5 100%);
-  padding: 0;
-  margin: 0;
+  padding-bottom: 2em;
+
+
 
   /* Hero Header */
   .hero-header {
@@ -16,6 +17,8 @@ $accent-gold-light: #E8D5A8;
     padding: 40px 24px 60px;
     overflow: hidden;
     margin-bottom: 32px;
+    margin-top: -64px;        // bunu ekle
+    padding-top: calc(64px + 40px);  // bunu ekle
   }
 
   .hero-background {
@@ -172,6 +175,8 @@ $accent-gold-light: #E8D5A8;
   .orders-container {
     .hero-header {
       padding: 20px 16px 40px;
+      margin-top: -56px;
+      padding-top: calc(56px + 20px);
     }
 
     .hero-content {
