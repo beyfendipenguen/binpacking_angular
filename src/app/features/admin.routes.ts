@@ -15,7 +15,7 @@ const ADMIN_ROUTES: Routes = [
     path: '',
     component: StepperComponent,
     canActivate: [permissionGuard],
-    data: { permission: 'orders.add_order' }
+    data: { permission: 'orders.view_order' }
   },
   {
     path: 'orders',
@@ -51,13 +51,13 @@ const ADMIN_ROUTES: Routes = [
     path: 'permissions',
     component: PermissionsComponent,
     canActivate: [permissionGuard],
-    data: { permission: 'access_control.view_groupprofile' }
+    data: { permission: 'access_control.view_permissionpage' }
   },
   {
     path: 'stats',
     component: StatsDashboardComponent,
     canActivate: [permissionGuard],
-    data: { permission: 'access_control.view_groupprofile' }
+    data: { permission: 'access_control.view_statspage' }
   },
   {
     path: 'profile',
