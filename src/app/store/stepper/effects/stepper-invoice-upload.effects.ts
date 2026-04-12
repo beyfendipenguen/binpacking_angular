@@ -13,7 +13,8 @@ import {
   selectIsOrderDirty,
   selectOrderDetailsChanges,
   selectIsOrderDetailsDirty,
-  selectFileExists
+  selectFileExists,
+  selectIsEditMode
 } from '../../index';
 
 import { OrderService } from '@features/services/order.service';
@@ -31,7 +32,7 @@ export class StepperInvoiceUploadEffects {
   // Dosya Yükleme Trigger
   triggerUploadFileToOrder$ = createEffect(() =>
     this.actions$.pipe(
-      ofType(StepperInvoiceUploadActions.saveSuccess, StepperInvoiceUploadActions.saveSuccess),
+      ofType(StepperInvoiceUploadActions.saveSuccess),
       withLatestFrom(this.store.select(selectFileExists)),
       filter(([_, fileExists]) => fileExists),
       map(() => StepperInvoiceUploadActions.uploadFileToOrder())
@@ -115,6 +116,8 @@ export class StepperInvoiceUploadEffects {
   triggerCreateOrderDetails$ = createEffect(() =>
     this.actions$.pipe(
       ofType(StepperInvoiceUploadActions.saveSuccess),
+      withLatestFrom(this.store.select(selectIsEditMode)),
+      filter(([, isEditMode]) => !isEditMode), // ← edit modda tetiklenmesin
       map(() => StepperInvoiceUploadActions.upsertMany())
     )
   );
