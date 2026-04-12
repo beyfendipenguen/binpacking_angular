@@ -8,6 +8,10 @@ import { PackageReadDto, PackageWriteDto } from "@app/features/interfaces/packag
 import { ReportFile } from "@app/features/stepper/components/result-step/result-step.service";
 import { PackagePosition } from "@app/features/interfaces/order-result.interface";
 
+export interface Step2Snapshot {
+  packages: IUiPackage[];
+  remainingProducts: PackageDetailReadDto[];
+}
 
 export interface StepperState {
   order: Order | null;
@@ -42,6 +46,8 @@ export interface StepperState {
 
   step2State: {
     packages: IUiPackage[];
+    undoStack: Step2Snapshot[];
+    redoStack: Step2Snapshot[];
     pallets: IUiPallet[];
     remainingProducts: PackageDetailReadDto[];
     originalPackages: PackageReadDto[];
@@ -86,6 +92,8 @@ export const initialStepperState: StepperState = {
 
   step2State: {
     packages: [],
+    undoStack: [],
+    redoStack: [],
     pallets: [],
     remainingProducts: [],
     originalPackages: [],

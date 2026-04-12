@@ -310,6 +310,12 @@ export const selectAddedPackages = createSelector(
   (changes) => changes.added
 );
 
+export const selectCanUndo = (state:any) =>
+  state.stepper.step2State.undoStack.length > 0;
+export const selectCanRedo = (state:any) =>
+  state.stepper.step2State.redoStack.length > 0;
+
+
 // #endregion
 
 export const selectVerticalSort = createSelector(

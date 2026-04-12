@@ -56,6 +56,73 @@ const ensureEmptyPackageAdded = (packages: IUiPackage[], order: any): any => {
 
 
 export const stepperPackageHandlers = [
+
+  //Snapshots
+  on(StepperPackageActions.savePackageSnapshot, (state: StepperState) => {
+      const snapshot = {
+      packages: state.step2State.packages,
+      remainingProducts: state.step2State.remainingProducts
+    };
+
+    const newStack = [
+      snapshot,
+      ...state.step2State.undoStack
+    ].slice(0, 3);
+
+    return {
+      ...state,
+      step2State: {
+        ...state.step2State,
+        undoStack: newStack,
+        redoStack: []
+      }
+    };
+  }),
+
+  on(StepperPackageActions.undoPackage, (state: StepperState) => {
+     if (state.step2State.undoStack.length === 0) return state;
+
+  const [previous, ...remainingUndo] = state.step2State.undoStack;
+  const currentSnapshot = {
+    packages: state.step2State.packages,
+    remainingProducts: state.step2State.remainingProducts
+  };
+  const newRedo = [currentSnapshot, ...state.step2State.redoStack].slice(0, 3);
+
+  return {
+    ...state,
+    step2State: {
+      ...state.step2State,
+      packages: previous.packages,
+      remainingProducts: previous.remainingProducts,
+      undoStack: remainingUndo,
+      redoStack: newRedo
+    }
+  };
+  }),
+
+  on(StepperPackageActions.redoPackage, (state: StepperState) => {
+    if (state.step2State.redoStack.length === 0) return state;
+
+    const [next, ...remainingRedo] = state.step2State.redoStack;
+    const currentSnapshot = {
+      packages: state.step2State.packages,
+      remainingProducts: state.step2State.remainingProducts
+    };
+    const newUndo = [currentSnapshot, ...state.step2State.undoStack].slice(0, 3);
+
+    return {
+      ...state,
+      step2State: {
+        ...state.step2State,
+        packages: next.packages,
+        remainingProducts: next.remainingProducts,
+        undoStack: newUndo,
+        redoStack: remainingRedo
+      }
+    };
+  }),
+
   // Set Vertical Sort
   on(StepperPackageActions.setVerticalSort, (state: StepperState, { verticalSort }) => ({
     ...state,
@@ -281,6 +348,7 @@ export const stepperPackageHandlers = [
 
     const newPackageDetail = {
       ...targetPackageDetail,
+      id: Guid(),
       count: 1,
     };
 

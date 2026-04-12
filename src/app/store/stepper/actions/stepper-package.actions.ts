@@ -9,6 +9,11 @@ export const StepperPackageActions = createActionGroup({
   source: 'Stepper Package',
   events: {
 
+    //Package Snapshot
+    'Save Package Snapshot' : emptyProps(),
+    'Undo Package' : emptyProps(),
+    'Redo Package' : emptyProps(),
+
     //Package Detail
     'Upsert Many': emptyProps(),
     'Upsert Many Success': props<{ packages: PackageReadDto[] }>(),
