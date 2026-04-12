@@ -25,22 +25,14 @@ export type PermissionType = string;
 
 export const PERMISSION_FORMAT_REGEX = /^[a-z0-9_]+\.[a-z0-9_]+$/;
 
-// ===== YENİ EKLENENLER =====
-
-export interface GroupProfile {
-  id: number;
-  type: 'global' | 'custom' | 'system';
-  company?: {
-    id: number;
-    company_name: string;
-  };
-}
-
 export interface IGroup {
   id: number;
   name: string;
-  permissions: number[]; // Permission ID'leri
-  group_profile: GroupProfile | null;
+  permissions: number[];
+  type: 'GLOBAL' | 'CUSTOM' | 'SYSTEM' | null;
+  company: { id: number; company_name: string } | null;
+  is_editable: boolean;
+  is_member_editable: boolean;
   annotated_member_count?: number;
 }
 

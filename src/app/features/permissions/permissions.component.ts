@@ -135,8 +135,14 @@ export class PermissionsComponent implements OnInit, OnDestroy {
   selectedUserPermissionIds = signal<Set<number>>(new Set());
   selectedUserGroupIds = signal<Set<number>>(new Set());
 
+  // Dirty check için başlangıç değerleri
+  private initialMemberIds = signal<Set<string>>(new Set());
+  private initialUserGroupIds = signal<Set<number>>(new Set());
+  private initialUserPermissionIds = signal<Set<number>>(new Set());
+
   // Computed
-  isGlobalGroup = computed(() => this.selectedGroup()?.group_profile?.type === 'global');
+  isGlobalGroup = computed(() => this.selectedGroup()?.type === 'GLOBAL');
+  isMemberEditable = computed(() => this.selectedGroup()?.is_member_editable ?? false);
   isEditMode = computed(() =>
     this.selectedGroup() !== null ||
     this.selectedUser() !== null ||
@@ -268,11 +274,39 @@ export class PermissionsComponent implements OnInit, OnDestroy {
     return filtered;
   });
 
+  // Dirty computed'lar
+  isGroupDirty = computed(() => {
+    const initial = this.initialMemberIds();
+    const current = this.selectedUserIds();
+    if (initial.size !== current.size) return true;
+    for (const id of current) {
+      if (!initial.has(id)) return true;
+    }
+    return false;
+  });
+
+  isUserDirty = computed(() => {
+    const initialGroups = this.initialUserGroupIds();
+    const currentGroups = this.selectedUserGroupIds();
+    const initialPerms = this.initialUserPermissionIds();
+    const currentPerms = this.selectedUserPermissionIds();
+
+    if (initialGroups.size !== currentGroups.size || initialPerms.size !== currentPerms.size) return true;
+    for (const id of currentGroups) {
+      if (!initialGroups.has(id)) return true;
+    }
+    for (const id of currentPerms) {
+      if (!initialPerms.has(id)) return true;
+    }
+    return false;
+  });
+
   ngOnInit(): void {
     this.initializeForms();
     this.loadGroups();
     this.loadAllPermissions();
     this.loadAllUsers();
+
   }
 
   ngOnDestroy(): void {
@@ -331,8 +365,8 @@ export class PermissionsComponent implements OnInit, OnDestroy {
         this.allUsers.set(response.results);
       },
       error: (error) => {
-        if(error.status !== 403)
-        this.toastService.error(this.translate.instant('PERMISSIONS.MESSAGES.USERS_LOAD_ERROR'));
+        if (error.status !== 403)
+          this.toastService.error(this.translate.instant('PERMISSIONS.MESSAGES.USERS_LOAD_ERROR'));
       }
     });
   }
@@ -346,7 +380,18 @@ export class PermissionsComponent implements OnInit, OnDestroy {
     this.selectedPermissionIds.set(new Set(group.permissions));
 
     const usersInGroup = this.allUsers().filter(u => u.groups.includes(group.id));
-    this.selectedUserIds.set(new Set(usersInGroup.map(u => u.id)));
+    const memberIds = new Set(usersInGroup.map(u => u.id));
+    this.selectedUserIds.set(memberIds);
+    this.initialMemberIds.set(new Set(memberIds)); // ← başlangıç kaydı
+
+    if (!group.is_editable) {
+      this.groupForm.get('name')?.clearValidators();
+      this.groupForm.get('name')?.updateValueAndValidity();
+    } else {
+      this.groupForm.get('name')?.setValidators(Validators.required);
+      this.groupForm.get('name')?.updateValueAndValidity();
+    }
+
     this.clearAllGroupTempSelections();
   }
 
@@ -369,13 +414,18 @@ export class PermissionsComponent implements OnInit, OnDestroy {
       last_name: user.last_name
     });
 
-    const accessibleGroupIds = user.groups.filter(groupId => {
-      const group = this.groups().find(g => g.id === groupId);
-      return group !== undefined;
-    });
+    const accessibleGroupIds = user.groups.filter(groupId =>
+      this.groups().find(g => g.id === groupId)
+    );
 
-    this.selectedUserPermissionIds.set(new Set(user.user_permissions));
-    this.selectedUserGroupIds.set(new Set(accessibleGroupIds));
+    const groupIds = new Set<number>(accessibleGroupIds);
+    const permIds = new Set<number>(user.user_permissions);
+
+    this.selectedUserPermissionIds.set(permIds);
+    this.selectedUserGroupIds.set(groupIds);
+    this.initialUserGroupIds.set(new Set(groupIds));       // ← başlangıç kaydı
+    this.initialUserPermissionIds.set(new Set(permIds));   // ← başlangıç kaydı
+
     this.clearAllUserTempSelections();
   }
 
@@ -555,82 +605,87 @@ export class PermissionsComponent implements OnInit, OnDestroy {
 
   // ========== SAVE & DELETE ==========
   saveGroup(): void {
-    if (this.groupForm.invalid || this.isGlobalGroup()) return;
+    if (this.groupForm.invalid && this.selectedGroup()?.is_editable) return;
+    if (!this.selectedGroup()?.is_editable && !this.isMemberEditable()) return;
 
     const savedGroupId = this.isNewGroup() ? null : this.selectedGroup()!.id;
-
     this.isSaving.set(true);
-    const groupData = {
-      name: this.groupForm.value.name,
-      permissions: Array.from(this.selectedPermissionIds())
-    };
+    const userIds = Array.from(this.selectedUserIds());
+
+    // GLOBAL grup: sadece set-users çağır, PATCH atma
+    if (this.selectedGroup() && !this.selectedGroup()!.is_editable) {
+      this.groupService.setUsers(savedGroupId!, userIds).pipe(
+        takeUntil(this.destroy$)
+      ).subscribe({
+        next: () => this.onSaveSuccess(savedGroupId!),
+        error: () => {
+          this.toastService.error(this.translate.instant('PERMISSIONS.MESSAGES.GROUP_SAVE_ERROR'));
+          this.isSaving.set(false);
+        }
+      });
+      return;
+    }
+
+    // CUSTOM grup: önce PATCH, sonra set-users
+    const groupData: any = { name: this.groupForm.value.name };
+    if (this.selectedGroup()?.is_editable) {
+      groupData.permissions = Array.from(this.selectedPermissionIds());
+    }
 
     const request = this.isNewGroup()
       ? this.groupService.create(groupData)
       : this.groupService.partialUpdate(savedGroupId!, groupData);
 
-    request.pipe(
-      takeUntil(this.destroy$)
-    ).subscribe({
+    request.pipe(takeUntil(this.destroy$)).subscribe({
       next: (savedGroup) => {
-        const userIds = Array.from(this.selectedUserIds());
-
         this.groupService.setUsers(savedGroup.id, userIds).pipe(
           takeUntil(this.destroy$)
         ).subscribe({
-          next: () => {
-            this.toastService.success(
-              this.isNewGroup() ? this.translate.instant('PERMISSIONS.MESSAGES.GROUP_CREATED') : this.translate.instant('PERMISSIONS.MESSAGES.GROUP_UPDATED')
-            );
-
-            // --- DEĞİŞİKLİK BURADA BAŞLIYOR ---
-            // setTimeout yerine forkJoin ile verilerin gelmesini bekliyoruz
-            this.isLoadingGroups.set(true);
-            this.isLoadingUsers.set(true);
-
-            forkJoin({
-              groups: this.groupService.getAll(),
-              users: this.companyUserService.getAll({ limit: 1000 })
-            }).pipe(
-              finalize(() => {
-                this.isLoadingGroups.set(false);
-                this.isLoadingUsers.set(false);
-                this.isSaving.set(false);
-              })
-            ).subscribe({
-              next: (results) => {
-                // 1. Sinyalleri en güncel veriyle doldur
-                this.groups.set(results.groups.results);
-                this.allUsers.set(results.users.results);
-
-                // 2. Güncel listeden ilgili grubu bul
-                const freshGroup = this.groups().find(g => g.id === savedGroup.id);
-
-                // 3. Güncel veri ile seçimi yenile
-                if (freshGroup) {
-                  this.selectGroup(freshGroup);
-                }
-              },
-              error: (err) => {
-              }
-            });
-          },
-          error: (error) => {
+          next: () => this.onSaveSuccess(savedGroup.id),
+          error: () => {
             this.toastService.error(this.translate.instant('PERMISSIONS.MESSAGES.GROUP_SAVE_ERROR'));
             this.isSaving.set(false);
           }
         });
       },
-      error: (error) => {
+      error: () => {
         this.toastService.error(this.translate.instant('PERMISSIONS.MESSAGES.GROUP_USERS_UPDATE_ERROR'));
         this.isSaving.set(false);
       }
     });
   }
 
-  saveUser(): void {
-    if (this.userForm.invalid) return;
+  // Ortak success handler
+  private onSaveSuccess(groupId: number): void {
+    this.toastService.success(
+      this.isNewGroup()
+        ? this.translate.instant('PERMISSIONS.MESSAGES.GROUP_CREATED')
+        : this.translate.instant('PERMISSIONS.MESSAGES.GROUP_UPDATED')
+    );
 
+    this.isLoadingGroups.set(true);
+    this.isLoadingUsers.set(true);
+
+    forkJoin({
+      groups: this.groupService.getAll(),
+      users: this.companyUserService.getAll({ limit: 1000 })
+    }).pipe(
+      finalize(() => {
+        this.isLoadingGroups.set(false);
+        this.isLoadingUsers.set(false);
+        this.isSaving.set(false);
+      })
+    ).subscribe({
+      next: (results) => {
+        this.groups.set(results.groups.results);
+        this.allUsers.set(results.users.results);
+        const freshGroup = this.groups().find(g => g.id === groupId);
+        if (freshGroup) this.selectGroup(freshGroup);
+      }
+    });
+  }
+
+  saveUser(): void {
     const user = this.selectedUser();
     if (!user) return;
 
@@ -647,7 +702,6 @@ export class PermissionsComponent implements OnInit, OnDestroy {
       next: () => {
         this.toastService.success(this.translate.instant('PERMISSIONS.MESSAGES.USER_UPDATED'));
 
-        // --- DEĞİŞİKLİK BURADA ---
         this.isLoadingGroups.set(true);
         this.isLoadingUsers.set(true);
 
@@ -662,26 +716,20 @@ export class PermissionsComponent implements OnInit, OnDestroy {
           })
         ).subscribe({
           next: (results) => {
-            // 1. Verileri güncelle
             this.allUsers.set(results.users.results);
             this.groups.set(results.groups.results);
-
-            // 2. Güncel user'ı bul
             const freshUser = this.allUsers().find(u => u.id === user.id);
-
-            // 3. Yeniden seç
-            if (freshUser) {
-              this.selectUser(freshUser);
-            }
+            if (freshUser) this.selectUser(freshUser);
           }
         });
       },
-      error: (error) => {
+      error: () => {
         this.toastService.error(this.translate.instant('PERMISSIONS.MESSAGES.USER_SAVE_ERROR'));
         this.isSaving.set(false);
       }
     });
   }
+
   deleteGroup(): void {
     const group = this.selectedGroup();
 

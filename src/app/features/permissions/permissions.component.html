@@ -16,44 +16,29 @@
       <div class="groups-section">
         <div class="panel-header">
           <h3>{{ 'PERMISSIONS.GROUPS' | translate }}</h3>
-          <button
-            mat-mini-fab
-            color="primary"
-            (click)="createNewGroup()"
-            [disabled]="isLoadingGroups()"
-            [matTooltip]="'PERMISSIONS.NEW_GROUP' | translate"
-            [appDisableAuth]="['auth.add_group']">
+          <button mat-mini-fab color="primary" (click)="createNewGroup()" [disabled]="isLoadingGroups()"
+            [matTooltip]="'PERMISSIONS.NEW_GROUP' | translate" [appDisableAuth]="['auth.add_group']">
             <mat-icon>add</mat-icon>
           </button>
         </div>
 
         <div class="search-box">
           <mat-icon class="search-icon">search</mat-icon>
-          <input
-            type="text"
-            class="search-input"
-            [placeholder]="'PERMISSIONS.SEARCH_GROUPS' | translate"
+          <input type="text" class="search-input" [placeholder]="'PERMISSIONS.SEARCH_GROUPS' | translate"
             [formControl]="searchGroupsControl">
-          <button
-            mat-icon-button
-            class="clear-btn"
-            *ngIf="searchGroupsControl.value"
-            (click)="clearGroupsSearch()">
+          <button mat-icon-button class="clear-btn" *ngIf="searchGroupsControl.value" (click)="clearGroupsSearch()">
             <mat-icon>close</mat-icon>
           </button>
         </div>
 
         <div class="list-content" *ngIf="!isLoadingGroups(); else loadingGroups">
           <mat-list>
-            <mat-list-item
-              *ngFor="let group of filteredGroups()"
-              [class.selected]="selectedGroup()?.id === group.id"
-              [class.global-group]="group.group_profile?.type === 'global'"
-              (click)="selectGroup(group)">
+            <mat-list-item *ngFor="let group of filteredGroups()" [class.selected]="selectedGroup()?.id === group.id"
+              [class.global-group]="group.type === 'GLOBAL'" (click)="selectGroup(group)">
               <div class="list-item-content">
                 <div class="item-info">
                   <span class="item-name">{{ group.name }}</span>
-                  <span class="group-badge" *ngIf="group.group_profile?.type === 'global'">
+                  <span class="group-badge" *ngIf="group.type === 'GLOBAL'">
                     <mat-icon>lock</mat-icon>{{ 'PERMISSIONS.GLOBAL' | translate }}
                   </span>
                 </div>
@@ -94,25 +79,16 @@
         <!-- Search Box -->
         <div class="search-box">
           <mat-icon class="search-icon">search</mat-icon>
-          <input
-            type="text"
-            class="search-input"
-            [placeholder]="'PERMISSIONS.SEARCH_USERS' | translate"
+          <input type="text" class="search-input" [placeholder]="'PERMISSIONS.SEARCH_USERS' | translate"
             [formControl]="searchUsersControl">
-          <button
-            mat-icon-button
-            class="clear-btn"
-            *ngIf="searchUsersControl.value"
-            (click)="clearUsersSearch()">
+          <button mat-icon-button class="clear-btn" *ngIf="searchUsersControl.value" (click)="clearUsersSearch()">
             <mat-icon>close</mat-icon>
           </button>
         </div>
 
         <div class="list-content" *ngIf="!isLoadingUsers(); else loadingUsers">
           <mat-list>
-            <mat-list-item
-              *ngFor="let user of filteredUsers()"
-              [class.selected]="selectedUser()?.id === user.id"
+            <mat-list-item *ngFor="let user of filteredUsers()" [class.selected]="selectedUser()?.id === user.id"
               (click)="selectUser(user)">
               <div class="list-item-content">
                 <div class="item-info">
@@ -163,11 +139,8 @@
           <!-- Grup Adı -->
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>{{ 'PERMISSIONS.GROUP_NAME' | translate }}</mat-label>
-            <input
-              matInput
-              formControlName="name"
-              [placeholder]="'PERMISSIONS.GROUP_NAME_PLACEHOLDER' | translate"
-              [appDisableAuth]="['auth.add_group', 'auth.change_group']">
+            <input matInput formControlName="name" [placeholder]="'PERMISSIONS.GROUP_NAME_PLACEHOLDER' | translate"
+              [appDisableAuth]="['auth.add_group', 'auth.change_group']" [readonly]="!selectedGroup()?.is_editable">
             <mat-error *ngIf="groupForm.get('name')?.hasError('required')">
               {{ 'PERMISSIONS.GROUP_NAME_REQUIRED' | translate }}
             </mat-error>
@@ -191,29 +164,19 @@
                 </div>
                 <div class="search-box">
                   <mat-icon class="search-icon">search</mat-icon>
-                  <input
-                    type="text"
-                    class="search-input"
-                    [placeholder]="'PERMISSIONS.SEARCH_PERMISSIONS' | translate"
+                  <input type="text" class="search-input" [placeholder]="'PERMISSIONS.SEARCH_PERMISSIONS' | translate"
                     [formControl]="searchAvailablePermissionsControl">
-                  <button
-                    mat-icon-button
-                    class="clear-btn"
-                    *ngIf="searchAvailablePermissionsControl.value"
+                  <button mat-icon-button class="clear-btn" *ngIf="searchAvailablePermissionsControl.value"
                     (click)="clearAvailablePermissionsSearch()">
                     <mat-icon>close</mat-icon>
                   </button>
                 </div>
                 <div class="list-items">
-                  <div
-                    class="list-item"
-                    *ngFor="let permission of availablePermissions()"
+                  <div class="list-item" *ngFor="let permission of availablePermissions()"
                     [class.selected]="tempSelectedAvailablePermissions().has(permission.id)"
                     (click)="toggleAvailablePermissionSelection(permission.id)">
-                    <mat-checkbox
-                      [checked]="tempSelectedAvailablePermissions().has(permission.id)"
-                      [disabled]="isGlobalGroup()"
-                      (click)="$event.stopPropagation()"
+                    <mat-checkbox [checked]="tempSelectedAvailablePermissions().has(permission.id)"
+                      [disabled]="isGlobalGroup()" (click)="$event.stopPropagation()"
                       (change)="toggleAvailablePermissionSelection(permission.id)"
                       [appDisableAuth]="['auth.add_group', 'auth.change_group']">
                     </mat-checkbox>
@@ -223,7 +186,8 @@
                   </div>
                   <div class="empty-list" *ngIf="availablePermissions().length === 0">
                     <mat-icon>{{ searchAvailablePermissionsControl.value ? 'search_off' : 'check_circle' }}</mat-icon>
-                    <p>{{ (searchAvailablePermissionsControl.value ? 'COMMON.NO_RESULTS' : 'PERMISSIONS.ALL_ADDED') | translate }}</p>
+                    <p>{{ (searchAvailablePermissionsControl.value ? 'COMMON.NO_RESULTS' : 'PERMISSIONS.ALL_ADDED') |
+                      translate }}</p>
                   </div>
                 </div>
               </div>
@@ -264,29 +228,19 @@
                 </div>
                 <div class="search-box">
                   <mat-icon class="search-icon">search</mat-icon>
-                  <input
-                    type="text"
-                    class="search-input"
-                    [placeholder]="'PERMISSIONS.SEARCH_PERMISSIONS' | translate"
+                  <input type="text" class="search-input" [placeholder]="'PERMISSIONS.SEARCH_PERMISSIONS' | translate"
                     [formControl]="searchSelectedPermissionsControl">
-                  <button
-                    mat-icon-button
-                    class="clear-btn"
-                    *ngIf="searchSelectedPermissionsControl.value"
+                  <button mat-icon-button class="clear-btn" *ngIf="searchSelectedPermissionsControl.value"
                     (click)="clearSelectedPermissionsSearch()">
                     <mat-icon>close</mat-icon>
                   </button>
                 </div>
                 <div class="list-items">
-                  <div
-                    class="list-item"
-                    *ngFor="let permission of selectedPermissions()"
+                  <div class="list-item" *ngFor="let permission of selectedPermissions()"
                     [class.selected]="tempSelectedInGroupPermissions().has(permission.id)"
                     (click)="toggleSelectedPermissionSelection(permission.id)">
-                    <mat-checkbox
-                      [checked]="tempSelectedInGroupPermissions().has(permission.id)"
-                      [disabled]="isGlobalGroup()"
-                      (click)="$event.stopPropagation()"
+                    <mat-checkbox [checked]="tempSelectedInGroupPermissions().has(permission.id)"
+                      [disabled]="isGlobalGroup()" (click)="$event.stopPropagation()"
                       (change)="toggleSelectedPermissionSelection(permission.id)"
                       [appDisableAuth]="['auth.add_group', 'auth.change_group']">
                     </mat-checkbox>
@@ -296,7 +250,8 @@
                   </div>
                   <div class="empty-list" *ngIf="selectedPermissions().length === 0">
                     <mat-icon>{{ searchSelectedPermissionsControl.value ? 'search_off' : 'inbox' }}</mat-icon>
-                    <p>{{ (searchSelectedPermissionsControl.value ? 'COMMON.NO_RESULTS' : 'PERMISSIONS.NO_PERMISSIONS_ADDED') | translate }}</p>
+                    <p>{{ (searchSelectedPermissionsControl.value ? 'COMMON.NO_RESULTS' :
+                      'PERMISSIONS.NO_PERMISSIONS_ADDED') | translate }}</p>
                   </div>
                 </div>
               </div>
@@ -328,30 +283,19 @@
                 </div>
                 <div class="search-box">
                   <mat-icon class="search-icon">search</mat-icon>
-                  <input
-                    type="text"
-                    class="search-input"
-                    [placeholder]="'PERMISSIONS.SEARCH_USERS' | translate"
+                  <input type="text" class="search-input" [placeholder]="'PERMISSIONS.SEARCH_USERS' | translate"
                     [formControl]="searchAvailableUsersControl">
-                  <button
-                    mat-icon-button
-                    class="clear-btn"
-                    *ngIf="searchAvailableUsersControl.value"
+                  <button mat-icon-button class="clear-btn" *ngIf="searchAvailableUsersControl.value"
                     (click)="clearAvailableUsersSearch()">
                     <mat-icon>close</mat-icon>
                   </button>
                 </div>
                 <div class="list-items">
-                  <div
-                    class="list-item"
-                    *ngFor="let user of availableUsers()"
+                  <div class="list-item" *ngFor="let user of availableUsers()"
                     [class.selected]="tempSelectedAvailableUsers().has(user.id)"
                     (click)="toggleAvailableUserSelection(user.id)">
-                    <mat-checkbox
-                      [checked]="tempSelectedAvailableUsers().has(user.id)"
-                      [disabled]="isGlobalGroup()"
-                      (click)="$event.stopPropagation()"
-                      (change)="toggleAvailableUserSelection(user.id)"
+                    <mat-checkbox [checked]="tempSelectedAvailableUsers().has(user.id)" [disabled]="!isMemberEditable()"
+                      (click)="$event.stopPropagation()" (change)="toggleAvailableUserSelection(user.id)"
                       [appDisableAuth]="['auth.add_group', 'auth.change_group']">
                     </mat-checkbox>
                     <div class="item-info">
@@ -361,7 +305,8 @@
                   </div>
                   <div class="empty-list" *ngIf="availableUsers().length === 0">
                     <mat-icon>{{ searchAvailableUsersControl.value ? 'search_off' : 'check_circle' }}</mat-icon>
-                    <p>{{ (searchAvailableUsersControl.value ? 'COMMON.NO_RESULTS' : 'PERMISSIONS.ALL_USERS_ADDED') | translate }}</p>
+                    <p>{{ (searchAvailableUsersControl.value ? 'COMMON.NO_RESULTS' : 'PERMISSIONS.ALL_USERS_ADDED') |
+                      translate }}</p>
                   </div>
                 </div>
               </div>
@@ -369,25 +314,25 @@
               <!-- Transfer Buttons -->
               <div class="transfer-buttons">
                 <button mat-icon-button class="transfer-btn" (click)="addSelectedUsersToGroup()"
-                  [disabled]="tempSelectedAvailableUsers().size === 0 || isGlobalGroup()"
+                  [disabled]="tempSelectedAvailableUsers().size === 0 || !isMemberEditable()"
                   [matTooltip]="'COMMON.ADD_SELECTED' | translate"
                   [appDisableAuth]="['auth.add_group', 'auth.change_group']">
                   <mat-icon>arrow_forward</mat-icon>
                 </button>
                 <button mat-icon-button class="transfer-btn" (click)="addAllUsersToGroup()"
-                  [disabled]="availableUsers().length === 0 || isGlobalGroup()"
+                  [disabled]="availableUsers().length === 0 || !isMemberEditable()"
                   [matTooltip]="'COMMON.ADD_ALL' | translate"
                   [appDisableAuth]="['auth.add_group', 'auth.change_group']">
                   <mat-icon>keyboard_double_arrow_right</mat-icon>
                 </button>
                 <button mat-icon-button class="transfer-btn" (click)="removeSelectedUsersFromGroup()"
-                  [disabled]="tempSelectedInGroupUsers().size === 0 || isGlobalGroup()"
+                  [disabled]="tempSelectedInGroupUsers().size === 0 || !isMemberEditable()"
                   [matTooltip]="'COMMON.REMOVE_SELECTED' | translate"
                   [appDisableAuth]="['auth.add_group', 'auth.change_group']">
                   <mat-icon>arrow_back</mat-icon>
                 </button>
                 <button mat-icon-button class="transfer-btn" (click)="removeAllUsersFromGroup()"
-                  [disabled]="selectedUsers().length === 0 || isGlobalGroup()"
+                  [disabled]="selectedUsers().length === 0 || !isMemberEditable()"
                   [matTooltip]="'COMMON.REMOVE_ALL' | translate"
                   [appDisableAuth]="['auth.add_group', 'auth.change_group']">
                   <mat-icon>keyboard_double_arrow_left</mat-icon>
@@ -402,30 +347,19 @@
                 </div>
                 <div class="search-box">
                   <mat-icon class="search-icon">search</mat-icon>
-                  <input
-                    type="text"
-                    class="search-input"
-                    [placeholder]="'PERMISSIONS.SEARCH_USERS' | translate"
+                  <input type="text" class="search-input" [placeholder]="'PERMISSIONS.SEARCH_USERS' | translate"
                     [formControl]="searchSelectedUsersControl">
-                  <button
-                    mat-icon-button
-                    class="clear-btn"
-                    *ngIf="searchSelectedUsersControl.value"
+                  <button mat-icon-button class="clear-btn" *ngIf="searchSelectedUsersControl.value"
                     (click)="clearSelectedUsersSearch()">
                     <mat-icon>close</mat-icon>
                   </button>
                 </div>
                 <div class="list-items">
-                  <div
-                    class="list-item"
-                    *ngFor="let user of selectedUsers()"
+                  <div class="list-item" *ngFor="let user of selectedUsers()"
                     [class.selected]="tempSelectedInGroupUsers().has(user.id)"
                     (click)="toggleSelectedUserSelection(user.id)">
-                    <mat-checkbox
-                      [checked]="tempSelectedInGroupUsers().has(user.id)"
-                      [disabled]="isGlobalGroup()"
-                      (click)="$event.stopPropagation()"
-                      (change)="toggleSelectedUserSelection(user.id)"
+                    <mat-checkbox [checked]="tempSelectedInGroupUsers().has(user.id)" [disabled]="!isMemberEditable()"
+                      (click)="$event.stopPropagation()" (change)="toggleSelectedUserSelection(user.id)"
                       [appDisableAuth]="['auth.add_group', 'auth.change_group']">
                     </mat-checkbox>
                     <div class="item-info">
@@ -435,7 +369,8 @@
                   </div>
                   <div class="empty-list" *ngIf="selectedUsers().length === 0">
                     <mat-icon>{{ searchSelectedUsersControl.value ? 'search_off' : 'inbox' }}</mat-icon>
-                    <p>{{ (searchSelectedUsersControl.value ? 'COMMON.NO_RESULTS' : 'PERMISSIONS.NO_USERS_ADDED') | translate }}</p>
+                    <p>{{ (searchSelectedUsersControl.value ? 'COMMON.NO_RESULTS' : 'PERMISSIONS.NO_USERS_ADDED') |
+                      translate }}</p>
                   </div>
                 </div>
               </div>
@@ -491,29 +426,19 @@
                   </div>
                   <div class="search-box">
                     <mat-icon class="search-icon">search</mat-icon>
-                    <input
-                      type="text"
-                      class="search-input"
-                      [placeholder]="'PERMISSIONS.SEARCH_GROUPS' | translate"
+                    <input type="text" class="search-input" [placeholder]="'PERMISSIONS.SEARCH_GROUPS' | translate"
                       [formControl]="searchUserAvailableGroupsControl">
-                    <button
-                      mat-icon-button
-                      class="clear-btn"
-                      *ngIf="searchUserAvailableGroupsControl.value"
+                    <button mat-icon-button class="clear-btn" *ngIf="searchUserAvailableGroupsControl.value"
                       (click)="clearUserAvailableGroupsSearch()">
                       <mat-icon>close</mat-icon>
                     </button>
                   </div>
                   <div class="list-items">
-                    <div
-                      class="list-item"
-                      *ngFor="let group of userAvailableGroups()"
+                    <div class="list-item" *ngFor="let group of userAvailableGroups()"
                       [class.selected]="tempSelectedAvailableUserGroups().has(group.id)"
                       (click)="toggleUserAvailableGroupSelection(group.id)">
-                      <mat-checkbox
-                        [checked]="tempSelectedAvailableUserGroups().has(group.id)"
-                        (click)="$event.stopPropagation()"
-                        (change)="toggleUserAvailableGroupSelection(group.id)">
+                      <mat-checkbox [checked]="tempSelectedAvailableUserGroups().has(group.id)"
+                        (click)="$event.stopPropagation()" (change)="toggleUserAvailableGroupSelection(group.id)">
                       </mat-checkbox>
                       <div class="item-info">
                         <span class="item-name">{{ group.name }}</span>
@@ -521,7 +446,8 @@
                     </div>
                     <div class="empty-list" *ngIf="userAvailableGroups().length === 0">
                       <mat-icon>{{ searchUserAvailableGroupsControl.value ? 'search_off' : 'check_circle' }}</mat-icon>
-                      <p>{{ (searchUserAvailableGroupsControl.value ? 'COMMON.NO_RESULTS' : 'PERMISSIONS.ALL_ADDED') | translate }}</p>
+                      <p>{{ (searchUserAvailableGroupsControl.value ? 'COMMON.NO_RESULTS' : 'PERMISSIONS.ALL_ADDED') |
+                        translate }}</p>
                     </div>
                   </div>
                 </div>
@@ -534,8 +460,7 @@
                     <mat-icon>arrow_forward</mat-icon>
                   </button>
                   <button mat-icon-button class="transfer-btn" (click)="addAllGroupsToUser()"
-                    [disabled]="userAvailableGroups().length === 0"
-                    [matTooltip]="'COMMON.ADD_ALL' | translate">
+                    [disabled]="userAvailableGroups().length === 0" [matTooltip]="'COMMON.ADD_ALL' | translate">
                     <mat-icon>keyboard_double_arrow_right</mat-icon>
                   </button>
                   <button mat-icon-button class="transfer-btn" (click)="removeSelectedGroupsFromUser()"
@@ -544,8 +469,7 @@
                     <mat-icon>arrow_back</mat-icon>
                   </button>
                   <button mat-icon-button class="transfer-btn" (click)="removeAllGroupsFromUser()"
-                    [disabled]="userSelectedGroups().length === 0"
-                    [matTooltip]="'COMMON.REMOVE_ALL' | translate">
+                    [disabled]="userSelectedGroups().length === 0" [matTooltip]="'COMMON.REMOVE_ALL' | translate">
                     <mat-icon>keyboard_double_arrow_left</mat-icon>
                   </button>
                 </div>
@@ -558,29 +482,19 @@
                   </div>
                   <div class="search-box">
                     <mat-icon class="search-icon">search</mat-icon>
-                    <input
-                      type="text"
-                      class="search-input"
-                      [placeholder]="'PERMISSIONS.SEARCH_GROUPS' | translate"
+                    <input type="text" class="search-input" [placeholder]="'PERMISSIONS.SEARCH_GROUPS' | translate"
                       [formControl]="searchUserSelectedGroupsControl">
-                    <button
-                      mat-icon-button
-                      class="clear-btn"
-                      *ngIf="searchUserSelectedGroupsControl.value"
+                    <button mat-icon-button class="clear-btn" *ngIf="searchUserSelectedGroupsControl.value"
                       (click)="clearUserSelectedGroupsSearch()">
                       <mat-icon>close</mat-icon>
                     </button>
                   </div>
                   <div class="list-items">
-                    <div
-                      class="list-item"
-                      *ngFor="let group of userSelectedGroups()"
+                    <div class="list-item" *ngFor="let group of userSelectedGroups()"
                       [class.selected]="tempSelectedInUserGroups().has(group.id)"
                       (click)="toggleUserSelectedGroupSelection(group.id)">
-                      <mat-checkbox
-                        [checked]="tempSelectedInUserGroups().has(group.id)"
-                        (click)="$event.stopPropagation()"
-                        (change)="toggleUserSelectedGroupSelection(group.id)">
+                      <mat-checkbox [checked]="tempSelectedInUserGroups().has(group.id)"
+                        (click)="$event.stopPropagation()" (change)="toggleUserSelectedGroupSelection(group.id)">
                       </mat-checkbox>
                       <div class="item-info">
                         <span class="item-name">{{ group.name }}</span>
@@ -588,7 +502,8 @@
                     </div>
                     <div class="empty-list" *ngIf="userSelectedGroups().length === 0">
                       <mat-icon>{{ searchUserSelectedGroupsControl.value ? 'search_off' : 'inbox' }}</mat-icon>
-                      <p>{{ (searchUserSelectedGroupsControl.value ? 'COMMON.NO_RESULTS' : 'PERMISSIONS.NO_GROUPS_ADDED') | translate }}</p>
+                      <p>{{ (searchUserSelectedGroupsControl.value ? 'COMMON.NO_RESULTS' :
+                        'PERMISSIONS.NO_GROUPS_ADDED') | translate }}</p>
                     </div>
                   </div>
                 </div>
@@ -620,27 +535,18 @@
                   </div>
                   <div class="search-box">
                     <mat-icon class="search-icon">search</mat-icon>
-                    <input
-                      type="text"
-                      class="search-input"
-                      [placeholder]="'PERMISSIONS.SEARCH_PERMISSIONS' | translate"
+                    <input type="text" class="search-input" [placeholder]="'PERMISSIONS.SEARCH_PERMISSIONS' | translate"
                       [formControl]="searchUserAvailablePermissionsControl">
-                    <button
-                      mat-icon-button
-                      class="clear-btn"
-                      *ngIf="searchUserAvailablePermissionsControl.value"
+                    <button mat-icon-button class="clear-btn" *ngIf="searchUserAvailablePermissionsControl.value"
                       (click)="clearUserAvailablePermissionsSearch()">
                       <mat-icon>close</mat-icon>
                     </button>
                   </div>
                   <div class="list-items">
-                    <div
-                      class="list-item"
-                      *ngFor="let permission of userAvailablePermissions()"
+                    <div class="list-item" *ngFor="let permission of userAvailablePermissions()"
                       [class.selected]="tempSelectedAvailableUserPermissions().has(permission.id)"
                       (click)="toggleUserAvailablePermissionSelection(permission.id)">
-                      <mat-checkbox
-                        [checked]="tempSelectedAvailableUserPermissions().has(permission.id)"
+                      <mat-checkbox [checked]="tempSelectedAvailableUserPermissions().has(permission.id)"
                         (click)="$event.stopPropagation()"
                         (change)="toggleUserAvailablePermissionSelection(permission.id)">
                       </mat-checkbox>
@@ -649,8 +555,10 @@
                       </div>
                     </div>
                     <div class="empty-list" *ngIf="userAvailablePermissions().length === 0">
-                      <mat-icon>{{ searchUserAvailablePermissionsControl.value ? 'search_off' : 'check_circle' }}</mat-icon>
-                      <p>{{ (searchUserAvailablePermissionsControl.value ? 'COMMON.NO_RESULTS' : 'PERMISSIONS.ALL_ADDED') | translate }}</p>
+                      <mat-icon>{{ searchUserAvailablePermissionsControl.value ? 'search_off' : 'check_circle'
+                        }}</mat-icon>
+                      <p>{{ (searchUserAvailablePermissionsControl.value ? 'COMMON.NO_RESULTS' :
+                        'PERMISSIONS.ALL_ADDED') | translate }}</p>
                     </div>
                   </div>
                 </div>
@@ -663,8 +571,7 @@
                     <mat-icon>arrow_forward</mat-icon>
                   </button>
                   <button mat-icon-button class="transfer-btn" (click)="addAllPermissionsToUser()"
-                    [disabled]="userAvailablePermissions().length === 0"
-                    [matTooltip]="'COMMON.ADD_ALL' | translate">
+                    [disabled]="userAvailablePermissions().length === 0" [matTooltip]="'COMMON.ADD_ALL' | translate">
                     <mat-icon>keyboard_double_arrow_right</mat-icon>
                   </button>
                   <button mat-icon-button class="transfer-btn" (click)="removeSelectedPermissionsFromUser()"
@@ -673,8 +580,7 @@
                     <mat-icon>arrow_back</mat-icon>
                   </button>
                   <button mat-icon-button class="transfer-btn" (click)="removeAllPermissionsFromUser()"
-                    [disabled]="userSelectedPermissions().length === 0"
-                    [matTooltip]="'COMMON.REMOVE_ALL' | translate">
+                    [disabled]="userSelectedPermissions().length === 0" [matTooltip]="'COMMON.REMOVE_ALL' | translate">
                     <mat-icon>keyboard_double_arrow_left</mat-icon>
                   </button>
                 </div>
@@ -687,27 +593,18 @@
                   </div>
                   <div class="search-box">
                     <mat-icon class="search-icon">search</mat-icon>
-                    <input
-                      type="text"
-                      class="search-input"
-                      [placeholder]="'PERMISSIONS.SEARCH_PERMISSIONS' | translate"
+                    <input type="text" class="search-input" [placeholder]="'PERMISSIONS.SEARCH_PERMISSIONS' | translate"
                       [formControl]="searchUserSelectedPermissionsControl">
-                    <button
-                      mat-icon-button
-                      class="clear-btn"
-                      *ngIf="searchUserSelectedPermissionsControl.value"
+                    <button mat-icon-button class="clear-btn" *ngIf="searchUserSelectedPermissionsControl.value"
                       (click)="clearUserSelectedPermissionsSearch()">
                       <mat-icon>close</mat-icon>
                     </button>
                   </div>
                   <div class="list-items">
-                    <div
-                      class="list-item"
-                      *ngFor="let permission of userSelectedPermissions()"
+                    <div class="list-item" *ngFor="let permission of userSelectedPermissions()"
                       [class.selected]="tempSelectedInUserPermissions().has(permission.id)"
                       (click)="toggleUserSelectedPermissionSelection(permission.id)">
-                      <mat-checkbox
-                        [checked]="tempSelectedInUserPermissions().has(permission.id)"
+                      <mat-checkbox [checked]="tempSelectedInUserPermissions().has(permission.id)"
                         (click)="$event.stopPropagation()"
                         (change)="toggleUserSelectedPermissionSelection(permission.id)">
                       </mat-checkbox>
@@ -717,7 +614,8 @@
                     </div>
                     <div class="empty-list" *ngIf="userSelectedPermissions().length === 0">
                       <mat-icon>{{ searchUserSelectedPermissionsControl.value ? 'search_off' : 'inbox' }}</mat-icon>
-                      <p>{{ (searchUserSelectedPermissionsControl.value ? 'COMMON.NO_RESULTS' : 'PERMISSIONS.NO_PERMISSIONS_ADDED') | translate }}</p>
+                      <p>{{ (searchUserSelectedPermissionsControl.value ? 'COMMON.NO_RESULTS' :
+                        'PERMISSIONS.NO_PERMISSIONS_ADDED') | translate }}</p>
                     </div>
                   </div>
                 </div>
@@ -748,40 +646,35 @@
   <!-- Action Buttons -->
   <div class="action-buttons" *ngIf="isEditMode()">
     <div class="actions-left">
-      <button
-        mat-stroked-button
-        color="warn"
-        (click)="deleteGroup()"
-        *ngIf="selectedGroup() && !isNewGroup() && !isGlobalGroup()"
-        [disabled]="isSaving()"
+      <button mat-stroked-button color="warn" (click)="deleteGroup()"
+        *ngIf="selectedGroup() && !isNewGroup() && !isGlobalGroup()" [disabled]="isSaving()"
         [appDisableAuth]="['auth.delete_group']">
         <mat-icon>delete</mat-icon>
         {{ 'COMMON.DELETE' | translate }}
       </button>
     </div>
     <div class="actions-right">
-      <button
-        mat-button
-        (click)="cancelEdit()"
-        [disabled]="isSaving()">
+      <button mat-button (click)="cancelEdit()" [disabled]="isSaving()">
         {{ 'COMMON.CANCEL' | translate }}
       </button>
-      <button
-        mat-raised-button
-        color="primary"
+      <!-- Group save -->
+      <button mat-raised-button color="primary"
         *ngIf="selectedGroup() || isNewGroup()"
         (click)="saveGroup()"
-        [disabled]="groupForm.invalid || isSaving() || isGlobalGroup()"
+        [disabled]="isSaving() ||
+          (selectedGroup()?.is_editable && groupForm.invalid) ||
+          (!selectedGroup()?.is_editable && !isMemberEditable()) ||
+          (selectedGroup() && !isNewGroup() && !isGroupDirty() && !(selectedGroup()?.is_editable && groupForm.dirty))"
         [appDisableAuth]="['auth.change_group']">
         <mat-spinner diameter="20" class="btn-spinner" *ngIf="isSaving()"></mat-spinner>
         <span *ngIf="!isSaving()">{{ (isNewGroup() ? 'COMMON.CREATE' : 'COMMON.UPDATE') | translate }}</span>
       </button>
-      <button
-        mat-raised-button
-        color="primary"
+
+      <!-- User save -->
+      <button mat-raised-button color="primary"
         *ngIf="selectedUser()"
         (click)="saveUser()"
-        [disabled]="userForm.invalid || isSaving()">
+        [disabled]="isSaving() || !isUserDirty()">
         <mat-spinner diameter="20" class="btn-spinner" *ngIf="isSaving()"></mat-spinner>
         <span *ngIf="!isSaving()">{{ 'COMMON.UPDATE' | translate }}</span>
       </button>
