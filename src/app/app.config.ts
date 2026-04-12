@@ -34,6 +34,8 @@ import { languageInterceptor } from './core/interceptors/language.interceptor';
 
 import { NgxEchartsModule } from 'ngx-echarts';
 import { StatsEffects } from './store/stats/stats.effects';
+import { MatPaginatorIntl } from '@angular/material/paginator';
+import { LanguagePaginatorIntl } from './core/services/paginator-intl.service';
 
 export function checkVersion() {
   const versionCheckService = inject(VersionCheckService);
@@ -119,7 +121,7 @@ export const appConfig: ApplicationConfig = {
       provide: ErrorHandler,
       useClass: GlobalErrorHandler
     },
-
+    { provide: MatPaginatorIntl, useClass: LanguagePaginatorIntl },
     provideStore(reducers, { ...STORE_CONFIG, metaReducers }),
 
     provideEffects([
