@@ -152,9 +152,9 @@
                   packageDetail.id,
                   splitInput.value ? +splitInput.value : null
                 );
-                splitInput.value = ''
-              " [matTooltip]="'PALLET_CONTROL.SPLIT_PRODUCT'| translate"
-              [appDisableAuth]="['products.change_product']">
+                splitInput.value = ''"
+                [matTooltip]="'PALLET_CONTROL.SPLIT_PRODUCT'| translate"
+                [appDisableAuth]="['products.change_product']">
               <mat-icon>content_cut</mat-icon>
             </button>
           </div>
@@ -181,7 +181,7 @@
           <div class="header-title-section">
             <mat-icon>view_quilt</mat-icon>
             <h2>{{ 'PALLET_CONTROL.PALLETIZING_AREA' | translate }}</h2>
-            <button mat-raised-button (click)="calculatePackageDetail()" class="calculate-button"
+            <button mat-raised-button (click)="calculatePackageDetail()" class="calculate-button" [appDisableAuth]="['logistics.add_package']"
               [matTooltip]="'PALLET_CONTROL.CALCULATE_PLACEMENT' | translate">
               <mat-icon>calculate</mat-icon>
               <span>{{ 'PALLET_CONTROL.CALCULATE' | translate }}</span>
@@ -190,7 +190,7 @@
             <div class="tooltip-wrapper" [matTooltip]="uiPackages().length === 0
                 ? ('PALLET_CONTROL.NO_PACKAGES_WARNING' | translate)
                 : ('PALLET_CONTROL.CALCULATE_WITH_PARAMS' | translate)">
-              <button [disabled]="uiPackages().length === 0" mat-raised-button (click)="openCalculateParamsDialog()"
+              <button [disabled]="uiPackages().length === 0" mat-raised-button (click)="openCalculateParamsDialog()" [appDisableAuth]="['logistics.add_package']"
                 class="calculate-button params-button">
                 <mat-icon>tune</mat-icon>
                 <span>{{ 'PALLET_CONTROL.PARAMS_CALCULATE' | translate }}</span>
@@ -225,10 +225,20 @@
               </div>
             </div>
           </div> -->
+          <div class="undo-redo-controls">
+            <button mat-icon-button class="history-btn" (click)="undo()" [disabled]="!canUndo()"
+              [matTooltip]="'COMMON.UNDO' | translate" [appDisableAuth]="['logistics.add_package']">
+              <mat-icon>undo</mat-icon>
+            </button>
+            <button mat-icon-button class="history-btn" (click)="redo()" [disabled]="!canRedo()"
+              [matTooltip]="'COMMON.REDO' | translate" [appDisableAuth]="['logistics.add_package']">
+              <mat-icon>redo</mat-icon>
+            </button>
+          </div>
         </div>
 
         <button mat-button class="clear-button" (click)="removeAllPackage()"
-          [matTooltip]="'PALLET_CONTROL.CLEAR_ALL_PACKAGES' | translate">
+          [matTooltip]="'PALLET_CONTROL.CLEAR_ALL_PACKAGES' | translate" [appDisableAuth]="['logistics.add_package']">
           <mat-icon>delete_sweep</mat-icon>
           <span>{{ 'TRUCK_VISUALIZATION.CLEAR' | translate }}</span>
         </button>
@@ -256,7 +266,7 @@
             </div>
             <div class="package-actions">
               <button mat-icon-button class="small-action" [matTooltip]="'PALLET_CONTROL.REMOVE_PACKAGE' | translate"
-                (click)="removePackage(package)">
+                (click)="removePackage(package)" [appDisableAuth]="['logistics.add_package']">
                 <mat-icon>close</mat-icon>
               </button>
             </div>
@@ -274,7 +284,7 @@
                   <span>{{ package.pallet.name }}</span>
                 </div>
                 <button mat-icon-button class="small-action" (click)="removePalletFromPackage(package)"
-                  [matTooltip]="'PALLET_CONTROL.REMOVE_PALLET' | translate">
+                  [matTooltip]="'PALLET_CONTROL.REMOVE_PALLET' | translate" [appDisableAuth]="['logistics.add_package']">
                   <mat-icon>close</mat-icon>
                 </button>
               </div>
@@ -302,7 +312,7 @@
                       <mat-icon>add</mat-icon>
                     </button>
                     <button class="segment-button segment-right" (click)="removePackageDetailFromPackage(package.id, j)"
-                      [matTooltip]="'PALLET_CONTROL.REMOVE_PRODUCT'| translate">
+                      [matTooltip]="'PALLET_CONTROL.REMOVE_PRODUCT'| translate" [appDisableAuth]="['logistics.add_package']">
                       <mat-icon>close</mat-icon>
                     </button>
                   </div>
@@ -450,8 +460,7 @@
   </div>
 
 
-  <button mat-button class="next-button" (click)="submitForm()" [disabled]="!uiPackages() || uiPackages().length === 0"
-    [appDisableAuth]="['logistics.change_package']">
+  <button mat-button class="next-button" (click)="submitForm()" [disabled]="!uiPackages() || uiPackages().length === 0">
     <mat-icon>arrow_forward</mat-icon>
     <span>{{( this.isDirtySignal() ? 'COMMON.SAVE' : 'COMMON.NEXT') | translate}}</span>
   </button>

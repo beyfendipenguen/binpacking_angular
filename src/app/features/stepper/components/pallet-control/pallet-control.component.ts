@@ -9,6 +9,7 @@ import {
   WritableSignal,
   computed,
   effect,
+  HostListener,
 } from '@angular/core';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import {
@@ -63,6 +64,8 @@ import {
   AppState,
   selectIsWeightLimitExceeded,
   selectOrderDetails,
+  selectCanUndo,
+  selectCanRedo,
 } from '@app/store';
 import {
   catchError,
@@ -134,6 +137,8 @@ export class PalletControlComponent
   private readonly dialog = inject(MatDialog);
   private tourService = inject(TourService);
 
+
+
   //product search
   searchControl = new FormControl('');
   isSearching = false;
@@ -174,7 +179,8 @@ export class PalletControlComponent
   public allDropListIds = this.store.selectSignal(allDropListIds);
   public packageDropListIds = this.store.selectSignal(packageDropListIds);
   public palletDropListIds = this.store.selectSignal(palletDropListIds);
-
+  public canUndo = this.store.selectSignal(selectCanUndo);
+  public canRedo = this.store.selectSignal(selectCanRedo);
   // Form and other properties
   secondFormGroup: FormGroup;
   currentDraggedProduct: PackageDetailReadDto | null = null;
@@ -198,6 +204,18 @@ export class PalletControlComponent
   public averagePalletWeight = this.store.selectSignal(
     selectAveragePackageWeight
   );
+
+  saveSnapshot(): void {
+    this.store.dispatch(StepperPackageActions.savePackageSnapshot());
+  }
+
+  undo(): void {
+    this.store.dispatch(StepperPackageActions.undoPackage());
+  }
+
+  redo(): void {
+    this.store.dispatch(StepperPackageActions.redoPackage());
+  }
 
   // Pallet weight analytics
   constructor(private _formBuilder: FormBuilder) {
@@ -241,6 +259,18 @@ export class PalletControlComponent
     }
   }
 
+  @HostListener('document:keydown', ['$event'])
+  handleUndoRedoShortcuts(event: KeyboardEvent): void {
+    if (event.ctrlKey || event.metaKey) {
+      if (event.key === 'z' || event.key === 'Z') {
+        event.preventDefault();
+        this.undo();
+      } else if (event.key === 'y' || event.key === 'Y') {
+        event.preventDefault();
+        this.redo();
+      }
+    }
+  }
 
   packageTotalWeight(pkg: UiPackage): number {
     const order = this.orderSignal();
@@ -661,6 +691,7 @@ export class PalletControlComponent
   // Drag & Drop Event Handlers
   dropPackageDetailToPackage(event: CdkDragDrop<PackageDetailReadDto[]>): void {
     if (event.previousContainer === event.container) {
+      this.saveSnapshot();
       if (event.container.id === 'productsList') {
         this.store.dispatch(
           StepperPackageActions.remainingProductMoveProduct({
@@ -669,6 +700,7 @@ export class PalletControlComponent
           })
         );
       } else {
+        this.saveSnapshot();
         this.store.dispatch(
           StepperPackageActions.movePackageDetailInSamePackage({
             currentIndex: event.currentIndex,
@@ -682,6 +714,7 @@ export class PalletControlComponent
 
     // Paletten available products'a geri alma
     if (event.container.id === 'productsList') {
+      this.saveSnapshot();
       this.store.dispatch(
         StepperPackageActions.movePackageDetailToRemainingProducts({
           packageDetails: event.previousContainer.data,
@@ -714,42 +747,48 @@ export class PalletControlComponent
 
       if (sourcePackage) {
         // Sığma kontrolü
-        if (targetPackage.pallet) {
-          const fitResult = this.calculateMaxFitCount(
-            packageDetail,
+        // Available products'tan palete transfer
+        if (!targetPackage.pallet) {
+          this.toastService.warning(
+            this.translate.instant('PALLET_CONTROL.NO_PALLET_ASSIGNED'),
+            this.translate.instant('PALLET_CONTROL.WARNING')
+          );
+          return;
+        }
+
+        const fitResult = this.calculateMaxFitCount(
+          packageDetail,
+          targetPackage.pallet,
+          targetPackage.package_details
+        );
+
+        if (fitResult.maxCount === 0) {
+          const fillPercentage = this.getPalletFillPercentage(
             targetPackage.pallet,
             targetPackage.package_details
           );
-
-          if (fitResult.maxCount === 0) {
-            // Hiç sığmıyor
-            const fillPercentage = this.getPalletFillPercentage(
-              targetPackage.pallet,
-              targetPackage.package_details
-            );
-            this.toastService.error(
-              `${this.translate.instant('PALLET_CONTROL.PRODUCT_WONT_FIT')} %${fillPercentage}`,
-              this.translate.instant('PALLET_CONTROL.SIZE_ERROR')
-            );
-            return;
-          } else if (fitResult.maxCount < packageDetail.count) {
-            // Kısmi sığıyor - YENİ DURUM
-            this.toastService.warning(
-              `${packageDetail.count} ${this.translate.instant('PALLET_CONTROL.FROM')} ${fitResult.maxCount} ${this.translate.instant('PALLET_CONTROL.ADDED_TO_PALLET')}`,
-              this.translate.instant('PALLET_CONTROL.PARTIAL_TRANSFER')
-            );
-            this.store.dispatch(
-              StepperPackageActions.movePartialPackageDetailBetweenPackages({
-                sourcePackageId: sourcePackage.id,
-                targetPackageId: targetPackage.id,
-                previousIndex: event.previousIndex,
-                maxCount: fitResult.maxCount,
-              })
-            );
-            return;
-          }
+          this.toastService.error(
+            `${this.translate.instant('PALLET_CONTROL.PRODUCT_WONT_FIT')} %${fillPercentage}`,
+            this.translate.instant('PALLET_CONTROL.SIZE_ERROR')
+          );
+          return;
+        } else if (fitResult.maxCount < packageDetail.count) {
+          this.toastService.warning(
+            `${packageDetail.count} ${this.translate.instant('COMMON.FROM')} ${fitResult.maxCount} ${this.translate.instant('PALLET_CONTROL.ADDED_TO_PALLET')}`,
+            this.translate.instant('PALLET_CONTROL.PARTIAL_TRANSFER')
+          );
+          this.saveSnapshot();
+          this.store.dispatch(
+            StepperPackageActions.movePartialPackageDetailBetweenPackages({
+              sourcePackageId: sourcePackage.id,
+              targetPackageId: targetPackage.id,
+              previousIndex: event.previousIndex,
+              maxCount: fitResult.maxCount,
+            })
+          );
+          return;
         }
-        // Normal transfer
+        this.saveSnapshot();
         this.store.dispatch(
           StepperPackageActions.movePackageDetailInPackageToPackage({
             sourcePackageId: sourcePackage.id,
@@ -782,9 +821,10 @@ export class PalletControlComponent
       } else if (fitResult.maxCount < packageDetail.count) {
         // Kısmi sığıyor
         this.toastService.warning(
-          `${packageDetail.count} ${this.translate.instant('PALLET_CONTROL.FROM')} ${fitResult.maxCount} ${this.translate.instant('PALLET_CONTROL.ADDED_TO_PALLET')}`,
+          `${packageDetail.count} ${this.translate.instant('COMMON.FROM')} ${fitResult.maxCount} ${this.translate.instant('PALLET_CONTROL.ADDED_TO_PALLET')}`,
           this.translate.instant('PALLET_CONTROL.PARTIAL_TRANSFER')
         );
+        this.saveSnapshot();
         this.store.dispatch(
           StepperPackageActions.movePartialRemainingProductToPackage({
             targetPackageId: targetPackage.id,
@@ -796,6 +836,7 @@ export class PalletControlComponent
       }
     }
     // Normal transfer
+    this.saveSnapshot();
     this.store.dispatch(
       StepperPackageActions.moveRemainingProductToPackage({
         targetPackageId: targetPackage.id,
@@ -807,6 +848,7 @@ export class PalletControlComponent
 
   dropPalletToPackage(event: CdkDragDrop<any>): void {
     if (event.previousContainer === event.container) return;
+    this.saveSnapshot();
     this.store.dispatch(
       StepperPackageActions.movePalletToPackage({
         containerId: event.container.id,
@@ -930,12 +972,14 @@ export class PalletControlComponent
 
   // Product manipulation methods
   splitProduct(packageDetailId: string, splitCount?: number | null): void {
+    this.saveSnapshot();
     this.store.dispatch(
       StepperPackageActions.splitPackageDetail({ packageDetailId, splitCount: splitCount ?? null })
     );
   }
 
   removePackageDetailFromPackage(pkgId: string, packageDetailIndex: number): void {
+    this.saveSnapshot();
     this.store.dispatch(
       StepperPackageActions.removePackageDetailFromPackage({
         pkgId,
@@ -945,14 +989,17 @@ export class PalletControlComponent
   }
 
   removeAllPackage(): void {
+    this.saveSnapshot();
     this.store.dispatch(StepperPackageActions.removeAllPackage());
   }
 
   removePackage(packageToRemove: any): void {
+    this.saveSnapshot();
     this.store.dispatch(StepperPackageActions.removePackage({ packageId: packageToRemove.id }));
   }
 
   removePalletFromPackage(packageItem: UiPackage): void {
+    this.saveSnapshot();
     this.store.dispatch(
       StepperPackageActions.removePalletFromPackage({
         packageId: packageItem.id,
@@ -966,6 +1013,7 @@ export class PalletControlComponent
 
   calculatePackageDetail() {
     if (!this.orderDetailsIsDirtySignal()){
+      this.saveSnapshot();
       this.store.dispatch(StepperPackageActions.calculatePackageDetail());
       // this.tourService.continueStep1TourAfterCalculate();
     }
@@ -977,14 +1025,17 @@ export class PalletControlComponent
   }
 
   addPackageDetail(packageDetailId: string) {
+    this.saveSnapshot();
     this.store.dispatch(StepperPackageActions.addPackageDetailToRemainingProducts({ packageDetailId }));
   }
 
   reducePackageDetail(packageDetailId: string) {
+    this.saveSnapshot();
     this.store.dispatch(StepperPackageActions.reducePackageDetailCount({ packageDetailId }));
   }
 
   deleteRemainingProducts(packageDetailIds: string[]): void {
+    this.saveSnapshot();
     this.store.dispatch(StepperPackageActions.deleteRemainingProducts({ packageDetailIds }));
   }
 

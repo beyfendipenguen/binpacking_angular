@@ -51,7 +51,7 @@ import { OrderFormManager } from './managers/order-form.manager';
 import { ReferenceData, OrderDetailUpdateEvent, WeightType } from './models/invoice-upload-interfaces';
 import { InvoiceCalculatorService } from './services/invoice-calculator.service';
 import { InvoiceDataLoaderService } from './services/invoice-data-loader.service';
-import { AppState, selectOrder, selectOrderDetails, selectIsOrderDetailsDirty, selectIsOrderDirty, selectTotalProductsMeter, selectTotalProductCount, selectStep1HasFile, selectStep1FileName, selectIsEditMode, selectUser, selectInvoiceTemplateFile, selectAverageOrderDetailHeight, hasPackages } from '@app/store';
+import { AppState, selectOrder, selectOrderDetails, selectIsOrderDetailsDirty, selectIsOrderDirty, selectTotalProductsMeter, selectTotalProductCount, selectStep1HasFile, selectStep1FileName, selectIsEditMode, selectUser, selectInvoiceTemplateFile, selectAverageOrderDetailHeight, hasPackages, selectUserPermissions } from '@app/store';
 import { StepperInvoiceUploadActions } from '@app/store/stepper/actions/stepper-invoice-upload.actions';
 import { StepperPackageActions } from '@app/store/stepper/actions/stepper-package.actions';
 import { StepperUiActions } from '@app/store/stepper/actions/stepper-ui.actions';
@@ -120,6 +120,7 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
   public userSignal = this.store.selectSignal(selectUser);
   public templateFileSignal = this.store.selectSignal(selectInvoiceTemplateFile);
   public hasPackages = this.store.selectSignal(hasPackages)
+  private permissions = this.store.selectSignal(selectUserPermissions);
 
   private readonly unitProductHeight = this.store.selectSignal(selectAverageOrderDetailHeight)
   unitsControl = new FormControl(20);
@@ -250,8 +251,8 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  private initializeComponent(): void {
-    this.uploadForm = this.orderFormManager.initializeForm();
+  hasOrderAddPerm(): boolean {
+    return this.permissions()?.includes('orders.add_order') ?? false;
   }
 
   downloadTemplate() {

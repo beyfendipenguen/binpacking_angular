@@ -15,6 +15,7 @@ import { OrderService } from '@app/features/services/order.service';
 import { CancelConfirmationDialogComponent } from '@app/shared/cancel-confirmation-dialog/cancel-confirmation-dialog.component';
 import { AppState, selectOrderId, selectUser } from '@app/store';
 import { LanguageService, Language } from '@app/core/services/language.service'; // ✅ Comment'i kaldır
+import { DisableAuthDirective } from '@app/core/auth/directives/disable-auth.directive';
 
 @Component({
   selector: 'app-header',
@@ -28,7 +29,8 @@ import { LanguageService, Language } from '@app/core/services/language.service';
     CommonModule,
     RouterLink,
     MatDividerModule,
-    TranslateModule
+    TranslateModule,
+    DisableAuthDirective,
   ],
   standalone: true,
 })

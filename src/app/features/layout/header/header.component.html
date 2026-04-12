@@ -20,7 +20,8 @@
     <!-- İptal Butonu - Sadece stepper sayfasında göster -->
     @if (showCancelButton()) {
     <div class="navbar-button-group">
-      <button mat-stroked-button class="navbar-group-button navbar-cancel-button" (click)="onCancelClick()">
+      <button mat-stroked-button class="navbar-group-button navbar-cancel-button" (click)="onCancelClick()"
+        [appDisableAuth]="['orders.delete_order']">
         <mat-icon>delete_forever</mat-icon>
         <span class="button-text">{{ 'COMMON.CANCEL' | translate }}</span>
       </button>
