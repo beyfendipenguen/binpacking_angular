@@ -121,6 +121,7 @@ export class GenericTableComponent<T extends { id: any }> implements OnInit, Aft
   @Input() showDeleteButton: boolean = true; // Silme butonu gösterme ayarı
   @Input() excludeFields: string[] = [];
   @Input() columnPermissions: { [key: string]: PermissionType | PermissionType[] } = {};
+  @Input() notSortableColumns: string[] = [];
 
   @Input() parentId: string | undefined = undefined; // Bağlı olduğu üst nesne ID'si
   @Input() useParentId: boolean = false; // Üst nesne ID kullanılacak mı belirteci
@@ -214,6 +215,11 @@ export class GenericTableComponent<T extends { id: any }> implements OnInit, Aft
     }
 
     return false;
+  }
+
+  isNotSortableColumn(column: string): boolean {
+    if (this.notSortableColumns.length === 0) return true; // Tanımlanmamışsa hepsi aktif
+    return this.notSortableColumns.includes(column);
   }
 
   // Bu metod template'deki spread operatörünü kaldırmak için

@@ -34,6 +34,7 @@
     <app-generic-table
       *appHasPermission="'logistics.view_pallet'"
       [service]="palletService"
+      [notSortableColumns]="[]"
       [columnTypes]="columnTypes"
       [displayedColumns]="displayedColumns"
       [filterableColumns]="filterableColumns"

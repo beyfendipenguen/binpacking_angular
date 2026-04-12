@@ -20,6 +20,7 @@
 
   <div class="content-section" [class.loading]="isLoading">
     <app-generic-table *appHasPermission="'products.view_product'" [service]="productService"
+      [notSortableColumns]="notSortableColumns"
       [displayedColumns]="displayedColumns" [filterableColumns]="filterableColumns"
       [nestedDisplayColumns]="nestedDisplayColumns" [title]="'PRODUCT.PRODUCTS'" [showRowNumbers]="true"
       [excludeFields]="['name']" [deletePermission]="['products.delete_product']"

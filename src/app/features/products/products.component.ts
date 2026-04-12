@@ -54,6 +54,10 @@ export class ProductsComponent implements OnInit {
     'created_at'
   ];
 
+  notSortableColumns: string[] = [
+    'name'
+  ];
+
   // Filtrelenebilen alanlar
   filterableColumns: string[] = [
     'product_type.code',
