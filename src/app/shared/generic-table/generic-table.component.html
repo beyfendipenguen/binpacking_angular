@@ -6,7 +6,7 @@
     <!-- Aktif filtreleri temizleme butonu -->
     @if (hasActiveFilters()) {
     <button mat-button color="primary" (click)="clearAllFilters()">
-      <mat-icon>filter_list_off</mat-icon>{{ 'GENERIC_TABLE.CLEAR_FILTERS' | translate }}</button>
+      <mat-icon>filter_list_off</mat-icon>{{ 'COMMON.CLEAR_FILTERS' | translate }}</button>
     }
   </div>
 
@@ -62,7 +62,7 @@
       @for (column of displayedColumns; track column) {
       @if (hasColumnPermission(column)) {
       <ng-container [matColumnDef]="column">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header>
+        <th mat-header-cell *matHeaderCellDef mat-sort-header [disabled]="isNotSortableColumn(column)">
           <div class="header-content">
             {{ getColumnDisplayName(column) | translate}}
 
@@ -227,7 +227,7 @@
 
     @if (hasActiveFilters()) {
     <p>{{ 'GENERIC_TABLE.TRY_CLEAR_FILTERS' | translate }}</p>
-    <button mat-raised-button color="primary" (click)="clearAllFilters()">{{ 'GENERIC_TABLE.CLEAR_FILTERS' | translate
+    <button mat-raised-button color="primary" (click)="clearAllFilters()">{{ 'COMMON.CLEAR_FILTERS' | translate
       }}</button>
     }
   </div>

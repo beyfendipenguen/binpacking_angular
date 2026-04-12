@@ -85,7 +85,7 @@ export class AuthService {
           } else {
             this.loginError$.next({
               code: 'auth_error',
-              detail: this.translate.instant('CONTRACT.LOGIN_ERROR'),
+              detail: this.translate.instant('AUTH.LOGIN_ERROR'),
             });
             this.toastService.error(this.translate.instant('AUTH.LOGIN_ERROR'));
           }

@@ -71,7 +71,9 @@
     "ADD_ALL": "Добавить все",
     "ADD_SELECTED": "Добавить выбранные",
     "REMOVE_SELECTED": "Удалить выбранные",
-    "REMOVE_ALL": "Удалить все"
+    "REMOVE_ALL": "Удалить все",
+    "UNDO": "отменить",
+    "REDO": "повторить"
   },
   "MENU": {
     "HOME": "Главная",
@@ -1025,5 +1027,14 @@
     "HIGH": "Высокий",
     "LOW": "низкий",
     "ORDER_DISTRIBUTION": "Распределение заказов"
+  },
+  "PAGINATOR": {
+    "ITEMS_PER_PAGE": "Записей на странице:",
+    "NEXT_PAGE": "Следующая страница",
+    "PREVIOUS_PAGE": "Предыдущая страница",
+    "FIRST_PAGE": "Первая страница",
+    "LAST_PAGE": "Последняя страница",
+    "RANGE_ZERO": "0 из {{length}}",
+    "RANGE_LABEL": "{{startIndex}} – {{endIndex}} из {{length}}"
   }
 }

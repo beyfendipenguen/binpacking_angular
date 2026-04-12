@@ -71,7 +71,9 @@
     "ADD_ALL": "Add All",
     "ADD_SELECTED": "Add Selected",
     "REMOVE_SELECTED": "Remove Selected",
-    "REMOVE_ALL": "Remove All"
+    "REMOVE_ALL": "Remove All",
+    "UNDO": "Undo",
+    "REDO": "Redo"
   },
   "MENU": {
     "HOME": "Home",
@@ -1025,5 +1027,14 @@
     "HIGH": "High",
     "LOW": "Low",
     "ORDER_DISTRIBUTION": "Order Distribution"
+  },
+  "PAGINATOR": {
+    "ITEMS_PER_PAGE": "Items per page:",
+    "NEXT_PAGE": "Next page",
+    "PREVIOUS_PAGE": "Previous page",
+    "FIRST_PAGE": "First page",
+    "LAST_PAGE": "Last page",
+    "RANGE_ZERO": "0 of {{length}}",
+    "RANGE_LABEL": "{{startIndex}} – {{endIndex}} of {{length}}"
   }
 }

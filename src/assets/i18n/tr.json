@@ -71,7 +71,9 @@
     "ADD_ALL": "Tümünü ekle",
     "ADD_SELECTED": "Seçilenleri ekle",
     "REMOVE_SELECTED": "Seçilenleri çıkar",
-    "REMOVE_ALL": "Tümünü çıkar"
+    "REMOVE_ALL": "Tümünü çıkar",
+    "UNDO": "Geri Al",
+    "REDO": "İleri Al"
   },
   "MENU": {
     "HOME": "Ana Sayfa",
@@ -1025,5 +1027,14 @@
     "HIGH": "Yüksek",
     "LOW": "Düşük",
     "ORDER_DISTRIBUTION": "Sipariş Dağılımı"
+  },
+  "PAGINATOR": {
+    "ITEMS_PER_PAGE": "Sayfa başına kayıt:",
+    "NEXT_PAGE": "Sonraki sayfa",
+    "PREVIOUS_PAGE": "Önceki sayfa",
+    "FIRST_PAGE": "İlk sayfa",
+    "LAST_PAGE": "Son sayfa",
+    "RANGE_ZERO": "0 / {{length}}",
+    "RANGE_LABEL": "{{startIndex}} - {{endIndex}} / {{length}}"
   }
 }
