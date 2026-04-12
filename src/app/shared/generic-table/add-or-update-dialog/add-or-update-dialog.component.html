@@ -1,0 +1,107 @@
+<h2 mat-dialog-title>{{ dialogTitle }}</h2>
+
+<form [formGroup]="form" (ngSubmit)="onSubmit()">
+  <div mat-dialog-content>
+    <div *ngFor="let field of fields" class="form-field">
+
+      <!-- TEXT -->
+      <mat-form-field *ngIf="field.type === 'text'" appearance="outline" class="full-width">
+        <mat-label>{{ field.label | translate }}</mat-label>
+        <input matInput [formControlName]="sanitizeKey(field.key)" [placeholder]="field.placeholder || ''">
+        <mat-hint *ngIf="field.hint">{{ field.hint }}</mat-hint>
+        <mat-error>{{ getErrorMessage(field) }}</mat-error>
+      </mat-form-field>
+
+      <!-- EMAIL -->
+      <mat-form-field *ngIf="field.type === 'email'" appearance="outline" class="full-width">
+        <mat-label>{{ field.label | translate }}</mat-label>
+        <input matInput [formControlName]="sanitizeKey(field.key)" type="email" [placeholder]="field.placeholder || ''">
+        <mat-icon matSuffix>email</mat-icon>
+        <mat-hint *ngIf="field.hint">{{ field.hint }}</mat-hint>
+        <mat-error>{{ getErrorMessage(field) }}</mat-error>
+      </mat-form-field>
+
+      <!-- PHONE -->
+      <mat-form-field *ngIf="field.type === 'phone'" appearance="outline" class="full-width">
+        <mat-label>{{ field.label | translate}}</mat-label>
+        <input matInput [formControlName]="sanitizeKey(field.key)" type="tel" [placeholder]="field.placeholder || ''">
+        <mat-icon matSuffix>phone</mat-icon>
+        <mat-hint *ngIf="field.hint">{{ field.hint }}</mat-hint>
+        <mat-error>{{ getErrorMessage(field) }}</mat-error>
+      </mat-form-field>
+
+      <!-- NUMBER -->
+      <mat-form-field *ngIf="field.type === 'number'" appearance="outline" class="full-width">
+        <mat-label>{{ field.label | translate}}</mat-label>
+        <input matInput [formControlName]="sanitizeKey(field.key)" type="number"
+          [min]="field.min ?? 0" [max]="field.max ?? null"
+          [placeholder]="field.placeholder || ''">
+        <mat-hint *ngIf="field.hint">{{ field.hint }}</mat-hint>
+        <mat-error>{{ getErrorMessage(field) }}</mat-error>
+      </mat-form-field>
+
+      <!-- DATE -->
+      <mat-form-field *ngIf="field.type === 'date'" appearance="outline" class="full-width">
+        <mat-label>{{ field.label | translate}}</mat-label>
+        <input matInput [matDatepicker]="datePicker" [formControlName]="sanitizeKey(field.key)"
+          [placeholder]="field.placeholder || ''">
+        <mat-datepicker-toggle matSuffix [for]="datePicker"></mat-datepicker-toggle>
+        <mat-datepicker #datePicker></mat-datepicker>
+        <mat-hint *ngIf="field.hint">{{ field.hint }}</mat-hint>
+        <mat-error>{{ getErrorMessage(field) }}</mat-error>
+      </mat-form-field>
+
+      <!-- DATETIME -->
+      <mat-form-field *ngIf="field.type === 'datetime'" appearance="outline" class="full-width">
+        <mat-label>{{ field.label | translate}}</mat-label>
+        <input matInput [matDatepicker]="datetimePicker" [formControlName]="sanitizeKey(field.key)"
+          [placeholder]="field.placeholder || ''">
+        <mat-datepicker-toggle matSuffix [for]="datetimePicker"></mat-datepicker-toggle>
+        <mat-datepicker #datetimePicker></mat-datepicker>
+        <mat-hint *ngIf="field.hint">{{ field.hint }}</mat-hint>
+        <mat-error>{{ getErrorMessage(field) }}</mat-error>
+      </mat-form-field>
+
+      <!-- CHECKBOX -->
+      <div *ngIf="field.type === 'checkbox'" class="checkbox-field">
+        <mat-checkbox [formControlName]="sanitizeKey(field.key)">{{ field.label | translate}}</mat-checkbox>
+        <mat-hint *ngIf="field.hint" class="checkbox-hint">{{ field.hint }}</mat-hint>
+      </div>
+
+      <!-- SELECT -->
+      <mat-form-field *ngIf="field.type === 'select'" appearance="outline" class="full-width">
+        <mat-label>{{ field.label | translate}}</mat-label>
+        <mat-select [formControlName]="sanitizeKey(field.key)">
+          <mat-option *ngFor="let option of field.options" [value]="option.value">
+            {{ option.label }}
+          </mat-option>
+        </mat-select>
+        <mat-hint *ngIf="field.hint">{{ field.hint }}</mat-hint>
+        <mat-error>{{ getErrorMessage(field) }}</mat-error>
+      </mat-form-field>
+
+      <!-- TEXTAREA -->
+      <mat-form-field *ngIf="field.type === 'textarea'" appearance="outline" class="full-width">
+        <mat-label>{{ field.label | translate }}</mat-label>
+        <textarea matInput [formControlName]="sanitizeKey(field.key)" rows="3"
+          [placeholder]="field.placeholder || ''"></textarea>
+        <mat-hint *ngIf="field.hint">{{ field.hint }}</mat-hint>
+        <mat-error>{{ getErrorMessage(field) }}</mat-error>
+      </mat-form-field>
+
+    </div>
+
+    <div *ngIf="fields.length === 0" class="no-fields-message">
+      <p>{{ 'COMMON.DIALOG_FORM_NOT_CREATED' | translate }}</p>
+    </div>
+  </div>
+
+  <div mat-dialog-actions align="end">
+    <button mat-button type="button" (click)="onCancel()">
+      {{ 'COMMON.CANCEL' | translate }}
+    </button>
+    <button mat-raised-button color="primary" type="submit" [disabled]="form.invalid">
+      {{ (isEditMode ? 'COMMON.UPDATE' : 'COMMON.ADD') | translate }}
+    </button>
+  </div>
+</form>

@@ -5,9 +5,9 @@ import { MAT_DIALOG_DATA, MatDialogRef, MatDialogModule } from '@angular/materia
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { ColumnDefinition } from '@app/shared/generic-table/generic-table.component';
 import { PackageService } from '@app/features/services/package.service';
 import { PackageReadDto } from '@app/features/interfaces/package.interface';
+import { ColumnDefinition } from '@app/shared/generic-table/interfaces/column-definition.interface';
 
 interface GroupedPackage {
   id: string;

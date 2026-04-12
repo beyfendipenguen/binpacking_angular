@@ -7,7 +7,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { Observable } from 'rxjs';
 import { OrderDetailService } from '@features/services/order-detail.service';
-import { GenericTableComponent, ColumnDefinition, ExternalDataParams, ExternalDataResult } from '@shared/generic-table/generic-table.component';
+import { GenericTableComponent, ExternalDataParams, ExternalDataResult } from '@shared/generic-table/generic-table.component';
+import { ColumnDefinition } from '@app/shared/generic-table/interfaces/column-definition.interface';
 
 @Component({
   selector: 'app-order-details-dialog',

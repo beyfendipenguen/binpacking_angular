@@ -1,26 +1,30 @@
-import { CommonModule } from '@angular/common';
-import { TranslateModule } from '@ngx-translate/core';
 import { Component, Inject } from '@angular/core';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { MatButtonModule } from '@angular/material/button';
+import { CommonModule } from '@angular/common';
+import { FormsModule, ReactiveFormsModule, FormControl, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { MatButtonModule } from '@angular/material/button';
 import { MatSelectModule } from '@angular/material/select';
-
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatNativeDateModule } from '@angular/material/core';
+import { MatIconModule } from '@angular/material/icon';
+import { TranslateModule } from '@ngx-translate/core';
+import { FieldOption, FieldType } from '../interfaces/column-definition.interface';
 
 export interface FilterDialogData {
   column: string;
   displayName: string;
   currentValue: string;
-  options?: any[]; // İlişkili sütunlar için dropdown seçenekleri
-  isNested?: boolean; // İç içe sütun mu?
-  relatedOptions?: any[]; // İlişkili alan seçenekleri
+  type?: FieldType;
+  options?: FieldOption[];
 }
 
 @Component({
   selector: 'app-filter-dialog',
-  imports: [CommonModule,
+  standalone: true,
+  imports: [
+    CommonModule,
     FormsModule,
     ReactiveFormsModule,
     MatDialogModule,
@@ -28,24 +32,33 @@ export interface FilterDialogData {
     MatInputModule,
     MatButtonModule,
     MatSelectModule,
+    MatDatepickerModule,
+    MatNativeDateModule,
+    MatIconModule,
     TranslateModule
   ],
   templateUrl: './filter-dialog.component.html',
   styleUrl: './filter-dialog.component.scss'
 })
 export class FilterDialogComponent {
-  filterValue: string = '';
+  filterControl: FormControl;
 
   constructor(
     public dialogRef: MatDialogRef<FilterDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: FilterDialogData
   ) {
-    // Mevcut filtre değerini al
-    this.filterValue = data.currentValue || '';
+    const validators = data.type === 'number' ? [Validators.min(0)] : [];
+    this.filterControl = new FormControl(data.currentValue || '', validators);
+  }
+
+  get fieldType(): FieldType {
+    return this.data.type || 'text';
   }
 
   onApply(): void {
-    this.dialogRef.close(this.filterValue);
+    if (this.filterControl.invalid) return;
+    const value = this.filterControl.value;
+    this.dialogRef.close(value !== null && value !== undefined ? String(value) : '');
   }
 
   onClear(): void {

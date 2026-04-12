@@ -326,7 +326,7 @@
     "SUBTITLE": "View active orders and access detailed information",
     "ORDERS": "Shipment Orders",
     "ORDER_NAME": "Order Name",
-    "ORDER_DATE": "Order Date",
+    "ORDER_DATE": "Date",
     "CREATION_DATE": "Creation Date",
     "COMPANY_NAME": "Company Name",
     "PRODUCT_DETAILS": "Product Details",
@@ -1036,5 +1036,15 @@
     "LAST_PAGE": "Last page",
     "RANGE_ZERO": "0 of {{length}}",
     "RANGE_LABEL": "{{startIndex}} – {{endIndex}} of {{length}}"
+  },
+  "VALIDATION": {
+    "REQUIRED": "This field is required",
+    "EMAIL": "Please enter a valid email address",
+    "MIN": "Must be at least {{min}}",
+    "MAX": "Must be at most {{max}}",
+    "MIN_LENGTH": "Must be at least {{length}} characters",
+    "MAX_LENGTH": "Must be at most {{length}} characters",
+    "PATTERN": "Invalid format",
+    "INVALID": "Invalid value"
   }
 }

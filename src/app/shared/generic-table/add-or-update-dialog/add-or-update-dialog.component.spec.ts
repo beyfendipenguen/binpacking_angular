@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { AddOrUpdateDialogComponent } from './add-or-update-dialog-component';
+import { AddOrUpdateDialogComponent } from './add-or-update-dialog.component';
 
 describe('AddOrUpdateDialogComponent', () => {
   let component: AddOrUpdateDialogComponent;

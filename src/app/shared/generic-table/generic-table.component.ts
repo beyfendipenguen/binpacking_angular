@@ -32,7 +32,7 @@ import { GenericCrudService } from '../../core/services/generic-crud.service';
 import { FilterDialogComponent } from './filter-dialog/filter-dialog.component';
 import { ConfirmDialogComponent } from './confirm-dialog/confirm-dialog.component';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
-import { AddOrUpdateDialogComponent } from './add-or-update-dialog/add-or-update-dialog-component';
+import { AddOrUpdateDialogComponent } from './add-or-update-dialog/add-or-update-dialog.component';
 import { ToastService } from '../../core/services/toast.service';
 import { Observable } from 'rxjs';
 import { BaseResponse } from '@app/core/interfaces/base-response.interface';
@@ -40,6 +40,9 @@ import { DisableAuthDirective } from '@app/core/auth/directives/disable-auth.dir
 import { Store } from '@ngrx/store';
 import { AppState, selectUserPermissions } from '@app/store';
 import { PermissionType } from '@app/core/interfaces/permission.interface';
+import { ButtonConfig, ColumnDefinition, FieldType } from './interfaces/column-definition.interface';
+
+
 
 // Interface for external data source
 export interface ExternalDataParams {
@@ -53,24 +56,6 @@ export interface ExternalDataParams {
 export interface ExternalDataResult<T> {
   results: T[];
   count: number;
-}
-
-// Interface for button configuration in columns
-export interface ButtonConfig {
-  icon?: string;
-  text?: string;
-  color?: 'primary' | 'accent' | 'warn';
-  tooltip?: string;
-  class?: string;
-}
-
-// Interface for column definition with button support
-export interface ColumnDefinition {
-  key: string;
-  label: string;
-  type?: string;
-  required?: boolean;
-  buttonConfig?: ButtonConfig;
 }
 
 // Interface for cell button click event
@@ -113,7 +98,6 @@ export class GenericTableComponent<T extends { id: any }> implements OnInit, Aft
   @Input() title: string = 'Items';
   @Input() filterableColumns: string[] = [];
   @Input() relationOptions: { [key: string]: any[] } = {};
-  @Input() columnDefinitions: ColumnDefinition[] = [];
   @Input() nestedDisplayColumns: { [key: string]: string } = {}; // İç içe sütunlar için görünen başlıklar
   @Input() showRowNumbers: boolean = true; // Sıra numaralarını gösterme ayarı
   @Input() showAddButton: boolean = true; // Ekleme butonu gösterme ayarı
@@ -122,6 +106,7 @@ export class GenericTableComponent<T extends { id: any }> implements OnInit, Aft
   @Input() excludeFields: string[] = [];
   @Input() columnPermissions: { [key: string]: PermissionType | PermissionType[] } = {};
   @Input() notSortableColumns: string[] = [];
+  @Input() columnDefinitions: ColumnDefinition[] = [];
 
   @Input() parentId: string | undefined = undefined; // Bağlı olduğu üst nesne ID'si
   @Input() useParentId: boolean = false; // Üst nesne ID kullanılacak mı belirteci
@@ -169,6 +154,7 @@ export class GenericTableComponent<T extends { id: any }> implements OnInit, Aft
   currentSortField: string = '';
   currentSortDirection: string = '';
   isExternalMode: boolean = false; // Flag to determine if using external data source
+  columnDisplayNames: { [key: string]: string } = {};
 
   /**
    * Check if a column is a button type
@@ -296,6 +282,8 @@ export class GenericTableComponent<T extends { id: any }> implements OnInit, Aft
       this.filterValues[column] = '';
     });
 
+    this.buildColumnDisplayNames();
+
     // If external data is directly provided, use it (without fetching)
     if (this.externalData && !this.externalDataFetcher) {
       this.updateDataFromExternalSource(this.externalData, this.externalTotalCount || this.externalData.length);
@@ -320,6 +308,9 @@ export class GenericTableComponent<T extends { id: any }> implements OnInit, Aft
   }
 
   ngOnChanges(changes: SimpleChanges): void {
+    if (changes['columnDefinitions'] || changes['nestedDisplayColumns'] || changes['displayedColumns']) {
+      this.buildColumnDisplayNames(); // ← ekle
+    }
     // If external data changes directly, update the data source
     if (changes['externalData'] && !changes['externalData'].firstChange) {
       if (this.externalData) {
@@ -349,6 +340,15 @@ export class GenericTableComponent<T extends { id: any }> implements OnInit, Aft
     }
   }
 
+  private buildColumnDisplayNames(): void {
+    const names: { [key: string]: string } = {};
+    [...this.displayedColumns, 'rowNumber'].forEach(col => {
+      names[col] = this.getColumnDisplayName(col);
+    });
+    this.columnDisplayNames = names;
+  }
+
+
   /**
    * Update the data source with external data
    * @param data The data array
@@ -366,20 +366,16 @@ export class GenericTableComponent<T extends { id: any }> implements OnInit, Aft
    */
   openFilterDialog(column: string, event: Event): void {
     event.stopPropagation(); // Sort olayının tetiklenmesini engelle
-
+    const columnDef = this.columnDefinitions.find(c => c.key === column);
     // Sütun için mevcut filtre değerini al
-    const currentValue = this.filterValues[column] || '';
-
-    // Sütunun görünen adını bul
-    const displayName = this.getColumnDisplayName(column);
-
-    // Basit dialog'u aç
     const dialogRef = this.dialog.open(FilterDialogComponent, {
       width: '350px',
       data: {
         column,
-        displayName,
-        currentValue,
+        displayName: this.getColumnDisplayName(column),
+        currentValue: this.filterValues[column] || '',
+        type: columnDef?.type || 'text',      // ← ekle
+        options: columnDef?.options            // ← ekle
       },
     });
 
@@ -552,33 +548,30 @@ export class GenericTableComponent<T extends { id: any }> implements OnInit, Aft
 
   // openAddOrUpdateDialog metodunda columnDefinitions dizisinin doğru gönderildiğinden emin olalım
   openAddOrUpdateDialog(row?: T): void {
-    // Tabloda gösterilen sütunlara göre dinamik olarak görünür alanları belirle
+    if (this.displayedColumns.length === 0) return;
 
-    if (this.displayedColumns.length === 0) {
-      return;
-    }
-
-    // Sütun tanımlarımız yoksa bir hata mesajı göster
     if (!this.columnDefinitions || this.columnDefinitions.length === 0) {
-      //Basit sütun tanımları oluştur
       this.columnDefinitions = this.displayedColumns
-        .filter((col) => col !== 'actions' && col !== 'rowNumber')
-        .map((col: string) => ({
+        .filter(col => col !== 'actions' && col !== 'rowNumber')
+        .map(col => ({
           key: col,
           label: this.getColumnDisplayName(col),
-          type: this.columnTypes[col] || "text",
+          type: (this.columnTypes[col] || 'text') as FieldType,  // ← cast ekle
           required: true,
         }));
     }
 
+    // visible: false olanları form'dan çıkar  ← değişiklik burada
+    const formColumns = this.columnDefinitions.filter(c => c.visible !== false);
+
     const dialogRef = this.dialog.open(AddOrUpdateDialogComponent, {
       width: '500px',
       data: {
-        row: row, // Düzenleme için mevcut satır verisi (eğer yeni ekleme ise undefined)
-        columns: this.columnDefinitions, // Sütun tanımları
+        row: row,
+        columns: formColumns,               // ← columnDefinitions yerine formColumns
         visibleFields: this.displayedColumns.filter(
-          (col) => col !== 'actions' && col !== 'rowNumber' && !this.excludeFields.includes(col)
-        ), // Dinamik olarak belirlenen alanlar
+          col => col !== 'actions' && col !== 'rowNumber' && !this.excludeFields.includes(col)
+        ),
       },
     });
 
@@ -783,21 +776,29 @@ export class GenericTableComponent<T extends { id: any }> implements OnInit, Aft
   }
   // Get the display name for a column
   getColumnDisplayName(column: string): string {
-    // "rowNumber" sütunu için özel isim
-    if (column === 'rowNumber') {
-      return '#';
-    }
+    if (column === 'rowNumber') return '#';
 
-    // If it's a nested column and we have a display name for it
-    if (this.nestedDisplayColumns && this.nestedDisplayColumns[column]) {
+    console.log('getColumnDisplayName called:', column);
+    console.log('nestedDisplayColumns:', this.nestedDisplayColumns);
+    console.log('columnDefinitions:', this.columnDefinitions);
+
+    // Önce nestedDisplayColumns'a bak
+    if (this.nestedDisplayColumns?.[column]) {
       return this.translate.instant(this.nestedDisplayColumns[column]);
     }
 
-    // Otherwise just use the column name with title case
+    // Sonra columnDefinitions'a bak
+    const colDef = this.columnDefinitions.find(c => c.key === column);
+    if (colDef?.label) {
+      const translated = this.translate.instant(colDef.label);
+      console.log('label:', colDef.label, '→ translated:', translated);
+      return translated;
+    }
+
     return column
       .replace(/\./g, ' ')
       .split('_')
-      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
       .join(' ');
   }
 

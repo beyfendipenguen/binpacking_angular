@@ -558,7 +558,7 @@
     "MANUAL_ENTRY": "Manuel Giriş",
     "OR": "veya",
     "SELECT_EXCEL": "Excel Dosyası Seç",
-    "ORDER_DATE": "Sipariş Tarihi",
+    "ORDER_DATE": "Tarih",
     "SELECT_DATE": "Tarih seçin",
     "ORDER_DATE_REQUIRED": "Sipariş tarihi zorunludur",
     "CUSTOMER": "Müşteri",
@@ -1036,5 +1036,15 @@
     "LAST_PAGE": "Son sayfa",
     "RANGE_ZERO": "0 / {{length}}",
     "RANGE_LABEL": "{{startIndex}} - {{endIndex}} / {{length}}"
+  },
+  "VALIDATION": {
+    "REQUIRED": "Bu alan zorunludur",
+    "EMAIL": "Geçerli bir e-posta giriniz",
+    "MIN": "En az {{min}} olmalıdır",
+    "MAX": "En fazla {{max}} olabilir",
+    "MIN_LENGTH": "En az {{length}} karakter giriniz",
+    "MAX_LENGTH": "En fazla {{length}} karakter girebilirsiniz",
+    "PATTERN": "Geçersiz format",
+    "INVALID": "Geçersiz değer"
   }
 }

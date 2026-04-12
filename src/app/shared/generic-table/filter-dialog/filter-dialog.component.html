@@ -1,14 +1,58 @@
-<h2 mat-dialog-title>{{ data.displayName }} {{'COMMON.FILTER' | translate}}</h2>
+<h2 mat-dialog-title>{{ data.displayName }} {{ 'COMMON.FILTER' | translate }}</h2>
+
 <mat-dialog-content>
   <div class="filter-content">
-    <mat-form-field appearance="outline" class="full-width">
+
+    <!-- TEXT / EMAIL / PHONE / TEXTAREA -->
+    <mat-form-field *ngIf="['text','email','phone','textarea'].includes(fieldType)"
+      appearance="outline" class="full-width">
       <mat-label>{{ 'GENERIC_TABLE.FILTER_VALUE' | translate }}</mat-label>
-      <input matInput [(ngModel)]="filterValue" [placeholder]="'GENERIC_TABLE.ENTER_SEARCH' | translate">
+      <input matInput [formControl]="filterControl"
+        [type]="fieldType === 'email' ? 'email' : 'text'"
+        [placeholder]="'GENERIC_TABLE.ENTER_SEARCH' | translate">
+      <mat-error *ngIf="filterControl.errors?.['required']">
+        {{ 'VALIDATION.REQUIRED' | translate }}
+      </mat-error>
     </mat-form-field>
+
+    <!-- NUMBER -->
+    <mat-form-field *ngIf="fieldType === 'number'" appearance="outline" class="full-width">
+      <mat-label>{{ 'GENERIC_TABLE.FILTER_VALUE' | translate }}</mat-label>
+      <input matInput [formControl]="filterControl" type="number"
+        [placeholder]="'GENERIC_TABLE.ENTER_SEARCH' | translate">
+      <mat-error *ngIf="filterControl.errors?.['min']">
+        {{ 'VALIDATION.MIN' | translate: { min: 0 } }}
+      </mat-error>
+    </mat-form-field>
+
+    <!-- DATE -->
+    <mat-form-field *ngIf="fieldType === 'date' || fieldType === 'datetime'"
+      appearance="outline" class="full-width">
+      <mat-label>{{ 'GENERIC_TABLE.FILTER_VALUE' | translate }}</mat-label>
+      <input matInput [matDatepicker]="filterPicker" [formControl]="filterControl"
+        [placeholder]="'GENERIC_TABLE.ENTER_SEARCH' | translate">
+      <mat-datepicker-toggle matSuffix [for]="filterPicker"></mat-datepicker-toggle>
+      <mat-datepicker #filterPicker></mat-datepicker>
+    </mat-form-field>
+
+    <!-- SELECT -->
+    <mat-form-field *ngIf="fieldType === 'select'" appearance="outline" class="full-width">
+      <mat-label>{{ 'GENERIC_TABLE.FILTER_VALUE' | translate }}</mat-label>
+      <mat-select [formControl]="filterControl">
+        <mat-option value="">{{ 'COMMON.ALL' | translate }}</mat-option>
+        <mat-option *ngFor="let option of data.options" [value]="option.value">
+          {{ option.label }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+
   </div>
 </mat-dialog-content>
+
 <mat-dialog-actions align="end">
   <button mat-button (click)="onClear()">{{ 'TRUCK_VISUALIZATION.CLEAR' | translate }}</button>
   <button mat-button (click)="onCancel()">{{ 'COMMON.CANCEL' | translate }}</button>
-  <button mat-raised-button color="primary" (click)="onApply()">{{ 'GENERIC_TABLE.APPLY_FILTER' | translate }}</button>
+  <button mat-raised-button color="primary" (click)="onApply()" [disabled]="filterControl.invalid">
+    {{ 'GENERIC_TABLE.APPLY_FILTER' | translate }}
+  </button>
 </mat-dialog-actions>

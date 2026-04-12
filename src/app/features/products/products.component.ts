@@ -10,10 +10,12 @@ import { createProductBulkConfig } from './config/product-bulk.config';
 import { BulkUploadButtonDirective } from '@app/shared/bulk-upload-dialog/bulk-upload-button.directive';
 import { DisableAuthDirective } from '@app/core/auth/directives/disable-auth.directive';
 import { HasPermissionDirective } from '@app/core/auth/directives/has-permission.directive';
+import { ColumnDefinition } from '@app/shared/generic-table/interfaces/column-definition.interface';
 
 @Component({
   selector: 'app-products',
-  imports: [CommonModule,
+  imports: [
+    CommonModule,
     GenericTableComponent,
     MatButtonModule,
     MatIconModule,
@@ -26,71 +28,116 @@ import { HasPermissionDirective } from '@app/core/auth/directives/has-permission
   styleUrl: './products.component.scss'
 })
 export class ProductsComponent implements OnInit {
-
-
-  private translate = inject(TranslateService);
-  // Servis enjeksiyonları
   productService = inject(ProductService);
   productBulkConfig: BulkUploadConfig = createProductBulkConfig();
 
-  // Loading durumu
   isLoading = false;
-  selectedOrderId: string | null = null;
 
-  // API'den dönen verilerde product_type, dimension ve weight_type doğrudan
-  // nesne olarak döndüğü için kolonları değişiyoruz
-  displayedColumns: string[] = [
-    'type_name',
-    'name',
-    'product_type.type',
-    'product_type.code',
-    'dimension.width',
-    'dimension.depth',
-    'dimension.height',
-    'weight_type.std',
-    'weight_type.eco',
-    'weight_type.pre',
-    'created_by',
-    'created_at'
+  columnDefinitions: ColumnDefinition[] = [
+    {
+      key: 'type_name',
+      label: 'DIMENSIONS.PRODUCT_NAME',
+      type: 'text',
+      required: true,
+      maxLength: 255
+    },
+    {
+      key: 'name',
+      label: 'DIMENSIONS.PRODUCT_SHORT_NAME',
+      type: 'text',
+      required: true,
+      maxLength: 100
+    },
+    {
+      key: 'product_type.type',
+      label: 'DIMENSIONS.PRODUCT_TYPE',
+      type: 'text',
+      required: true
+    },
+    {
+      key: 'product_type.code',
+      label: 'DIMENSIONS.PRODUCT_CODE',
+      type: 'text',
+      required: true,
+      maxLength: 50
+    },
+    {
+      key: 'dimension.width',
+      label: 'DIMENSIONS.WIDTH',
+      type: 'number',
+      required: true,
+      min: 0,
+      max: 20000,
+      hint: 'mm'
+    },
+    {
+      key: 'dimension.depth',
+      label: 'DIMENSIONS.DEPTH',
+      type: 'number',
+      required: true,
+      min: 0,
+      max: 20000,
+      hint: 'mm'
+    },
+    {
+      key: 'dimension.height',
+      label: 'DIMENSIONS.HEIGHT',
+      type: 'number',
+      required: true,
+      min: 0,
+      max: 20000,
+      hint: 'mm'
+    },
+    {
+      key: 'weight_type.std',
+      label: 'Std',
+      type: 'number',
+      required: true,
+      min: 0,
+      hint: 'kg'
+    },
+    {
+      key: 'weight_type.eco',
+      label: 'Eco',
+      type: 'number',
+      required: true,
+      min: 0,
+      hint: 'kg'
+    },
+    {
+      key: 'weight_type.pre',
+      label: 'Pre',
+      type: 'number',
+      required: true,
+      min: 0,
+      hint: 'kg'
+    },
+    {
+      key: 'created_by',
+      label: 'COMMON.USER',
+      type: 'text',
+      visible: false  // sadece görüntüleme, form'da çıkmasın
+    },
+    {
+      key: 'created_at',
+      label: 'ORDER.CREATION_DATE',
+      type: 'date',
+      visible: false  // sadece görüntüleme, form'da çıkmasın
+    }
   ];
 
-  notSortableColumns: string[] = [
-    'name'
-  ];
+  // Table'a geçilecek türetilmiş alanlar — columnDefinitions'tan otomatik
+  displayedColumns: string[] = this.columnDefinitions.map(c => c.key);
 
-  // Filtrelenebilen alanlar
-  filterableColumns: string[] = [
-    'product_type.code',
-    'product_type.type',
-    'dimension.width',
-    'dimension.height',
-    'dimension.depth',
-    'weight_type.std',
-    'weight_type.eco',
-    'weight_type.pre'
-  ];
+  filterableColumns: string[] = this.columnDefinitions
+  .filter(c => c.type === 'number' || c.key.startsWith('product_type') || c.key.startsWith('dimension') || c.key.startsWith('weight_type'))
+  .map(c => c.key);
+
+  notSortableColumns: string[] = ['name'];
 
   columnTypes: { [key: string]: string } = {
     'created_at': 'date'
   };
 
-  // İlişkili nesne sütunları için özel görüntüleme ayarları
-  nestedDisplayColumns: { [key: string]: string } = {
-    'type_name': this.translate.instant('DIMENSIONS.PRODUCT_NAME'),
-    'name': this.translate.instant('DIMENSIONS.PRODUCT_SHORT_NAME'),
-    'product_type.type': this.translate.instant('DIMENSIONS.PRODUCT_TYPE'),
-    'product_type.code': this.translate.instant('DIMENSIONS.PRODUCT_CODE'),
-    'dimension.width': this.translate.instant('DIMENSIONS.WIDTH'),
-    'dimension.height': this.translate.instant('DIMENSIONS.HEIGHT'),
-    'dimension.depth': this.translate.instant('DIMENSIONS.DEPTH'),
-    'weight_type.std': 'Std',
-    'weight_type.eco': 'Eco',
-    'weight_type.pre': 'Pre',
-    'created_by':this.translate.instant('COMMON.USER'),
-    'created_at':this.translate.instant('ORDER.CREATION_DATE')
-  };
-
-  ngOnInit(): void {
-
-  }
+  ngOnInit(): void {}
 }

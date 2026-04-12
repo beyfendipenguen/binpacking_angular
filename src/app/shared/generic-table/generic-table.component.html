@@ -27,7 +27,7 @@
       (isFilterActive(column)) {
       <div class="filter-chip">
         <span class="chip-label">
-          {{ getColumnDisplayName(column) | translate }}: {{ filterValues[column] | translate}}
+          {{ columnDisplayNames[column] }}: {{ filterValues[column] | translate}}
         </span>
         <button mat-icon-button class="chip-remove" (click)="filterValues[column] = ''; loadData()">
           <mat-icon>close</mat-icon>
@@ -64,7 +64,7 @@
       <ng-container [matColumnDef]="column">
         <th mat-header-cell *matHeaderCellDef mat-sort-header [disabled]="isNotSortableColumn(column)">
           <div class="header-content">
-            {{ getColumnDisplayName(column) | translate}}
+            {{ columnDisplayNames[column]}}
 
             @if (filterableColumns.includes(column)) {
             <button mat-icon-button class="filter-icon" [class.active-filter]="isFilterActive(column)"
@@ -175,7 +175,7 @@
         @for (column of displayedColumns; track column) {
         @if (hasColumnPermission(column)) {
         <div class="mobile-card-row">
-          <span class="mobile-card-label">{{ getColumnDisplayName(column) | translate }}</span>
+          <span class="mobile-card-label">{{ columnDisplayNames[column] }}</span>
 
           <!-- Button Column → Mobilde buton olarak göster -->
           @if (isButtonColumn(column)) {

@@ -9,10 +9,11 @@ import { OrderDetailsDialogComponent } from './dialogs/order-details-dialog/orde
 import { PackageDialogComponent } from './dialogs/package-dialog/package-dialog.component';
 import { FilesDialogComponent } from './dialogs/files-dialog/files-dialog.component';
 import { FileService } from '@core/services/file.service';
-import { GenericTableComponent, ColumnDefinition, CellButtonClickEvent } from '@shared/generic-table/generic-table.component';
+import { GenericTableComponent, CellButtonClickEvent } from '@shared/generic-table/generic-table.component';
 import { Order } from '../interfaces/order.interface';
 import { OrderService } from '../services/order.service';
 import { HasPermissionDirective } from "@app/core/auth/directives/has-permission.directive";
+import { ColumnDefinition } from '@app/shared/generic-table/interfaces/column-definition.interface';
 
 @Component({
   selector: 'app-orders',
@@ -143,10 +144,7 @@ export class OrdersComponent implements OnInit {
 
   filterableColumns: string[] = [
     'name',
-    'date',
-    'created_at',
-    'company_relation.target_company.company_name',
-    'company_relation.target_company.country_name',
+    'created_at'
   ];
 
   ngOnInit(): void {
