@@ -2,7 +2,9 @@
   <!-- Enhanced Controls Container -->
   <div class="controls-container">
     <div class="action-buttons">
-      <button id="optimize-button" mat-raised-button class="calculate-button" [disabled]="isLoading" (click)="calculateBinpacking()">
+      <button id="optimize-button" mat-raised-button class="calculate-button"
+        [disabled]="isLoading" (click)="calculateBinpacking()"
+        [appDisableAuth]="['orders.change_orderresult']">
         <mat-icon>play_arrow</mat-icon>
         {{ (isLoading ? 'RESULT_STEP.PROCESSING' : 'RESULT_STEP.RUN_OPTIMIZATION') | translate }}
       </button>

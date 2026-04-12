@@ -31,6 +31,7 @@ import { StepperUiActions } from '@app/store/stepper/actions/stepper-ui.actions'
 import { StepperResultActions } from '@app/store/stepper/actions/stepper-result.actions';
 import { ReportFile, ResultStepService } from './result-step.service';
 import { PackagePosition } from '@app/features/interfaces/order-result.interface';
+import { DisableAuthDirective } from '@app/core/auth/directives/disable-auth.directive';
 
 @Component({
   selector: 'app-result-step',
@@ -39,7 +40,8 @@ import { PackagePosition } from '@app/features/interfaces/order-result.interface
     MatButton,
     MatIconModule,
     ThreeJSTruckVisualizationComponent,
-    TranslateModule
+    TranslateModule,
+    DisableAuthDirective
   ],
   templateUrl: './result-step.component.html',
   styleUrl: './result-step.component.scss',
@@ -181,8 +183,8 @@ export class ResultStepComponent implements OnInit, OnDestroy {
             reportFiles: result.reportFiles
           }));
 
-          this.threeJSComponent.reset();
-          this.threeJSComponent.safeProcessData();
+          this.threeJSComponent?.reset();
+          this.threeJSComponent?.safeProcessData();
           this.piecesData = result.orderResult;
 
 
