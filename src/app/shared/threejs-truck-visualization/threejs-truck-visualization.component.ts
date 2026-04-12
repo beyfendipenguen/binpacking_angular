@@ -19,7 +19,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import * as THREE from 'three';
 import { Store } from '@ngrx/store';
-import { AppState, selectOrderResult, selectPackages, selectStep3IsDirty, selectTruck, StepperResultActions } from '../../store';
+import { AppState, selectOrderResult, selectPackages, selectStep3IsDirty, selectTruck, selectUserPermissions, StepperResultActions } from '../../store';
 import { StepperUiActions } from '@app/store/stepper/actions/stepper-ui.actions';
 import { ThreeJSRenderManagerService } from './services/threejs-render-manager.service';
 import { ThreeJSComponents, ThreeJSInitializationService } from './services/threejs-initialization.service';
@@ -28,6 +28,7 @@ import { PackageData, PackageSnapshot } from '@app/features/interfaces/order-res
 import { toObservable } from '@angular/core/rxjs-interop';
 import { skip, distinctUntilChanged, takeUntil, Subject } from 'rxjs';
 import { ToastService } from '@app/core/services/toast.service';
+import { DisableAuthDirective } from '@app/core/auth/directives/disable-auth.directive';
 
 
 
@@ -35,7 +36,8 @@ import { ToastService } from '@app/core/services/toast.service';
   selector: 'app-threejs-truck-visualization',
   standalone: true,
   imports: [CommonModule, FormsModule,
-    TranslateModule
+    TranslateModule,
+        DisableAuthDirective
   ],
   templateUrl: './threejs-truck-visualization.component.html',
   styleUrl: './threejs-truck-visualization.component.scss',
@@ -71,6 +73,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
   selectedPackageSignal = this.packagesStateService.selectedPackage;
   packagesSignal = this.store.selectSignal(selectPackages);
   private piecesData$ = toObservable(this.piecesDataSignal);
+  private permissions = this.store.selectSignal(selectUserPermissions);
 
   // Three.js components
   private threeComponents?: ThreeJSComponents;
@@ -211,7 +214,11 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     document.addEventListener('fullscreenchange', this.handleFullscreenChange.bind(this));
   }
 
-  /**
+  private hasChangePerm(): boolean {
+    return this.permissions()?.includes('orders.change_orderresult') ?? false;
+  }
+
+    /**
    * Package mesh'ini temizler
    */
   private cleanupMesh(pkg: PackageData): void {
@@ -591,11 +598,17 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
   }
 
   private createPackageMesh(packageData: PackageData): void {
+    const { group: palletGroup, palletHeight } = this.createPalletMesh(packageData.length, packageData.width);
+
+    const visualHeight = packageData.height - palletHeight;
+
     const geometry = new THREE.BoxGeometry(
       packageData.length,
-      packageData.height,
+      visualHeight,
       packageData.width
     );
+
+    // Geometry'yi palet kadar yukarı kaydır (mesh position değişmez)
 
     const material = new THREE.MeshStandardMaterial({
       color: packageData.color,
@@ -608,7 +621,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
 
     mesh.position.set(
       packageData.x + packageData.length / 2,
-      packageData.z + packageData.height / 2,
+      packageData.z + palletHeight + visualHeight / 2, // palet + kutunun yarısı
       packageData.y + packageData.width / 2
     );
 
@@ -616,26 +629,19 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     mesh.receiveShadow = true;
     mesh.userData = { packageData };
 
-    // Kutu kenar çizgileri
     const edges = new THREE.EdgesGeometry(geometry);
     const lineMat = new THREE.LineBasicMaterial({
       color: 0x000000, transparent: true, opacity: 0.20
     });
     mesh.add(new THREE.LineSegments(edges, lineMat));
 
-    // Zemin katındaki paketlerin altına palet ekle
-    // Palet mesh'in child'ı olduğu için drag sırasında birlikte hareket eder
-    if (packageData.z === 0) {
-      const pallet = this.createPalletMesh(packageData.length, packageData.width);
-      // Mesh merkezi packageData.height/2 yukarıda, palet mesh'in tam altına yaslanmalı
-
-      pallet.position.set(
-        -packageData.length / 2,
-        -packageData.height / 2 - 150,
-        -packageData.width / 2
-      );
-      mesh.add(pallet);
-    }
+    // Palet mesh merkezine göre tam alta
+    palletGroup.position.set(
+      -packageData.length / 2,
+      -packageData.height / 2 - palletHeight/2,  // mesh merkezinden palet tabanına
+      -packageData.width / 2
+    );
+    mesh.add(palletGroup);
 
     packageData.mesh = mesh;
 
@@ -658,7 +664,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
   //    Fizik/collision'a dokunmuyor — tamamen görsel.
   // =============================================================================
 
-  private createPalletMesh(pkgLength: number, pkgWidth: number): THREE.Group {
+  private createPalletMesh(pkgLength: number, pkgWidth: number): { group: THREE.Group, palletHeight: number } {
     const group = new THREE.Group();
 
     // --- Boyutlar ---
@@ -739,7 +745,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     // createPackageMesh'te palet.position.y = -packageData.height/2 yapıldığında
     // palet üstü paketin tabanına tam yaslanır
 
-    return group;
+    return { group, palletHeight: PALLET_H };
   }
 
   // ========================================
@@ -787,7 +793,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
       this.updateMouseFromTouch(touch);
 
       const intersectedPackage = this.getIntersectedPackage();
-      if (intersectedPackage && this.dragModeEnabled) {
+      if (intersectedPackage && this.dragModeEnabled  && this.hasChangePerm()) {
         this.isTouchDragging = true;
         this.initiateDragging(intersectedPackage);
       }
@@ -944,7 +950,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     if (event.button === 0) {
       // Left click - package drag
       const intersectedPackage = this.getIntersectedPackage();
-      if (intersectedPackage && this.dragModeEnabled) {
+      if (intersectedPackage && this.dragModeEnabled && this.hasChangePerm()) {
         this.initiateDragging(intersectedPackage);
       }
     } else if (event.button === 1) {
@@ -2140,7 +2146,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
 
       case 'r':
       case 'R':
-        if (this.selectedPackageSignal()) {
+        if (this.selectedPackageSignal() && this.hasChangePerm()) {
           event.preventDefault();
           this.rotateSelectedPackage();
         }
@@ -2150,7 +2156,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
       case 'Backspace':
       case 'd':
       case 'D':
-        if (this.selectedPackageSignal()) {
+        if (this.selectedPackageSignal() && this.hasChangePerm()) {
           event.preventDefault();
           this.deleteSelectedPackage();
         }
@@ -2164,7 +2170,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
         break;
       case 'z':
       case 'Z':
-        if (event.ctrlKey || event.metaKey) {
+        if ((event.ctrlKey || event.metaKey)  && this.hasChangePerm()) {
           event.preventDefault();
           this.undo();
         }
@@ -2172,7 +2178,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
 
       case 'y':
       case 'Y':
-        if (event.ctrlKey || event.metaKey) {
+        if ((event.ctrlKey || event.metaKey) && this.hasChangePerm()) {
           event.preventDefault();
           this.redo();
         }

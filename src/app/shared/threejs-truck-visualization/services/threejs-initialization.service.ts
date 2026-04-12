@@ -36,7 +36,7 @@ export class ThreeJSInitializationService {
 
     const truckGroup    = new THREE.Group();
     const packagesGroup = new THREE.Group();
-    packagesGroup.position.y = 1250;
+    packagesGroup.position.y = 1100;
 
     scene.add(truckGroup);
     scene.add(packagesGroup);

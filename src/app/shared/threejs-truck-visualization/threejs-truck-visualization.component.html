@@ -53,7 +53,8 @@
   <div class="bottom-row">
     <button class="auto-place-bar-btn"
       (click)="autoPlaceAll()"
-      [title]="'TRUCK_VISUALIZATION.AUTO_PLACE_ALL_TIP' | translate">
+      [title]="'TRUCK_VISUALIZATION.AUTO_PLACE_ALL_TIP' | translate"
+      [appDisableAuth]="['orders.change_orderresult']">
       {{ 'TRUCK_VISUALIZATION.AUTO_PLACE_ALL' | translate }}
     </button>
   </div>
@@ -145,22 +146,26 @@
       <div class="package-actions">
         @if (!selected.isForcePlaced) {
         <button class="action-btn force-place-btn" (click)="forcePlacePackage()"
-          [title]="'TRUCK_VISUALIZATION.FORCE_PLACE_TIP' | translate" [disabled]="!selectedPackageSignal()">
+          [title]="'TRUCK_VISUALIZATION.FORCE_PLACE_TIP' | translate" [disabled]="!selectedPackageSignal()"
+          [appDisableAuth]="['orders.change_orderresult']">
           💪 {{ 'TRUCK_VISUALIZATION.FORCE_PLACE' | translate }}
         </button>
         }
         @if (selected.isForcePlaced) {
         <button class="action-btn unforce-btn" (click)="unforcePlacePackage()"
-          [title]="'TRUCK_VISUALIZATION.NORMALIZE_TIP' | translate" [disabled]="!selectedPackageSignal()">
+          [title]="'TRUCK_VISUALIZATION.NORMALIZE_TIP' | translate" [disabled]="!selectedPackageSignal()"
+          [appDisableAuth]="['orders.change_orderresult']">
           ↩️ {{ 'TRUCK_VISUALIZATION.NORMALIZE' | translate }}
         </button>
         }
         <button class="action-btn rotate-btn" (click)="rotateSelectedPackage()"
-          [title]="'TRUCK_VISUALIZATION.ROTATE_TIP' | translate" [disabled]="!selectedPackageSignal()">
+          [title]="'TRUCK_VISUALIZATION.ROTATE_TIP' | translate" [disabled]="!selectedPackageSignal()"
+          [appDisableAuth]="['orders.change_orderresult']">
           🔄 {{ 'TRUCK_VISUALIZATION.ROTATE' | translate }}
         </button>
         <button class="action-btn delete-btn" (click)="deleteSelectedPackage()"
-          [title]="'TRUCK_VISUALIZATION.DELETE_PACKAGE' | translate" [disabled]="!selectedPackageSignal()">
+          [title]="'TRUCK_VISUALIZATION.DELETE_PACKAGE' | translate" [disabled]="!selectedPackageSignal()"
+          [appDisableAuth]="['orders.change_orderresult']">
           🗑️ {{ 'COMMON.DELETE' | translate }}
         </button>
       </div>
