@@ -10,18 +10,18 @@
         </div>
       </div>
       <div class="header-actions">
-        <!-- İşlemler Menüsü -->
         <button mat-raised-button color="primary" [matMenuTriggerFor]="actionsMenu" class="actions-btn">
-          <mat-icon>settings</mat-icon>{{ 'MENU.OPERATIONS' | translate }}<mat-icon class="dropdown-icon">arrow_drop_down</mat-icon>
+          <mat-icon>settings</mat-icon>{{ 'MENU.OPERATIONS' | translate }}
+          <mat-icon class="dropdown-icon">arrow_drop_down</mat-icon>
         </button>
-
         <mat-menu #actionsMenu="matMenu" class="actions-menu">
           <button mat-menu-item [appBulkUploadButton]="palletBulkConfig"
-          [appDisableAuth]="['logistics.add_pallet']">
+            [appDisableAuth]="['logistics.add_pallet']">
             <mat-icon>add_box</mat-icon>
             <span>{{ 'PALLET.BULK_ADD' | translate }}</span>
           </button>
-          <button mat-menu-item (click)="openPalletGroupsDialog()" [appDisableAuth]="['logistics.view_palletgroup']">
+          <button mat-menu-item (click)="openPalletGroupsDialog()"
+            [appDisableAuth]="['logistics.view_palletgroup']">
             <mat-icon>folder</mat-icon>
             <span>{{ 'PALLET.MANAGE_GROUPS' | translate }}</span>
           </button>
@@ -38,14 +38,17 @@
       [columnTypes]="columnTypes"
       [displayedColumns]="displayedColumns"
       [filterableColumns]="filterableColumns"
-      [nestedDisplayColumns]="nestedDisplayColumns"
-      [title]="'PRODUCT.PRODUCTS' | translate"
+      [columnDefinitions]="columnDefinitions"
+      [title]="'PALLET.PALLETS' | translate"
       [showRowNumbers]="true"
-      [excludeFields]="['name']"
+      [excludeFields]="[]"
       [deletePermission]="['logistics.delete_pallet']"
       [addPermission]="['logistics.add_pallet']"
       [updatePermission]="['logistics.change_pallet']"
-      [columnPermissions]="{'created_at': ['access_control.view_audited_fields'],'created_by': ['access_control.view_audited_fields']}">
+      [columnPermissions]="{
+        'created_at': ['access_control.view_audited_fields'],
+        'created_by': ['access_control.view_audited_fields']
+      }">
     </app-generic-table>
   </div>
 </div>

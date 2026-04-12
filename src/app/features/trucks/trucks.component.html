@@ -12,16 +12,22 @@
     </div>
   </div>
 
-
   <div class="content-section" [class.loading]="isLoading">
-    <app-generic-table [service]="truckService" [displayedColumns]="displayedColumns"
-      [filterableColumns]="filterableColumns" [nestedDisplayColumns]="nestedDisplayColumns" [title]="'TRUCK.VEHICLES' | translate"
+    <app-generic-table
+      [service]="truckService"
+      [displayedColumns]="displayedColumns"
+      [filterableColumns]="filterableColumns"
+      [columnDefinitions]="columnDefinitions"
+      [title]="'TRUCK.VEHICLES' | translate"
+      [showRowNumbers]="true"
+      [columnTypes]="columnTypes"
       [deletePermission]="['logistics.delete_truck']"
       [addPermission]="['logistics.add_truck']"
       [updatePermission]="['logistics.change_truck']"
-      [showRowNumbers]="true"
-      [columnTypes]="columnTypes"
-      [columnPermissions]="{'created_at': ['access_control.view_audited_fields'],'created_by': ['access_control.view_audited_fields']}">
+      [columnPermissions]="{
+        'created_at': ['access_control.view_audited_fields'],
+        'created_by': ['access_control.view_audited_fields']
+      }">
     </app-generic-table>
   </div>
 </div>

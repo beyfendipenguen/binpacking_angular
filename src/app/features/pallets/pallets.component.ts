@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { PalletService } from '../services/pallet.service';
 import { BulkUploadConfig } from '@app/shared/bulk-upload-dialog/bulk-upload.config';
@@ -13,10 +13,12 @@ import { BulkUploadButtonDirective } from '@app/shared/bulk-upload-dialog/bulk-u
 import { PalletGroupDialogComponent } from './pallet-group-dialog/pallet-group-dialog.component';
 import { DisableAuthDirective } from '@app/core/auth/directives/disable-auth.directive';
 import { HasPermissionDirective } from '@app/core/auth/directives/has-permission.directive';
+import { ColumnDefinition } from '@app/shared/generic-table/interfaces/column-definition.interface';
 
 @Component({
   selector: 'app-pallets',
-  imports: [CommonModule,
+  imports: [
+    CommonModule,
     GenericTableComponent,
     MatButtonModule,
     MatIconModule,
@@ -30,57 +32,76 @@ import { HasPermissionDirective } from '@app/core/auth/directives/has-permission
   templateUrl: './pallets.component.html',
   styleUrl: './pallets.component.scss'
 })
-export class PalletsComponent {
-
+export class PalletsComponent implements OnInit {
   private translate = inject(TranslateService);
-  // Servis enjeksiyonları
   palletService = inject(PalletService);
   private dialog = inject(MatDialog);
 
   palletBulkConfig: BulkUploadConfig = createPalletBulkConfig();
-
-  // Loading durumu
   isLoading = false;
 
-  // API'den dönen verilerde product_type, dimension ve weight_type doğrudan
-  // nesne olarak döndüğü için kolonları değişiyoruz
-  displayedColumns: string[] = [
-    'dimension.width',
-    'dimension.depth',
-    'dimension.height',
-    'weight',
-    'created_by',
-    'created_at'
+  columnDefinitions: ColumnDefinition[] = [
+    {
+      key: 'dimension.width',
+      label: 'DIMENSIONS.WIDTH',
+      type: 'number',
+      required: true,
+      min: 0,
+      max: 99999,
+      hint: 'mm'
+    },
+    {
+      key: 'dimension.depth',
+      label: 'DIMENSIONS.DEPTH',
+      type: 'number',
+      required: true,
+      min: 0,
+      max: 99999,
+      hint: 'mm'
+    },
+    {
+      key: 'dimension.height',
+      label: 'CUSTOMER.MAX_PALLET_HEIGHT',
+      type: 'number',
+      required: true,
+      min: 0,
+      max: 99999,
+      hint: 'mm'
+    },
+    {
+      key: 'weight',
+      label: 'DIMENSIONS.WEIGHT',
+      type: 'number',
+      required: true,
+      min: 0,
+      hint: 'kg'
+    },
+    {
+      key: 'created_by',
+      label: 'COMMON.USER',
+      type: 'text',
+      visible: false
+    },
+    {
+      key: 'created_at',
+      label: 'ORDER.CREATION_DATE',
+      type: 'date',
+      visible: false
+    }
   ];
 
-  // Filtrelenebilen alanlar
-  filterableColumns: string[] = [
-    'dimension.width',
-    'dimension.height',
-    'dimension.depth',
-    'weight'
-  ];
+  displayedColumns: string[] = this.columnDefinitions.map(c => c.key);
 
-  // İlişkili nesne sütunları için özel görüntüleme ayarları
-  nestedDisplayColumns: { [key: string]: string } = {
-    'dimension.width': this.translate.instant('DIMENSIONS.WIDTH'),
-    'dimension.height': this.translate.instant('CUSTOMER.MAX_PALLET_HEIGHT'),
-    'dimension.depth': this.translate.instant('DIMENSIONS.DEPTH'),
-    'weight': this.translate.instant('DIMENSIONS.WEIGHT'),
-    'created_by': this.translate.instant('COMMON.USER'),
-    'created_at':  this.translate.instant('ORDER.CREATION_DATE')
-  };
+  filterableColumns: string[] = this.columnDefinitions
+    .filter(c => c.type === 'number')
+    .map(c => c.key);
 
   columnTypes: { [key: string]: string } = {
-    'created_at': 'date',
+    'created_at': 'date'
   };
 
-  ngOnInit(): void {
-  }
+  ngOnInit(): void {}
 
-  /**
-   * Palet Grupları Dialog'unu aç
-   */
   openPalletGroupsDialog(): void {
     const dialogRef = this.dialog.open(PalletGroupDialogComponent, {
       width: '1200px',
@@ -92,10 +113,7 @@ export class PalletsComponent {
     });
 
     dialogRef.afterClosed().subscribe(result => {
-      // Dialog kapandıktan sonra işlem yapılacaksa buraya eklenebilir
-      if (result) {
-        // Örneğin tabloyu yenile vs.
-      }
+      if (result) {}
     });
   }
 }

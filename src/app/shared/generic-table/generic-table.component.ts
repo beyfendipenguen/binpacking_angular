@@ -778,10 +778,6 @@ export class GenericTableComponent<T extends { id: any }> implements OnInit, Aft
   getColumnDisplayName(column: string): string {
     if (column === 'rowNumber') return '#';
 
-    console.log('getColumnDisplayName called:', column);
-    console.log('nestedDisplayColumns:', this.nestedDisplayColumns);
-    console.log('columnDefinitions:', this.columnDefinitions);
-
     // Önce nestedDisplayColumns'a bak
     if (this.nestedDisplayColumns?.[column]) {
       return this.translate.instant(this.nestedDisplayColumns[column]);
@@ -791,7 +787,6 @@ export class GenericTableComponent<T extends { id: any }> implements OnInit, Aft
     const colDef = this.columnDefinitions.find(c => c.key === column);
     if (colDef?.label) {
       const translated = this.translate.instant(colDef.label);
-      console.log('label:', colDef.label, '→ translated:', translated);
       return translated;
     }
 

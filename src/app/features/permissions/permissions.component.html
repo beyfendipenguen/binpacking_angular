@@ -24,7 +24,8 @@
 
         <div class="search-box">
           <mat-icon class="search-icon">search</mat-icon>
-          <input type="text" class="search-input" [placeholder]="'PERMISSIONS.SEARCH_GROUPS' | translate"
+          <input type="text" class="search-input" id="search-groups" name="search-groups"
+            [placeholder]="'PERMISSIONS.SEARCH_GROUPS' | translate"
             [formControl]="searchGroupsControl">
           <button mat-icon-button class="clear-btn" *ngIf="searchGroupsControl.value" (click)="clearGroupsSearch()">
             <mat-icon>close</mat-icon>
@@ -79,7 +80,8 @@
         <!-- Search Box -->
         <div class="search-box">
           <mat-icon class="search-icon">search</mat-icon>
-          <input type="text" class="search-input" [placeholder]="'PERMISSIONS.SEARCH_USERS' | translate"
+          <input type="text" class="search-input" id="search-users" name="search-users"
+            [placeholder]="'PERMISSIONS.SEARCH_USERS' | translate"
             [formControl]="searchUsersControl">
           <button mat-icon-button class="clear-btn" *ngIf="searchUsersControl.value" (click)="clearUsersSearch()">
             <mat-icon>close</mat-icon>
@@ -139,8 +141,10 @@
           <!-- Grup Adı -->
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>{{ 'PERMISSIONS.GROUP_NAME' | translate }}</mat-label>
-            <input matInput formControlName="name" [placeholder]="'PERMISSIONS.GROUP_NAME_PLACEHOLDER' | translate"
-              [appDisableAuth]="['auth.add_group', 'auth.change_group']" [readonly]="!selectedGroup()?.is_editable">
+            <input matInput formControlName="name" id="group-name" name="group-name"
+              [placeholder]="'PERMISSIONS.GROUP_NAME_PLACEHOLDER' | translate"
+              [appDisableAuth]="['auth.add_group', 'auth.change_group']"
+              [readonly]="!selectedGroup()?.is_editable">
             <mat-error *ngIf="groupForm.get('name')?.hasError('required')">
               {{ 'PERMISSIONS.GROUP_NAME_REQUIRED' | translate }}
             </mat-error>
@@ -164,7 +168,8 @@
                 </div>
                 <div class="search-box">
                   <mat-icon class="search-icon">search</mat-icon>
-                  <input type="text" class="search-input" [placeholder]="'PERMISSIONS.SEARCH_PERMISSIONS' | translate"
+                  <input type="text" class="search-input" id="search-available-permissions" name="search-available-permissions"
+                    [placeholder]="'PERMISSIONS.SEARCH_PERMISSIONS' | translate"
                     [formControl]="searchAvailablePermissionsControl">
                   <button mat-icon-button class="clear-btn" *ngIf="searchAvailablePermissionsControl.value"
                     (click)="clearAvailablePermissionsSearch()">
@@ -228,7 +233,8 @@
                 </div>
                 <div class="search-box">
                   <mat-icon class="search-icon">search</mat-icon>
-                  <input type="text" class="search-input" [placeholder]="'PERMISSIONS.SEARCH_PERMISSIONS' | translate"
+                  <input type="text" class="search-input" id="search-selected-permissions" name="search-selected-permissions"
+                    [placeholder]="'PERMISSIONS.SEARCH_PERMISSIONS' | translate"
                     [formControl]="searchSelectedPermissionsControl">
                   <button mat-icon-button class="clear-btn" *ngIf="searchSelectedPermissionsControl.value"
                     (click)="clearSelectedPermissionsSearch()">
@@ -283,7 +289,8 @@
                 </div>
                 <div class="search-box">
                   <mat-icon class="search-icon">search</mat-icon>
-                  <input type="text" class="search-input" [placeholder]="'PERMISSIONS.SEARCH_USERS' | translate"
+                  <input type="text" class="search-input" id="search-available-users" name="search-available-users"
+                    [placeholder]="'PERMISSIONS.SEARCH_USERS' | translate"
                     [formControl]="searchAvailableUsersControl">
                   <button mat-icon-button class="clear-btn" *ngIf="searchAvailableUsersControl.value"
                     (click)="clearAvailableUsersSearch()">
@@ -347,7 +354,8 @@
                 </div>
                 <div class="search-box">
                   <mat-icon class="search-icon">search</mat-icon>
-                  <input type="text" class="search-input" [placeholder]="'PERMISSIONS.SEARCH_USERS' | translate"
+                  <input type="text" class="search-input" id="search-selected-users" name="search-selected-users"
+                    [placeholder]="'PERMISSIONS.SEARCH_USERS' | translate"
                     [formControl]="searchSelectedUsersControl">
                   <button mat-icon-button class="clear-btn" *ngIf="searchSelectedUsersControl.value"
                     (click)="clearSelectedUsersSearch()">
@@ -426,7 +434,8 @@
                   </div>
                   <div class="search-box">
                     <mat-icon class="search-icon">search</mat-icon>
-                    <input type="text" class="search-input" [placeholder]="'PERMISSIONS.SEARCH_GROUPS' | translate"
+                    <input type="text" class="search-input" id="search-user-available-groups" name="search-user-available-groups"
+                      [placeholder]="'PERMISSIONS.SEARCH_GROUPS' | translate"
                       [formControl]="searchUserAvailableGroupsControl">
                     <button mat-icon-button class="clear-btn" *ngIf="searchUserAvailableGroupsControl.value"
                       (click)="clearUserAvailableGroupsSearch()">
@@ -482,7 +491,8 @@
                   </div>
                   <div class="search-box">
                     <mat-icon class="search-icon">search</mat-icon>
-                    <input type="text" class="search-input" [placeholder]="'PERMISSIONS.SEARCH_GROUPS' | translate"
+                    <input type="text" class="search-input" id="search-user-selected-groups" name="search-user-selected-groups"
+                      [placeholder]="'PERMISSIONS.SEARCH_GROUPS' | translate"
                       [formControl]="searchUserSelectedGroupsControl">
                     <button mat-icon-button class="clear-btn" *ngIf="searchUserSelectedGroupsControl.value"
                       (click)="clearUserSelectedGroupsSearch()">
@@ -535,7 +545,8 @@
                   </div>
                   <div class="search-box">
                     <mat-icon class="search-icon">search</mat-icon>
-                    <input type="text" class="search-input" [placeholder]="'PERMISSIONS.SEARCH_PERMISSIONS' | translate"
+                    <input type="text" class="search-input" id="search-user-available-permissions" name="search-user-available-permissions"
+                      [placeholder]="'PERMISSIONS.SEARCH_PERMISSIONS' | translate"
                       [formControl]="searchUserAvailablePermissionsControl">
                     <button mat-icon-button class="clear-btn" *ngIf="searchUserAvailablePermissionsControl.value"
                       (click)="clearUserAvailablePermissionsSearch()">
@@ -593,7 +604,8 @@
                   </div>
                   <div class="search-box">
                     <mat-icon class="search-icon">search</mat-icon>
-                    <input type="text" class="search-input" [placeholder]="'PERMISSIONS.SEARCH_PERMISSIONS' | translate"
+                    <input type="text" class="search-input" id="search-user-selected-permissions" name="search-user-selected-permissions"
+                      [placeholder]="'PERMISSIONS.SEARCH_PERMISSIONS' | translate"
                       [formControl]="searchUserSelectedPermissionsControl">
                     <button mat-icon-button class="clear-btn" *ngIf="searchUserSelectedPermissionsControl.value"
                       (click)="clearUserSelectedPermissionsSearch()">

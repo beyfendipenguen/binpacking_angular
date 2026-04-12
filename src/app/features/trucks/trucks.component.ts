@@ -1,15 +1,17 @@
 import { CommonModule } from '@angular/common';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { Component, inject } from '@angular/core';
+import { TranslateModule } from '@ngx-translate/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { GenericTableComponent } from '@app/shared/generic-table/generic-table.component';
 import { TruckService } from '../services/truck.service';
 import { HasPermissionDirective } from '@app/core/auth/directives/has-permission.directive';
+import { ColumnDefinition } from '@app/shared/generic-table/interfaces/column-definition.interface';
 
 @Component({
   selector: 'app-trucks',
-  imports: [CommonModule,
+  imports: [
+    CommonModule,
     GenericTableComponent,
     MatButtonModule,
     MatIconModule,
@@ -19,48 +21,65 @@ import { HasPermissionDirective } from '@app/core/auth/directives/has-permission
   templateUrl: './trucks.component.html',
   styleUrl: './trucks.component.scss'
 })
-export class TrucksComponent {
-
-  private translate = inject(TranslateService);
-  truckService = inject(TruckService)
-  // Loading durumu
+export class TrucksComponent implements OnInit {
+  truckService = inject(TruckService);
   isLoading = false;
 
-  // API'den dönen verilerde product_type, dimension ve weight_type doğrudan
-  // nesne olarak döndüğü için kolonları değişiyoruz
-  displayedColumns: string[] = [
-    'name',
-    'dimension.width',
-    'dimension.depth',
-    'dimension.height',
-    'created_by',
-    'created_at'
-
+  columnDefinitions: ColumnDefinition[] = [
+    {
+      key: 'name',
+      label: 'TRUCK.VEHICLE_TYPE',
+      type: 'text',
+      required: true,
+      maxLength: 255
+    },
+    {
+      key: 'dimension.width',
+      label: 'DIMENSIONS.LENGTH',
+      type: 'number',
+      required: true,
+      min: 0,
+      hint: 'mm'
+    },
+    {
+      key: 'dimension.depth',
+      label: 'DIMENSIONS.WIDTH',
+      type: 'number',
+      required: true,
+      min: 0,
+      hint: 'mm'
+    },
+    {
+      key: 'dimension.height',
+      label: 'DIMENSIONS.HEIGHT',
+      type: 'number',
+      required: true,
+      min: 0,
+      hint: 'mm'
+    },
+    {
+      key: 'created_by',
+      label: 'COMMON.USER',
+      type: 'text',
+      visible: false
+    },
+    {
+      key: 'created_at',
+      label: 'ORDER.CREATION_DATE',
+      type: 'date',
+      visible: false
+    }
   ];
 
-  // Filtrelenebilen alanlar
-  filterableColumns: string[] = [
-    'name',
-    'dimension.width',
-    'dimension.height',
-    'dimension.depth',
-  ];
+  displayedColumns: string[] = this.columnDefinitions.map(c => c.key);
+
+  filterableColumns: string[] = this.columnDefinitions
+    .filter(c => c.type === 'number' || c.key === 'name')
+    .map(c => c.key);
 
   columnTypes: { [key: string]: string } = {
     'created_at': 'date'
   };
 
-  // İlişkili nesne sütunları için özel görüntüleme ayarları
-  nestedDisplayColumns: { [key: string]: string } = {
-    'name': this.translate.instant('TRUCK.VEHICLE_TYPE'),
-    'dimension.width': this.translate.instant('DIMENSIONS.LENGTH'),
-    'dimension.height': this.translate.instant('DIMENSIONS.HEIGHT'),
-    'dimension.depth': this.translate.instant('DIMENSIONS.WIDTH'),
-    'created_by': this.translate.instant('COMMON.USER'),
-    'created_at': this.translate.instant('ORDER.CREATION_DATE'),
-  };
-
-  ngOnInit(): void {
-  }
-
+  ngOnInit(): void {}
 }
