@@ -2,13 +2,14 @@ import { Base } from "@core/interfaces/base.interface";
 import { Company } from "./company.interface";
 import { Dimension } from "./dimension.interface";
 import { ProductType } from "./product-type.interface";
-import { WeightType } from "./weight-type.interface";
+import { ProductWeight } from "./weight-category.interface";
 
 export interface Product extends Base {
   name?: string;
   product_type: ProductType;
+  type_name?: string;
   dimension: Dimension;
-  weight_type: WeightType;
+  weights: ProductWeight[];  // weight_type → weights array
   company?: Company;
 }
 
@@ -22,7 +23,7 @@ export interface BulkUploadResponse {
     message: string;
   }[];
   success_details: {
-    row:number;
-    message:string
+    row: number;
+    message: string;
   }[];
 }

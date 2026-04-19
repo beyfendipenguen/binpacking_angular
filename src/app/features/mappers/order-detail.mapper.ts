@@ -1,29 +1,5 @@
-import { UiProduct } from "../../admin/components/stepper/components/ui-models/ui-product.model";
-import { IInvoiceOrderDetail } from "../component-models/invoice-order-detail.interface";
-import { OrderDetailRead } from "../order-detail.interface";
-
-export const mapToOrderDetailDto = (orderDetail: OrderDetailRead): IInvoiceOrderDetail => {
-  const width = Number(orderDetail.product.dimension.width);
-  const depth = Number(orderDetail.product.dimension.depth);
-  const count = Number(orderDetail.count);
-  const meter = (depth * count) / 1000; // Convert to square meters
-  const type = orderDetail.product.product_type.type;
-  const code = orderDetail.product.product_type.code;
-  const id = orderDetail.id;
-  return {
-    id,
-    type,
-    code,
-    width,
-    depth,
-    count,
-    meter,
-  };
-};
-
-export const mapToOrderDetailDtoList = (orderDetails: OrderDetailRead[]): IInvoiceOrderDetail[] =>
-  orderDetails.map(mapToOrderDetailDto);
-
+import { OrderDetailRead } from "../interfaces/order-detail.interface";
+import { UiProduct } from "../stepper/components/ui-models/ui-product.model";
 
 /**
  * OrderDetail'i UiProduct'a map eder
@@ -37,10 +13,11 @@ export function mapOrderDetailToUiProduct(orderDetail: OrderDetailRead): UiProdu
     count: orderDetail.count,
     product_type: orderDetail.product.product_type,
     dimension: orderDetail.product.dimension,
-    weight_type: orderDetail.product.weight_type,
+    weights: orderDetail.product.weights,  // weight_type → weights
     company: orderDetail.product.company
   });
 }
+
 
 /**
  * OrderDetail array'ini UiProduct array'ine map eder
@@ -67,13 +44,12 @@ export function mapOrderDetailsToUiProductsSafe(orderDetails: OrderDetailRead[])
 
   return orderDetails
     .filter(orderDetail => {
-      // Gerekli alanların kontrolü
       return orderDetail &&
         orderDetail.id &&
         orderDetail.product &&
         orderDetail.product.product_type &&
         orderDetail.product.dimension &&
-        orderDetail.product.weight_type &&
+        orderDetail.product.weights &&  // weight_type → weights
         typeof orderDetail.count === 'number';
     })
     .map(orderDetail => {

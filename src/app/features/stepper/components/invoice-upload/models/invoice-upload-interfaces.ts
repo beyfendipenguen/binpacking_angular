@@ -2,6 +2,7 @@ import { CompanyRelation } from "@app/features/interfaces/company-relation.inter
 import { OrderDetailRead, OrderDetailWrite } from "@app/features/interfaces/order-detail.interface";
 import { Order } from "@app/features/interfaces/order.interface";
 import { Truck } from "@app/features/interfaces/truck.interface";
+export type { WeightCategory } from '@app/features/interfaces/weight-category.interface';
 
 export interface InvoiceUploadState {
   order: Order | null;
@@ -56,7 +57,6 @@ export interface CalculationResult {
   totalWeight: number;
 }
 
-export type WeightType = 'std' | 'pre' | 'eco';
 
 export type AutoSaveChangeType = 'form' | 'user-action' | 'api-response';
 

@@ -8,6 +8,7 @@ import { UiPallet } from '../../features/stepper/components/ui-models/ui-pallet.
 import { mapUiPackagesToPackageWriteDtoList } from '@app/features/mappers/package.mapper';
 
 import { ReportFile } from '@app/features/stepper/components/result-step/result-step.service';
+import { UiProduct } from '@app/features/stepper/components/ui-models/ui-product.model';
 
 // Feature selector
 export const selectStepperState = createFeatureSelector<StepperState>('stepper');
@@ -339,8 +340,8 @@ export const selectPackageWeightList = createSelector(
   selectValidPackages,
   selectOrder,
   (packages, order) => {
-    if (!order?.weight_type) return [];
-    return packages.map(pkg => packageTotalWeight(pkg, order.weight_type));
+    if (!order?.weight_category) return [];
+    return packages.map(pkg => packageTotalWeight(pkg, order.weight_category!.key));
   }
 );
 
@@ -521,27 +522,19 @@ export const selectRemainingArea = createSelector(selectUiPackages, selectOrder,
   return Math.floor((trailerArea - totalArea) / 1000000);
 });
 
-function packageTotalWeight(pkg: UiPackage, weightType: string): number {
+function packageTotalWeight(pkg: UiPackage, weightKey: string): number {
   const palletWeight = Math.floor(pkg.pallet?.weight ?? 0);
   const productsWeight = pkg.package_details.reduce(
     (total, packageDetail) => {
-      if (weightType == 'std') {
-        return total + Math.floor(packageDetail.product.weight_type.std * packageDetail.count);
-      }
-      else if (weightType == 'eco') {
-        return total + Math.floor(packageDetail.product.weight_type.eco * packageDetail.count);
-      }
-      else {
-        return total + Math.floor(packageDetail.product.weight_type.pre * packageDetail.count);
-      }
+      const productWeight = packageDetail.product.weights?.find(
+        w => w.category.key === weightKey
+      );
+      const weight = productWeight ? Number(productWeight.value) : 0;
+      return total + Math.floor(weight * packageDetail.count);
     }, 0
   );
 
   return palletWeight + productsWeight;
-  // NOTE:
-  // fucntion icerisinde yuvarlama yapilmamali selectorlarin icinde nihai sonuc uretilince
-  // yuvarlama yapilmali cunku birden fazla package icin bu method kullanilir ise
-  // yuvarlama yuzunden hatali sonuc uretilir.
 }
 
 export const selectTotalProductCount = createSelector(

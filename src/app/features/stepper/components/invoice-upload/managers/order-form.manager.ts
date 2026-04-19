@@ -3,6 +3,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { FileUploadManager } from './file-upload.manager';
 import { v4 as uuidv4 } from 'uuid';
 import { Order } from '@app/features/interfaces/order.interface';
+import { WeightCategory } from '../models/invoice-upload-interfaces';
 
 @Injectable({
   providedIn: 'root'
@@ -42,7 +43,7 @@ export class OrderFormManager {
       date: null,
       company_relation: null,
       truck: null,
-      weight_type: '',
+      weight_category: null
     } as unknown as Order;
 
     return this.order;
@@ -90,16 +91,14 @@ export class OrderFormManager {
     return this.order;
   }
 
-  updateWeightType(selectedWeightType: string): Order {
+  updateWeightCategory(selectedCategory: WeightCategory | null): Order {
     if (!this.order) {
       this.order = this.initializeNewOrder();
     }
-
     this.order = {
       ...this.order,
-      weight_type: selectedWeightType
+      weight_category: selectedCategory
     };
-
     return this.order;
   }
 
@@ -137,7 +136,8 @@ export class OrderFormManager {
     return a.id === b.id || a.target_company.company_name === b.target_company.company_name;
   }
 
-  compareWeightTypes(a: string, b: string): boolean {
-    return a === b;
+  compareWeightTypes(a: WeightCategory, b: WeightCategory): boolean {
+    if (!a || !b) return false;
+    return a.id === b.id;
   }
 }

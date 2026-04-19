@@ -1,7 +1,7 @@
 import { Company } from '@app/features/interfaces/company.interface';
 import { Dimension } from '@app/features/interfaces/dimension.interface';
 import { ProductType } from '@app/features/interfaces/product-type.interface';
-import { WeightType } from '@app/features/interfaces/weight-type.interface';
+import { ProductWeight } from '@app/features/interfaces/weight-category.interface';
 import { v4 as Guid } from 'uuid';
 import { IUiProduct } from '../../interfaces/ui-interfaces/ui-product.interface';
 
@@ -11,21 +11,27 @@ export class UiProduct implements IUiProduct {
   count: number;
   product_type: ProductType;
   dimension: Dimension;
-  weight_type: WeightType;
+  weights: ProductWeight[];
   company?: Company | undefined;
   id: string;
   priority: number;
 
   constructor(init: Partial<IUiProduct>) {
-    this.ui_id = Guid()
+    this.ui_id = Guid();
     this.name = init.name!;
     this.count = init.count!;
     this.id = init.id!;
     this.product_type = init.product_type!;
     this.dimension = init.dimension!;
-    this.weight_type = init.weight_type!;
+    this.weights = init.weights ?? [];
     this.company = init.company;
     this.priority = init.priority!;
+  }
+
+  // weights array içinden key'e göre değer döner
+  getWeight(key: string): number {
+    const pw = this.weights.find(w => w.category.key === key);
+    return pw ? Number(pw.value) : 0;
   }
 
   split(perItem?: number | null): UiProduct[] {
@@ -40,19 +46,8 @@ export class UiProduct implements IUiProduct {
       return [this];
     }
 
-    // this additional id part to use in draggable component [id] attribute
-    // if both products has same id then draggable component is not unique
-    // and it will not work properly
-    const firstProduct = new UiProduct({
-      ...this,
-      count: firstCount,
-    });
-
-    const secondProduct = new UiProduct({
-      ...this,
-      count: secondCount,
-    });
+    const firstProduct = new UiProduct({ ...this, count: firstCount });
+    const secondProduct = new UiProduct({ ...this, count: secondCount });
     return [firstProduct, secondProduct];
   }
-
 }
