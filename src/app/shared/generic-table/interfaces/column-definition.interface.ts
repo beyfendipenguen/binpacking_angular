@@ -6,7 +6,7 @@ export interface ButtonConfig {
   class?: string;
 }
 
-export type FieldType = 'text' | 'number' | 'date' | 'datetime' | 'checkbox' | 'select' | 'textarea' | 'email' | 'phone' | 'button' | 'icon-button' | 'status';
+export type FieldType = 'text' | 'number' | 'date' | 'datetime' | 'checkbox' | 'select' | 'textarea' | 'email' | 'phone' | 'button' | 'icon-button' | 'status'|'weights';
 
 export interface FieldOption {
   value: any;
