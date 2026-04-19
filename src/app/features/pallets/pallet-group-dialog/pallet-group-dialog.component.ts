@@ -252,7 +252,13 @@ export class PalletGroupDialogComponent implements OnInit {
       this.groupForm.enable();
     }
 
-    this.selectedPalletIds = new Set(group.pallets.map(p => p.id));
+    if (group.pallets) {
+      this.selectedPalletIds = new Set(group.pallets.map(p => p.id));
+    } else if ((group as any).pallet_ids) {
+      this.selectedPalletIds = new Set((group as any).pallet_ids);
+    } else {
+      this.selectedPalletIds = new Set();
+    }
 
     // Geçici seçimleri ve aramaları temizle
     this.tempSelectedAvailable.clear();

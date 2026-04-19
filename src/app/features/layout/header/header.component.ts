@@ -40,7 +40,7 @@ export class HeaderComponent implements OnInit {
   @Output() sidenavOpen: EventEmitter<any> = new EventEmitter();
 
   profilePhoto = 'https://cdn-icons-png.flaticon.com/512/219/219986.png';
-  companyLogo: string = 'assets/icons/bedisa.png';
+  companyLogo: string = 'assets/icons/trunam.png';
 
   private readonly store = inject(Store<AppState>);
   private readonly authService = inject(AuthService);

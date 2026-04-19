@@ -10,32 +10,40 @@
         </div>
       </div>
       <div class="header-actions">
-        <button mat-raised-button color="primary"
-          [appBulkUploadButton]="productBulkConfig"
-          class="bulk-add-btn"
-          [appDisableAuth]="['products.add_product']">
-          <mat-icon>add_box</mat-icon>{{ 'PRODUCT.BULK_ADD' | translate }}
+        <button mat-raised-button color="primary" [matMenuTriggerFor]="actionsMenu" class="actions-btn">
+          <mat-icon>settings</mat-icon>{{ 'MENU.OPERATIONS' | translate }}
+          <mat-icon class="dropdown-icon">arrow_drop_down</mat-icon>
         </button>
+        <mat-menu #actionsMenu="matMenu" class="actions-menu">
+          <button mat-menu-item [appBulkUploadButton]="productBulkConfig" class="bulk-add-btn"
+            [appDisableAuth]="['products.add_product']">
+            <mat-icon>add_box</mat-icon>{{ 'PRODUCT.BULK_ADD' | translate }}
+          </button>
+          <button mat-menu-item (click)="exportProducts()">
+            <mat-icon>download</mat-icon>
+            <span>{{ 'PRODUCT.EXPORT' | translate }}</span>
+          </button>
+          <button mat-menu-item [appBulkUploadButton]="productBulkUpdateConfig">
+            <mat-icon>{{ isBulkUpdating ? 'hourglass_empty' : 'sync' }}</mat-icon>
+            <span>{{ 'PRODUCT.BULK_UPDATE' | translate }}</span>
+          </button>
+          <button mat-menu-item (click)="openWeightCategoryDialog()">
+            <mat-icon>scale</mat-icon>
+            {{ 'WEIGHT_CATEGORY.TITLE' | translate }}
+          </button>
+        </mat-menu>
       </div>
     </div>
   </div>
 
   <div class="content-section" [class.loading]="isLoading">
-    <app-generic-table
-      *appHasPermission="'products.view_product'"
-      [service]="productService"
-      [notSortableColumns]="notSortableColumns"
-      [displayedColumns]="displayedColumns"
-      [filterableColumns]="filterableColumns"
-      [columnDefinitions]="columnDefinitions"
-      [title]="'PRODUCT.PRODUCTS'"
-      [showRowNumbers]="true"
-      [excludeFields]="['name']"
-      [deletePermission]="['products.delete_product']"
-      [addPermission]="['products.add_product']"
-      [updatePermission]="['products.change_product']"
-      [columnTypes]="columnTypes"
-      [columnPermissions]="{
+    <app-generic-table *appHasPermission="'products.view_product'" (addClick)="openProductDialog()"
+      (rowClick)="openProductDialog($event)" [showAddButton]="true" [showUpdateButton]="false"
+      [service]="productService" [notSortableColumns]="notSortableColumns" [displayedColumns]="displayedColumns"
+      [filterableColumns]="filterableColumns" [columnDefinitions]="columnDefinitions" [title]="'PRODUCT.PRODUCTS'"
+      [showRowNumbers]="true" [excludeFields]="['name']" [deletePermission]="['products.delete_product']"
+      [addPermission]="['products.add_product']" [updatePermission]="['products.change_product']"
+      [columnTypes]="columnTypes" [columnPermissions]="{
         'created_at': ['access_control.view_audited_fields'],
         'created_by': ['access_control.view_audited_fields']
       }">

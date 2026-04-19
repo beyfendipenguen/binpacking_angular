@@ -1,0 +1,130 @@
+<h2 mat-dialog-title>
+  {{ (isEditMode ? 'PRODUCT.UPDATE_PRODUCT' : 'PRODUCT.ADD_PRODUCT') | translate }}
+</h2>
+
+<form [formGroup]="form" (ngSubmit)="onSubmit()">
+  <mat-dialog-content>
+
+    <!-- Ürün Adı -->
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>{{ 'PRODUCT.TYPE_NAME' | translate }}</mat-label>
+      <input matInput formControlName="type_name" placeholder="Panel Radyatör">
+      <mat-error *ngIf="form.get('type_name')?.hasError('required')">
+        {{ 'VALIDATION.REQUIRED' | translate }}
+      </mat-error>
+    </mat-form-field>
+
+    <mat-divider class="section-divider"></mat-divider>
+
+    <!-- Ürün Tipi -->
+    <p class="section-label">
+      <mat-icon>category</mat-icon>
+      {{ 'PRODUCT.PRODUCT_TYPE' | translate }}
+    </p>
+
+    <div class="row-2">
+      <mat-form-field appearance="outline">
+        <mat-label>{{ 'PRODUCT.TYPE' | translate }}</mat-label>
+        <input matInput formControlName="product_type_type" placeholder="22">
+        <mat-error *ngIf="form.get('product_type_type')?.hasError('required')">
+          {{ 'VALIDATION.REQUIRED' | translate }}
+        </mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>{{ 'PRODUCT.CODE' | translate }}</mat-label>
+        <input matInput formControlName="product_type_code" placeholder="C">
+        <mat-error *ngIf="form.get('product_type_code')?.hasError('required')">
+          {{ 'VALIDATION.REQUIRED' | translate }}
+        </mat-error>
+      </mat-form-field>
+    </div>
+
+    <mat-divider class="section-divider"></mat-divider>
+
+    <!-- Boyutlar -->
+    <p class="section-label">
+      <mat-icon>straighten</mat-icon>
+      {{ 'PRODUCT.DIMENSIONS' | translate }}
+    </p>
+
+    <div class="row-3">
+      <mat-form-field appearance="outline">
+        <mat-label>{{ 'DIMENSIONS.WIDTH' | translate }} (mm)</mat-label>
+        <input matInput type="number" formControlName="dimension_width" min="0">
+        <mat-error *ngIf="form.get('dimension_width')?.hasError('required')">
+          {{ 'VALIDATION.REQUIRED' | translate }}
+        </mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>{{ 'DIMENSIONS.HEIGHT' | translate }} (mm)</mat-label>
+        <input matInput type="number" formControlName="dimension_height" min="0">
+        <mat-error *ngIf="form.get('dimension_height')?.hasError('required')">
+          {{ 'VALIDATION.REQUIRED' | translate }}
+        </mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>{{ 'DIMENSIONS.DEPTH' | translate }} (mm)</mat-label>
+        <input matInput type="number" formControlName="dimension_depth" min="0">
+        <mat-error *ngIf="form.get('dimension_depth')?.hasError('required')">
+          {{ 'VALIDATION.REQUIRED' | translate }}
+        </mat-error>
+      </mat-form-field>
+    </div>
+
+    <mat-form-field appearance="outline" class="unit-field">
+      <mat-label>{{ 'DIMENSIONS.UNIT' | translate }}</mat-label>
+      <mat-select formControlName="dimension_unit">
+        @for (unit of UNITS; track unit) {
+          <mat-option [value]="unit">{{ unit }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <!-- Ağırlıklar -->
+    @if (weightCategories().length > 0) {
+      <mat-divider class="section-divider"></mat-divider>
+
+      <p class="section-label">
+        <mat-icon>scale</mat-icon>
+        {{ 'PRODUCT.WEIGHTS' | translate }}
+      </p>
+
+      <div class="weights-grid">
+        @for (cat of weightCategories(); track cat.id) {
+          <mat-form-field appearance="outline">
+            <mat-label>{{ cat.label }} (kg)</mat-label>
+            <input
+              matInput
+              type="number"
+              [formControlName]="'weight_' + cat.id"
+              min="0"
+              step="0.001">
+            <mat-error *ngIf="getWeightControl(cat.id)?.hasError('min')">
+              {{ 'VALIDATION.MIN' | translate: { min: 0 } }}
+            </mat-error>
+          </mat-form-field>
+        }
+      </div>
+    }
+
+    @if (isLoading()) {
+      <div class="loading-weights">
+        <mat-spinner diameter="24"></mat-spinner>
+        <span>{{ 'PRODUCT.LOADING_WEIGHTS' | translate }}</span>
+      </div>
+    }
+
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button type="button" (click)="onCancel()">
+      {{ 'COMMON.CANCEL' | translate }}
+    </button>
+    <button mat-raised-button color="primary" type="submit" [disabled]="form.invalid || isLoading()">
+      {{ (isEditMode ? 'COMMON.UPDATE' : 'COMMON.ADD') | translate }}
+    </button>
+  </mat-dialog-actions>
+</form>

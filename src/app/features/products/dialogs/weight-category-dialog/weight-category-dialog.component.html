@@ -1,0 +1,120 @@
+<div class="wc-dialog">
+  <div class="wc-header">
+    <div class="wc-header-title">
+      <mat-icon>scale</mat-icon>
+      <h2>{{ 'WEIGHT_CATEGORY.TITLE' | translate }}</h2>
+    </div>
+    <button mat-icon-button (click)="onClose()">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <mat-dialog-content>
+
+    <!-- Form -->
+    <div class="wc-form-section">
+      <p class="wc-section-label">
+        {{ (isEditing ? 'WEIGHT_CATEGORY.EDIT_CATEGORY' : 'WEIGHT_CATEGORY.ADD_CATEGORY') | translate }}
+      </p>
+
+      <form [formGroup]="form" (ngSubmit)="save()" class="wc-form">
+        <mat-form-field appearance="outline" class="wc-field">
+          <mat-label for="key-input">{{ 'WEIGHT_CATEGORY.KEY' | translate }}</mat-label>
+          <input id="key-input" matInput formControlName="key"
+            placeholder="std, eco, pre, std_plus"
+            [readonly]="isEditing">
+          <mat-hint>{{ 'WEIGHT_CATEGORY.KEY_HINT' | translate }}</mat-hint>
+          <mat-error *ngIf="form.get('key')?.hasError('required')">
+            {{ 'VALIDATION.REQUIRED' | translate }}
+          </mat-error>
+          <mat-error *ngIf="form.get('key')?.hasError('pattern')">
+            {{ 'WEIGHT_CATEGORY.KEY_PATTERN_ERROR' | translate }}
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="wc-field">
+          <mat-label id="label-input" for="label-input">{{ 'WEIGHT_CATEGORY.LABEL' | translate }}</mat-label>
+          <input matInput formControlName="label">
+          <mat-error *ngIf="form.get('label')?.hasError('required')">
+            {{ 'VALIDATION.REQUIRED' | translate }}
+          </mat-error>
+        </mat-form-field>
+
+        <div class="wc-form-actions">
+          @if (isEditing) {
+            <button mat-stroked-button type="button" (click)="cancelEdit()">
+              {{ 'COMMON.CANCEL' | translate }}
+            </button>
+          }
+          <button mat-raised-button color="primary" type="submit"
+            [disabled]="form.invalid || isSaving()">
+            @if (isSaving()) {
+              <mat-spinner diameter="18"></mat-spinner>
+            } @else {
+              <mat-icon>{{ isEditing ? 'save' : 'add' }}</mat-icon>
+            }
+            {{ (isEditing ? 'COMMON.SAVE' : 'COMMON.ADD') | translate }}
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <mat-divider></mat-divider>
+
+    <!-- Liste -->
+    <div class="wc-list-section">
+      <p class="wc-section-label">
+        {{ 'WEIGHT_CATEGORY.EXISTING' | translate }}
+        <span class="wc-count">({{ categories().length }})</span>
+      </p>
+
+      @if (isLoading()) {
+        <div class="wc-loading">
+          <mat-spinner diameter="32"></mat-spinner>
+        </div>
+      } @else if (categories().length === 0) {
+        <div class="wc-empty">
+          <mat-icon>scale</mat-icon>
+          <p>{{ 'WEIGHT_CATEGORY.EMPTY' | translate }}</p>
+        </div>
+      } @else {
+        <div class="wc-list">
+          @for (cat of categories(); track cat.id) {
+            <div class="wc-item" [class.wc-item-editing]="editingId() === cat.id">
+              <div class="wc-item-info">
+                <span class="wc-item-key">{{ cat.key }}</span>
+                <span class="wc-item-label">{{ cat.label }}</span>
+              </div>
+              <div class="wc-item-actions">
+                <button mat-icon-button
+                  [matTooltip]="'COMMON.UPDATE' | translate"
+                  (click)="startEdit(cat)"
+                  [disabled]="editingId() === cat.id">
+                  <mat-icon>edit</mat-icon>
+                </button>
+                <button mat-icon-button color="warn"
+                  [matTooltip]="'COMMON.DELETE' | translate"
+                  (click)="delete(cat)">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </div>
+            </div>
+          }
+        </div>
+
+        <!-- Uyarı -->
+        <div class="wc-warning">
+          <mat-icon>warning</mat-icon>
+          <span>{{ 'WEIGHT_CATEGORY.DELETE_WARNING' | translate }}</span>
+        </div>
+      }
+    </div>
+
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-raised-button color="primary" (click)="onClose()">
+      {{ 'COMMON.CLOSE' | translate }}
+    </button>
+  </mat-dialog-actions>
+</div>
