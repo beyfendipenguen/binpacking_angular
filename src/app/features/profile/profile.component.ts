@@ -411,7 +411,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
       formData.append('logo', file);
 
       // Use partialUpdate with FormData
-      this.companyService.update(this.userCompany.id!, formData as any).subscribe({
+      this.companyService.partialUpdate(this.userCompany.id!, formData as any).subscribe({
         next: (updatedCompany) => {
           this.userCompany = updatedCompany;
           if (updatedCompany.logo) {
