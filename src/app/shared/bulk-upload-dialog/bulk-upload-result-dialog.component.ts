@@ -1,10 +1,11 @@
-import { Component, Inject } from '@angular/core';
+import { Component, inject, Inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTableModule } from '@angular/material/table';
 import { BulkUploadResponse, BulkUploadConfig } from './bulk-upload.config';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 interface ResultDialogData {
   response: BulkUploadResponse;
@@ -19,156 +20,135 @@ interface ResultDialogData {
     MatDialogModule,
     MatButtonModule,
     MatIconModule,
-    MatTableModule
+    MatTableModule,
+    TranslateModule
   ],
   template: `
     <div class="dialog-container">
-      <div class="dialog-header">
-        <h2 mat-dialog-title>
-          <mat-icon>assessment</mat-icon>
-          Toplu {{ data.config.entityName }} Yükleme Sonucu
-        </h2>
-        <button mat-icon-button (click)="onClose()" class="close-button">
-          <mat-icon>close</mat-icon>
-        </button>
+  <div class="dialog-header">
+    <h2 mat-dialog-title>
+      <mat-icon>assessment</mat-icon>
+      {{ 'BULK_ADD.RESULT_TITLE' | translate }} {{ data.config.entityName }}
+    </h2>
+    <button mat-icon-button (click)="onClose()" class="close-button">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <mat-dialog-content>
+    <div class="dialog-content">
+
+      <div class="summary-cards">
+        <div class="summary-card total">
+          <div class="card-icon"><mat-icon>description</mat-icon></div>
+          <div class="card-content">
+            <span class="card-value">{{ data.response.total_rows }}</span>
+            <span class="card-label">{{ 'BULK_ADD.TOTAL_ROWS' | translate }}</span>
+          </div>
+        </div>
+        <div class="summary-card success">
+          <div class="card-icon"><mat-icon>check_circle</mat-icon></div>
+          <div class="card-content">
+            <span class="card-value">{{ data.response.successful }}</span>
+            <span class="card-label">{{ 'BULK_ADD.SUCCESSFUL' | translate }}</span>
+          </div>
+        </div>
+        <div class="summary-card warning">
+          <div class="card-icon"><mat-icon>info</mat-icon></div>
+          <div class="card-content">
+            <span class="card-value">{{ data.response.skipped }}</span>
+            <span class="card-label">{{ 'BULK_ADD.SKIPPED' | translate }}</span>
+          </div>
+        </div>
+        <div class="summary-card error">
+          <div class="card-icon"><mat-icon>error</mat-icon></div>
+          <div class="card-content">
+            <span class="card-value">{{ data.response.failed }}</span>
+            <span class="card-label">{{ 'BULK_ADD.FAILED' | translate }}</span>
+          </div>
+        </div>
       </div>
 
-      <mat-dialog-content>
-        <div class="dialog-content">
-
-          <!-- Özet Kartları -->
-          <div class="summary-cards">
-            <div class="summary-card total">
-              <div class="card-icon">
-                <mat-icon>description</mat-icon>
-              </div>
-              <div class="card-content">
-                <span class="card-value">{{ data.response.total_rows }}</span>
-                <span class="card-label">Toplam Satır</span>
-              </div>
-            </div>
-
-            <div class="summary-card success">
-              <div class="card-icon">
-                <mat-icon>check_circle</mat-icon>
-              </div>
-              <div class="card-content">
-                <span class="card-value">{{ data.response.successful }}</span>
-                <span class="card-label">Başarılı</span>
-              </div>
-            </div>
-
-            <div class="summary-card warning">
-              <div class="card-icon">
-                <mat-icon>info</mat-icon>
-              </div>
-              <div class="card-content">
-                <span class="card-value">{{ data.response.skipped }}</span>
-                <span class="card-label">Atlanan</span>
-              </div>
-            </div>
-
-            <div class="summary-card error">
-              <div class="card-icon">
-                <mat-icon>error</mat-icon>
-              </div>
-              <div class="card-content">
-                <span class="card-value">{{ data.response.failed }}</span>
-                <span class="card-label">Hatalı</span>
-              </div>
-            </div>
+      @if(data.response.success_details && data.response.success_details.length > 0) {
+        <div class="result-section success-section">
+          <div class="section-header">
+            <mat-icon>check_circle</mat-icon>
+            <h3>
+              {{ 'BULK_ADD.SUCCESSFULLY_ADDED' | translate }}
+              {{ data.config.entityNamePlural }}
+              ({{ data.response.success_details.length }})
+            </h3>
           </div>
-
-          <!-- Başarılı Eklenenler -->
-          @if(data.response.success_details && data.response.success_details.length > 0) {
-            <div class="result-section success-section">
-              <div class="section-header">
-                <mat-icon>check_circle</mat-icon>
-                <h3>Başarıyla Eklenen {{ data.config.entityNamePlural }} ({{ data.response.success_details.length }})</h3>
-              </div>
-              <div class="table-container">
-                <table mat-table [dataSource]="data.response.success_details" class="result-table">
-                  <ng-container matColumnDef="row">
-                    <th mat-header-cell *matHeaderCellDef>Satır</th>
-                    <td mat-cell *matCellDef="let element">{{ element.row }}</td>
-                  </ng-container>
-
-                  <ng-container matColumnDef="name">
-                    <th mat-header-cell *matHeaderCellDef>{{ data.config.entityName }} Adı</th>
-                    <td mat-cell *matCellDef="let element">{{ element.name }}</td>
-                  </ng-container>
-
-                  <ng-container matColumnDef="status">
-                    <th mat-header-cell *matHeaderCellDef>Durum</th>
-                    <td mat-cell *matCellDef="let element">
-                      <span class="status-badge success">
-                        <mat-icon>check</mat-icon>
-                        Eklendi
-                      </span>
-                    </td>
-                  </ng-container>
-
-                  <tr mat-header-row *matHeaderRowDef="successColumns"></tr>
-                  <tr mat-row *matRowDef="let row; columns: successColumns;"></tr>
-                </table>
-              </div>
-            </div>
-          }
-
-          <!-- Mevcut/Hatalı Kayıtlar -->
-          @if(data.response.errors && data.response.errors.length > 0) {
-            <div class="result-section error-section">
-              <div class="section-header">
-                <mat-icon>{{ getMajorErrorType() === 'warning' ? 'info' : 'error' }}</mat-icon>
-                <h3>{{ getErrorSectionTitle() }} ({{ data.response.errors.length }})</h3>
-              </div>
-              <div class="table-container">
-                <table mat-table [dataSource]="data.response.errors" class="result-table">
-                  <ng-container matColumnDef="row">
-                    <th mat-header-cell *matHeaderCellDef>Satır</th>
-                    <td mat-cell *matCellDef="let element">{{ element.row }}</td>
-                  </ng-container>
-
-                  <ng-container matColumnDef="name">
-                    <th mat-header-cell *matHeaderCellDef>{{ data.config.entityName }} Adı</th>
-                    <td mat-cell *matCellDef="let element">{{ element.name }}</td>
-                  </ng-container>
-
-                  <ng-container matColumnDef="error">
-                    <th mat-header-cell *matHeaderCellDef>Durum/Hata</th>
-                    <td mat-cell *matCellDef="let element">
-                      <span [class]="getErrorClass(element.name)">
-                        <mat-icon style="padding-right: 14px;">{{ getErrorIcon(element.name) }}</mat-icon>
-                        {{ element.message }}
-                      </span>
-                    </td>
-                  </ng-container>
-
-                  <tr mat-header-row *matHeaderRowDef="errorColumns"></tr>
-                  <tr mat-row *matRowDef="let row; columns: errorColumns;"></tr>
-                </table>
-              </div>
-            </div>
-          }
-
-          <!-- Boş Sonuç Mesajı -->
-          @if(data.response.total_rows === 0) {
-            <div class="empty-state">
-              <mat-icon>inbox</mat-icon>
-              <p>Dosyada işlenecek veri bulunamadı.</p>
-            </div>
-          }
-
+          <div class="table-container">
+            <table mat-table [dataSource]="data.response.success_details" class="result-table">
+              <ng-container matColumnDef="row">
+                <th mat-header-cell *matHeaderCellDef>{{ 'BULK_ADD.ROW' | translate }}</th>
+                <td mat-cell *matCellDef="let element">{{ element.row }}</td>
+              </ng-container>
+              <ng-container matColumnDef="name">
+                <th mat-header-cell *matHeaderCellDef>{{ data.config.entityName }} {{ 'BULK_ADD.NAME' | translate }}</th>
+                <td mat-cell *matCellDef="let element">{{ element.name }}</td>
+              </ng-container>
+              <ng-container matColumnDef="status">
+                <th mat-header-cell *matHeaderCellDef>{{ 'BULK_ADD.STATUS' | translate }}</th>
+                <td mat-cell *matCellDef="let element">{{ element.message }}</td>
+              </ng-container>
+              <tr mat-header-row *matHeaderRowDef="successColumns"></tr>
+              <tr mat-row *matRowDef="let row; columns: successColumns;"></tr>
+            </table>
+          </div>
         </div>
-      </mat-dialog-content>
+      }
 
-      <mat-dialog-actions align="end">
-        <button mat-raised-button color="primary" (click)="onClose()">
-          <mat-icon>close</mat-icon>
-          Kapat
-        </button>
-      </mat-dialog-actions>
+      @if(data.response.errors && data.response.errors.length > 0) {
+        <div class="result-section error-section">
+          <div class="section-header">
+            <mat-icon>{{ getMajorErrorType() === 'warning' ? 'info' : 'error' }}</mat-icon>
+            <h3>{{ getErrorSectionTitle() }} ({{ data.response.errors.length }})</h3>
+          </div>
+          <div class="table-container">
+            <table mat-table [dataSource]="data.response.errors" class="result-table">
+              <ng-container matColumnDef="row">
+                <th mat-header-cell *matHeaderCellDef>{{ 'BULK_ADD.ROW' | translate }}</th>
+                <td mat-cell *matCellDef="let element">{{ element.row }}</td>
+              </ng-container>
+              <ng-container matColumnDef="name">
+                <th mat-header-cell *matHeaderCellDef>{{ data.config.entityName }} {{ 'BULK_ADD.NAME' | translate }}</th>
+                <td mat-cell *matCellDef="let element">{{ element.name }}</td>
+              </ng-container>
+              <ng-container matColumnDef="error">
+                <th mat-header-cell *matHeaderCellDef>{{ 'BULK_ADD.STATUS_ERROR' | translate }}</th>
+                <td mat-cell *matCellDef="let element">
+                  <span [class]="getErrorClass(element.name)">
+                    <mat-icon style="padding-right: 14px;">{{ getErrorIcon(element.name) }}</mat-icon>
+                    {{ element.message }}
+                  </span>
+                </td>
+              </ng-container>
+              <tr mat-header-row *matHeaderRowDef="errorColumns"></tr>
+              <tr mat-row *matRowDef="let row; columns: errorColumns;"></tr>
+            </table>
+          </div>
+        </div>
+      }
+
+      @if(data.response.total_rows === 0) {
+        <div class="empty-state">
+          <mat-icon>inbox</mat-icon>
+          <p>{{ 'BULK_ADD.NO_DATA' | translate }}</p>
+        </div>
+      }
+
     </div>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-raised-button color="primary" (click)="onClose()">
+      <mat-icon>close</mat-icon>
+      {{ 'COMMON.CLOSE' | translate }}
+    </button>
+  </mat-dialog-actions>
+</div>
   `,
 styles: [`
   .dialog-container {
@@ -511,7 +491,7 @@ styles: [`
 export class GenericBulkUploadResultDialogComponent {
   successColumns = ['row', 'name', 'status'];
   errorColumns = ['row', 'name', 'error'];
-
+  translate = inject(TranslateService)
   constructor(
     private dialogRef: MatDialogRef<GenericBulkUploadResultDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: ResultDialogData
@@ -555,12 +535,9 @@ export class GenericBulkUploadResultDialogComponent {
   }
 
   getErrorSectionTitle(): string {
-    const type = this.getMajorErrorType();
-
-    if (type === 'warning') {
-      return `Mevcut ${this.data.config.entityNamePlural}`;
-    }
-
-    return 'Hatalı Kayıtlar';
-  }
+  const type = this.getMajorErrorType();
+  return type === 'warning'
+    ? this.translate.instant('BULK_ADD.EXISTING_RECORDS', { plural: this.data.config.entityNamePlural })
+    : this.translate.instant('BULK_ADD.ERROR_RECORDS');
+}
 }

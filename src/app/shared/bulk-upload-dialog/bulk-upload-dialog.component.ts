@@ -134,6 +134,7 @@ import { GenericBulkUploadResultDialogComponent } from './bulk-upload-result-dia
               </div>
 
               <!-- Tekrar Şablon İndirme Linki -->
+               @if(config.requireTemplateDownload){
               <div class="redownload-link">
                 <button
                   mat-button
@@ -144,7 +145,9 @@ import { GenericBulkUploadResultDialogComponent } from './bulk-upload-result-dia
                   {{ (isDownloading ? 'BULK_ADD.DOWNLOADING' :'BULK_ADD.REDOWNLOAD_TEMPLATE') | translate }}
                 </button>
               </div>
+            }
             </div>
+
           }
 
         </div>
@@ -517,7 +520,11 @@ export class GenericBulkUploadDialogComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
-    this.getTemplateFile();
+    if (this.config.requireTemplateDownload === false) {
+      this.isTemplateDownloaded = true;
+    } else {
+      this.getTemplateFile();
+    }
   }
 
   getInstructions(): string[] {
