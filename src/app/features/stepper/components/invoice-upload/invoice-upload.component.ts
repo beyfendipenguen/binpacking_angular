@@ -48,7 +48,7 @@ import { INVOICE_UPLOAD_CONSTANTS } from './constants/invoice-upload.constants';
 import { FileUploadManager } from './managers/file-upload.manager';
 import { OrderDetailManager } from './managers/order-detail.manager';
 import { OrderFormManager } from './managers/order-form.manager';
-import { ReferenceData, OrderDetailUpdateEvent, WeightType } from './models/invoice-upload-interfaces';
+import { ReferenceData, OrderDetailUpdateEvent } from './models/invoice-upload-interfaces';
 import { InvoiceCalculatorService } from './services/invoice-calculator.service';
 import { InvoiceDataLoaderService } from './services/invoice-data-loader.service';
 import { AppState, selectOrder, selectOrderDetails, selectIsOrderDetailsDirty, selectIsOrderDirty, selectTotalProductsMeter, selectTotalProductCount, selectStep1HasFile, selectStep1FileName, selectIsEditMode, selectUser, selectInvoiceTemplateFile, selectAverageOrderDetailHeight, hasPackages, selectUserPermissions } from '@app/store';
@@ -58,6 +58,8 @@ import { StepperUiActions } from '@app/store/stepper/actions/stepper-ui.actions'
 import { DisableAuthDirective } from '@app/core/auth/directives/disable-auth.directive';
 import { HasPermissionDirective } from '@app/core/auth/directives/has-permission.directive';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { WeightCategory } from '@app/features/interfaces/weight-category.interface';
+import { WeightCategoryService } from '@app/features/services/weight-category.service';
 
 @Component({
   selector: 'app-invoice-upload',
@@ -101,6 +103,7 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
   private readonly dataLoaderService = inject(InvoiceDataLoaderService);
   private readonly calculatorService = inject(InvoiceCalculatorService);
   private readonly companyRelationService = inject(CompanyRelationService);
+  private readonly weightCategoryService = inject(WeightCategoryService);
   private readonly fileService = inject(FileService)
   // Original services still needed
   private readonly toastService = inject(ToastService);
@@ -149,6 +152,7 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
 
 
   showMessageBalloon = signal(false);
+  availableWeightCategories = signal<WeightCategory[]>([]);
 
   get file(): File | null {
     return this.fileUploadManager.getCurrentFile();
@@ -218,7 +222,10 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.uploadForm = this.orderFormManager.initializeForm();
-
+    this.weightCategoryService.getCategories().subscribe({
+      next: (categories) => this.availableWeightCategories.set(categories),
+      error: () => this.availableWeightCategories.set([])
+    });
     // Trucks'ı ilk yüklemede limit ile çek
     this.dataLoaderService.loadTrucksLimited(10).subscribe({
       next: (trucks) => {
@@ -356,12 +363,17 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
           const unitProductHeight = this.unitProductHeight();
           const unitProductCount = palletHeight / unitProductHeight;
           this.unitsControl.setValue(~~unitProductCount);
+                  // settings'ten gelen weight_category_id ile mevcut kategorilerden eşleştir
+          const matchedCategory = settings.weight_category_id
+            ? this.availableWeightCategories().find(c => c.id === settings.weight_category_id) ?? null
+            : null;
+
           // Order'ı settings ile güncelle
           const updatedOrder = structuredClone({
             ...currentOrder,
             truck_weight_limit: settings.truck_weight_limit,
             max_pallet_height: settings.max_pallet_height,
-            weight_type: settings.weight_type,
+            weight_category: matchedCategory,
             company_relation: selectedCompany
           });
 
@@ -410,14 +422,14 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
     }
   }
 
-  onWeightTypeChange(selectedWeightType: string): void {
+  onWeightCategoryChange(selectedCategory: WeightCategory): void {
     let currentOrder = this.orderSignal();
     if (currentOrder) {
       const updatedOrder = structuredClone({
         ...currentOrder,
-        weight_type: selectedWeightType
+        weight_category: selectedCategory
       });
-      this.store.dispatch(StepperInvoiceUploadActions.set({ order: updatedOrder }))
+      this.store.dispatch(StepperInvoiceUploadActions.set({ order: updatedOrder }));
     }
   }
 
@@ -477,7 +489,7 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
       date: now.toISOString(),
       company_relation: null,
       truck: null,
-      weight_type: '',
+      weight_category: null,
       created_at: now.toISOString(),
       updated_at: now.toISOString(),
       deleted_time: null,
@@ -520,29 +532,30 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
   }
 
   public totalWeight = computed(() => {
-    if (!this.orderSignal()?.weight_type) {
+    if (!this.orderSignal()?.weight_category) {
       return 0;
     }
     const total = this.calculatorService.calculateTotalWeight(
       this.orderDetailsSignal(),
-      this.orderSignal()?.weight_type as WeightType
-    )
+      this.orderSignal()?.weight_category!
+    );
     return total.totalWeight;
-  })
+  });
 
 
   isFormValid(): boolean {
-    let hasValidOrderDetails = this.orderDetailsSignal().length > 0;
-    let hasValidOrder = !!(this.orderSignal()?.date &&
-      this.orderSignal()?.company_relation &&
-      this.orderSignal()?.truck &&
-      this.orderSignal()?.weight_type &&
-      this.orderSignal()?.max_pallet_height &&
-      this.orderSignal()?.truck_weight_limit &&
-      this.orderSignal()?.truck_weight_limit != 0
-    );
-    return hasValidOrder && hasValidOrderDetails;
-  }
+  let hasValidOrderDetails = this.orderDetailsSignal().length > 0;
+  let hasValidOrder = !!(
+    this.orderSignal()?.date &&
+    this.orderSignal()?.company_relation &&
+    this.orderSignal()?.truck &&
+    this.orderSignal()?.weight_category &&  // weight_type → weight_category
+    this.orderSignal()?.max_pallet_height &&
+    this.orderSignal()?.truck_weight_limit &&
+    this.orderSignal()?.truck_weight_limit != 0
+  );
+  return hasValidOrder && hasValidOrderDetails;
+}
 
   submit(): void {
     if (!this.isFormValid()) {
@@ -590,7 +603,7 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
     return this.orderFormManager.compareCompanies(a, b);
   }
 
-  compareWeightTypes = (a: string, b: string): boolean => {
+  compareWeightTypes = (a: WeightCategory, b: WeightCategory): boolean => {
     return this.orderFormManager.compareWeightTypes(a, b);
   }
 

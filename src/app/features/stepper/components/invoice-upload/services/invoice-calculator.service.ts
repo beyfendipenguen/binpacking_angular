@@ -1,58 +1,56 @@
 import { Injectable } from '@angular/core';
 import { OrderDetailRead } from '@app/features/interfaces/order-detail.interface';
-import { WeightType, CalculationResult } from '../models/invoice-upload-interfaces';
+import { WeightCategory } from '@app/features/interfaces/weight-category.interface';
+import { CalculationResult } from '../models/invoice-upload-interfaces';
 
 @Injectable({
   providedIn: 'root',
 })
 export class InvoiceCalculatorService {
+
   calculateTotalWeight(
     orderDetails: OrderDetailRead[],
-    weightType: WeightType
+    weightCategory: WeightCategory | null
   ): CalculationResult {
     try {
+      if (!weightCategory) return { totalWeight: 0 };
+      const key = weightCategory.key;
+
       const totalWeight = orderDetails.reduce((sum, detail) => {
-        const productWeight = detail.product?.weight_type?.[weightType] || 0;
-        // Fix: Use 0 for undefined/null count instead of defaulting to 1
+        const productWeight = detail.product?.weights?.find(
+          w => w.category.key === key
+        )?.value || 0;
         const count = detail.count ?? 0;
-        return sum + productWeight * count;
+        return sum + Number(productWeight) * count;
       }, 0);
 
       return { totalWeight };
     } catch (error) {
-
       return { totalWeight: 0 };
     }
   }
 
-  calculateDetailWeight(detail: OrderDetailRead, weightType: WeightType): number {
+  calculateDetailWeight(
+    detail: OrderDetailRead,
+    weightCategory: WeightCategory | null
+  ): number {
     try {
-      const productWeight = detail.product?.weight_type?.[weightType] || 0;
-      // Fix: Use 0 for undefined/null count instead of defaulting to 1
+      if (!weightCategory) return 0;
+      const productWeight = detail.product?.weights?.find(
+        w => w.category.key === weightCategory.key
+      )?.value || 0;
       const count = detail.count ?? 0;
-      return productWeight * count;
+      return Number(productWeight) * count;
     } catch (error) {
-
       return 0;
     }
-  }
-
-  validateWeightType(weightType: string): weightType is WeightType {
-    return ['std', 'pre', 'eco'].includes(weightType);
-  }
-
-  getAvailableWeightTypes(): WeightType[] {
-    return ['std', 'pre', 'eco'];
   }
 
   formatWeight(weight: number, precision: number = 2): string {
     return weight.toFixed(precision);
   }
 
-  calculateWeightPercentage(
-    partialWeight: number,
-    totalWeight: number
-  ): number {
+  calculateWeightPercentage(partialWeight: number, totalWeight: number): number {
     if (totalWeight === 0) return 0;
     return (partialWeight / totalWeight) * 100;
   }

@@ -275,26 +275,19 @@ export class PalletControlComponent
   packageTotalWeight(pkg: UiPackage): number {
     const order = this.orderSignal();
     const palletWeight = Number(pkg.pallet?.weight) || 0;
+    const weightKey = order?.weight_category?.key ?? 'std';
+
     const productsWeight = pkg.package_details.reduce((total, packageDetail) => {
-      if (!order) {
-        return 0;
-      }
-      let weight = 0;
-      if (order.weight_type == 'std') {
-        weight = Number(packageDetail.product.weight_type?.std) || 0;
-      } else if (order.weight_type == 'eco') {
-        weight = Number(packageDetail.product.weight_type?.eco) || 0;
-      } else {
-        weight = Number(packageDetail.product.weight_type?.pre) || 0;
-      }
+      if (!order) return 0;
+      const productWeight = packageDetail.product.weights?.find(
+        w => w.category.key === weightKey
+      );
+      const weight = productWeight ? Number(productWeight.value) : 0;
       const count = Number(packageDetail.count) || 0;
       return total + (weight * count);
     }, 0);
 
-    const totalWeight = palletWeight + productsWeight;
-
-    // Sonucu noktadan sonra 2 haneye yuvarla
-    return Math.round(totalWeight * 100) / 100;
+    return Math.round((palletWeight + productsWeight) * 100) / 100;
   }
 
   packageTotalMeter(pkg: UiPackage): number {

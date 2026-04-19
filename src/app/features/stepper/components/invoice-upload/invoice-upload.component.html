@@ -156,16 +156,21 @@
         <div class="dashboard-info">
           <span class="dashboard-label">{{ 'INVOICE_UPLOAD.WEIGHT_TYPE' | translate }}</span>
           <div class="dashboard-value-container">
-            <mat-form-field class="edit-field" appearance="outline"  >
-              <mat-select [value]="orderSignal()?.weight_type" (selectionChange)="onWeightTypeChange($event.value)"
-                [placeholder]="'INVOICE_UPLOAD.SELECT_WEIGHT_TYPE' | translate" [compareWith]="compareWeightTypes"
-                required [disabled]="!hasOrderAddPerm()">
-                <mat-option value="eco">Eco</mat-option>
-                <mat-option value="std">Std</mat-option>
-                <mat-option value="pre">Pre</mat-option>
+            <mat-form-field class="edit-field" appearance="outline">
+              <mat-select
+                [value]="orderSignal()?.weight_category"
+                (selectionChange)="onWeightCategoryChange($event.value)"
+                [placeholder]="'INVOICE_UPLOAD.SELECT_WEIGHT_TYPE' | translate"
+                [compareWith]="compareWeightTypes"
+                required
+                [disabled]="!hasOrderAddPerm()">
+                @for(category of availableWeightCategories(); track category.id) {
+                  <mat-option [value]="category">{{ category.label }}</mat-option>
+                }
               </mat-select>
-              @if(!orderSignal()?.weight_type) {
-              <mat-error>{{ 'INVOICE_UPLOAD.WEIGHT_TYPE_REQUIRED' | translate }}</mat-error>}
+              @if(!orderSignal()?.weight_category) {
+                <mat-error>{{ 'INVOICE_UPLOAD.WEIGHT_TYPE_REQUIRED' | translate }}</mat-error>
+              }
             </mat-form-field>
           </div>
         </div>
