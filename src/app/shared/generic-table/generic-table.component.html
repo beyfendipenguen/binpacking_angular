@@ -47,8 +47,7 @@
         <th mat-header-cell *matHeaderCellDef class="text-center">
           @if (showAddButton) {
           <button id="tour-table-add-button" mat-icon-button (click)="onAddButtonClick($event)"
-            [matTooltip]="'GENERIC_TABLE.ADD_NEW' | translate"
-            [appDisableAuth]="addPermission">
+            [matTooltip]="'GENERIC_TABLE.ADD_NEW' | translate" [appDisableAuth]="addPermission">
             <mat-icon>add_circle</mat-icon>
           </button>
           }
@@ -90,17 +89,34 @@
             <span class="button-text">{{ btnConfig.text }}</span>
             }
           </button>
-          } } @else if (columnTypes[column] === 'status') {
+          }
+          } @else if (columnTypes[column] === 'status') {
           <div class="status-container">
             @if (row[column] === true) {
             <span class="status-indicator status-success"></span>
             <span class="status-text status-success-text">{{ 'COMMON.COMPLETED' | translate }}</span>
-            } @else {
+            }
+            @else {
             <span class="status-indicator status-warning"></span>
             <span class="status-text status-warning-text">{{ 'ORDER.INCOMPLETE_ORDER' | translate }}</span>
             }
           </div>
-          } @else {
+          }
+          @else if (columnTypes[column] === 'weights') {
+          <div class="weights-cell">
+            @for (w of $any(row)['weights']; track w.id) {
+            <span class="weight-badge">
+              <span class="weight-key">{{ w.category?.key?.toUpperCase() }}</span>
+              <span class="weight-value">{{ w.value | number:'1.2-2' }}</span>
+              <span class="weight-unit">kg</span>
+            </span>
+            }
+            @if (!$any(row)['weights']?.length) {
+            <span class="no-weight">—</span>
+            }
+          </div>
+          }
+          @else {
           <span>{{ getNestedPropertyValue(row, column) }}</span>
           }
         </td>
@@ -139,8 +155,7 @@
   <div class="mobile-card-list">
     <!-- Mobil ekleme butonu -->
     @if (showAddButton) {
-    <button mat-raised-button color="primary" (click)="onAddButtonClick($event)"
-      [appDisableAuth]="addPermission"
+    <button mat-raised-button color="primary" (click)="onAddButtonClick($event)" [appDisableAuth]="addPermission"
       style="width: 100%; margin-bottom: 4px;">
       <mat-icon>add_circle</mat-icon>
       {{ 'GENERIC_TABLE.ADD_NEW' | translate }}
@@ -154,15 +169,13 @@
         <span class="mobile-card-number">{{ getRowNumber(i) }}</span>
         <div class="mobile-card-actions">
           @if (showUpdateButton) {
-          <button mat-icon-button color="primary"
-            (click)="openAddOrUpdateDialog(row); $event.stopPropagation()"
+          <button mat-icon-button color="primary" (click)="openAddOrUpdateDialog(row); $event.stopPropagation()"
             [appDisableAuth]="updatePermission">
             <mat-icon>edit</mat-icon>
           </button>
           }
           @if (showDeleteButton) {
-          <button mat-icon-button color="warn"
-            (click)="confirmDelete($any(row).id); $event.stopPropagation()"
+          <button mat-icon-button color="warn" (click)="confirmDelete($any(row).id); $event.stopPropagation()"
             [appDisableAuth]="deletePermission">
             <mat-icon>delete</mat-icon>
           </button>
@@ -179,14 +192,14 @@
 
           <!-- Button Column → Mobilde buton olarak göster -->
           @if (isButtonColumn(column)) {
-            @if (getButtonConfig(column); as btnConfig) {
-            <span class="mobile-card-value">
-              <button mat-icon-button [color]="btnConfig.color || 'primary'"
-                (click)="onCellButtonClick(row, column, $event)">
-                <mat-icon>{{ btnConfig.icon || "more_vert" }}</mat-icon>
-              </button>
-            </span>
-            }
+          @if (getButtonConfig(column); as btnConfig) {
+          <span class="mobile-card-value">
+            <button mat-icon-button [color]="btnConfig.color || 'primary'"
+              (click)="onCellButtonClick(row, column, $event)">
+              <mat-icon>{{ btnConfig.icon || "more_vert" }}</mat-icon>
+            </button>
+          </span>
+          }
           }
           <!-- Status Column → Mobilde badge olarak göster -->
           @else if (columnTypes[column] === 'status') {
@@ -196,7 +209,8 @@
               <span class="status-dot"></span>
               {{ 'COMMON.COMPLETED' | translate }}
             </span>
-            } @else {
+            }
+            @else {
             <span class="mobile-status-badge warning">
               <span class="status-dot"></span>
               {{ 'ORDER.INCOMPLETE_ORDER' | translate }}
@@ -204,10 +218,22 @@
             }
           </span>
           }
+          @else if (isWeightsColumn(column)) {
+          <span class="mobile-card-value">
+            <div class="weights-cell">
+              @for (w of $any(row)['weights']; track w.id) {
+              <span class="weight-badge">
+                <span class="weight-key">{{ w.category?.key?.toUpperCase() }}</span>
+                <span class="weight-value">{{ w.value | number:'1.2-2' }}</span>
+                <span class="weight-unit">kg</span>
+              </span>
+              }
+            </div>
+          </span>
+          }
           <!-- Normal Column -->
           @else {
-          <span class="mobile-card-value"
-            [class.numeric]="isNumeric(getNestedPropertyValue(row, column))">
+          <span class="mobile-card-value" [class.numeric]="isNumeric(getNestedPropertyValue(row, column))">
             {{ getNestedPropertyValue(row, column) }}
           </span>
           }

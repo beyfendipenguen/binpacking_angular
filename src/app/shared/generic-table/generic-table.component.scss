@@ -430,7 +430,6 @@ $breakpoint-small: 480px;
       }
     }
   }
-
   // ==================
   // PAGINATOR
   // ==================
@@ -442,6 +441,45 @@ $breakpoint-small: 480px;
       rgba($accent-gold, 0.02) 100%
     );
   }
+
+  .weights-cell {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+}
+
+.weight-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 8px;
+  border-radius: 12px;
+  background: #e3f2fd;
+  font-size: 11px;
+  line-height: 1.6;
+  white-space: nowrap;
+  border: 1px solid #90caf9;
+}
+
+.weight-key {
+  font-weight: 700;
+  color: #1565c0;
+  letter-spacing: 0.3px;
+}
+
+.weight-value {
+  color: #333;
+}
+
+.weight-unit {
+  color: #999;
+  font-size: 10px;
+}
+
+.no-weight {
+  color: #bbb;
+}
 }
 
 // ==========================================

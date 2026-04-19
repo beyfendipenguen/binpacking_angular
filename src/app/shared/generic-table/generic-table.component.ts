@@ -203,6 +203,10 @@ export class GenericTableComponent<T extends { id: any }> implements OnInit, Aft
     return false;
   }
 
+  isWeightsColumn(column: string): boolean {
+    return this.columnTypes[column] === 'weights';
+  }
+
   isNotSortableColumn(column: string): boolean {
     if (this.notSortableColumns.length === 0) return true; // Tanımlanmamışsa hepsi aktif
     return this.notSortableColumns.includes(column);
@@ -735,17 +739,24 @@ export class GenericTableComponent<T extends { id: any }> implements OnInit, Aft
       return '';
     }
 
-    //  is_completed special format
-    if (column === 'is_completed') {
-      return value === true || value === 'true' ? this.translate.instant('COMMON.COMPLETED') : this.translate.instant('ORDER.INCOMPLETE_ORDER');
+    // Array ise — weights gibi
+    if (Array.isArray(value)) {
+      return value
+        .map((w: any) => `${w.category?.key?.toUpperCase()}: ${Number(w.value).toFixed(2)}`)
+        .join(' / ');
+      // Örnek çıktı: "STD: 12.50 / ECO: 10.00 / PRE: 14.20"
     }
 
-    // Date check
+    if (column === 'is_completed') {
+      return value === true || value === 'true'
+        ? this.translate.instant('COMMON.COMPLETED')
+        : this.translate.instant('ORDER.INCOMPLETE_ORDER');
+    }
+
     if (this.columnTypes[column] === 'date') {
       return this.datePipe.transform(value, 'dd/MM/yyyy') || value;
     }
 
-    // Number check
     if (typeof value === 'number') {
       if (value % 1 !== 0) {
         return value.toFixed(2);
