@@ -286,13 +286,6 @@
     "GO_TO_PALLET_GROUPS": "Pallet groups sayfasına yönlendir"
   },
   "DIMENSIONS": {
-    "PRODUCT_NAME": "Ad",
-    "PRODUCT_SHORT_NAME": "Kısa Ad",
-    "PRODUCT_CODE": "Kod",
-    "PRODUCT_TYPE": "Tip",
-    "WIDTH": "Genişlik",
-    "HEIGHT": "Yükseklik",
-    "DEPTH": "Derinlik",
     "LENGTH": "Uzunluk",
     "WEIGHT": "Ağırlık",
     "QUANTITY": "Adet",
@@ -303,7 +296,16 @@
     "CM": "cm",
     "KG": "kg",
     "MM": "mm",
-    "VOLUME": "Hacim"
+    "VOLUME": "Hacim",
+    "PRODUCT_NAME": "Ürün Adı",
+    "PRODUCT_SHORT_NAME": "Kısa Ad",
+    "PRODUCT_TYPE": "Ürün Tipi",
+    "PRODUCT_CODE": "Ürün Kodu",
+    "WIDTH": "En",
+    "HEIGHT": "Yükseklik",
+    "DEPTH": "Boy",
+    "UNIT": "Ölçü Birimi",
+    "WEIGHTS": "Ağırlıklar"
   },
   "FILE": {
     "ORDER_FILES": "Sipariş Dosyaları",
@@ -402,7 +404,32 @@
     "FILL_TEMPLATE": "Şablonu doldurarak ürünlerinizi ekleyin",
     "UPLOAD_FILE": "Doldurduğunuz dosyayı sisteme yükleyin",
     "WEIGHT_INFO": "Ürünün farklı kalitedeki ağırlıklarını temsil eder",
-    "BULK_ADD": "Toplu Ürün Ekle"
+    "BULK_ADD": "Toplu Ürün Ekle",
+    "ADD_PRODUCT": "Ürün Ekle",
+    "UPDATE_PRODUCT": "Ürün Güncelle",
+    "TYPE_NAME": "Ürün Adı",
+    "PRODUCT_TYPE": "Ürün Tipi",
+    "TYPE": "Tip",
+    "CODE": "Kod",
+    "DIMENSIONS": "Boyutlar",
+    "WEIGHTS": "Ağırlıklar",
+    "LOADING_WEIGHTS": "Ağırlık kategorileri yükleniyor...",
+    "CREATE_SUCCESS": "Ürün başarıyla oluşturuldu",
+    "UPDATE_SUCCESS": "Ürün başarıyla güncellendi",
+    "CREATE_ERROR": "Ürün oluşturulurken hata oluştu",
+    "UPDATE_ERROR": "Ürün güncellenirken hata oluştu",
+    "EXPORT": "Excel İndir",
+    "EXPORT_STARTED": "Excel indirme başladı",
+    "EXPORT_ERROR": "Excel indirme sırasında hata oluştu",
+    "BULK_UPDATE": "Toplu Güncelle",
+    "BULK_UPDATE_SUCCESS": "{{successful}} ürün güncellendi, {{failed}} hata",
+    "BULK_UPDATE_ERROR": "Toplu güncelleme sırasında hata oluştu",
+    "BULK_UPLOAD": "Toplu Ekle",
+    "BULK_UPDATE_STEP_1": "Önce 'Excel İndir' butonuna basarak mevcut ürünlerinizi filtreli şekilde indirin",
+    "BULK_UPDATE_STEP_2": "İndirilen Excel dosyasında istediğiniz alanları düzenleyin (ID kolonunu değiştirmeyin)",
+    "BULK_UPDATE_STEP_3": "Boyut, ağırlık veya ürün tipi güncelleyebilirsiniz",
+    "BULK_UPDATE_STEP_4": "Yeni ağırlık tipi eklemek için yeni bir weight_xxx kolonu ekleyebilirsiniz",
+    "BULK_UPDATE_STEP_5": "Düzenlediğiniz dosyayı bu ekrandan yükleyin"
   },
   "PROFILE": {
     "TITLE": "Profil",
@@ -682,7 +709,22 @@
     "INVALID_FILE_FORMAT": "Geçersiz dosya formatı.",
     "UPLOAD_ONLY": "Lütfen sadece",
     "FILE_TYPE": "dosyası yükleyin.",
-    "FILE_UPLOAD_ERROR": "Dosya yüklenirken bir hata oluştu."
+    "FILE_UPLOAD_ERROR": "Dosya yüklenirken bir hata oluştu.",
+    "BULK_ADD": {
+    "RESULT_TITLE": "Toplu Yükleme Sonucu —",
+    "TOTAL_ROWS": "Toplam Satır",
+    "SUCCESSFUL": "Başarılı",
+    "SKIPPED": "Atlanan",
+    "FAILED": "Hatalı",
+    "SUCCESSFULLY_ADDED": "Başarıyla Eklenen",
+    "ROW": "Satır",
+    "NAME": "Adı",
+    "STATUS": "Durum",
+    "STATUS_ERROR": "Durum / Hata",
+    "NO_DATA": "Dosyada işlenecek veri bulunamadı.",
+    "EXISTING_RECORDS": "Mevcut Kayıtlar",
+    "ERROR_RECORDS": "Hatalı Kayıtlar"
+  }
   },
   "ERROR_PAGE": {
     "GO_HOME": "Ana Sayfaya Git",
@@ -972,7 +1014,7 @@
       "PACKAGE_SECTION": "<h3>Paletleme Alanı</h3><p>Ortadaki bölümde paket kartları oluşturulur.</p><p>Her karta önce bir palet, sonra ürünleri ekleyin.</p>",
       "PARAMS_BUTTON": "<h3>Parametreli Hesaplama</h3><p>Özel parametreler ile optimizasyon yapabilirsiniz.</p><p>Hadi deneyelim!</p>",
       "LETS_CLICK": "Tıklayalım",
-      "PARAMS_DIALOG": "<h3>Parametre Ayarları</h3><p>Bu dialog'da optimizasyon parametrelerini ayarlayabilirsiniz.</p><p>Şimdilik kapatıp devam edelim.</p>",
+      "PARAMS_DIALOG": "<h3>Parametre Ayarları</h3><p>Aşağıdaki açılır pencerede optimizasyon parametrelerini ayarlayabilirsiniz.</p><p>Şimdilik kapatıp devam edelim.</p>",
       "CLOSE_DIALOG": "Kapat",
       "NEXT_REMINDER": "<h3>Paletleme Tamamlandı! ✅</h3><p>Artık ürünlerinizi paletlere yerleştirebilirsiniz.</p><p>Sıradaki adımda kamyon yükleme ve 3D görselleştirme olacak!</p><p>İstediğiniz zaman <strong>İleri</strong> butonuna tıklayın.</p>"
     },
@@ -1046,5 +1088,24 @@
     "MAX_LENGTH": "En fazla {{length}} karakter girebilirsiniz",
     "PATTERN": "Geçersiz format",
     "INVALID": "Geçersiz değer"
+  },
+  "WEIGHT_CATEGORY": {
+    "TITLE": "Ağırlık Kategorileri",
+    "ADD_CATEGORY": "Yeni Kategori Ekle",
+    "EDIT_CATEGORY": "Kategori Düzenle",
+    "KEY": "Anahtar (key)",
+    "KEY_HINT": "Küçük harf, rakam ve _ kullanın. Örn: std, std_plus",
+    "KEY_PATTERN_ERROR": "Sadece küçük harf, rakam ve _ kullanılabilir",
+    "LABEL": "Görünen Ad",
+    "EXISTING": "Mevcut Kategoriler",
+    "EMPTY": "Henüz kategori eklenmemiş",
+    "CREATE_SUCCESS": "Kategori başarıyla eklendi",
+    "UPDATE_SUCCESS": "Kategori başarıyla güncellendi",
+    "DELETE_SUCCESS": "Kategori ve ilgili ağırlık verileri silindi",
+    "CREATE_ERROR": "Kategori eklenirken hata oluştu",
+    "UPDATE_ERROR": "Kategori güncellenirken hata oluştu",
+    "DELETE_ERROR": "Kategori silinirken hata oluştu",
+    "DELETE_CONFIRM": "'{{label}}' kategorisini silmek istediğinizden emin misiniz? Bu işlem tüm ürünlerdeki bu kategoriye ait ağırlık verilerini de silecektir.",
+    "DELETE_WARNING": "Bir kategori silindiğinde tüm ürünlerdeki o ağırlık bilgisi kalıcı olarak silinir."
   }
 }
