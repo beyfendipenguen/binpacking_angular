@@ -25,12 +25,14 @@ export class OrderService extends GenericCrudService<Order> {
       company_relation_id: order!.company_relation?.id,
       truck_id: order!.truck?.id,
       date: order!.date,
-      weight_type: order!.weight_type,
+      weight_category_id: order!.weight_category?.id ?? null,  // weight_type yerine
       name: order!.name,
       max_pallet_height: order!.max_pallet_height,
       truck_weight_limit: order!.truck_weight_limit
     };
-    return this.http.post<{ order: Order, created: boolean }>(`${this.apiUrl}update-or-create/`, formattedOrder)
+    return this.http.post<{ order: Order, created: boolean }>(
+      `${this.apiUrl}update-or-create/`, formattedOrder
+    );
   }
 
   reviseOrder(orderId:string){

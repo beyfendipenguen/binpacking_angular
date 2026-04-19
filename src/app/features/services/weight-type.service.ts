@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { GenericCrudService } from '@app/core/services/generic-crud.service';
-import { WeightType } from '../interfaces/weight-type.interface';
+import { WeightType } from '../interfaces/weight-category.interface';
 
 @Injectable({
   providedIn: 'root'

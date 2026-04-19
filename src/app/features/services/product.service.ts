@@ -219,4 +219,42 @@ export class ProductService extends GenericCrudService<Product> {
 
     return uniqueProducts;
   }
+
+  exportProducts(filterParams: { [key: string]: string } = {}): Observable<void> {
+    this.ensureApiUrl();
+
+    let params = new HttpParams();
+    Object.entries(filterParams).forEach(([key, value]) => {
+      if (value !== null && value !== undefined && value !== '') {
+        params = params.set(key, value);
+      }
+    });
+
+    return this.http.get(
+      `${this.apiUrl}export/`,
+      {
+        params: params,
+        responseType: 'blob' as 'json'
+      }
+    ).pipe(
+      map((response: any) => {
+        const blob = new Blob([response], {
+          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'products_export.xlsx';
+        a.click();
+        window.URL.revokeObjectURL(url);
+      })
+    );
+  }
+
+  bulkUpdate(file: File): Observable<any> {
+    this.ensureApiUrl();
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.post<any>(`${this.apiUrl}bulk-update/`, formData);
+  }
 }

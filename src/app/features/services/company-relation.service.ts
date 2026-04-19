@@ -9,7 +9,8 @@ export interface CompanyRelationSettings {
   max_pallet_height: number;
   max_pallets_per_package: number;
   default_pallet_group_id: string | null;
-  weight_type: string;
+  weight_category_id: string | null;  // weight_type string → id
+  show_logo: boolean;
 }
 
 @Injectable({
