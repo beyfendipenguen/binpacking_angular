@@ -14,13 +14,8 @@
   @if(!orderSignal() ){
   <div class="logistics-card">
     <!-- Template Info Button - ID EKLE 👇 -->
-    <button
-      id="tour-template-download"
-      mat-icon-button
-      class="template-info-floating"
-      (click)="downloadTemplate()"
-      [matTooltip]="'INVOICE_UPLOAD.DOWNLOAD_TEMPLATE' | translate"
-      matTooltipPosition="left">
+    <button id="tour-template-download" mat-icon-button class="template-info-floating" (click)="downloadTemplate()"
+      [matTooltip]="'INVOICE_UPLOAD.DOWNLOAD_TEMPLATE' | translate" matTooltipPosition="left">
       <mat-icon>info</mat-icon>
       @if(showMessageBalloon()) {
       <div class="message-balloon">
@@ -41,11 +36,7 @@
 
       <div class="action-options">
         <!-- Manuel Giriş Butonu - ID EKLE 👇 -->
-        <button
-          id="tour-manual-entry"
-          mat-raised-button
-          class="action-button"
-          (click)="createOrder()"
+        <button id="tour-manual-entry" mat-raised-button class="action-button" (click)="createOrder()"
           [appDisableAuth]="['orders.add_order']">
           <mat-icon>add</mat-icon>
           <span>{{ 'INVOICE_UPLOAD.MANUAL_ENTRY' | translate }}</span>
@@ -57,10 +48,7 @@
 
         <!-- Excel Upload Container - ID EKLE 👇 -->
         <div id="tour-excel-upload" class="file-upload-container">
-          <button
-            mat-raised-button
-            class="action-button secondary"
-            (click)="fileInput.click()"
+          <button mat-raised-button class="action-button secondary" (click)="fileInput.click()"
             [appDisableAuth]="['orders.add_order']">
             <mat-icon>file_upload</mat-icon>
             <span>{{ file?.name || 'INVOICE_UPLOAD.SELECT_EXCEL' | translate}}</span>
@@ -87,10 +75,8 @@
             <mat-form-field class="edit-field" appearance="outline">
               <input readonly matInput [matDatepicker]="picker" [value]="orderSignal()?.date"
                 (dateChange)="onOrderFieldChange('date', $event.value)"
-                [placeholder]="'INVOICE_UPLOAD.SELECT_DATE' | translate" required
-                [readonly]="!hasOrderAddPerm()"
-                [disabled]="!hasOrderAddPerm()"
-                [appDisableAuth]="['orders.add_order']" />
+                [placeholder]="'INVOICE_UPLOAD.SELECT_DATE' | translate" required [readonly]="!hasOrderAddPerm()"
+                [disabled]="!hasOrderAddPerm()" [appDisableAuth]="['orders.add_order']" />
               <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
               <mat-datepicker #picker></mat-datepicker>
               @if(!orderSignal()?.date){
@@ -110,7 +96,8 @@
           <div class="dashboard-value-container">
             <mat-form-field class="edit-field" appearance="outline">
               <input matInput type="text" [formControl]="companySearchControl" [matAutocomplete]="autoCompany"
-                [placeholder]="'INVOICE_UPLOAD.SELECT_CUSTOMER' | translate"  [readonly]="!hasOrderAddPerm()"  [appDisableAuth]="['orders.add_order']">
+                [placeholder]="'INVOICE_UPLOAD.SELECT_CUSTOMER' | translate" [readonly]="!hasOrderAddPerm()"
+                [appDisableAuth]="['orders.add_order']">
               <mat-autocomplete #autoCompany="matAutocomplete" [displayWith]="displayCompanyName"
                 (optionSelected)="onCompanyChange($event.option.value)">
                 @for (company of filteredCompanies(); track company.id) {
@@ -136,8 +123,9 @@
           <span class="dashboard-label">{{ 'INVOICE_UPLOAD.TRUCK' | translate }}</span>
           <div class="dashboard-value-container">
             <mat-form-field class="edit-field" appearance="outline">
-              <mat-select [value]="orderSignal()?.truck" (selectionChange)="onTruckChange($event.value)" [disabled]="!hasOrderAddPerm()"
-                [placeholder]="'INVOICE_UPLOAD.SELECT_TRUCK' | translate" [compareWith]="compareObjects" required>
+              <mat-select [value]="orderSignal()?.truck" (selectionChange)="onTruckChange($event.value)"
+                [disabled]="!hasOrderAddPerm()" [placeholder]="'INVOICE_UPLOAD.SELECT_TRUCK' | translate"
+                [compareWith]="compareObjects" required>
                 @for(truck of trucks; track truck.id){
                 <mat-option [value]="truck"> {{ truck.name }} </mat-option>}
               </mat-select>
@@ -157,19 +145,16 @@
           <span class="dashboard-label">{{ 'INVOICE_UPLOAD.WEIGHT_TYPE' | translate }}</span>
           <div class="dashboard-value-container">
             <mat-form-field class="edit-field" appearance="outline">
-              <mat-select
-                [value]="orderSignal()?.weight_category"
+              <mat-select [value]="orderSignal()?.weight_category"
                 (selectionChange)="onWeightCategoryChange($event.value)"
-                [placeholder]="'INVOICE_UPLOAD.SELECT_WEIGHT_TYPE' | translate"
-                [compareWith]="compareWeightTypes"
-                required
-                [disabled]="!hasOrderAddPerm()">
+                [placeholder]="'INVOICE_UPLOAD.SELECT_WEIGHT_TYPE' | translate" [compareWith]="compareWeightTypes"
+                required [disabled]="!hasOrderAddPerm()">
                 @for(category of availableWeightCategories(); track category.id) {
-                  <mat-option [value]="category">{{ category.label }}</mat-option>
+                <mat-option [value]="category">{{ category.label }}</mat-option>
                 }
               </mat-select>
               @if(!orderSignal()?.weight_category) {
-                <mat-error>{{ 'INVOICE_UPLOAD.WEIGHT_TYPE_REQUIRED' | translate }}</mat-error>
+              <mat-error>{{ 'INVOICE_UPLOAD.WEIGHT_TYPE_REQUIRED' | translate }}</mat-error>
               }
             </mat-form-field>
           </div>
@@ -182,7 +167,7 @@
           <mat-icon>layers</mat-icon>
         </div>
         <div class="dashboard-info">
-          <span class="dashboard-label">{{ 'INVOICE_UPLOAD.MAX_STACK_COUNT' | translate }}</span>
+          <span class="dashboard-label">{{ 'CUSTOMER.MAX_PALLET_HEIGHT' | translate }}</span>
           <div class="dashboard-value-container">
             <div class="units-input-container">
               <!-- Azaltma butonu -->
@@ -193,12 +178,14 @@
 
               <!-- Input alanı - FormControl'e bağlı -->
               <mat-form-field class="units-field" appearance="outline">
-                <input matInput type="number" [formControl]="unitsControl" readonly min="1" step="1"
+                <input matInput type="number" [formControl]="unitsControl" min="100" step="100"
+                  (change)="onUnitsManualChange($any($event.target).value)"
                   [placeholder]="'INVOICE_UPLOAD.STACK_COUNT' | translate" [appDisableAuth]="['orders.add_order']" />
               </mat-form-field>
 
               <!-- Artırma butonu -->
-              <button mat-icon-button (click)="onUnitsIncrease()" type="button" class="unit-button" [appDisableAuth]="['orders.add_order']">
+              <button mat-icon-button (click)="onUnitsIncrease()" type="button" class="unit-button"
+                [appDisableAuth]="['orders.add_order']">
                 <mat-icon>add</mat-icon>
               </button>
             </div>
@@ -218,7 +205,7 @@
               <input matInput type="number" [value]="orderSignal()?.truck_weight_limit"
                 (input)="onTruckWeightLimitChange($any($event.target).value)"
                 [placeholder]="'INVOICE_UPLOAD.WEIGHT_LIMIT' | translate" min="0" step="1"
-                [readonly]="!hasOrderAddPerm()"  [appDisableAuth]="['orders.add_order']"/>
+                [readonly]="!hasOrderAddPerm()" [appDisableAuth]="['orders.add_order']" />
               @if(!orderSignal()?.truck_weight_limit){
               <mat-error>{{ 'INVOICE_UPLOAD.WEIGHT_LIMIT_REQUIRED' | translate }}</mat-error>}
             </mat-form-field>
@@ -275,7 +262,8 @@
     </div>
   </div>
   <!-- Navigation Controls -->
-  <button id="tour-next-button" mat-button class="next-button" (click)="submit()" [disabled]="!orderSignal() || !isFormValid()">
+  <button id="tour-next-button" mat-button class="next-button" (click)="submit()"
+    [disabled]="!orderSignal() || !isFormValid()">
     <mat-icon>arrow_forward</mat-icon>
     <span>{{(isOrderDetailsDirtySignal() || isOrderDirtySignal() ? 'COMMON.SAVE' : 'COMMON.NEXT') | translate}}</span>
   </button>

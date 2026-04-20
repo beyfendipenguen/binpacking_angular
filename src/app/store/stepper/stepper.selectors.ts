@@ -484,27 +484,6 @@ export const selectTruck: MemoizedSelector<any, [number, number, number]> = crea
 export const selectOrderId = createSelector(selectOrder, (order) => order?.id || '')
 
 
-
-export const selectAverageOrderDetailHeight = createSelector(
-  selectOrderDetails,
-  (orderDetails) => {
-    if (!orderDetails || orderDetails.length === 0) {
-      return 0;
-    }
-
-    const totalHeight = orderDetails.reduce((sum, orderDetail) => {
-      const height = toInteger(orderDetail?.product?.dimension?.height) || 0;
-      return sum + height;
-    }, 0);
-
-    const averageOrderDetailHeight = toInteger(totalHeight / orderDetails.length);
-    if (averageOrderDetailHeight < 120) {
-      return 120;
-    }
-    return toInteger(totalHeight / orderDetails.length);
-  }
-)
-
 export const selectRemainingArea = createSelector(selectUiPackages, selectOrder, (uiPackages, order) => {
   const packages = uiPackages;
   const totalArea = packages.reduce((total, pkg) => {

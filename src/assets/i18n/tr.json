@@ -710,7 +710,6 @@
     "UPLOAD_ONLY": "Lütfen sadece",
     "FILE_TYPE": "dosyası yükleyin.",
     "FILE_UPLOAD_ERROR": "Dosya yüklenirken bir hata oluştu.",
-    "BULK_ADD": {
     "RESULT_TITLE": "Toplu Yükleme Sonucu —",
     "TOTAL_ROWS": "Toplam Satır",
     "SUCCESSFUL": "Başarılı",
@@ -724,7 +723,6 @@
     "NO_DATA": "Dosyada işlenecek veri bulunamadı.",
     "EXISTING_RECORDS": "Mevcut Kayıtlar",
     "ERROR_RECORDS": "Hatalı Kayıtlar"
-  }
   },
   "ERROR_PAGE": {
     "GO_HOME": "Ana Sayfaya Git",

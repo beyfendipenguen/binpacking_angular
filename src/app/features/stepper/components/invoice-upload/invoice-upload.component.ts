@@ -51,7 +51,7 @@ import { OrderFormManager } from './managers/order-form.manager';
 import { ReferenceData, OrderDetailUpdateEvent } from './models/invoice-upload-interfaces';
 import { InvoiceCalculatorService } from './services/invoice-calculator.service';
 import { InvoiceDataLoaderService } from './services/invoice-data-loader.service';
-import { AppState, selectOrder, selectOrderDetails, selectIsOrderDetailsDirty, selectIsOrderDirty, selectTotalProductsMeter, selectTotalProductCount, selectStep1HasFile, selectStep1FileName, selectIsEditMode, selectUser, selectInvoiceTemplateFile, selectAverageOrderDetailHeight, hasPackages, selectUserPermissions } from '@app/store';
+import { AppState, selectOrder, selectOrderDetails, selectIsOrderDetailsDirty, selectIsOrderDirty, selectTotalProductsMeter, selectTotalProductCount, selectStep1HasFile, selectStep1FileName, selectIsEditMode, selectUser, selectInvoiceTemplateFile, hasPackages, selectUserPermissions } from '@app/store';
 import { StepperInvoiceUploadActions } from '@app/store/stepper/actions/stepper-invoice-upload.actions';
 import { StepperPackageActions } from '@app/store/stepper/actions/stepper-package.actions';
 import { StepperUiActions } from '@app/store/stepper/actions/stepper-ui.actions';
@@ -125,8 +125,7 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
   public hasPackages = this.store.selectSignal(hasPackages)
   private permissions = this.store.selectSignal(selectUserPermissions);
 
-  private readonly unitProductHeight = this.store.selectSignal(selectAverageOrderDetailHeight)
-  unitsControl = new FormControl(20);
+  unitsControl = new FormControl<number | null>(null);
   private destroy$ = new Subject<void>();
 
   public orderDetails$ = this.store.select(selectOrderDetails);
@@ -195,16 +194,8 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
 
   constructor() {
     effect(() => {
-      const currentOrder = this.orderSignal();
-      if (!currentOrder?.max_pallet_height) return;
-
-      const palletHeight = currentOrder.max_pallet_height;
-      const unitProductHeight = this.unitProductHeight();
-      if (!unitProductHeight) return;
-
-      const unitProductCount = palletHeight / unitProductHeight;
-
-      this.unitsControl.setValue(~~unitProductCount, { emitEvent: false });
+      const val = this.orderSignal()?.max_pallet_height ?? null;
+      this.unitsControl.setValue(val ? Math.round(Number(val)) : null, { emitEvent: false });
     });
 
     effect(() => {
@@ -359,10 +350,8 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
       next: (settings) => {
         let currentOrder = this.orderSignal();
         if (currentOrder) {
-          const palletHeight = settings.max_pallet_height;
-          const unitProductHeight = this.unitProductHeight();
-          const unitProductCount = palletHeight / unitProductHeight;
-          this.unitsControl.setValue(~~unitProductCount);
+
+          this.unitsControl.setValue(settings.max_pallet_height);
                   // settings'ten gelen weight_category_id ile mevcut kategorilerden eşleştir
           const matchedCategory = settings.weight_category_id
             ? this.availableWeightCategories().find(c => c.id === settings.weight_category_id) ?? null
@@ -439,29 +428,29 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
   });
 
   // Minimum units kontrolü
-  isMinimumUnits = computed(() => this.displayUnits() <= 1);
+  isMinimumUnits = computed(() => (this.unitsControl.value ?? 0) <= 100);
 
   // + butonu için
   onUnitsIncrease(): void {
-    const currentValue = this.unitsControl.value || 1;
-    const newValue = currentValue + 1;
+    const newValue = Math.round(Number(this.unitsControl.value) || 0) + 100;
     this.unitsControl.setValue(newValue);
-
-    // Direkt çağır
-    const newHeight = newValue * this.unitProductHeight();
-    this.onMaxPalletHeightChange(newHeight);
+    this.onMaxPalletHeightChange(newValue);
   }
 
   // - butonu için
   onUnitsDecrease(): void {
-    const currentValue = this.unitsControl.value || 1;
-    if (currentValue > 1) {
-      const newValue = currentValue - 1;
+    const current = Math.round(Number(this.unitsControl.value) || 0);
+    if (current > 100) {
+      const newValue = current - 100;
       this.unitsControl.setValue(newValue);
-
-      const newHeight = newValue * this.unitProductHeight();
-      this.onMaxPalletHeightChange(newHeight);
+      this.onMaxPalletHeightChange(newValue);
     }
+  }
+
+  onUnitsManualChange(value: string): void {
+    const rounded = Math.round(Number(value) || 100);
+    this.unitsControl.setValue(rounded, { emitEvent: false });
+    this.onMaxPalletHeightChange(rounded);
   }
 
   // Mevcut metod aynı kalır
