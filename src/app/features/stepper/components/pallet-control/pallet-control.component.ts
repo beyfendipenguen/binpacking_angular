@@ -137,8 +137,6 @@ export class PalletControlComponent
   private readonly dialog = inject(MatDialog);
   private tourService = inject(TourService);
 
-
-
   //product search
   searchControl = new FormControl('');
   isSearching = false;
@@ -503,7 +501,7 @@ export class PalletControlComponent
       return allPallets;
     }
 
-    return this.filterPalletsByQuery(searchValue, allPallets);
+    return this.palletService.filterLocalPallets(searchValue, allPallets);
   });
 
   private setupPalletSearchSubscription(): void {
@@ -514,9 +512,8 @@ export class PalletControlComponent
         takeUntil(this.destroy$),
         switchMap((value) => {
           if (typeof value === 'string' && value.trim().length > 1) {
-
             const storePallets = this.availablePallets();
-            const localResults = this.filterPalletsByQuery(value, storePallets);
+            const localResults = this.palletService.filterLocalPallets(value, storePallets);
 
             if (localResults.length > 0) {
               this.filteredPalletsFromBackend.set([]);
@@ -543,54 +540,6 @@ export class PalletControlComponent
           this.filteredPalletsFromBackend.set(pallets);
         },
       });
-  }
-
-  private filterPalletsByQuery(query: string, pallets: any[]): any[] {
-    if (!pallets || pallets.length === 0) {
-      return [];
-    }
-
-    const trimmedQuery = query.toLowerCase().trim();
-    const hasX = /\s*x\s*/i.test(trimmedQuery);
-    let searchDepth: number | null = null;
-    let searchWidth: number | null = null;
-
-    if (hasX || trimmedQuery.includes(' ')) {
-      const parts = trimmedQuery.split(/\s*x\s*|\s+/i)
-        .map(p => p.trim())
-        .filter(p => p.length > 0 && !isNaN(Number(p)))
-        .map(p => Number(p));
-
-      if (parts.length === 2) {
-        searchDepth = parts[0];
-        searchWidth = parts[1];
-      } else if (parts.length === 1) {
-        searchDepth = searchWidth = parts[0];
-      }
-    } else if (!isNaN(Number(trimmedQuery))) {
-      searchDepth = searchWidth = Number(trimmedQuery);
-    }
-
-    return pallets.filter((pallet) => {
-      if (pallet.name && pallet.name.toLowerCase().includes(trimmedQuery)) {
-        return true;
-      }
-
-      if (pallet.dimension) {
-        const palletDepth = Math.trunc(pallet.dimension.depth);
-        const palletWidth = Math.trunc(pallet.dimension.width);
-
-        if (searchDepth !== null && searchWidth !== null) {
-          if (searchDepth !== searchWidth) {
-            return palletDepth === searchDepth && palletWidth === searchWidth;
-          } else {
-            return palletDepth === searchDepth || palletWidth === searchWidth;
-          }
-        }
-      }
-
-      return false;
-    });
   }
 
   selectPallet(pallet: Pallet) {
@@ -1005,7 +954,7 @@ export class PalletControlComponent
   }
 
   calculatePackageDetail() {
-    if (!this.orderDetailsIsDirtySignal()){
+    if (!this.orderDetailsIsDirtySignal()) {
       this.saveSnapshot();
       this.store.dispatch(StepperPackageActions.calculatePackageDetail());
       // this.tourService.continueStep1TourAfterCalculate();

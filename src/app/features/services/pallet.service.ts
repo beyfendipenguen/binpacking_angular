@@ -28,6 +28,64 @@ export class PalletService extends GenericCrudService<Pallet> {
   }
 
   /**
+ * Yerel pallet listesi üzerinde arama yapar.
+ * Query tek sayı ise OR (herhangi bir boyut), iki sayı ise AND (tam eşleşme) mantığı uygular.
+ */
+  public filterLocalPallets(query: string, pallets: any[]): any[] {
+    if (!pallets || pallets.length === 0) {
+      return [];
+    }
+
+    const trimmedQuery = query.toLowerCase().trim();
+    const hasX = /\s*x\s*/i.test(trimmedQuery);
+    const hasSpace = trimmedQuery.includes(' ');
+
+    let searchDepth: number | null = null;
+    let searchWidth: number | null = null;
+    let isExplicitPair = false;
+
+    if (hasX || hasSpace) {
+      const parts = trimmedQuery.split(/\s*x\s*|\s+/i)
+        .map(p => p.trim())
+        .filter(p => p.length > 0 && !isNaN(Number(p)))
+        .map(p => Number(p));
+
+      if (parts.length === 2) {
+        searchDepth = parts[0];
+        searchWidth = parts[1];
+        isExplicitPair = true;
+      } else if (parts.length === 1) {
+        searchDepth = searchWidth = parts[0];
+      }
+    } else if (!isNaN(Number(trimmedQuery))) {
+      searchDepth = searchWidth = Number(trimmedQuery);
+    }
+
+    const matchedPallets = pallets.filter((pallet) => {
+      if (pallet.name && pallet.name.toLowerCase().includes(trimmedQuery)) {
+        return true;
+      }
+
+      if (pallet.dimension && searchDepth !== null && searchWidth !== null) {
+        const palletDepth = Math.trunc(pallet.dimension.depth);
+        const palletWidth = Math.trunc(pallet.dimension.width);
+
+        if (isExplicitPair) {
+          return palletDepth === searchDepth && palletWidth === searchWidth;
+        } else {
+          return palletDepth === searchDepth || palletWidth === searchWidth;
+        }
+      }
+
+      return false;
+    });
+
+    return matchedPallets.filter(
+      (pallet, index, self) => index === self.findIndex((p) => p.id === pallet.id)
+    );
+  }
+
+  /**
    * Palet arama metodu - Backend'den gelen sonuçları sınırlandırır
    * @param query Arama sorgusu
    * @param limit Maksimum sonuç sayısı (varsayılan 10)
@@ -45,7 +103,10 @@ export class PalletService extends GenericCrudService<Pallet> {
     return this.store.select(selectUiPallets).pipe(
       take(1),
       switchMap((storePallets) => {
-        const localResults = this.searchInLocalPallets(query, storePallets);
+        const localResults = this.filterLocalPallets(query, storePallets);
+        if (localResults.length > 0) {
+          return of(localResults);
+        }
         const parsedParams = this.parsePalletQuery(query);
 
         if (Object.keys(parsedParams).length === 0) {
@@ -106,59 +167,5 @@ export class PalletService extends GenericCrudService<Pallet> {
     return params;
   }
 
-  private searchInLocalPallets(query: string, pallets: any[]): any[] {
-    if (!pallets || pallets.length === 0) return [];
 
-    const trimmedQuery = query.toLowerCase().trim();
-    const hasX = /\s*x\s*/i.test(trimmedQuery);
-    const hasSpace = trimmedQuery.includes(' ');
-
-    let searchDepth: number | null = null;
-    let searchWidth: number | null = null;
-    let isExplicitPair = false;  // ← Kullanıcı iki boyut mu verdi?
-
-    if (hasX || hasSpace) {
-      const parts = trimmedQuery.split(/\s*x\s*|\s+/i)
-        .map(p => p.trim())
-        .filter(p => p.length > 0 && !isNaN(Number(p)))
-        .map(p => Number(p));
-
-      if (parts.length === 2) {
-        searchDepth = parts[0];
-        searchWidth = parts[1];
-        isExplicitPair = true;  // ← "700x700" buraya düşer
-      } else if (parts.length === 1) {
-        searchDepth = searchWidth = parts[0];
-        isExplicitPair = false;
-      }
-    } else if (!isNaN(Number(trimmedQuery))) {
-      searchDepth = searchWidth = Number(trimmedQuery);
-      isExplicitPair = false;  // ← Sadece "700" buraya düşer
-    }
-
-    const matchedPallets = pallets.filter((pallet) => {
-      if (pallet.name && pallet.name.toLowerCase().includes(trimmedQuery)) {
-        return true;
-      }
-
-      if (pallet.dimension && searchDepth !== null && searchWidth !== null) {
-        const palletDepth = Math.trunc(pallet.dimension.depth);
-        const palletWidth = Math.trunc(pallet.dimension.width);
-
-        if (isExplicitPair) {
-          // "700x700" → tam eşleşme AND
-          return palletDepth === searchDepth && palletWidth === searchWidth;
-        } else {
-          // Sadece "700" → herhangi bir boyutta eşleşsin OR
-          return palletDepth === searchDepth || palletWidth === searchWidth;
-        }
-      }
-
-      return false;
-    });
-
-    return matchedPallets.filter(
-      (p, i, self) => i === self.findIndex((x) => x.id === p.id)
-    );
-  }
 }
