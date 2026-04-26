@@ -59,23 +59,11 @@ export class RepositoryService {
       .pipe(map(response => response.results));
   }
 
-  pallets1(): Observable<any> {
-    return this.http
-      .get<any>(`${this.api.getApiUrl()}/logistics/pallets/`, {
-        params: new HttpParams().set('limit', 30).set('offset', 0),
-      })
-      .pipe(
-        map((response) =>
-          response.results
-        )
-      );
-  }
-
   getPalletsByOrder(orderId: string = this.getOrderId()): Observable<any> {
     return this.http
       .get<BaseResponse<Pallet>>(`${this.api.getApiUrl()}/logistics/pallets/`, {
         params: new HttpParams()
-          .set('limit', 30)
+          .set('limit', 1000)
           .set('offset', 0)
           .set('order_id', orderId)  // ← Order ID ekle
       })
@@ -90,7 +78,7 @@ export class RepositoryService {
     return this.http
       .get<BaseResponse<Pallet>>(`${this.api.getApiUrl()}/logistics/pallets/`, {
         params: new HttpParams()
-          .set('limit', 30)
+          .set('limit', 1000)
           .set('offset', 0)
           .set('company_relation_id', companyRelationId)
       })
