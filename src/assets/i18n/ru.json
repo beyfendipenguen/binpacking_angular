@@ -722,7 +722,12 @@
     "STATUS_ERROR": "Статус / Ошибка",
     "NO_DATA": "В файле не найдено данных для обработки.",
     "EXISTING_RECORDS": "Существующие записи",
-    "ERROR_RECORDS": "Записи с ошибками"
+    "ERROR_RECORDS": "Записи с ошибками",
+    "NEED_TEMPLATE": "Нужен шаблон?",
+    "DOWNLOAD_OPTIONAL": "Скачайте готовый шаблон и заполните его (необязательно)",
+    "TEMPLATE_DOWNLOADED": "Шаблон загружен",
+    "FILL_AND_UPLOAD": "Заполните и загрузите ниже",
+    "UPLOADING": "Загрузка..."
   },
   "ERROR_PAGE": {
     "GO_HOME": "На главную",
@@ -1087,7 +1092,7 @@
     "PATTERN": "Неверный формат",
     "INVALID": "Недопустимое значение"
   },
-   "WEIGHT_CATEGORY": {
+  "WEIGHT_CATEGORY": {
     "TITLE": "Категории весов",
     "ADD_CATEGORY": "Добавить категорию",
     "EDIT_CATEGORY": "Редактировать категорию",

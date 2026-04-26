@@ -18,6 +18,7 @@ export function createPalletBulkConfig(): BulkUploadConfig {
       `2️⃣  ${translate.instant('PALLET.FILL_TEMPLATE')}`,
       `3️⃣  ${translate.instant('PALLET.UPLOAD_FILE')}`,
     ],
-    acceptedFileTypes: ['.xlsx', '.xls']
+    acceptedFileTypes: ['.xlsx', '.xls'],
+    showTemplateDownload:true
   };
 }

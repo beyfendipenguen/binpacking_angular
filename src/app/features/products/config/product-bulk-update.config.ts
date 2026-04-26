@@ -13,7 +13,7 @@ export function createProductBulkUpdateConfig(): BulkUploadConfig {
     icon: 'sync',
     templateType: '',
     templateFileName: '',
-    requireTemplateDownload: false,  // direkt upload
+    showTemplateDownload: false,  // direkt upload
     uploadFn: (file: File) => productService.bulkUpdate(file),
     instructions: [
       `1️⃣ ${translate.instant('PRODUCT.BULK_UPDATE_STEP_1')}`,

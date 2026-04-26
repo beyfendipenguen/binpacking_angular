@@ -21,7 +21,7 @@ export interface BulkUploadConfig {
   // Kabul edilen dosya tipleri
   acceptedFileTypes?: string[];    // default: ['.xlsx', '.xls']
 
-  requireTemplateDownload?: boolean;
+  showTemplateDownload?: boolean;
 }
 
 export interface BulkUploadResponse {

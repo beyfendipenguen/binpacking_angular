@@ -722,7 +722,12 @@
     "STATUS_ERROR": "Durum / Hata",
     "NO_DATA": "Dosyada işlenecek veri bulunamadı.",
     "EXISTING_RECORDS": "Mevcut Kayıtlar",
-    "ERROR_RECORDS": "Hatalı Kayıtlar"
+    "ERROR_RECORDS": "Hatalı Kayıtlar",
+    "NEED_TEMPLATE": "Şablona ihtiyacın var mı?",
+    "DOWNLOAD_OPTIONAL": "Hazır şablonu indirip doldurabilirsin (isteğe bağlı)",
+    "TEMPLATE_DOWNLOADED": "Şablon indirildi",
+    "FILL_AND_UPLOAD": "Doldurduktan sonra aşağıdan yükleyebilirsin",
+    "UPLOADING": "Yükleniyor..."
   },
   "ERROR_PAGE": {
     "GO_HOME": "Ana Sayfaya Git",

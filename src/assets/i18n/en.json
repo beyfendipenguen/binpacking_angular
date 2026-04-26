@@ -418,7 +418,7 @@
     "UPDATE_SUCCESS": "Product updated successfully",
     "CREATE_ERROR": "Error creating product",
     "UPDATE_ERROR": "Error updating product",
-     "BULK_UPDATE_STEP_1": "First click 'Download Excel' to export your filtered products",
+    "BULK_UPDATE_STEP_1": "First click 'Download Excel' to export your filtered products",
     "BULK_UPDATE_STEP_2": "Edit the desired fields in the downloaded Excel file (do not change the ID column)",
     "BULK_UPDATE_STEP_3": "You can update dimensions, weights or product type",
     "BULK_UPDATE_STEP_4": "To add a new weight type, add a new weight_xxx column",
@@ -722,7 +722,12 @@
     "STATUS_ERROR": "Status / Error",
     "NO_DATA": "No data found in the file.",
     "EXISTING_RECORDS": "Existing Records",
-    "ERROR_RECORDS": "Error Records"
+    "ERROR_RECORDS": "Error Records",
+    "NEED_TEMPLATE": "Need a template?",
+    "DOWNLOAD_OPTIONAL": "Download our ready-made template and fill it in (optional)",
+    "TEMPLATE_DOWNLOADED": "Template downloaded",
+    "FILL_AND_UPLOAD": "Fill it in and upload below",
+    "UPLOADING": "Uploading..."
   },
   "ERROR_PAGE": {
     "GO_HOME": "Go to Home",

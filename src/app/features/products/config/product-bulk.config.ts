@@ -20,6 +20,7 @@ export function createProductBulkConfig(): BulkUploadConfig {
       `3️⃣ ${translate.instant('PRODUCT.UPLOAD_FILE')}`,
       `4️⃣ Std, Eco, Pre: ${translate.instant('PRODUCT.WEIGHT_INFO')}`
     ],
-    acceptedFileTypes: ['.xlsx', '.xls']
+    acceptedFileTypes: ['.xlsx', '.xls'],
+    showTemplateDownload:true
   };
 }

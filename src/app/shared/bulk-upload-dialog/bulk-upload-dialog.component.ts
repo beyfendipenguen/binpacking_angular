@@ -52,103 +52,92 @@ import { GenericBulkUploadResultDialogComponent } from './bulk-upload-result-dia
             </div>
           </div>
 
-          <!-- Şablon İndirme Alanı -->
-          @if(!isTemplateDownloaded) {
-            <div class="download-section">
-              <div class="download-card">
-                <div class="download-icon">
-                  <mat-icon>description</mat-icon>
-                </div>
-                <div class="download-content">
-                  <h3>{{'BULK_ADD.EXCEL_TEMPLATE' | translate}}</h3>
-                  <p>{{'BULK_ADD.DOWNLOAD_FIRST' | translate}}</p>
-                  <button
-                    mat-raised-button
-                    color="primary"
-                    (click)="downloadTemplate()"
-                    [disabled]="isDownloading"
-                    class="download-btn">
-                    <mat-icon>{{ isDownloading ? 'hourglass_empty' : 'download' }}</mat-icon>
-                    {{ (isDownloading ? 'BULK_ADD.DOWNLOADING' : 'BULK_ADD.DOWNLOAD_TEMPLATE') | translate }}
-                  </button>
+          <!-- Şablon İndirme — Kompakt, isteğe bağlı banner -->
+          @if(config.showTemplateDownload && templateFile) {
+            <div class="template-banner" [class.downloaded]="isTemplateDownloaded">
+              <div class="template-banner-content">
+                <mat-icon class="template-icon">
+                  {{ isTemplateDownloaded ? 'check_circle' : 'description' }}
+                </mat-icon>
+                <div class="template-text">
+                  @if(!isTemplateDownloaded) {
+                    <strong>{{'BULK_ADD.NEED_TEMPLATE' | translate}}</strong>
+                    <span>{{'BULK_ADD.DOWNLOAD_OPTIONAL' | translate}}</span>
+                  } @else {
+                    <strong>{{'BULK_ADD.TEMPLATE_DOWNLOADED' | translate}}</strong>
+                    <span>{{'BULK_ADD.FILL_AND_UPLOAD' | translate}}</span>
+                  }
                 </div>
               </div>
+              <button
+                mat-stroked-button
+                color="primary"
+                (click)="downloadTemplate()"
+                [disabled]="isDownloading"
+                class="template-btn">
+                <mat-icon>{{ isDownloading ? 'hourglass_empty' : (isTemplateDownloaded ? 'sync' : 'download') }}</mat-icon>
+                {{ getDownloadButtonText() | translate }}
+              </button>
             </div>
           }
 
-          <!-- Dosya Yükleme Alanı -->
-          @if(isTemplateDownloaded) {
-            <div class="upload-section">
-              <div
-                class="upload-card"
-                [class.drag-over]="isDragOver"
-                (dragover)="onDragOver($event)"
-                (dragleave)="onDragLeave($event)"
-                (drop)="onDrop($event)">
-                <input
-                  type="file"
-                  #fileInput
-                  (change)="onFileSelected($event)"
-                  [accept]="getAcceptedTypes()"
-                  style="display: none">
+          <!-- Dosya Yükleme Alanı — Her zaman görünür, ana eylem -->
+          <div class="upload-section">
+            <div
+              class="upload-card"
+              [class.drag-over]="isDragOver"
+              [class.has-file]="!!selectedFile"
+              (dragover)="onDragOver($event)"
+              (dragleave)="onDragLeave($event)"
+              (drop)="onDrop($event)">
+              <input
+                type="file"
+                #fileInput
+                (change)="onFileSelected($event)"
+                [accept]="getAcceptedTypes()"
+                style="display: none">
 
-                @if(!selectedFile) {
-                  <div class="upload-placeholder" (click)="fileInput.click()">
-                    <div class="upload-icon">
-                      <mat-icon>{{ isDragOver ? 'file_download' : 'cloud_upload' }}</mat-icon>
-                    </div>
-                    <h3>{{ (isDragOver ? 'BULK_ADD.DROP_FILE' : 'BULK_ADD.UPLOAD_EXCEL') | translate }}</h3>
-                    <p>{{ (isDragOver ? 'BULK_ADD.DROP_HERE' : 'BULK_ADD.DRAG_OR_CLICK') | translate}}</p>
-                    @if(!isDragOver) {
-                      <button mat-raised-button color="primary" type="button">
-                        <mat-icon>folder_open</mat-icon>
-                        {{ 'BULK_ADD.SELECT_FILE' | translate }}
-                      </button>
-                    }
+              @if(!selectedFile) {
+                <div class="upload-placeholder" (click)="fileInput.click()">
+                  <div class="upload-icon">
+                    <mat-icon>{{ isDragOver ? 'file_download' : 'cloud_upload' }}</mat-icon>
                   </div>
-                } @else {
-                  <div class="file-selected">
-                    <div class="file-info">
-                      <mat-icon class="file-icon">description</mat-icon>
-                      <div class="file-details">
-                        <strong>{{ selectedFile.name }}</strong>
-                        <span class="file-size">{{ formatFileSize(selectedFile.size) }}</span>
-                      </div>
-                      <button
-                        mat-icon-button
-                        color="warn"
-                        (click)="removeFile(); $event.stopPropagation()">
-                        <mat-icon>close</mat-icon>
-                      </button>
+                  <h3>{{ (isDragOver ? 'BULK_ADD.DROP_FILE' : 'BULK_ADD.UPLOAD_EXCEL') | translate }}</h3>
+                  <p>{{ (isDragOver ? 'BULK_ADD.DROP_HERE' : 'BULK_ADD.DRAG_OR_CLICK') | translate}}</p>
+                  @if(!isDragOver) {
+                    <button mat-raised-button color="primary" type="button">
+                      <mat-icon>folder_open</mat-icon>
+                      {{ 'BULK_ADD.SELECT_FILE' | translate }}
+                    </button>
+                  }
+                </div>
+              } @else {
+                <div class="file-selected">
+                  <div class="file-info">
+                    <mat-icon class="file-icon">description</mat-icon>
+                    <div class="file-details">
+                      <strong>{{ selectedFile.name }}</strong>
+                      <span class="file-size">{{ formatFileSize(selectedFile.size) }}</span>
                     </div>
                     <button
-                      mat-stroked-button
-                      color="primary"
-                      (click)="fileInput.click()"
-                      class="change-file-btn">
-                      <mat-icon>sync</mat-icon>
-                      {{ 'BULK_ADD.CHANGE_FILE' | translate }}
+                      mat-icon-button
+                      color="warn"
+                      (click)="removeFile(); $event.stopPropagation()">
+                      <mat-icon>close</mat-icon>
                     </button>
                   </div>
-                }
-              </div>
-
-              <!-- Tekrar Şablon İndirme Linki -->
-               @if(config.requireTemplateDownload){
-              <div class="redownload-link">
-                <button
-                  mat-button
-                  (click)="downloadTemplate()"
-                  [disabled]="isDownloading"
-                  class="link-button">
-                  <mat-icon>download</mat-icon>
-                  {{ (isDownloading ? 'BULK_ADD.DOWNLOADING' :'BULK_ADD.REDOWNLOAD_TEMPLATE') | translate }}
-                </button>
-              </div>
-            }
+                  <button
+                    mat-stroked-button
+                    color="primary"
+                    (click)="fileInput.click()"
+                    class="change-file-btn">
+                    <mat-icon>sync</mat-icon>
+                    {{ 'BULK_ADD.CHANGE_FILE' | translate }}
+                  </button>
+                </div>
+              }
             </div>
-
-          }
+          </div>
 
         </div>
       </mat-dialog-content>
@@ -160,8 +149,12 @@ import { GenericBulkUploadResultDialogComponent } from './bulk-upload-result-dia
           color="primary"
           (click)="onSave()"
           [disabled]="!canSave()">
-          <mat-icon>save</mat-icon>
-          {{ 'BULK_ADD.SAVE_AND_IMPORT' | translate }}
+          @if(isUploading) {
+            <mat-spinner diameter="18" style="display: inline-block; margin-right: 8px;"></mat-spinner>
+          } @else {
+            <mat-icon>save</mat-icon>
+          }
+          {{ (isUploading ? 'BULK_ADD.UPLOADING' : 'BULK_ADD.SAVE_AND_IMPORT') | translate }}
         </button>
       </mat-dialog-actions>
     </div>
@@ -187,11 +180,11 @@ import { GenericBulkUploadResultDialogComponent } from './bulk-upload-result-dia
       margin: 0;
       font-size: 1.5rem;
       font-weight: 500;
-      color: #333333; /* text-dark */
+      color: #333333;
       padding: 16px 0;
 
       mat-icon {
-        color: #006a6a; /* primary-color */
+        color: #006a6a;
       }
     }
 
@@ -209,14 +202,14 @@ import { GenericBulkUploadResultDialogComponent } from './bulk-upload-result-dia
       .info-box {
         display: flex;
         gap: 12px;
-        background-color: #e6f2f2; /* light primary bg */
-        border-left: 4px solid #006a6a; /* primary-color */
+        background-color: #e6f2f2;
+        border-left: 4px solid #006a6a;
         border-radius: 4px;
         padding: 16px;
-        margin-bottom: 24px;
+        margin-bottom: 20px;
 
         > mat-icon {
-          color: #006a6a; /* primary-color */
+          color: #006a6a;
           font-size: 24px;
           height: 24px;
           width: 24px;
@@ -228,97 +221,110 @@ import { GenericBulkUploadResultDialogComponent } from './bulk-upload-result-dia
 
           strong {
             display: block;
-            color: #004a4a; /* accent-color */
+            color: #004a4a;
             margin-bottom: 8px;
             font-size: 0.95rem;
           }
 
           p {
             margin: 0;
-            color: #00595a; /* darker primary */
+            color: #00595a;
             font-size: 0.9rem;
             line-height: 1.6;
           }
         }
       }
 
-      .download-section {
-        .download-card {
+      /* Kompakt template indirme bandı */
+      .template-banner {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+        background-color: #fef9f0;
+        border: 1px solid #d6bb86;
+        border-radius: 8px;
+        padding: 12px 16px;
+        margin-bottom: 20px;
+        transition: all 0.3s ease;
+
+        &.downloaded {
+          background-color: #f0f9f0;
+          border-color: #4caf50;
+
+          .template-icon {
+            color: #4caf50;
+          }
+        }
+
+        .template-banner-content {
           display: flex;
           align-items: center;
-          gap: 20px;
-          background-color: #f8f9fa; /* background-color */
-          border: 2px dashed #d6bb86; /* secondary-color */
-          border-radius: 8px;
-          padding: 32px;
-          text-align: center;
-          transition: all 0.3s ease;
+          gap: 12px;
+          flex: 1;
+          min-width: 0;
 
-          &:hover {
-            border-color: #006a6a; /* primary-color */
-            background-color: #ffffff; /* white */
-          }
-
-          .download-icon {
+          .template-icon {
+            color: #d6a045;
+            font-size: 28px;
+            height: 28px;
+            width: 28px;
             flex-shrink: 0;
-            width: 80px;
-            height: 80px;
-            background-color: #006a6a; /* primary-color */
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-
-            mat-icon {
-              font-size: 40px;
-              height: 40px;
-              width: 40px;
-              color: white;
-            }
+            transition: color 0.3s ease;
           }
 
-          .download-content {
-            flex: 1;
-            text-align: left;
+          .template-text {
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
 
-            h3 {
-              margin: 0 0 8px 0;
-              color: #333333; /* text-dark */
-              font-size: 1.3rem;
+            strong {
+              color: #333333;
+              font-size: 0.95rem;
               font-weight: 500;
             }
 
-            p {
-              margin: 0 0 16px 0;
-              color: #666666; /* text-light */
-              line-height: 1.5;
+            span {
+              color: #666666;
+              font-size: 0.85rem;
             }
+          }
+        }
 
-            .download-btn {
-              mat-icon {
-                margin-right: 8px;
-              }
-            }
+        .template-btn {
+          flex-shrink: 0;
+
+          mat-icon {
+            margin-right: 6px;
+            font-size: 18px;
+            height: 18px;
+            width: 18px;
           }
         }
       }
 
       .upload-section {
         .upload-card {
-          border: 2px dashed #006a6a; /* primary-color */
+          border: 2px dashed #006a6a;
           border-radius: 8px;
           overflow: hidden;
           background-color: #fafafa;
           transition: all 0.3s ease;
 
           &:hover {
-            background-color: #f8f9fa; /* background-color */
-            border-color: #004a4a; /* accent-color */
+            background-color: #f8f9fa;
+            border-color: #004a4a;
+          }
+
+          &.has-file {
+            border-style: solid;
+            border-color: #4caf50;
+            background-color: #ffffff;
           }
 
           &.drag-over {
-            background-color: #e6f2f2; /* light primary bg */
-            border-color: #006a6a; /* primary-color */
+            background-color: #e6f2f2;
+            border-color: #006a6a;
             border-width: 3px;
             transform: scale(1.02);
 
@@ -354,14 +360,14 @@ import { GenericBulkUploadResultDialogComponent } from './bulk-upload-result-dia
                 font-size: 64px;
                 height: 64px;
                 width: 64px;
-                color: #006a6a; /* primary-color */
+                color: #006a6a;
                 transition: all 0.3s ease;
               }
             }
 
             h3 {
               margin: 0 0 8px 0;
-              color: #333333; /* text-dark */
+              color: #333333;
               font-size: 1.2rem;
               font-weight: 500;
               transition: all 0.3s ease;
@@ -369,7 +375,7 @@ import { GenericBulkUploadResultDialogComponent } from './bulk-upload-result-dia
 
             p {
               margin: 0 0 20px 0;
-              color: #666666; /* text-light */
+              color: #666666;
               transition: all 0.3s ease;
             }
 
@@ -392,7 +398,7 @@ import { GenericBulkUploadResultDialogComponent } from './bulk-upload-result-dia
               align-items: center;
               gap: 16px;
               background-color: white;
-              border: 1px solid #e0e0e0; /* border-color */
+              border: 1px solid #e0e0e0;
               border-radius: 8px;
               padding: 16px;
               margin-bottom: 16px;
@@ -411,7 +417,7 @@ import { GenericBulkUploadResultDialogComponent } from './bulk-upload-result-dia
 
                 strong {
                   display: block;
-                  color: #333333; /* text-dark */
+                  color: #333333;
                   font-size: 1rem;
                   margin-bottom: 4px;
                   white-space: nowrap;
@@ -420,7 +426,7 @@ import { GenericBulkUploadResultDialogComponent } from './bulk-upload-result-dia
                 }
 
                 .file-size {
-                  color: #666666; /* text-light */
+                  color: #666666;
                   font-size: 0.85rem;
                 }
               }
@@ -435,33 +441,13 @@ import { GenericBulkUploadResultDialogComponent } from './bulk-upload-result-dia
             }
           }
         }
-
-        .redownload-link {
-          text-align: center;
-          margin-top: 16px;
-
-          .link-button {
-            color: #006a6a; /* primary-color */
-
-            mat-icon {
-              margin-right: 4px;
-              font-size: 18px;
-              height: 18px;
-              width: 18px;
-            }
-
-            &:hover {
-              background-color: rgba(0, 106, 106, 0.04); /* primary with opacity */
-            }
-          }
-        }
       }
     }
   }
 
   mat-dialog-actions {
     padding: 16px 24px;
-    border-top: 1px solid #e0e0e0; /* border-color */
+    border-top: 1px solid #e0e0e0;
     margin-top: 0;
     gap: 8px;
 
@@ -481,18 +467,12 @@ import { GenericBulkUploadResultDialogComponent } from './bulk-upload-result-dia
   }
 
   @media (max-width: 600px) {
-    .dialog-container {
-      .dialog-content {
-        .download-section {
-          .download-card {
-            flex-direction: column;
-            text-align: center;
+    .template-banner {
+      flex-direction: column;
+      align-items: stretch !important;
 
-            .download-content {
-              text-align: center;
-            }
-          }
-        }
+      .template-btn {
+        width: 100%;
       }
     }
   }
@@ -520,24 +500,29 @@ export class GenericBulkUploadDialogComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
-    if (this.config.requireTemplateDownload === false) {
-      this.isTemplateDownloaded = true;
-    } else {
+    // Template indirme banner'ı isteniyorsa template'i fetch et
+    if (this.config.showTemplateDownload !== false) {
       this.getTemplateFile();
     }
   }
 
   getInstructions(): string[] {
     return this.config.instructions || [
-      `1️⃣  this.translate.instant('BULK_ADD.STEP_1')`,
-      `2️⃣  this.translate.instant('BULK_ADD.STEP_2')`,
-      `3️⃣  this.translate.instant('BULK_ADD.STEP_3')`,
-      `4️⃣  this.translate.instant('BULK_ADD.STEP_4')`
+      `1️⃣  ${this.translate.instant('BULK_ADD.STEP_1')}`,
+      `2️⃣  ${this.translate.instant('BULK_ADD.STEP_2')}`,
+      `3️⃣  ${this.translate.instant('BULK_ADD.STEP_3')}`,
+      `4️⃣  ${this.translate.instant('BULK_ADD.STEP_4')}`
     ];
   }
 
   getAcceptedTypes(): string {
     return (this.config.acceptedFileTypes || ['.xlsx', '.xls']).join(',');
+  }
+
+  getDownloadButtonText(): string {
+    if (this.isDownloading) return 'BULK_ADD.DOWNLOADING';
+    if (this.isTemplateDownloaded) return 'BULK_ADD.REDOWNLOAD_TEMPLATE';
+    return 'BULK_ADD.DOWNLOAD_TEMPLATE';
   }
 
   downloadTemplate(): void {
@@ -591,9 +576,8 @@ export class GenericBulkUploadDialogComponent implements OnInit {
       next: (response) => {
         if (response.results && response.results.length > 0) {
           this.templateFile = response.results[0];
-        } else {
-          this.toastService.error(this.translate.instant('BULK_ADD.TEMPLATE_NOT_FOUND'));
         }
+        // Template yoksa sessizce geç — banner zaten gösterilmeyecek
       },
       error: (error) => {
         this.toastService.error(this.translate.instant('BULK_ADD.TEMPLATE_LOAD_ERROR'));
@@ -653,7 +637,8 @@ export class GenericBulkUploadDialogComponent implements OnInit {
   }
 
   canSave(): boolean {
-    return this.isTemplateDownloaded && this.selectedFile !== null && !this.isUploading;
+    // Artık template indirme zorunlu değil — sadece dosya seçimi yeterli
+    return this.selectedFile !== null && !this.isUploading;
   }
 
   onClose(): void {
