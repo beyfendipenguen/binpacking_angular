@@ -181,7 +181,11 @@ export class ProductsComponent implements OnInit {
             this.toastService.success(this.translate.instant('PRODUCT.CREATE_SUCCESS'));
             this.genericTable?.refreshData();
           },
-          error: () => this.toastService.error(this.translate.instant('PRODUCT.CREATE_ERROR'))
+          error: (err) => {
+            const message = err?.error?.errors?.[0]?.message
+              ?? this.translate.instant('PRODUCT.CREATE_ERROR');
+            this.toastService.error(message);
+          }
         });
       }
     });
