@@ -27,6 +27,11 @@
             <mat-icon>build</mat-icon>
             <span>{{ 'CUSTOMER.CUSTOMER_SETTINGS' | translate }}</span>
           </button>
+          <button mat-menu-item (click)="openConstraintBulkDialog()"
+            [appDisableAuth]="['organizations.change_companyrelation']">
+            <mat-icon>tune</mat-icon>
+            {{ 'CONSTRAINT.BULK.TITLE' | translate }}
+          </button>
         </mat-menu>
       </div>
 

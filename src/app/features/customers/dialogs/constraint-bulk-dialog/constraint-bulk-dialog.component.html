@@ -1,0 +1,334 @@
+<div class="constraint-bulk-dialog">
+  <div class="dialog-header">
+    <h2 mat-dialog-title>{{ 'CONSTRAINT.BULK.TITLE' | translate }}</h2>
+    <button mat-icon-button (click)="onCancel()" class="close-btn">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <!-- Step Indicator -->
+  <div class="step-indicator">
+    <div class="step" [class.active]="currentStep === 1" [class.completed]="currentStep > 1">
+      <div class="step-number">1</div>
+      <div class="step-label">{{ 'CUSTOMER.EXTRA_DATA.SELECT_RELATIONS' | translate }}</div>
+    </div>
+    <div class="step-divider"></div>
+    <div class="step" [class.active]="currentStep === 2">
+      <div class="step-number">2</div>
+      <div class="step-label">{{ 'CONSTRAINT.BULK.CONFIGURE' | translate }}</div>
+    </div>
+  </div>
+
+  <mat-dialog-content class="dialog-content">
+    @if (isLoading) {
+    <div class="loading-container">
+      <mat-spinner diameter="40"></mat-spinner>
+      <p>{{ 'COMMON.LOADING' | translate }}</p>
+    </div>
+    }
+
+    <!-- STEP 1: Relation Selection (extra-data dialog ile birebir) -->
+    @if (!isLoading && currentStep === 1) {
+    <div class="step-content">
+
+      <div class="search-bar">
+        <mat-form-field appearance="outline" class="search-field">
+          <mat-label>{{ 'COMMON.SEARCH' | translate }}</mat-label>
+          <input matInput [formControl]="searchControl" [placeholder]="'CUSTOMER.SEARCH_PLACEHOLDER' | translate" />
+          <mat-icon matPrefix>search</mat-icon>
+          @if (searchControl.value) {
+          <button mat-icon-button matSuffix (click)="clearSearch()">
+            <mat-icon>clear</mat-icon>
+          </button>
+          }
+        </mat-form-field>
+      </div>
+
+      <div class="selection-header">
+        <div class="selection-controls">
+          <mat-checkbox [checked]="isAllSelected" [indeterminate]="isIndeterminate" (change)="selectAll()">
+            {{ 'CUSTOMER.EXTRA_DATA.SELECT_ALL_PAGE' | translate }}
+          </mat-checkbox>
+
+          <div class="select-all-actions">
+            <button mat-button color="primary" (click)="selectAllMode = 'all'; selectAll()" [disabled]="isLoading">
+              <mat-icon>done_all</mat-icon>
+              {{ 'CUSTOMER.EXTRA_DATA.SELECT_ALL_DATABASE' | translate }}
+            </button>
+
+            @if (selectedRelationIds.length > 0) {
+            <button mat-button color="warn" (click)="clearSelection()">
+              <mat-icon>clear_all</mat-icon>
+              {{ 'CUSTOMER.EXTRA_DATA.CLEAR_SELECTION' | translate }}
+            </button>
+            }
+          </div>
+        </div>
+
+        <span class="selection-count">
+          {{ 'CUSTOMER.EXTRA_DATA.SELECTED_COUNT' | translate: { count: selectedCount, total: totalItems } }}
+        </span>
+      </div>
+
+      <div class="relations-list">
+        @for (relation of allRelations; track relation.id) {
+        <div class="relation-item" (click)="toggleRelation(relation.id!)"
+          [class.selected]="isRelationSelected(relation.id!)">
+          <mat-checkbox [checked]="isRelationSelected(relation.id!)" (click)="$event.stopPropagation()"
+            (change)="toggleRelation(relation.id!)"></mat-checkbox>
+
+          <div class="relation-info">
+            <div class="relation-main">
+              @if (relation.target_company.logo) {
+              <img [src]="relation.target_company.logo" alt="Logo" class="company-logo" />
+              } @else {
+              <div class="company-logo-placeholder">
+                <mat-icon>business</mat-icon>
+              </div>
+              }
+              <div class="company-details">
+                <span class="company-name">{{ relation.target_company.company_name }}</span>
+                <span class="company-country">{{ relation.target_company.country }}</span>
+              </div>
+            </div>
+
+            <div class="relation-meta">
+              <mat-chip class="relation-type-chip">
+                {{ 'COMPANY_RELATION.TYPE.' + relation.relation_type.toUpperCase() | translate }}
+              </mat-chip>
+              <mat-chip [class]="relation.is_active ? 'status-active' : 'status-inactive'">
+                {{ (relation.is_active ? 'COMMON.ACTIVE' : 'COMMON.PASSIVE') | translate }}
+              </mat-chip>
+            </div>
+          </div>
+        </div>
+        }
+
+        @if (allRelations.length === 0 && !searchControl.value) {
+        <div class="no-data">
+          <mat-icon>inbox</mat-icon>
+          <p>{{ 'CUSTOMER.EXTRA_DATA.NO_RELATIONS' | translate }}</p>
+        </div>
+        }
+
+        @if (allRelations.length === 0 && searchControl.value) {
+        <div class="no-data">
+          <mat-icon>search_off</mat-icon>
+          <p>{{ 'COMMON.NO_RESULTS' | translate }}</p>
+          <button mat-button color="primary" (click)="clearSearch()">
+            {{ 'COMMON.CLEAR_SEARCH' | translate }}
+          </button>
+        </div>
+        }
+      </div>
+
+      <mat-paginator [length]="totalItems" [pageSize]="pageSize" [pageSizeOptions]="[5, 10, 25, 50, 100]"
+        (page)="onPageChange($event)" showFirstLastButtons>
+      </mat-paginator>
+    </div>
+    }
+
+    <!-- STEP 2: Constraint Configuration -->
+    @if (!isLoading && currentStep === 2) {
+    <div class="step-content">
+
+      <!-- Bilgi notu — bulk mantığı -->
+      <div class="bulk-info-banner">
+        <mat-icon>info</mat-icon>
+        <span>{{ 'CONSTRAINT.BULK.INFO_ONLY_FILLED' | translate }}</span>
+      </div>
+
+      <form [formGroup]="updateForm" class="configuration-form">
+
+        @for (group of constraintGroups; track group.key) {
+        <div class="constraint-group">
+          <h4 class="group-title">{{ group.key | translate }}</h4>
+
+          <div class="form-fields-grid">
+            @for (field of group.fields; track field.key) {
+
+            <!-- Disabled placeholder -->
+            @if (field.type === 'disabled-placeholder') {
+            <div class="disabled-field-wrapper">
+              <div class="disabled-field-header">
+                <mat-icon>{{ field.icon }}</mat-icon>
+                <span>{{ field.label | translate }}</span>
+                <span class="coming-soon-badge">{{ 'COMMON.COMING_SOON' | translate }}</span>
+                @if (field.detailedInfo) {
+                <button mat-icon-button class="info-icon-btn" [matMenuTriggerFor]="sharedInfoMenu"
+                  [matTooltip]="field.hint ? (field.hint | translate) : ''" matTooltipPosition="above" type="button"
+                  (click)="showFieldInfo(field); $event.stopPropagation()">
+                  <mat-icon>info_outline</mat-icon>
+                </button>
+                }
+              </div>
+              @if (field.helpText) {
+              <p class="field-hint">{{ field.helpText | translate }}</p>
+              }
+            </div>
+            }
+
+            <!-- Boolean (toggle) -->
+            @if (field.type === 'boolean') {
+            <div class="boolean-field-wrapper">
+              <div class="boolean-row">
+                <mat-slide-toggle [formControlName]="field.key" color="primary">
+                  <div class="field-label-with-icon">
+                    <mat-icon>{{ field.icon }}</mat-icon>
+                    <span>{{ field.label | translate }}</span>
+                  </div>
+                </mat-slide-toggle>
+
+                @if (field.detailedInfo) {
+                <button mat-icon-button class="info-icon-btn" [matMenuTriggerFor]="sharedInfoMenu"
+                  [matTooltip]="field.hint ? (field.hint | translate) : ''" matTooltipPosition="above" type="button"
+                  (click)="showFieldInfo(field); $event.stopPropagation()">
+                  <mat-icon>info_outline</mat-icon>
+                </button>
+                }
+              </div>
+              <p class="field-hint bulk-toggle-hint">{{ 'CONSTRAINT.BULK.TOGGLE_NOTE' | translate }}</p>
+            </div>
+            }
+
+            <!-- Number -->
+            @if (field.type === 'number') {
+            <div class="field-with-info">
+              <mat-form-field appearance="outline">
+                <mat-label>{{ field.label | translate }}</mat-label>
+                <input matInput type="number" [formControlName]="field.key"
+                  [placeholder]="'CONSTRAINT.BULK.LEAVE_EMPTY' | translate" />
+                <mat-icon matPrefix>{{ field.icon }}</mat-icon>
+                @if (field.suffix) {
+                <span matSuffix>{{ field.suffix }}</span>
+                }
+                @if (updateForm.get(field.key)?.hasError('min')) {
+                <mat-error>{{ 'CONSTRAINT.MIN_VALUE_ERROR' | translate }}</mat-error>
+                }
+                @if (updateForm.get(field.key)?.hasError('max')) {
+                <mat-error>{{ 'CONSTRAINT.MAX_VALUE_ERROR' | translate }}</mat-error>
+                }
+              </mat-form-field>
+
+              @if (field.detailedInfo) {
+              <button mat-icon-button class="info-icon-btn" [matMenuTriggerFor]="sharedInfoMenu"
+                [matTooltip]="field.hint ? (field.hint | translate) : ''" matTooltipPosition="above" type="button"
+                (click)="showFieldInfo(field); $event.stopPropagation()">
+                <mat-icon>info_outline</mat-icon>
+              </button>
+              }
+            </div>
+            }
+
+            <!-- Multi-product autocomplete -->
+            @if (field.type === 'multi-product') {
+            <div class="multi-product-wrapper">
+              <div class="field-with-info">
+                <mat-form-field appearance="outline" class="full-width">
+                  <mat-label>{{ field.label | translate }}</mat-label>
+                  <input type="text" matInput formControlName="side_product_search" [matAutocomplete]="productAuto"
+                    [placeholder]="'CONSTRAINT.SEARCH_PRODUCT_PLACEHOLDER' | translate" />
+                  <mat-icon matPrefix>{{ field.icon }}</mat-icon>
+
+                  @if (isSearchingProducts) {
+                  <mat-spinner matSuffix diameter="20"></mat-spinner>
+                  }
+
+                  <mat-autocomplete #productAuto="matAutocomplete" [displayWith]="displayProductFn"
+                    (optionSelected)="onSideProductSelected($event.option.value)">
+                    @for (product of filteredProducts; track product.id) {
+                    <mat-option [value]="product">
+                      <span>{{ product.name }}</span>
+                    </mat-option>
+                    }
+
+                    @if (filteredProducts.length === 0
+                    && updateForm.get('side_product_search')?.value?.length >= 3
+                    && !isSearchingProducts) {
+                    <mat-option disabled>
+                      <div class="no-results">
+                        <mat-icon>search_off</mat-icon>
+                        <span>{{ 'COMMON.NO_RESULTS' | translate }}</span>
+                      </div>
+                    </mat-option>
+                    }
+                  </mat-autocomplete>
+                </mat-form-field>
+
+                @if (field.detailedInfo) {
+                <button mat-icon-button class="info-icon-btn" [matMenuTriggerFor]="sharedInfoMenu"
+                  [matTooltip]="field.hint ? (field.hint | translate) : ''" matTooltipPosition="above" type="button"
+                  (click)="showFieldInfo(field); $event.stopPropagation()">
+                  <mat-icon>info_outline</mat-icon>
+                </button>
+                }
+              </div>
+
+              @if (selectedSideProducts.length > 0) {
+              <mat-chip-set class="selected-products-chips">
+                @for (product of selectedSideProducts; track product.id) {
+                <mat-chip (removed)="removeSideProduct(product)">
+                  {{ product.name }}
+                  <button matChipRemove [attr.aria-label]="'remove'">
+                    <mat-icon>cancel</mat-icon>
+                  </button>
+                </mat-chip>
+                }
+              </mat-chip-set>
+              }
+            </div>
+            }
+
+            }
+          </div>
+        </div>
+        }
+      </form>
+
+      <!-- Preview -->
+      <div class="preview-section">
+        <div class="preview-info">
+          <mat-icon>info</mat-icon>
+          <span>{{ 'CONSTRAINT.BULK.WILL_UPDATE' | translate: { count: selectedCount } }}</span>
+        </div>
+      </div>
+    </div>
+    }
+  </mat-dialog-content>
+
+  <!-- TEK paylaşımlı info menüsü -->
+  <mat-menu #sharedInfoMenu="matMenu" class="constraint-info-menu" xPosition="before">
+    @if (currentInfoField) {
+    <div class="info-popover" (click)="$event.stopPropagation()">
+      <div class="info-popover-header">
+        <mat-icon>{{ currentInfoField.icon }}</mat-icon>
+        <strong>{{ currentInfoField.label | translate }}</strong>
+      </div>
+      <p class="info-popover-content" [innerHTML]="(currentInfoField.detailedInfo || '') | translate"></p>
+    </div>
+    }
+  </mat-menu>
+
+  <mat-dialog-actions class="dialog-actions">
+    @if (currentStep === 1) {
+    <button mat-button (click)="onCancel()">{{ 'COMMON.CANCEL' | translate }}</button>
+    <button mat-raised-button color="primary" (click)="nextStep()" [disabled]="selectedCount === 0">
+      {{ 'COMMON.NEXT' | translate }}
+      <mat-icon>arrow_forward</mat-icon>
+    </button>
+    }
+
+    @if (currentStep === 2) {
+    <button mat-button (click)="previousStep()">
+      <mat-icon>arrow_back</mat-icon>
+      {{ 'COMMON.BACK' | translate }}
+    </button>
+    <button mat-raised-button color="primary" (click)="onSave()" [disabled]="isSaving || updateForm.invalid">
+      @if (isSaving) {
+      <mat-spinner diameter="20" class="button-spinner"></mat-spinner>
+      }
+      {{ 'COMMON.SAVE' | translate }}
+    </button>
+    }
+  </mat-dialog-actions>
+</div>

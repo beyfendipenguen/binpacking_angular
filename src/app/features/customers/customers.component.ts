@@ -23,6 +23,7 @@ import { MatMenuModule } from "@angular/material/menu";
 import { ExtraDataDialogComponent } from './dialogs/extra-data-dialog/extra-data-dialog.component';
 import { debounceTime, distinctUntilChanged, Subject } from 'rxjs';
 import { FormsModule } from '@angular/forms';
+import { ConstraintBulkDialogComponent } from './dialogs/constraint-bulk-dialog/constraint-bulk-dialog';
 
 @Component({
   selector: 'app-customers',
@@ -213,6 +214,24 @@ export class CustomersComponent implements OnInit, OnDestroy {
       }
     });
   }
+
+  openConstraintBulkDialog(): void {
+  const dialogRef = this.dialog.open(ConstraintBulkDialogComponent, {
+    width: '900px',
+    maxWidth: '95vw',
+    maxHeight: '90vh',
+    disableClose: false,
+    panelClass: 'constraint-bulk-dialog-panel'
+  });
+
+  dialogRef.afterClosed().subscribe(result => {
+    if (result) {
+      // İsteğe bağlı: listeyi yenile
+      // this.loadRelations();
+      this.loadData();
+    }
+  });
+}
   /**
    * Open dialog to add new customer
    */

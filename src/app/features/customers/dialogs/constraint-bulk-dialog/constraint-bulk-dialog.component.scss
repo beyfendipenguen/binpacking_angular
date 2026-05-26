@@ -1,0 +1,607 @@
+$primary-color: #006a6a;
+$secondary-color: #d6bb86;
+$accent-color: #004a4a;
+$light-accent: #c0a670;
+$background-color: #f8f9fa;
+$text-dark: #333333;
+$text-light: #666666;
+$border-color: #e0e0e0;
+$white: #ffffff;
+
+.constraint-bulk-dialog {
+  .dialog-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px;
+    background-color: rgba(0, 106, 106, 0.1);
+    border-bottom: 2px solid $primary-color;
+
+    h2 {
+      margin: 0;
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: $primary-color;
+    }
+
+    .close-btn {
+      margin: -8px -8px -8px 0;
+      color: $text-light;
+      transition: all 0.3s ease;
+
+      &:hover {
+        color: $primary-color;
+        background-color: rgba(0, 106, 106, 0.1);
+        transform: rotate(90deg);
+      }
+    }
+  }
+
+  // ─── Step Indicator ───
+  .step-indicator {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px 24px;
+    background-color: $background-color;
+    border-bottom: 1px solid $border-color;
+
+    .step {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      opacity: 0.5;
+      transition: all 0.3s ease;
+
+      &.active {
+        opacity: 1;
+
+        .step-number {
+          background-color: $primary-color;
+          color: $white;
+        }
+      }
+
+      &.completed {
+        opacity: 1;
+
+        .step-number {
+          background-color: #2e7d32;
+          color: $white;
+        }
+      }
+
+      .step-number {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background-color: $border-color;
+        color: $text-light;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        transition: all 0.3s ease;
+      }
+
+      .step-label {
+        font-size: 0.85rem;
+        font-weight: 500;
+        color: $text-dark;
+      }
+    }
+
+    .step-divider {
+      width: 80px;
+      height: 2px;
+      background-color: $border-color;
+      margin: 0 16px;
+      margin-bottom: 24px;
+    }
+  }
+
+  .dialog-content {
+    padding: 24px;
+    max-height: 65vh;
+    overflow-y: auto;
+
+    &::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: $background-color;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: $secondary-color;
+      border-radius: 3px;
+
+      &:hover {
+        background: $light-accent;
+      }
+    }
+
+    .loading-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 60px 20px;
+
+      mat-spinner ::ng-deep circle {
+        stroke: $primary-color;
+      }
+
+      p {
+        margin-top: 16px;
+        color: $text-light;
+      }
+    }
+  }
+
+  // ─── Step 1: Selection ───
+  .search-bar {
+    margin-bottom: 16px;
+
+    .search-field {
+      width: 100%;
+    }
+  }
+
+  .selection-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 12px 16px;
+    background-color: $background-color;
+    border-radius: 8px;
+    margin-bottom: 16px;
+
+    .selection-controls {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+
+      .select-all-actions {
+        display: flex;
+        gap: 8px;
+      }
+    }
+
+    .selection-count {
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: $primary-color;
+    }
+  }
+
+  .relations-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 16px;
+
+    .relation-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      border: 1px solid $border-color;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+
+      &:hover {
+        border-color: $primary-color;
+        background-color: rgba(0, 106, 106, 0.03);
+      }
+
+      &.selected {
+        border-color: $primary-color;
+        background-color: rgba(0, 106, 106, 0.08);
+      }
+
+      .relation-info {
+        flex: 1;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+
+        .relation-main {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+
+          .company-logo {
+            width: 40px;
+            height: 40px;
+            border-radius: 6px;
+            object-fit: cover;
+          }
+
+          .company-logo-placeholder {
+            width: 40px;
+            height: 40px;
+            border-radius: 6px;
+            background-color: rgba(0, 106, 106, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            mat-icon {
+              color: $primary-color;
+            }
+          }
+
+          .company-details {
+            display: flex;
+            flex-direction: column;
+
+            .company-name {
+              font-weight: 500;
+              color: $text-dark;
+            }
+
+            .company-country {
+              font-size: 0.85rem;
+              color: $text-light;
+            }
+          }
+        }
+
+        .relation-meta {
+          display: flex;
+          gap: 8px;
+
+          mat-chip {
+            font-size: 0.75rem;
+
+            &.relation-type-chip {
+              background-color: rgba(0, 106, 106, 0.1);
+              color: $primary-color;
+            }
+
+            &.status-active {
+              background-color: rgba(76, 175, 80, 0.15);
+              color: #2e7d32;
+            }
+
+            &.status-inactive {
+              background-color: rgba(0, 0, 0, 0.08);
+              color: $text-light;
+            }
+          }
+        }
+      }
+    }
+
+    .no-data {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      padding: 40px 20px;
+      color: $text-light;
+
+      mat-icon {
+        font-size: 48px;
+        width: 48px;
+        height: 48px;
+        opacity: 0.4;
+      }
+    }
+  }
+
+  // ─── Step 2: Constraint Config ───
+  .bulk-info-banner {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 16px;
+    background-color: rgba($secondary-color, 0.15);
+    border: 1px solid rgba($secondary-color, 0.4);
+    border-radius: 8px;
+    margin-bottom: 20px;
+    color: $accent-color;
+    font-size: 0.9rem;
+
+    mat-icon {
+      color: $light-accent;
+      flex-shrink: 0;
+    }
+  }
+
+  .configuration-form {
+    .constraint-group {
+      margin-bottom: 24px;
+      padding-left: 12px;
+      border-left: 3px solid rgba($primary-color, 0.2);
+
+      &:last-child {
+        margin-bottom: 0;
+      }
+
+      .group-title {
+        margin: 0 0 12px 0;
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: $accent-color;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+    }
+  }
+
+  .form-fields-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+  }
+
+  .field-with-info {
+    display: flex;
+    align-items: flex-start;
+    gap: 4px;
+
+    mat-form-field {
+      flex: 1;
+    }
+  }
+
+  .boolean-field-wrapper {
+    grid-column: 1 / -1;
+    background-color: rgba($primary-color, 0.03);
+    padding: 16px;
+    border-radius: 8px;
+    border: 1px solid rgba($primary-color, 0.1);
+
+    .boolean-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    ::ng-deep .mat-mdc-slide-toggle .field-label-with-icon {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 500;
+
+      mat-icon {
+        font-size: 20px;
+        width: 20px;
+        height: 20px;
+        color: $primary-color;
+      }
+    }
+
+    .field-hint {
+      margin: 8px 0 0 0;
+      font-size: 0.8rem;
+      color: $text-light;
+
+      &.bulk-toggle-hint {
+        font-style: italic;
+        color: $light-accent;
+      }
+    }
+  }
+
+  .disabled-field-wrapper {
+    grid-column: 1 / -1;
+    padding: 16px;
+    border-radius: 8px;
+    background-color: rgba(0, 0, 0, 0.04);
+    border: 1px dashed rgba(0, 0, 0, 0.15);
+    opacity: 0.7;
+
+    .disabled-field-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+
+      mat-icon {
+        color: $text-light;
+        font-size: 20px;
+        width: 20px;
+        height: 20px;
+      }
+
+      span {
+        font-weight: 500;
+        color: $text-light;
+      }
+
+      .coming-soon-badge {
+        margin-left: auto;
+        padding: 2px 8px;
+        font-size: 0.7rem;
+        background-color: $secondary-color;
+        color: $white;
+        border-radius: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+    }
+
+    .field-hint {
+      margin: 4px 0 0 28px;
+      font-size: 0.8rem;
+      color: $text-light;
+      font-style: italic;
+    }
+  }
+
+  .multi-product-wrapper {
+    grid-column: 1 / -1;
+
+    .selected-products-chips {
+      margin-top: 8px;
+
+      mat-chip {
+        margin: 2px;
+        background-color: rgba($primary-color, 0.1);
+        color: $primary-color;
+        font-weight: 500;
+      }
+    }
+  }
+
+  .info-icon-btn {
+    flex-shrink: 0;
+    margin-top: 8px;
+    width: 32px;
+    height: 32px;
+    line-height: 32px;
+    color: $text-light;
+    transition: color 0.2s ease;
+
+    mat-icon {
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
+    }
+
+    &:hover {
+      color: $primary-color;
+    }
+  }
+
+  .preview-section {
+    margin-top: 20px;
+
+    .preview-info {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 16px;
+      background-color: rgba(0, 106, 106, 0.05);
+      border-radius: 8px;
+      color: $primary-color;
+
+      mat-icon {
+        font-size: 20px;
+        width: 20px;
+        height: 20px;
+      }
+    }
+  }
+
+  // ─── Actions ───
+  .dialog-actions {
+    padding: 16px 24px;
+    border-top: 2px solid $border-color;
+    background-color: $background-color;
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+
+    button {
+      min-width: 100px;
+      height: 42px;
+      font-weight: 500;
+
+      &[mat-raised-button] {
+        background-color: $primary-color;
+        color: $white;
+
+        &:hover:not([disabled]) {
+          background-color: $accent-color;
+        }
+
+        &[disabled] {
+          background-color: rgba(0, 106, 106, 0.3);
+        }
+      }
+
+      .button-spinner {
+        display: inline-block;
+        margin-right: 8px;
+
+        ::ng-deep circle {
+          stroke: $white;
+        }
+      }
+    }
+  }
+}
+
+// ─── Info Popover (paylaşımlı menü) ───
+::ng-deep .constraint-info-menu {
+  max-width: 360px !important;
+
+  .mat-mdc-menu-content {
+    padding: 0 !important;
+  }
+}
+
+.info-popover {
+  padding: 16px;
+  max-width: 360px;
+
+  .info-popover-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba($primary-color, 0.15);
+
+    mat-icon {
+      color: $primary-color;
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
+    }
+
+    strong {
+      color: $primary-color;
+      font-size: 0.95rem;
+    }
+  }
+
+  .info-popover-content {
+    margin: 0;
+    font-size: 0.85rem;
+    line-height: 1.5;
+    color: $text-dark;
+    white-space: normal;
+
+    ::ng-deep strong {
+      color: $primary-color;
+      font-weight: 600;
+    }
+  }
+}
+
+.no-results {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  color: $text-light;
+  font-style: italic;
+
+  mat-icon {
+    opacity: 0.5;
+  }
+}
+
+@media (max-width: 768px) {
+  .constraint-bulk-dialog {
+    .form-fields-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .step-indicator .step-divider {
+      width: 40px;
+    }
+  }
+}

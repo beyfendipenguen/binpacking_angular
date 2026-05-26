@@ -3,6 +3,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { map, Observable } from 'rxjs';
 import { GenericCrudService } from '@app/core/services/generic-crud.service';
 import { CompanyRelation, ExtraData } from '../interfaces/company-relation.interface';
+import { ConstraintProfile } from '../interfaces/constraint-profile.interface';
 
 export interface CompanyRelationSettings {
   truck_weight_limit: number;
@@ -59,6 +60,22 @@ export class CompanyRelationService extends GenericCrudService<CompanyRelation> 
         relation_ids: relationIds,
         extra_data_updates: extraDataUpdates,
         merge_mode: mergeMode
+      }
+    );
+  }
+  /**
+ * Toplu constraint profile güncellemesi
+ */
+  bulkUpdateConstraintProfile(
+    relationIds: string[],
+    constraintProfileUpdates: Partial<ConstraintProfile>
+  ): Observable<{ success: boolean; updated_count: number; message: string }> {
+    this.ensureApiUrl();
+    return this.http.post<any>(
+      `${this.apiUrl}bulk-update/`,
+      {
+        relation_ids: relationIds,
+        constraint_profile_updates: constraintProfileUpdates,
       }
     );
   }
