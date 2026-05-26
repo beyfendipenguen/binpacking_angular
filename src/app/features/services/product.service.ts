@@ -110,6 +110,11 @@ export class ProductService extends GenericCrudService<Product> {
     );
   }
 
+  getByIds(ids: string[]): Observable<Product[]> {
+    this.ensureApiUrl();
+    return this.http.post<Product[]>(`${this.apiUrl}by-ids/`, { ids });
+  }
+
   private parseProductQuery(query: string): any {
     const trimmedQuery = query.trim();
     const params: any = {};

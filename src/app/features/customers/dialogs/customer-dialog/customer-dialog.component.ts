@@ -22,7 +22,7 @@ import {
 } from '../../../interfaces/company-relation.interface';
 import { Company } from '../../../interfaces/company.interface';
 import { PalletGroup } from '../../../interfaces/pallet-group.interface';
-import { map, startWith } from 'rxjs/operators';
+import { finalize, map, startWith } from 'rxjs/operators';
 import { AddCompanyDialogComponent, CompanyDialogData } from '../add-company-dialog/add-company-dialog.component';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { PalletGroupDialogComponent } from '@app/features/pallets/pallet-group-dialog/pallet-group-dialog.component';
@@ -31,6 +31,12 @@ import { HasPermissionDirective } from '@app/core/auth/directives/has-permission
 import { Observable, Subject, of } from 'rxjs'; // ← Subject ve of ekle
 import { debounceTime, distinctUntilChanged, switchMap, catchError, takeUntil } from 'rxjs/operators'; // ← Operatörleri ekle
 import { EXTRA_DATA_FIELDS } from '../../config/extra-data-fields.config';
+import { MatChipsModule } from '@angular/material/chips';
+import { CONSTRAINT_FIELDS, ConstraintFieldConfig } from '../../config/constraint-fields.config';
+import { Product } from '@app/features/interfaces/product.interface';
+import { ProductService } from '@app/features/services/product.service';
+import { ConstraintProfile, createDefaultConstraintProfile } from '@app/features/interfaces/constraint-profile.interface';
+import { MatMenuModule } from '@angular/material/menu';
 
 export interface CustomerDialogData {
   mode: 'create' | 'edit';
@@ -65,7 +71,9 @@ interface ExtraDataFieldConfig {
     TranslateModule,
     MatTooltipModule,
     DisableAuthDirective,
-    HasPermissionDirective],
+    HasPermissionDirective,
+    MatChipsModule,
+    MatMenuModule],
   templateUrl: './customer-dialog.component.html',
   styleUrl: './customer-dialog.component.scss'
 })
@@ -74,6 +82,7 @@ export class CustomerDialogComponent implements OnInit, OnDestroy {
   private translate = inject(TranslateService);
   private fb = inject(FormBuilder);
   private companyRelationService = inject(CompanyRelationService);
+  private productService = inject(ProductService);
   private palletGroupService = inject(PalletGroupService);
   private toastService = inject(ToastService);
   private dialog = inject(MatDialog);
@@ -82,7 +91,8 @@ export class CustomerDialogComponent implements OnInit, OnDestroy {
   isLoading = false;
   isSaving = false;
   relationTypeOptions = RELATION_TYPE_OPTIONS;
-
+  constraintFields = CONSTRAINT_FIELDS;
+  currentInfoField: ConstraintFieldConfig | null = null;
   // Company autocomplete
   filteredCompanies$!: Observable<Company[]>;
   selectedCompany: Company | null = null;
@@ -92,6 +102,12 @@ export class CustomerDialogComponent implements OnInit, OnDestroy {
   isLoadingPalletGroups = false;
   extraDataFields = EXTRA_DATA_FIELDS;
 
+  // Product autocomplete için
+  filteredProducts: Product[] = [];
+  isSearchingProducts = false;
+  hasProductSearchError = false;
+  selectedSideProducts: Product[] = []; // UI'da chip olarak gösterilecek
+  productSearchControl: any; // ngOnInit'te kurulur
   private destroy$ = new Subject<void>();
 
   constructor(
@@ -112,10 +128,15 @@ export class CustomerDialogComponent implements OnInit, OnDestroy {
     // this.loadCompanies(); // ← BUNU SİL - Artık lazy loading
     this.loadPalletGroups();
     this.setupCompanyAutocomplete();
+    this.setupSideProductAutocomplete();
 
     if (this.data.mode === 'edit' && this.data.relation) {
       this.populateForm(this.data.relation);
     }
+  }
+
+  showFieldInfo(field: ConstraintFieldConfig): void {
+    this.currentInfoField = field;
   }
 
   ngOnDestroy(): void {
@@ -124,39 +145,65 @@ export class CustomerDialogComponent implements OnInit, OnDestroy {
   }
 
   /**
+   * Constraint field'larını gruplara göre döndür
+   * Template: @for (group of constraintGroups; track group.key)
+   */
+  get constraintGroups(): Array<{ key: string; fields: ConstraintFieldConfig[] }> {
+    const groupMap = new Map<string, ConstraintFieldConfig[]>();
+    for (const field of this.constraintFields) {
+      if (!groupMap.has(field.group)) {
+        groupMap.set(field.group, []);
+      }
+      groupMap.get(field.group)!.push(field);
+    }
+    return Array.from(groupMap.entries()).map(([key, fields]) => ({ key, fields }));
+  }
+
+  /**
    * Initialize form
    */
   private initForm(): void {
     const defaults = createDefaultCompanyRelation();
+    const constraintDefaults = createDefaultConstraintProfile();
 
     const formConfig: any = {
-      // Company selection
       target_company: [null, Validators.required],
       target_company_search: [''],
-
-      // Relation details
       relation_type: [defaults.relation_type, Validators.required],
       is_active: [defaults.is_active],
-      notes: [defaults.notes]
+      notes: [defaults.notes],
     };
 
-    // Add extra data fields dynamically - ← EKLE
+    // Extra data fields (mevcut)
     this.extraDataFields.forEach(field => {
       const defaultValue = field.key === 'default_pallet_group_id'
         ? defaults.extra_data?.default_pallet_group_id
         : (defaults.extra_data as any)?.[field.key];
-
       const validators = field.validators || [];
       formConfig[field.key] = [defaultValue, validators];
     });
 
+    // ── YENİ: Constraint fields ──
+    this.constraintFields.forEach(field => {
+      if (field.disabled) {
+        // Disabled alanlar: form'a koyma, sadece template'te placeholder
+        return;
+      }
+      if (field.type === 'multi-product') {
+        // side_product_ids — chip listesi olarak yönetilir, form'a array konur
+        formConfig[field.key] = [(constraintDefaults as any)[field.key] || []];
+      } else {
+        const defaultValue = (constraintDefaults as any)[field.key];
+        const validators = field.validators || [];
+        formConfig[field.key] = [defaultValue, validators];
+      }
+    });
+
+    // Product autocomplete için search control
+    formConfig['side_product_search'] = [''];
+
     this.form = this.fb.group(formConfig);
   }
-
-  /**
-   * Load available companies from existing relations
-   */
-
 
   /**
    * Load available pallet groups
@@ -262,17 +309,115 @@ export class CustomerDialogComponent implements OnInit, OnDestroy {
       target_company_search: relation.target_company,
       relation_type: relation.relation_type,
       is_active: relation.is_active,
-      notes: relation.notes
+      notes: relation.notes,
     };
 
-    // Add extra data fields dynamically - ← EKLE
+    // Extra data (mevcut)
     this.extraDataFields.forEach(field => {
       formValues[field.key] = (relation.extra_data as any)?.[field.key] ?? null;
     });
 
+    // ── YENİ: Constraint profile değerleri ──
+    const constraintDefaults = createDefaultConstraintProfile();
+    const incomingProfile = relation.constraint_profile || constraintDefaults;
+
+    this.constraintFields.forEach(field => {
+      if (field.disabled) return; // disabled alanlar form'da yok
+      formValues[field.key] = (incomingProfile as any)[field.key]
+        ?? (constraintDefaults as any)[field.key];
+    });
+
     this.form.patchValue(formValues);
+
+    // Side products chip listesini yükle
+    this.loadSelectedSideProducts(incomingProfile.side_product_ids || []);
+  }
+  // ─── Side product autocomplete ───
+  private setupSideProductAutocomplete(): void {
+    this.form.get('side_product_search')!.valueChanges
+      .pipe(
+        debounceTime(500),
+        distinctUntilChanged(),
+        switchMap((value) => {
+          // Product seçilince valueChanges Product objesi gönderir, biz string istiyoruz
+          if (typeof value === 'string' && value.trim().length > 2) {
+            this.isSearchingProducts = true;
+            this.hasProductSearchError = false;
+
+            return this.productService
+              .searchProductsWithParsedQuery(value, 10)
+              .pipe(
+                catchError(() => {
+                  this.hasProductSearchError = true;
+                  return of([]);
+                }),
+                finalize(() => {
+                  this.isSearchingProducts = false;
+                })
+              );
+          }
+          return of([]);
+        }),
+        takeUntil(this.destroy$)
+      )
+      .subscribe({
+        next: (products: Product[]) => {
+          // Zaten seçili olanları gösterme
+          const selectedIds = new Set(this.selectedSideProducts.map(p => p.id));
+          this.filteredProducts = products.filter(p => !selectedIds.has(p.id));
+        },
+      });
   }
 
+  /**
+   * Edit modunda gelen UUID listesini Product objelerine çevir
+   * (chip olarak göstermek için)
+   */
+  private loadSelectedSideProducts(productIds: string[]): void {
+    if (!productIds || productIds.length === 0) {
+      this.selectedSideProducts = [];
+      return;
+    }
+    // ProductService'inde "id listesiyle çek" metodun var mı?
+    // Yoksa tek tek getById çağırmak ya da searchProducts ile filtrelemek gerekir.
+    // Şimdilik basit yaklaşım: searchProducts'la veya getByIds varsa onunla
+    // (Senin ProductService'ine göre uyarla)
+    this.productService.getByIds(productIds).subscribe({
+      next: (products) => {
+        this.selectedSideProducts = products;
+      },
+      error: () => {
+        // Sessiz fail, sadece UUID'leri kullan
+        this.selectedSideProducts = productIds.map(id => ({ id, name: id } as Product));
+      }
+    });
+  }
+
+  displayProductFn(product: Product): string {
+    return product?.name || '';
+  }
+
+  /**
+   * Product seçildi → chip listesine ekle + form'u güncelle
+   */
+  onSideProductSelected(product: Product): void {
+    if (this.selectedSideProducts.find(p => p.id === product.id)) return;
+    this.selectedSideProducts.push(product);
+    this.form.patchValue({
+      side_product_ids: this.selectedSideProducts.map(p => p.id),
+      side_product_search: '',
+    });
+  }
+
+  /**
+   * Chip'ten çıkar
+   */
+  removeSideProduct(product: Product): void {
+    this.selectedSideProducts = this.selectedSideProducts.filter(p => p.id !== product.id);
+    this.form.patchValue({
+      side_product_ids: this.selectedSideProducts.map(p => p.id),
+    });
+  }
   /**
    * Open dialog to add new company
    */
@@ -344,18 +489,24 @@ export class CustomerDialogComponent implements OnInit, OnDestroy {
     }
 
     this.isSaving = true;
-
     const formValue = this.form.value;
 
-    // Build extra_data dynamically - ← DEĞİŞTİR
-    const extraData: any = {
-      _schema_version: '1.0'
-    };
-
+    // Extra data (mevcut)
+    const extraData: any = { _schema_version: '1.0' };
     this.extraDataFields.forEach(field => {
       const value = formValue[field.key];
       if (value !== null && value !== undefined) {
         extraData[field.key] = value;
+      }
+    });
+
+    // ── YENİ: Constraint profile payload ──
+    const constraintProfile: Partial<ConstraintProfile> = {};
+    this.constraintFields.forEach(field => {
+      if (field.disabled) return; // disabled alanları gönderme
+      const value = formValue[field.key];
+      if (value !== null && value !== undefined) {
+        (constraintProfile as any)[field.key] = value;
       }
     });
 
@@ -364,7 +515,8 @@ export class CustomerDialogComponent implements OnInit, OnDestroy {
       relation_type: formValue.relation_type,
       is_active: formValue.is_active,
       notes: formValue.notes || null,
-      extra_data: extraData
+      extra_data: extraData,
+      constraint_profile: constraintProfile, // ← YENİ
     };
 
     const request$ = this.data.mode === 'create'

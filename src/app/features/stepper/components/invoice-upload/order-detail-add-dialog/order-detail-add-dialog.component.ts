@@ -42,7 +42,7 @@ import { generateUUID } from 'three/src/math/MathUtils.js';
     MatProgressSpinnerModule,
     MatTabsModule,
     MatIconModule,
-    TranslateModule
+    TranslateModule,
   ],
   templateUrl: './order-detail-add-dialog.component.html',
   styleUrl: './order-detail-add-dialog.component.scss',
@@ -50,7 +50,7 @@ import { generateUUID } from 'three/src/math/MathUtils.js';
 export class OrderDetailAddDialogComponent implements OnInit {
 
   private translate = inject(TranslateService);
-orderDetailForm: FormGroup;
+  orderDetailForm: FormGroup;
   dimensionSearchForm: FormGroup;
   prod!: Product;
 

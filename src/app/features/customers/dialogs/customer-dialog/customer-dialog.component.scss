@@ -563,3 +563,173 @@ $white: #ffffff;
     }
   }
 }
+
+// ─── Constraint Section ───
+.constraint-group {
+  margin-bottom: 24px;
+  padding-left: 12px;
+  border-left: 3px solid rgba($primary-color, 0.2);
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+
+  .group-title {
+    margin: 0 0 12px 0;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: $accent-color;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+}
+
+// Disabled placeholder (gelecek özellikler)
+.disabled-field-wrapper {
+  grid-column: 1 / -1;
+  padding: 16px;
+  border-radius: 8px;
+  background-color: rgba(0, 0, 0, 0.04);
+  border: 1px dashed rgba(0, 0, 0, 0.15);
+  opacity: 0.7;
+
+  .disabled-field-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+
+    mat-icon {
+      color: $text-light;
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
+    }
+
+    span {
+      font-weight: 500;
+      color: $text-light;
+    }
+
+    .coming-soon-badge {
+      margin-left: auto;
+      padding: 2px 8px;
+      font-size: 0.7rem;
+      background-color: $secondary-color;
+      color: $white;
+      border-radius: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+  }
+
+  .field-hint {
+    margin: 4px 0 0 28px;
+    font-size: 0.8rem;
+    color: $text-light;
+    font-style: italic;
+  }
+}
+
+// Multi-product wrapper
+.multi-product-wrapper {
+  grid-column: 1 / -1;
+
+  .selected-products-chips {
+    margin-top: 8px;
+
+    mat-chip {
+      margin: 2px;
+      background-color: rgba($primary-color, 0.1);
+      color: $primary-color;
+      font-weight: 500;
+    }
+  }
+}
+// ─── Info icon (tüm field'lar için) ───
+
+.field-with-info {
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+
+  mat-form-field {
+    flex: 1;
+  }
+}
+
+.boolean-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.info-icon-btn {
+  flex-shrink: 0;
+  margin-top: 8px; // form-field outline ile hizalama
+  width: 32px;
+  height: 32px;
+  line-height: 32px;
+  color: $text-light;
+  transition: color 0.2s ease;
+
+  mat-icon {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+  }
+
+  &:hover {
+    color: $primary-color;
+  }
+}
+
+// ─── Popover içeriği ───
+::ng-deep .constraint-info-menu {
+  max-width: 360px !important;
+
+  .mat-mdc-menu-content {
+    padding: 0 !important;
+  }
+}
+
+.info-popover {
+  padding: 16px;
+  max-width: 360px;
+
+  .info-popover-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba($primary-color, 0.15);
+
+    mat-icon {
+      color: $primary-color;
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
+    }
+
+    strong {
+      color: $primary-color;
+      font-size: 0.95rem;
+    }
+  }
+
+  .info-popover-content {
+    margin: 0;
+    font-size: 0.85rem;
+    line-height: 1.5;
+    color: $text-dark;
+    white-space: normal;
+
+    // Translation'larda kullandığımız **bold** yazımı için
+    ::ng-deep strong {
+      color: $primary-color;
+      font-weight: 600;
+    }
+  }
+}

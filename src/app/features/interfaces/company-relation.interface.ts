@@ -1,4 +1,6 @@
+import { Base } from "@app/core/interfaces/base.interface";
 import { Company } from "./company.interface";
+import { ConstraintProfile } from "./constraint-profile.interface";
 
 export enum RelationType {
   CUSTOMER = 'customer',
@@ -10,16 +12,14 @@ export enum RelationType {
   OTHER = 'other'
 }
 
-export interface CompanyRelation {
-  id?: string;
+export interface CompanyRelation extends Base {
   target_company: Company;
   relation_type: RelationType;
   relation_type_display: string;
   is_active: boolean;
   notes?: string | null;
   extra_data?: ExtraData | null;
-  created_at?: Date;
-  updated_at?: Date;
+  constraint_profile?: Partial<ConstraintProfile>;
 }
 
 export interface ExtraData {
@@ -37,6 +37,7 @@ export interface CompanyRelationDto {
   is_active: boolean;
   notes?: string | null;
   extra_data?: ExtraData | null;
+  constraint_profile?: Partial<ConstraintProfile>;
 }
 
 // ✅ Translation key'leri döndür (component'te translate edilecek)

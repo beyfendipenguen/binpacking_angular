@@ -12,6 +12,7 @@ import { toInteger } from 'lodash';
 import { mapPackageReadDtoListToIUiPackageList } from '@app/features/mappers/package.mapper';
 import { IUiPackage } from '@app/features/stepper/interfaces/ui-interfaces/ui-package.interface';
 import { OrderDetailRead } from '@app/features/interfaces/order-detail.interface';
+import { Order } from '@app/features/interfaces/order.interface';
 
 // Helper Functions
 const consolidatePackageDetails = (packageDetails: PackageDetailReadDto[]): PackageDetailReadDto[] => {
@@ -296,6 +297,7 @@ export const stepperPackageHandlers = [
 
     let targetPackageDetail: PackageDetailReadDto | undefined;
     let targetPackage: any;
+    const order = state.order;
 
     for (const pkg of state.step2State.packages) {
       const found = pkg.package_details.find(pd => pd.id === packageDetailId);
@@ -319,7 +321,8 @@ export const stepperPackageHandlers = [
 
     const fillPercentage = getPalletFillPercentage(
       targetPackage.pallet,
-      tempPackageDetails
+      tempPackageDetails,
+      order!
     );
 
     if (fillPercentage <= 100) {
@@ -1031,7 +1034,8 @@ function calculateUsedVolume(packageDetails: PackageDetailReadDto[]): number {
 
 function getPalletFillPercentage(
   pallet: UiPallet,
-  packageDetails: PackageDetailReadDto[]
+  packageDetails: PackageDetailReadDto[],
+  order: Order
 ): number {
   if (!pallet?.dimension) {
     return 0;
@@ -1040,7 +1044,7 @@ function getPalletFillPercentage(
   const palletTotalVolume =
     safeNumber(Number(pallet.dimension.width)) *
     safeNumber(Number(pallet.dimension.depth)) *
-    safeNumber(Number(pallet.dimension.height));
+    safeNumber(Number(order.max_pallet_height));
 
   const usedVolume = calculateUsedVolume(packageDetails);
 

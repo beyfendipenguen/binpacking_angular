@@ -446,7 +446,7 @@ export class PalletControlComponent
     const palletTotalVolume =
       this.safeNumber(pallet.dimension.width) *
       this.safeNumber(pallet.dimension.depth) *
-      this.safeNumber(pallet.dimension.height);
+      this.safeNumber(this.orderSignal()?.max_pallet_height);
     const usedVolume = this.calculateUsedVolume(existingPacakgeDetails);
     return Math.round((usedVolume / palletTotalVolume) * 100);
   }
