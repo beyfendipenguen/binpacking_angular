@@ -1021,34 +1021,67 @@ form {
   overflow: hidden;
   transition: all 0.3s ease;
 
-  &.remaining-package {
-    border: 2px dashed #ff9800;
-    background-color: rgba(255, 152, 0, 0.03);
+  &.remaining-package, &.heavy-package {
+    border: 2px dashed transparent;
 
     .package-header {
-      background: repeating-linear-gradient(
-        45deg,
-        #ff9800,
-        #ff9800 10px,
-        #f57c00 10px,
-        #f57c00 20px
-      );
+      position: relative; // İkonların hizalanması için şart
 
-      &::before {
-        content: "⚠";
+      // Her iki ikon için ortak iskelet (DRY)
+      .warning-icon {
         position: absolute;
         top: 50%;
-        left: 75%;
+        left: 75%; // Varsayılan konum (Tek ikon varken)
         transform: translate(-50%, -50%);
-        font-size: 30px;
+        font-size: 20px;
         z-index: 15;
+        cursor: pointer;
         animation: shake-center 3s ease-in-out infinite;
       }
     }
 
     &:hover {
       border-style: solid;
-      background-color: rgba(255, 152, 0, 0.08);
+    }
+  }
+
+  // 2. DURUMA ÖZEL RENKLER VE ÖZELLEŞTİRMELER
+
+  // Sadece Kalan Paket Durumu
+  // Sadece Ağır Paket Durumu
+  &.heavy-package {
+    border-color: #f44336;
+    background-color: rgba(244, 67, 54, 0.03);
+
+    .package-header {
+      background: repeating-linear-gradient(45deg, #f44336, #f44336 10px, #d32f2f 10px, #d32f2f 20px);
+    }
+    &:hover { background-color: rgba(244, 67, 54, 0.08); }
+  }
+
+  &.remaining-package {
+    border-color: #ff9800;
+    background-color: rgba(255, 152, 0, 0.03);
+
+    .package-header {
+      background: repeating-linear-gradient(45deg, #ff9800, #ff9800 10px, #f57c00 10px, #f57c00 20px);
+    }
+    &:hover { background-color: rgba(255, 152, 0, 0.08); }
+  }
+  // 3. ÇAKIŞMA ÖNLEYİCİ (İKİ KOŞUL DA AKTİFSE)
+  &.heavy-package.remaining-package {
+    // Arka plan rengi olarak daha kritik olan kırmızıyı baskın yapalım veya harmanlayalım
+    border-color: #f44336;
+
+    .package-header {
+      background: repeating-linear-gradient(45deg, #ff9800, #ff9800 10px, #d32f2f 10px, #d32f2f 20px);
+      // İkonlar yan yana gelsin diye konumları güncelliyoruz
+      .remaining-warning-icon {
+        left: 70% !important; // Turuncu ikon biraz sola kayar
+      }
+      .heavy-warning-icon {
+        left: 80% !important; // Kırmızı ikon biraz sağa kayar
+      }
     }
   }
 }

@@ -199,32 +199,6 @@
 
           </div>
 
-          <!-- Palet İstatistikleri - Aynı satırda -->
-          <!-- <div class="pallet-stats-inline">
-            <div class="stat-item heaviest">
-              <mat-icon>fitness_center</mat-icon>
-              <div class="stat-info">
-                <span class="stat-label">{{ 'PALLET_CONTROL.HEAVIEST' | translate }}</span>
-                <span class="stat-value">{{ heaviestPalletWeight() }} kg</span>
-              </div>
-            </div>
-
-            <div class="stat-item lightest">
-              <mat-icon>feather</mat-icon>
-              <div class="stat-info">
-                <span class="stat-label">{{ 'PALLET_CONTROL.LIGHTEST' | translate }}</span>
-                <span class="stat-value">{{ lightestPalletWeight() }} kg</span>
-              </div>
-            </div>
-
-            <div class="stat-item average">
-              <mat-icon>analytics</mat-icon>
-              <div class="stat-info">
-                <span class="stat-label">{{ 'PALLET_CONTROL.AVERAGE' | translate }}</span>
-                <span class="stat-value">{{ averagePalletWeight() }} kg</span>
-              </div>
-            </div>
-          </div> -->
           <div class="undo-redo-controls">
             <button mat-icon-button class="history-btn" (click)="undo()" [disabled]="!canUndo()"
               [matTooltip]="'COMMON.UNDO' | translate" [appDisableAuth]="['logistics.add_package']">
@@ -246,8 +220,22 @@
 
       <div class="packages-grid">
         @for(package of uiPackages(); track package.id){
-        <div class="package-card" [class.remaining-package]="!package.is_remaining">
+        <div class="package-card" [class.remaining-package]="!package.is_remaining" [class.heavy-package]="isHeavyPackage(package)">
           <div class="package-header">
+            <span *ngIf="!package.is_remaining"
+                  class="warning-icon remaining-warning-icon"
+                  [matTooltip]="'PALLET.REMAINING_TOOLTIP' | translate"
+                  matTooltipPosition="above">
+                  ⚠
+            </span>
+
+            <span *ngIf="isHeavyPackage(package)"
+                  class="warning-icon heavy-warning-icon"
+                  [matTooltip]="'PALLET.HEAVY_WARNING_TOOLTIP' | translate"
+                  matTooltipPosition="above">
+                  ❗
+            </span>
+
             <div class="package-title">
               <mat-icon>inbox</mat-icon>
               <span>{{'PALLET.PALLET'| translate}} {{ package.name }}</span>

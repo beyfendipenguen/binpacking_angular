@@ -101,7 +101,6 @@ import { PalletService } from '@app/features/services/pallet.service';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActiveToast } from 'ngx-toastr';
 import { CalculateParamsDialogComponent } from './calculate-params-dialog/calculate-params-dialog.component';
-import { TourService } from '@app/features/services/tour.service';
 
 @Component({
   selector: 'app-pallet-control',
@@ -135,7 +134,6 @@ export class PalletControlComponent
 
   private translate = inject(TranslateService);
   private readonly dialog = inject(MatDialog);
-  private tourService = inject(TourService);
 
   //product search
   searchControl = new FormControl('');
@@ -193,16 +191,6 @@ export class PalletControlComponent
   public totalMeter = this.store.selectSignal(selectTotalPackagesMeter);
   public remainingArea = this.store.selectSignal(selectRemainingArea);
 
-  public heaviestPalletWeight = this.store.selectSignal(
-    selectHeaviestPackageWeight
-  );
-  public lightestPalletWeight = this.store.selectSignal(
-    selectLightestPackageWeight
-  );
-  public averagePalletWeight = this.store.selectSignal(
-    selectAveragePackageWeight
-  );
-
   saveSnapshot(): void {
     this.store.dispatch(StepperPackageActions.savePackageSnapshot());
   }
@@ -213,6 +201,18 @@ export class PalletControlComponent
 
   redo(): void {
     this.store.dispatch(StepperPackageActions.redoPackage());
+  }
+
+  isHeavyPackage(pkg: UiPackage): boolean {
+    const totalWeight = this.packageTotalWeight(pkg);
+    const totalWeightLimit = this.orderSignal()?.company_relation?.constraint_profile?.max_pallet_weight_kg ?? Infinity;
+
+    if (totalWeightLimit === 0) {
+      return false;
+    }
+
+    // Paket ağırlığı limiti geçiyorsa ağırdır (true), geçmiyorsa değildir (false)
+    return totalWeight > totalWeightLimit;
   }
 
   // Pallet weight analytics
