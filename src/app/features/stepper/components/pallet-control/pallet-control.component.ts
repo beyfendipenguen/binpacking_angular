@@ -101,6 +101,9 @@ import { PalletService } from '@app/features/services/pallet.service';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActiveToast } from 'ngx-toastr';
 import { CalculateParamsDialogComponent } from './calculate-params-dialog/calculate-params-dialog.component';
+import { AlgorithmParamsDialogComponent, AlgorithmParamsDialogData } from './algorithm-params-dialog/algorithm-params-dialog.component';
+import { ConstraintProfileService } from '@app/features/services/constraint-profile.service';
+import { ConstraintProfile } from '@app/features/interfaces/constraint-profile.interface';
 
 @Component({
   selector: 'app-pallet-control',
@@ -151,6 +154,7 @@ export class PalletControlComponent
   private readonly store = inject(Store<AppState>);
   private readonly productService = inject(ProductService);
   private readonly palletService = inject(PalletService);
+  private constraintProfileService = inject(ConstraintProfileService);
 
   uiPackages = this.store.selectSignal(selectUiPackages);
   remainingProducts = this.store.selectSignal(selectRemainingProducts);
@@ -1018,6 +1022,45 @@ export class PalletControlComponent
         );
 
       }
+    });
+  }
+
+  openAlgorithmParamsDialog(): void {
+    const companyRelationId = this.orderSignal()?.company_relation?.id;
+
+    if (!companyRelationId) {
+      this.toastService.error(this.translate.instant('ORDER.NO_COMPANY_RELATION'));
+      return;
+    }
+
+    this.constraintProfileService.getByRelationId(companyRelationId).subscribe({
+      next: (constraintProfile) => {
+        const dialogRef = this.dialog.open(AlgorithmParamsDialogComponent, {
+          width: '600px',
+          maxWidth: '95vw',
+          maxHeight: '90vh',
+          disableClose: false,
+          data: { constraintProfile } satisfies AlgorithmParamsDialogData,
+        });
+
+        dialogRef.afterClosed().subscribe((result: ConstraintProfile | null) => {
+          if (!result) return;
+
+          this.constraintProfileService
+            .partialUpdate(constraintProfile.id, result)
+            .subscribe({
+              next: () => {
+                this.toastService.success(this.translate.instant('CONSTRAINT.SAVED'));
+              },
+              error: () => {
+                this.toastService.error(this.translate.instant('COMMON.ERROR'));
+              },
+            });
+        });
+      },
+      error: () => {
+        this.toastService.error(this.translate.instant('CONSTRAINT.NOT_FOUND'));
+      },
     });
   }
 

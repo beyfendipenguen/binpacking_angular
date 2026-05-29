@@ -7,6 +7,7 @@
  * Backend: logistics.models.RelationConstraintProfile
  */
 export interface ConstraintProfile  {
+  id:string;
   // ─── Bölüm 1 — temel tolerans ───
   size_tolerance_mm: number;
   depth_short_tolerance_mm: number;
@@ -41,6 +42,7 @@ export interface ConstraintProfile  {
  */
 export function createDefaultConstraintProfile(): ConstraintProfile {
   return {
+    id:'',
     size_tolerance_mm: 1.0,
     depth_short_tolerance_mm: 200.0,
     combination_tolerance_mm: 0.0,
