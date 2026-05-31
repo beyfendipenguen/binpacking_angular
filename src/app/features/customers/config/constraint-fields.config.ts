@@ -147,7 +147,15 @@ export const CONSTRAINT_FIELDS: ConstraintFieldConfig[] = [
     hint: 'CONSTRAINT.SIDE_PRODUCTS_HINT',
     detailedInfo: 'CONSTRAINT.SIDE_PRODUCTS_DETAIL',
   },
-
+  {
+    key: 'enable_loose_remainder_packing',
+    type: 'boolean',
+    icon: 'auto_awesome_mosaic',
+    label: 'CONSTRAINT.ENABLE_LOOSE_REMAINDER_PACKING',
+    hint: 'CONSTRAINT.ENABLE_LOOSE_REMAINDER_PACKING_HINT',
+    detailedInfo: 'CONSTRAINT.ENABLE_LOOSE_REMAINDER_PACKING_DETAIL',
+    group: 'CONSTRAINT.GROUP_REMAINDER'
+  },
   // ─── Grup 6: Ağırlık Uyarısı ───
   {
     key: 'max_pallet_weight_kg',

@@ -25,7 +25,7 @@ export interface ConstraintProfile  {
   anchor_min_full_pallets: number;
   flat_product_height_threshold: number;
   side_product_ids: string[]; // UUID listesi
-
+  enable_loose_remainder_packing?: boolean;
   // ─── UI uyarı (algoritma kullanmıyor) ───
   max_pallet_weight_kg: number | null;
 
@@ -54,6 +54,7 @@ export function createDefaultConstraintProfile(): ConstraintProfile {
     width_symmetric_tolerance_mm: 100.0,
     anchor_min_full_pallets: 1,
     flat_product_height_threshold: 40.0,
+    enable_loose_remainder_packing: false,
     side_product_ids: [],
     max_pallet_weight_kg: null,
     forbidden_pairs: [],
