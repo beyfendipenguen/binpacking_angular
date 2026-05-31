@@ -14,7 +14,8 @@ export interface ConstraintProfile  {
   combination_tolerance_mm: number;
   min_fill_ratio: number;
   max_geometric_ratio: number;
-
+  pallet_depth_margin_mm:number,
+  pallet_width_margin_mm:number,
   // ─── Bölüm 2 — simetrik tolerans ───
   check_depth_symmetric: boolean;
   depth_symmetric_tolerance_mm: number;
@@ -47,6 +48,8 @@ export function createDefaultConstraintProfile(): ConstraintProfile {
     depth_short_tolerance_mm: 200.0,
     combination_tolerance_mm: 0.0,
     min_fill_ratio: 0.0,
+    pallet_depth_margin_mm:0.0,
+    pallet_width_margin_mm:0.0,
     max_geometric_ratio: 2.0,
     check_depth_symmetric: false,
     depth_symmetric_tolerance_mm: 200.0,

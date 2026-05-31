@@ -61,6 +61,28 @@ export const CONSTRAINT_FIELDS: ConstraintFieldConfig[] = [
     detailedInfo: 'CONSTRAINT.MIN_FILL_RATIO_DETAIL',
     validators: [Validators.min(0), Validators.max(100)],
   },
+  {
+    key: 'pallet_width_margin_mm',
+    label: 'CONSTRAINT.PALLET_WIDTH_MARGIN',
+    type: 'number',
+    icon: 'swap_horiz',
+    group: 'CONSTRAINT.GROUP_PALLET_TOLERANCE',
+    suffix: 'mm',
+    hint: 'CONSTRAINT.PALLET_WIDTH_MARGIN_HINT',
+    detailedInfo: 'CONSTRAINT.PALLET_WIDTH_MARGIN_DETAIL',
+    validators: [Validators.min(0)],
+  },
+  {
+    key: 'pallet_depth_margin_mm',
+    label: 'CONSTRAINT.PALLET_DEPTH_MARGIN',
+    type: 'number',
+    icon: 'swap_vert',
+    group: 'CONSTRAINT.GROUP_PALLET_TOLERANCE',
+    suffix: 'mm',
+    hint: 'CONSTRAINT.PALLET_DEPTH_MARGIN_HINT',
+    detailedInfo: 'CONSTRAINT.PALLET_DEPTH_MARGIN_DETAIL',
+    validators: [Validators.min(0)],
+  },
 
   // ─── Grup 2: Simetrik Tolerans ───
   {
