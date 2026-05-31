@@ -88,8 +88,8 @@ export const CONSTRAINT_FIELDS: ConstraintFieldConfig[] = [
     type: 'boolean',
     icon: 'compare_arrows',
     group: 'CONSTRAINT.GROUP_SYMMETRIC',
-    detailedInfo: 'CONSTRAINT.SIZE_TOLERANCE_DETAIL',
-    hint: 'CONSTRAINT.CHECK_WIDTH_SYMMETRIC_DETAIL',
+    detailedInfo: 'CONSTRAINT.CHECK_WIDTH_SYMMETRIC_DETAIL',
+    hint: 'CONSTRAINT.CHECK_WIDTH_SYMMETRIC_HINT',
   },
   {
     key: 'width_symmetric_tolerance_mm',
