@@ -345,7 +345,7 @@ export class CustomerDialogComponent implements OnInit, OnDestroy {
             this.hasProductSearchError = false;
 
             return this.productService
-              .searchProductsWithParsedQuery(value, 10)
+              .searchProducts(value, 10)
               .pipe(
                 catchError(() => {
                   this.hasProductSearchError = true;

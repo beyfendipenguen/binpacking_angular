@@ -20,6 +20,7 @@ export interface ProductDialogData {
 
 export interface ProductDialogResult {
   type_name: string;
+  barcode?: string | null;
   product_type: { type: string; code: string };
   dimension: {
     width: number;
@@ -77,6 +78,7 @@ export class ProductDialogComponent implements OnInit {
     const p = this.data?.product;
     this.form = this.fb.group({
       type_name: [p?.type_name ?? '', [Validators.required, Validators.maxLength(500)]],
+      barcode: [p?.barcode ?? '', [Validators.maxLength(100)]],
       product_type_type: [p?.product_type?.type ?? '', [Validators.required, Validators.maxLength(255)]],
       product_type_code: [p?.product_type?.code ?? '', [Validators.required, Validators.maxLength(255)]],
       dimension_width: [p?.dimension?.width ?? null, [Validators.required, Validators.min(0.001)]],
@@ -141,6 +143,7 @@ export class ProductDialogComponent implements OnInit {
 
     const result: ProductDialogResult = {
       type_name: v.type_name,
+      barcode: v.barcode || null,
       product_type: {
         type: v.product_type_type,
         code: v.product_type_code,

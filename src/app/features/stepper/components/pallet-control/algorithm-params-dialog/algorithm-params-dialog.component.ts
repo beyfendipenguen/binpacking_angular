@@ -173,7 +173,7 @@ export class AlgorithmParamsDialogComponent implements OnInit, OnDestroy {
         switchMap(value => {
           if (typeof value !== 'string' || value.trim().length < 3) return of([]);
           this.isSearchingProducts = true;
-          return this.productService.searchProductsWithParsedQuery(value.trim(), 10).pipe(
+          return this.productService.searchProducts(value.trim(), 10).pipe(
             catchError(() => of([])),
             finalize(() => (this.isSearchingProducts = false)),
           );

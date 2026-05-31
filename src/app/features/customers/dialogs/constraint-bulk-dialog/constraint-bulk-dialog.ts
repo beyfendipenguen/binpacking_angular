@@ -275,7 +275,7 @@ export class ConstraintBulkDialogComponent implements OnInit, OnDestroy {
         switchMap((value) => {
           if (typeof value === 'string' && value.trim().length > 2) {
             this.isSearchingProducts = true;
-            return this.productService.searchProductsWithParsedQuery(value, 10).pipe(
+            return this.productService.searchProducts(value, 10).pipe(
               catchError(() => of([])),
               finalize(() => { this.isSearchingProducts = false; })
             );

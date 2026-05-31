@@ -96,9 +96,8 @@ export class OrderDetailAddDialogComponent implements OnInit {
             this.isLoading = true;
             this.hasError = false;
 
-            // Artık searchProductsWithParsedQuery kullan
             return this.productService
-              .searchProductsWithParsedQuery(value, 10)
+              .searchProducts(value, 10)
               .pipe(
                 catchError((error) => {
                   this.hasError = true;

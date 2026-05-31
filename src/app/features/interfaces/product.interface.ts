@@ -8,6 +8,7 @@ export interface Product extends Base {
   name?: string;
   product_type: ProductType;
   type_name?: string;
+  barcode?: string | null;
   dimension: Dimension;
   weights: ProductWeight[];  // weight_type → weights array
   company?: Company;
