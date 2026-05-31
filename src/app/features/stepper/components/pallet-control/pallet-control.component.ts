@@ -51,9 +51,6 @@ import {
   remainingProductCount,
   selectOrder,
   uiPackageCount,
-  selectAveragePackageWeight,
-  selectHeaviestPackageWeight,
-  selectLightestPackageWeight,
   selectRemainingArea,
   selectRemainingWeight,
   selectTotalPackagesMeter,
@@ -66,6 +63,7 @@ import {
   selectOrderDetails,
   selectCanUndo,
   selectCanRedo,
+  StepperInvoiceUploadActions,
 } from '@app/store';
 import {
   catchError,
@@ -607,7 +605,7 @@ export class PalletControlComponent
         switchMap((value) => {
           if (typeof value === 'string' && value.length > 2) {
             this.isSearching = true;
-            return this.productService.searchProductsWithParsedQuery(value, 10).pipe( // Yeni parse servisini kullan
+            return this.productService.searchProducts(value, 10).pipe( // Yeni parse servisini kullan
               catchError((error) => {
                 return of([]);
               }),
@@ -961,7 +959,6 @@ export class PalletControlComponent
     if (!this.orderDetailsIsDirtySignal()) {
       this.saveSnapshot();
       this.store.dispatch(StepperPackageActions.calculatePackageDetail());
-      // this.tourService.continueStep1TourAfterCalculate();
     }
   }
 
@@ -1044,18 +1041,14 @@ export class PalletControlComponent
         });
 
         dialogRef.afterClosed().subscribe((result: ConstraintProfile | null) => {
-          if (!result) return;
-
-          this.constraintProfileService
-            .partialUpdate(constraintProfile.id, result)
-            .subscribe({
-              next: () => {
-                this.toastService.success(this.translate.instant('CONSTRAINT.SAVED'));
-              },
-              error: () => {
-                this.toastService.error(this.translate.instant('COMMON.ERROR'));
-              },
-            });
+          if (!result || !companyRelationId || !constraintProfile.id) return;
+          this.store.dispatch(
+            StepperInvoiceUploadActions.updateConstraintProfile({
+              relationId: companyRelationId,
+              profileId: constraintProfile.id,
+              changes: result
+            })
+          );
         });
       },
       error: () => {

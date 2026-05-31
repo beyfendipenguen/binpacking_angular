@@ -3,7 +3,6 @@ import { StepperState } from '../stepper.state';
 import { StepperInvoiceUploadActions } from '../actions/stepper-invoice-upload.actions';
 import { Order } from '@app/features/interfaces/order.interface';
 import { OrderDetailDiffCalculator } from '@features/utils/order-detail-diff.util';
-import { StepperUiActions } from '../actions/stepper-ui.actions';
 import { IUiPackage } from '@app/features/stepper/interfaces/ui-interfaces/ui-package.interface';
 import { PackageDetailReadDto } from '@app/features/interfaces/package-detail.interface';
 
@@ -63,6 +62,21 @@ export const stepperOrderHandlers = [
       hasFile,
       fileName,
     }
+  })),
+
+  on(StepperInvoiceUploadActions.updateConstraintProfileSuccess, (state: StepperState, { updatedProfile }) => ({
+    ...state,
+    order: state.order
+      ? {
+          ...state.order,
+          company_relation: state.order.company_relation
+            ? {
+                ...state.order.company_relation,
+                constraint_profile: updatedProfile
+              }
+            : null
+        }
+      : null
   })),
 
   // Dosya Yükleme Durumları

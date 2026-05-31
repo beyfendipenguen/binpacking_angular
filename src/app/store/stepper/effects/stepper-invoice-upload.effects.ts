@@ -20,6 +20,7 @@ import {
 import { OrderService } from '@features/services/order.service';
 import { RepositoryService } from '@features/stepper/services/repository.service';
 import { FileUploadManager } from '@features/stepper/components/invoice-upload/managers/file-upload.manager';
+import { ConstraintProfileService } from '@app/features/services/constraint-profile.service';
 
 @Injectable()
 export class StepperInvoiceUploadEffects {
@@ -28,6 +29,7 @@ export class StepperInvoiceUploadEffects {
   private orderService = inject(OrderService);
   private repositoryService = inject(RepositoryService);
   private fileUploadManager = inject(FileUploadManager);
+  private constraintProfileService = inject(ConstraintProfileService)
 
   // Dosya Yükleme Trigger
   triggerUploadFileToOrder$ = createEffect(() =>
@@ -52,6 +54,23 @@ export class StepperInvoiceUploadEffects {
           catchError((error) => of(StepperUiActions.setGlobalError({ error: { message: error.message } })))
         );
       })
+    )
+  );
+
+  updateConstraintProfile$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(StepperInvoiceUploadActions.updateConstraintProfile),
+      mergeMap(({ profileId, changes }) =>
+        this.constraintProfileService.partialUpdate(profileId, changes).pipe(
+          map((updatedProfile) => {
+            // Reducer'ı tetikleyen yer burası:
+            return StepperInvoiceUploadActions.updateConstraintProfileSuccess({ updatedProfile });
+          }),
+          catchError((error) => {
+            return of(StepperInvoiceUploadActions.updateConstraintProfileFailure({ error }));
+          })
+        )
+      )
     )
   );
 

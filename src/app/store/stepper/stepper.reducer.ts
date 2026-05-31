@@ -2,7 +2,7 @@ import { createReducer } from '@ngrx/store';
 import { initialStepperState } from './stepper.state';
 
 // Import all reducer handlers
-import { stepperOrderHandlers } from './reducers/stepper-order.reducer';
+import { stepperOrderHandlers } from './reducers/stepper-invoice-upload.reducer';
 import { stepperPackageHandlers } from './reducers/stepper-package.reducer';
 import { stepperResultHandlers } from './reducers/stepper-result.reducer';
 import { stepperUiHandlers } from './reducers/stepper-ui.reducer';

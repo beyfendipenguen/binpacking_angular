@@ -2,6 +2,7 @@ import { createActionGroup, emptyProps, props } from '@ngrx/store';
 import { Order } from '@features/interfaces/order.interface';
 import { OrderDetailRead } from '@app/features/interfaces/order-detail.interface';
 import { Document } from '@app/features/interfaces/file.interface';
+import { ConstraintProfile } from '@app/features/interfaces/constraint-profile.interface';
 
 export const StepperInvoiceUploadActions = createActionGroup({
   source: 'Stepper Invoice Upload',
@@ -42,6 +43,11 @@ export const StepperInvoiceUploadActions = createActionGroup({
     'Invoice Upload Step Submit': emptyProps(),
 
     // Template File
-    'Get Report Template File': props<{ file: Document }>()
+    'Get Report Template File': props<{ file: Document }>(),
+
+    // Constraint Profile Güncelleme Action'ları
+    'Update Constraint Profile': props<{ relationId: string; profileId: string; changes: ConstraintProfile }>(),
+    'Update Constraint Profile Success': props<{ updatedProfile: ConstraintProfile }>(),
+    'Update Constraint Profile Failure': props<{ error: any }>(),
   }
 });

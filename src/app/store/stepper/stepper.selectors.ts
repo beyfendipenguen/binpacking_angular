@@ -521,41 +521,9 @@ export const selectTotalProductCount = createSelector(
   (orderDetails) => orderDetails.reduce((sum, od) => sum + od.count, 0)
 );
 
-
-export const selectHeaviestPackageWeight = createSelector(
-  selectPackageWeightList,
-  (activePalletWeights) => {
-    const weights = activePalletWeights.map(w => Number(w) || 0);
-    if (weights.length === 0) return 0;
-    const maxWeight = Math.max(...weights);
-    return Math.round(maxWeight * 100) / 100;
-  }
-);
-
-export const selectLightestPackageWeight = createSelector(
-  selectPackageWeightList,
-  (activePalletWeights) => {
-    const weights = activePalletWeights.map(w => Number(w) || 0);
-    if (weights.length === 0) return 0;
-    const minWeight = Math.min(...weights);
-    return Math.round(minWeight * 100) / 100;
-  }
-);
-
-export const selectAveragePackageWeight = createSelector(
-  selectPackageWeightList,
-  (activePalletWeights) => {
-    const weights = activePalletWeights.map(w => Number(w) || 0);
-    if (weights.length === 0) return 0;
-    const totalWeight = weights.reduce((sum, weight) => sum + weight, 0);
-    return Math.round((totalWeight / weights.length) * 100) / 100;
-  }
-);
-
 export const selectNonEmptyPackageCount = createSelector(selectPackageWeightList, (packageWeights) =>
   packageWeights.length
 );
-
 
 // Step3 Migration Selectors (Step2 selectors'ların altına ekle)
 export const selectStep3State = createSelector(
