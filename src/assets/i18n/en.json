@@ -265,7 +265,9 @@
       "FUMIGATION_TYPE": "Fumigation Type",
       "SIDE_COVER_TYPE": "Metal Side Cover Type",
       "IS_MADE_IN_TURKEY": "Made in Turkey Label",
-      "LABEL_NAME": "Label Name"
+      "LABEL_NAME": "Label Name",
+      "REPORT_FIELDS": "Customer Report Fields",
+      "REPORT_FIELDS_HINT": "These are company-specific fields that will appear in the order template"
     }
   },
   "CUSTOMER_MESSAGES": {
@@ -614,6 +616,7 @@
     "ITEM": "Item",
     "PRODUCTS_COUNT": "products",
     "TEMPLATE_DOWNLOAD_ERROR": "Template could not be downloaded",
+    "TEMPLATE_FILE_NAME": "Order Form",
     "TABLE": {
       "PRODUCT_NAME": "Name",
       "PRODUCT_SHORT_NAME": "Short Name",
@@ -1208,5 +1211,24 @@
       "UPDATE_SUCCESS": "Algorithm settings updated for {{count}} customers",
       "UPDATE_ERROR": "An error occurred during the update"
     }
+  },
+  "REPORT_PROFILE": {
+    "TITLE": "Report Profile",
+    "MENU_TITLE": "Report Profile Settings",
+    "TEMPLATE_SCHEMA": "Template Schema",
+    "SCHEMA_LABEL": "Schema",
+    "SCHEMA_HINT": "Which report template will be used for this tenant",
+    "EXTRA_FIELDS": "Extra Header Fields",
+    "EXTRA_FIELDS_HINT": "Company-specific fields that will appear in the order template",
+    "ADD_FIELD": "Add Field",
+    "FIELD_KEY": "Field Key",
+    "FIELD_LABEL": "Field Label",
+    "KEY_HINT": "Lowercase letters and underscores only (e.g. fumigation_type)",
+    "KEY_PATTERN_ERROR": "Only lowercase letters and underscores are allowed",
+    "KEY_REQUIRED": "Field key is required",
+    "LABEL_REQUIRED": "Label is required",
+    "DUPLICATE_KEY": "This key already exists",
+    "NO_FIELDS": "No extra fields have been added yet",
+    "SAVED": "Report profile saved"
   }
 }

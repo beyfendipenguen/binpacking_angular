@@ -1,0 +1,132 @@
+<div class="report-profile-dialog">
+  <div class="dialog-header">
+    <div class="header-left">
+      <mat-icon class="header-icon">tune</mat-icon>
+      <h2 mat-dialog-title>{{ 'REPORT_PROFILE.TITLE' | translate }}</h2>
+    </div>
+    <button mat-icon-button (click)="onCancel()" class="close-btn">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <mat-dialog-content class="dialog-content">
+    @if (isLoading()) {
+      <div class="loading-container">
+        <mat-spinner diameter="40"></mat-spinner>
+      </div>
+    } @else {
+
+      <!-- Extra Header Fields -->
+      <div class="form-section">
+        <div class="section-header">
+          <h3 class="section-title">
+            <mat-icon>list_alt</mat-icon>
+            {{ 'REPORT_PROFILE.EXTRA_FIELDS' | translate }}
+          </h3>
+          <button mat-raised-button color="primary" type="button"
+                  (click)="startAddField()" [disabled]="isAddingField()">
+            <mat-icon>add</mat-icon>
+            {{ 'REPORT_PROFILE.ADD_FIELD' | translate }}
+          </button>
+        </div>
+
+        <p class="section-hint">{{ 'REPORT_PROFILE.EXTRA_FIELDS_HINT' | translate }}</p>
+
+        <!-- Yeni Alan Formu -->
+        @if (isAddingField()) {
+          <div class="add-field-form">
+            <form [formGroup]="newFieldForm" class="new-field-row">
+              <mat-form-field appearance="outline" class="field-key">
+                <mat-label>{{ 'REPORT_PROFILE.FIELD_KEY' | translate }}</mat-label>
+                <input matInput formControlName="key"
+                       placeholder="fumigation_type" />
+                <mat-icon matPrefix>key</mat-icon>
+                @if (newFieldForm.get('key')?.hasError('pattern') && newFieldForm.get('key')?.touched) {
+                  <mat-error>{{ 'REPORT_PROFILE.KEY_PATTERN_ERROR' | translate }}</mat-error>
+                }
+                @if (newFieldForm.get('key')?.hasError('required') && newFieldForm.get('key')?.touched) {
+                  <mat-error>{{ 'REPORT_PROFILE.KEY_REQUIRED' | translate }}</mat-error>
+                }
+                <mat-hint>{{ 'REPORT_PROFILE.KEY_HINT' | translate }}</mat-hint>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="field-label">
+                <mat-label>{{ 'REPORT_PROFILE.FIELD_LABEL' | translate }}</mat-label>
+                <input matInput formControlName="label"
+                       placeholder="Fumigasyon Tipi" />
+                <mat-icon matPrefix>label</mat-icon>
+                @if (newFieldForm.get('label')?.hasError('required') && newFieldForm.get('label')?.touched) {
+                  <mat-error>{{ 'REPORT_PROFILE.LABEL_REQUIRED' | translate }}</mat-error>
+                }
+              </mat-form-field>
+
+              <div class="add-field-actions">
+                <button mat-icon-button color="primary" type="button"
+                        (click)="addField()"
+                        [matTooltip]="'COMMON.ADD' | translate">
+                  <mat-icon>check</mat-icon>
+                </button>
+                <button mat-icon-button type="button"
+                        (click)="cancelAddField()"
+                        [matTooltip]="'COMMON.CANCEL' | translate">
+                  <mat-icon>close</mat-icon>
+                </button>
+              </div>
+            </form>
+          </div>
+        }
+
+        <!-- Alan Listesi -->
+        @if (fields.length > 0) {
+          <div class="fields-list">
+            @for (field of fields; track field.key; let i = $index) {
+              <div class="field-row">
+                <div class="field-order">
+                  <button mat-icon-button type="button" (click)="moveUp(i)"
+                          [disabled]="i === 0"
+                          [matTooltip]="'COMMON.MOVE_UP' | translate">
+                    <mat-icon>arrow_upward</mat-icon>
+                  </button>
+                  <button mat-icon-button type="button" (click)="moveDown(i)"
+                          [disabled]="i === fields.length - 1"
+                          [matTooltip]="'COMMON.MOVE_DOWN' | translate">
+                    <mat-icon>arrow_downward</mat-icon>
+                  </button>
+                </div>
+
+                <div class="field-info">
+                  <span class="field-key-badge">{{ field.key }}</span>
+                  <span class="field-label-text">{{ field.label }}</span>
+                </div>
+
+                <button mat-icon-button color="warn" type="button"
+                        (click)="removeField(i)"
+                        [matTooltip]="'COMMON.DELETE' | translate">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </div>
+            }
+          </div>
+        } @else {
+          <div class="empty-fields">
+            <mat-icon>inbox</mat-icon>
+            <p>{{ 'REPORT_PROFILE.NO_FIELDS' | translate }}</p>
+          </div>
+        }
+      </div>
+    }
+  </mat-dialog-content>
+
+  <mat-dialog-actions class="dialog-actions">
+    <button mat-button (click)="onCancel()" [disabled]="isSaving()">
+      {{ 'COMMON.CANCEL' | translate }}
+    </button>
+    <button mat-raised-button color="primary" (click)="onSave()"
+            [disabled]="isSaving() || isLoading()">
+      @if (isSaving()) {
+        <mat-spinner diameter="20" class="button-spinner"></mat-spinner>
+      }
+      {{ 'COMMON.SAVE' | translate }}
+    </button>
+  </mat-dialog-actions>
+</div>

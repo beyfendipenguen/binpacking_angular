@@ -1,0 +1,225 @@
+$primary-color: #006a6a;
+$secondary-color: #d6bb86;
+$accent-color: #004a4a;
+$light-accent: #c0a670;
+$background-color: #f8f9fa;
+$text-dark: #333333;
+$text-light: #666666;
+$border-color: #e0e0e0;
+$white: #ffffff;
+
+.report-profile-dialog {
+  display: flex;
+  flex-direction: column;
+  max-height: 90vh;
+}
+
+.dialog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px 0;
+  border-bottom: 2px solid $primary-color;
+  margin-bottom: 0;
+
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    .header-icon {
+      color: $primary-color;
+      font-size: 24px;
+    }
+
+    h2 {
+      margin: 0;
+      color: $primary-color;
+      font-size: 18px;
+      font-weight: 600;
+    }
+  }
+}
+
+.dialog-content {
+  padding: 16px 24px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.loading-container {
+  display: flex;
+  justify-content: center;
+  padding: 40px;
+}
+
+.form-section {
+  margin-bottom: 24px;
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+  }
+
+  .section-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    color: $primary-color;
+    margin: 0 0 12px 0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+
+    mat-icon {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+    }
+  }
+
+  .section-hint {
+    font-size: 12px;
+    color: $text-light;
+    margin: 0 0 12px 0;
+  }
+}
+
+.full-width {
+  width: 100%;
+}
+
+.add-field-form {
+  background: $background-color;
+  border: 1px solid $border-color;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 12px;
+
+  .new-field-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    flex-wrap: wrap;
+
+    .field-key {
+      flex: 1;
+      min-width: 180px;
+    }
+
+    .field-label {
+      flex: 1;
+      min-width: 180px;
+    }
+
+    .add-field-actions {
+      display: flex;
+      align-items: center;
+      padding-top: 8px;
+      gap: 4px;
+    }
+  }
+}
+
+.fields-list {
+  border: 1px solid $border-color;
+  border-radius: 8px;
+  overflow: hidden;
+
+  .field-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 16px;
+    border-bottom: 1px solid $border-color;
+    background: $white;
+    transition: background 0.15s;
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    &:hover {
+      background: $background-color;
+    }
+
+    .field-order {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+
+      button {
+        width: 28px;
+        height: 28px;
+        line-height: 28px;
+
+        mat-icon {
+          font-size: 16px;
+          width: 16px;
+          height: 16px;
+        }
+      }
+    }
+
+    .field-info {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+
+      .field-key-badge {
+        background: $primary-color;
+        color: $white;
+        font-size: 11px;
+        font-family: monospace;
+        padding: 2px 8px;
+        border-radius: 4px;
+        white-space: nowrap;
+      }
+
+      .field-label-text {
+        font-size: 14px;
+        color: $text-dark;
+      }
+    }
+  }
+}
+
+.empty-fields {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 32px;
+  color: $text-light;
+  border: 1px dashed $border-color;
+  border-radius: 8px;
+
+  mat-icon {
+    font-size: 40px;
+    width: 40px;
+    height: 40px;
+    margin-bottom: 8px;
+    opacity: 0.4;
+  }
+
+  p {
+    margin: 0;
+    font-size: 14px;
+  }
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 12px 24px;
+  border-top: 1px solid $border-color;
+
+  .button-spinner {
+    display: inline-block;
+    margin-right: 8px;
+  }
+}

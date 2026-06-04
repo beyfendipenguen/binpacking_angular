@@ -265,7 +265,9 @@
       "FUMIGATION_TYPE": "Fumigasyon Tipi",
       "SIDE_COVER_TYPE": "Metal Yan Kapak Tipi",
       "IS_MADE_IN_TURKEY": "Türkiye'de Üretildi Etiketi",
-      "LABEL_NAME": "Etiket İsmi"
+      "LABEL_NAME": "Etiket İsmi",
+      "REPORT_FIELDS": "Müşteri Rapor Alanları",
+      "REPORT_FIELDS_HINT": "Bu alanlar sipariş şablonunda görünecek şirkete özel bilgilerdir"
     }
   },
   "CUSTOMER_MESSAGES": {
@@ -614,6 +616,7 @@
     "ITEM": "Kalem",
     "PRODUCTS_COUNT": "adet ürün",
     "TEMPLATE_DOWNLOAD_ERROR": "Şablon indirilemedi",
+    "TEMPLATE_FILE_NAME": "Sipariş Formu",
     "TABLE": {
       "PRODUCT_NAME": "Ad",
       "PRODUCT_SHORT_NAME": "Kısa Ad",
@@ -1208,5 +1211,24 @@
       "UPDATE_SUCCESS": "{{count}} müşterinin algoritma ayarları güncellendi",
       "UPDATE_ERROR": "Güncelleme sırasında hata oluştu"
     }
+  },
+  "REPORT_PROFILE": {
+    "TITLE": "Rapor Profili",
+    "MENU_TITLE": "Rapor Profili Ayarları",
+    "TEMPLATE_SCHEMA": "Şablon Şeması",
+    "SCHEMA_LABEL": "Şema",
+    "SCHEMA_HINT": "Bu tenant için hangi rapor şablonu kullanılacak",
+    "EXTRA_FIELDS": "Ekstra Header Alanları",
+    "EXTRA_FIELDS_HINT": "Sipariş şablonunda görünecek şirkete özel alanlar",
+    "ADD_FIELD": "Alan Ekle",
+    "FIELD_KEY": "Alan Anahtarı",
+    "FIELD_LABEL": "Alan Etiketi",
+    "KEY_HINT": "Sadece küçük harf ve alt çizgi (örn: fumigation_type)",
+    "KEY_PATTERN_ERROR": "Sadece küçük harf ve alt çizgi kullanılabilir",
+    "KEY_REQUIRED": "Alan anahtarı zorunludur",
+    "LABEL_REQUIRED": "Etiket zorunludur",
+    "DUPLICATE_KEY": "Bu anahtar zaten mevcut",
+    "NO_FIELDS": "Henüz ekstra alan eklenmedi",
+    "SAVED": "Rapor profili kaydedildi"
   }
 }
