@@ -37,7 +37,7 @@ import { DisableAuthDirective } from '@app/core/auth/directives/disable-auth.dir
   standalone: true,
   imports: [CommonModule, FormsModule,
     TranslateModule,
-        DisableAuthDirective
+    DisableAuthDirective
   ],
   templateUrl: './threejs-truck-visualization.component.html',
   styleUrl: './threejs-truck-visualization.component.scss',
@@ -151,27 +151,27 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
 
   // Color management
   private readonly COLOR_PALETTE = [
-  '#D32F2F', // kırmızı
-  '#1976D2', // mavi
-  '#388E3C', // yeşil
-  '#F57C00', // turuncu
-  '#7B1FA2', // mor
-  '#0097A7', // cyan
-  '#FBC02D', // sarı
-  '#C2185B', // pembe
-  '#00796B', // teal
-  '#455A64', // mavi gri
-  '#E64A19', // derin turuncu
-  '#1565C0', // koyu mavi
-  '#2E7D32', // koyu yeşil
-  '#AD1457', // koyu pembe
-  '#6A1B9A', // koyu mor
-  '#00838F', // koyu cyan
-  '#F9A825', // koyu sarı
-  '#4E342E', // kahve
-  '#37474F', // antrasit
-  '#558B2F', // ordu yeşili
-];
+    '#D32F2F', // kırmızı
+    '#1976D2', // mavi
+    '#388E3C', // yeşil
+    '#F57C00', // turuncu
+    '#7B1FA2', // mor
+    '#0097A7', // cyan
+    '#FBC02D', // sarı
+    '#C2185B', // pembe
+    '#00796B', // teal
+    '#455A64', // mavi gri
+    '#E64A19', // derin turuncu
+    '#1565C0', // koyu mavi
+    '#2E7D32', // koyu yeşil
+    '#AD1457', // koyu pembe
+    '#6A1B9A', // koyu mor
+    '#00838F', // koyu cyan
+    '#F9A825', // koyu sarı
+    '#4E342E', // kahve
+    '#37474F', // antrasit
+    '#558B2F', // ordu yeşili
+  ];
 
   private usedColors = new Set<string>();
 
@@ -218,16 +218,19 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     return this.permissions()?.includes('orders.change_orderresult') ?? false;
   }
 
-    /**
-   * Package mesh'ini temizler
-   */
+  /**
+ * Package mesh'ini temizler
+ */
   private cleanupMesh(pkg: PackageData): void {
 
     if (pkg.mesh) {
       this.packagesGroup.remove(pkg.mesh);
+
       pkg.mesh.geometry.dispose();
       (pkg.mesh.material as THREE.Material).dispose();
       pkg.mesh = undefined;
+
+
     }
 
     if (pkg.forcePlaceBorder) {
@@ -638,7 +641,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     // Palet mesh merkezine göre tam alta
     palletGroup.position.set(
       -packageData.length / 2,
-      -packageData.height / 2 - palletHeight/2,  // mesh merkezinden palet tabanına
+      -packageData.height / 2 - palletHeight / 2,  // mesh merkezinden palet tabanına
       -packageData.width / 2
     );
     mesh.add(palletGroup);
@@ -648,8 +651,55 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     if (packageData.isForcePlaced) {
       this.addForcePlaceBorder(packageData);
     }
+    // ID etiketi — kutunun merkezinde, her zaman kameraya bakar
+    const label = this.createPackageLabel(packageData);
+    // Kutunun üstüne — y ekseninde mesh'in tepesi + biraz boşluk
+    label.position.set(0, packageData.height / 2 + 100, 0);
+    mesh.add(label);
 
     this.packagesGroup.add(mesh);
+
+  }
+
+  private createPackageLabel(packageData: PackageData): THREE.Sprite {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d')!;
+    canvas.width = 512;
+    canvas.height = 256;
+
+    // Yarı saydam arka plan — yazının arkasında padding kadar
+    const padding = 40;
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.45)';
+    ctx.fillRect(padding, padding, canvas.width - padding * 2, canvas.height - padding * 2);
+
+    ctx.font = 'bold 140px Arial, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.lineWidth = 12;
+    ctx.strokeStyle = 'rgba(0, 0, 0, 0.85)';
+    ctx.strokeText(`#${packageData.id}`, canvas.width / 2, canvas.height / 2);
+    ctx.fillStyle = '#ffffff';
+    ctx.fillText(`#${packageData.id}`, canvas.width / 2, canvas.height / 2);
+
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.needsUpdate = true;
+    texture.anisotropy = 4;
+
+    const material = new THREE.SpriteMaterial({
+      map: texture,
+      transparent: true,
+      depthTest: false,
+      depthWrite: false
+    });
+
+    const sprite = new THREE.Sprite(material);
+    sprite.renderOrder = 999;
+
+    // 400 → 600 (biraz büyüdü)
+    const fixedSize = 600;
+    sprite.scale.set(fixedSize, fixedSize / 2, 1);
+
+    return sprite;
   }
 
   // =============================================================================
@@ -793,7 +843,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
       this.updateMouseFromTouch(touch);
 
       const intersectedPackage = this.getIntersectedPackage();
-      if (intersectedPackage && this.dragModeEnabled  && this.hasChangePerm()) {
+      if (intersectedPackage && this.dragModeEnabled && this.hasChangePerm()) {
         this.isTouchDragging = true;
         this.initiateDragging(intersectedPackage);
       }
@@ -1103,7 +1153,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
 
     // Normal zoom (mevcut kod)
     const zoomSpeed = 1;
-    const delta = event.deltaY > 0 ? 1 : -1;
+    const delta = event.deltaY > 0 ? -1 : 1;
     const newZoom = Math.max(this.minZoom, Math.min(this.maxZoom, this.zoomLevel + delta * zoomSpeed));
     this.setZoomLevelPreserveTarget(newZoom);
     this.renderManager.requestRender();
@@ -2170,7 +2220,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
         break;
       case 'z':
       case 'Z':
-        if ((event.ctrlKey || event.metaKey)  && this.hasChangePerm()) {
+        if ((event.ctrlKey || event.metaKey) && this.hasChangePerm()) {
           event.preventDefault();
           this.undo();
         }
@@ -2586,6 +2636,9 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
 
     this.saveSnapshot();
 
+    // ⭐ SORT'U BAŞA AL — büyükten küçüğe (taban alanı bazlı)
+    allPackages.sort((a, b) => (b.length * b.width) - (a.length * a.width));
+
     if (this.packagesGroup) {
       this.packagesGroup.clear();
     }
@@ -2596,7 +2649,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     this.packagesStateService.clearSelection();
 
     const placed: PackageData[] = [];
-    let hasUnplaceable = false;
+    const unplaced: PackageData[] = [];  // ⭐ yerleşemeyenler
 
     for (const pkg of allPackages) {
       pkg.color = this.getUniqueColor();
@@ -2609,23 +2662,22 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
         pkg.x = pos.x;
         pkg.y = pos.y;
         pkg.z = pos.z;
+        this.createPackageMesh(pkg);
+        placed.push(pkg);
       } else {
-        const fallback = this.getForcedFallbackPosition(pkg, placed);
-        pkg.x = fallback.x;
-        pkg.y = fallback.y;
-        pkg.z = fallback.z;
-        pkg.isForcePlaced = true;
-        hasUnplaceable = true;
+        // ⭐ Tırın dışına itme — deleted'a gönder
+        pkg.x = -1;
+        pkg.y = -1;
+        pkg.z = -1;
+        unplaced.push(pkg);
       }
-
-
-      this.createPackageMesh(pkg);
-      placed.push(pkg);
     }
-    allPackages.sort((a, b) => (b.length * b.width) - (a.length * a.width));
+
+    // ⭐ Sondaki gereksiz sort'u sildim
     this.packagesStateService.setProcessedPackages(placed);
 
-    if (hasUnplaceable) {
+    if (unplaced.length > 0) {
+      this.packagesStateService.setDeletedPackages(unplaced);
       this.toastService.warning(this.translate.instant('TRUCK_VISUALIZATION.AUTO_PLACE_PARTIAL'));
     } else {
       this.toastService.success(this.translate.instant('TRUCK_VISUALIZATION.AUTO_PLACE_SUCCESS'));
@@ -2845,18 +2897,4 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     return null;
   }
 
-  private getForcedFallbackPosition(
-    pkg: PackageData,
-    existingPackages: PackageData[]
-  ): { x: number, y: number, z: number } {
-    let maxZ = 0;
-    for (const other of existingPackages) {
-      const xOverlap = 0 < other.x + other.length && pkg.length > other.x;
-      const yOverlap = 0 < other.y + other.width && pkg.width > other.y;
-      if (xOverlap && yOverlap) {
-        maxZ = Math.max(maxZ, other.z + other.height);
-      }
-    }
-    return { x: 0, y: 0, z: maxZ };
-  }
 }
