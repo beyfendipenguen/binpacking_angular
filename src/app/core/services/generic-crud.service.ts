@@ -1,9 +1,10 @@
 import { inject, Inject, Injectable } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpContext, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { tap, map } from 'rxjs/operators';
 import { ApiService } from './api.service';
 import { BaseResponse } from '../interfaces/base-response.interface';
+import { SKIP_LOADING } from '@app/shared/loading/skip-loading.token';
 
 @Injectable({
   providedIn: 'root'
@@ -37,16 +38,22 @@ export class GenericCrudService<T, TID = string, TCreate = T, TUpdate = T> {
 
 
     let httpParams = new HttpParams();
-
+    let context = new HttpContext();
+    
     if (params) {
       Object.keys(params).forEach(key => {
+        if (key === '_skipLoading') return; // HTTP'ye gönderme
         if (params[key] !== null && params[key] !== undefined && params[key] !== '') {
           httpParams = httpParams.set(key, params[key]);
         }
       });
+      
+      if (params._skipLoading) {
+        context = context.set(SKIP_LOADING, true);
+      }
     }
 
-    return this.http.get<BaseResponse<T>>(this.apiUrl, { params: httpParams }).pipe(
+    return this.http.get<BaseResponse<T>>(this.apiUrl, { params: httpParams, context }).pipe(
       // Veriyi formatla
       map(response => this.formatNumberValues(response)),
       tap(response => {
