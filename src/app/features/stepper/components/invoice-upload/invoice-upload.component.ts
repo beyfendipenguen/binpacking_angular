@@ -136,7 +136,7 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
 
   companySearchControl = new FormControl<string | any>('');
   filteredCompanies = signal<any[]>([]);
-
+  private cachedTemplateBlob = signal<Blob | null>(null);
   // Form and data
   uploadForm!: FormGroup;
   referenceData: ReferenceData = { targetCompanies: [], trucks: [] };
@@ -228,7 +228,6 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
     });
 
     this.initializeCompanySearch();
-    this.getTemplateFile();
 
     setTimeout(() => {
       this.showMessageBalloon.set(true);
@@ -254,45 +253,70 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
   }
 
   downloadTemplate() {
-    const templateFile = this.templateFileSignal();
-    if (templateFile) {
-      const download = (blob: Blob) => {
-        const url = window.URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `${templateFile.name}.xlsx`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        window.URL.revokeObjectURL(url);
-      };
-
-      if (typeof templateFile.file === 'string') {
-        // If it's a URL string, fetch it
-        fetch(templateFile.file)
-          .then(response => response.blob())
-          .then(download)
-          .catch(error => {
-            this.toastService.error(this.translate.instant('INVOICE_UPLOAD.TEMPLATE_DOWNLOAD_ERROR'));
-          });
-      } else if (templateFile.file instanceof File) {
-        // If it's a File object, use it directly
-        download(templateFile.file);
-      }
+    // Cache'de varsa direkt indir
+    const cached = this.cachedTemplateBlob();
+    if (cached) {
+      this._triggerDownload(cached, `${this.translate.instant('INVOICE_UPLOAD.TEMPLATE_FILE_NAME')}.xlsx`);
+      return;
     }
-  }
 
-  getTemplateFile() {
-    const templateFile = this.templateFileSignal();
-    if (!templateFile) {
-      const company_id = this.userSignal()?.company.id
+    const user = this.userSignal();
+    const templateSchema = user?.company?.report_profile?.template_schema || 'default';
+
+    if (templateSchema === 'borpan') {
+      const company_id = user?.company?.id;
       this.fileService.getAll({
         company_id: company_id,
         type: 'isb_template'
-      }).subscribe(response => {
-        this.store.dispatch(StepperInvoiceUploadActions.getReportTemplateFile({ file: response.results[0] }))
-      })
+      }).subscribe({
+        next: (response) => {
+          const templateFile = response.results[0];
+          if (!templateFile) {
+            this.toastService.error(this.translate.instant('INVOICE_UPLOAD.TEMPLATE_DOWNLOAD_ERROR'));
+            return;
+          }
+          if (typeof templateFile.file === 'string') {
+            fetch(templateFile.file)
+              .then(res => res.blob())
+              .then(blob => {
+                this.cachedTemplateBlob.set(blob);
+                this._triggerDownload(blob, `${this.translate.instant('INVOICE_UPLOAD.TEMPLATE_FILE_NAME')}.xlsx`);
+              })
+              .catch(() => {
+                this.toastService.error(this.translate.instant('INVOICE_UPLOAD.TEMPLATE_DOWNLOAD_ERROR'));
+              });
+          }
+        },
+        error: () => {
+          this.toastService.error(this.translate.instant('INVOICE_UPLOAD.TEMPLATE_DOWNLOAD_ERROR'));
+        }
+      });
+      return;
     }
+
+    const savedLang = localStorage.getItem('selectedLanguage') || 'tr';
+    const lang = ['tr', 'en', 'ru'].includes(savedLang) ? savedLang : 'tr';
+
+    this.fileService.downloadOrderTemplate(lang).subscribe({
+      next: (blob) => {
+        this.cachedTemplateBlob.set(blob);
+        this._triggerDownload(blob, `${this.translate.instant('INVOICE_UPLOAD.TEMPLATE_FILE_NAME')}.xlsx`);
+      },
+      error: () => {
+        this.toastService.error(this.translate.instant('INVOICE_UPLOAD.TEMPLATE_DOWNLOAD_ERROR'));
+      }
+    });
+  }
+
+  private _triggerDownload(blob: Blob, filename: string): void {
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
   }
 
   onFileSelected(event: Event): void {
@@ -352,7 +376,7 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
         if (currentOrder) {
 
           this.unitsControl.setValue(settings.max_pallet_height);
-                  // settings'ten gelen weight_category_id ile mevcut kategorilerden eşleştir
+          // settings'ten gelen weight_category_id ile mevcut kategorilerden eşleştir
           const matchedCategory = settings.weight_category_id
             ? this.availableWeightCategories().find(c => c.id === settings.weight_category_id) ?? null
             : null;
@@ -533,18 +557,18 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
 
 
   isFormValid(): boolean {
-  let hasValidOrderDetails = this.orderDetailsSignal().length > 0;
-  let hasValidOrder = !!(
-    this.orderSignal()?.date &&
-    this.orderSignal()?.company_relation &&
-    this.orderSignal()?.truck &&
-    this.orderSignal()?.weight_category &&  // weight_type → weight_category
-    this.orderSignal()?.max_pallet_height &&
-    this.orderSignal()?.truck_weight_limit &&
-    this.orderSignal()?.truck_weight_limit != 0
-  );
-  return hasValidOrder && hasValidOrderDetails;
-}
+    let hasValidOrderDetails = this.orderDetailsSignal().length > 0;
+    let hasValidOrder = !!(
+      this.orderSignal()?.date &&
+      this.orderSignal()?.company_relation &&
+      this.orderSignal()?.truck &&
+      this.orderSignal()?.weight_category &&  // weight_type → weight_category
+      this.orderSignal()?.max_pallet_height &&
+      this.orderSignal()?.truck_weight_limit &&
+      this.orderSignal()?.truck_weight_limit != 0
+    );
+    return hasValidOrder && hasValidOrderDetails;
+  }
 
   submit(): void {
     if (!this.isFormValid()) {
