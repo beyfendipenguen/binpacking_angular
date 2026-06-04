@@ -32,10 +32,8 @@ import { Observable, Subject, of } from 'rxjs'; // ← Subject ve of ekle
 import { debounceTime, distinctUntilChanged, switchMap, catchError, takeUntil } from 'rxjs/operators'; // ← Operatörleri ekle
 import { EXTRA_DATA_FIELDS } from '../../config/extra-data-fields.config';
 import { MatChipsModule } from '@angular/material/chips';
-import { CONSTRAINT_FIELDS, ConstraintFieldConfig } from '../../config/constraint-fields.config';
 import { Product } from '@app/features/interfaces/product.interface';
 import { ProductService } from '@app/features/services/product.service';
-import { ConstraintProfile, createDefaultConstraintProfile } from '@app/features/interfaces/constraint-profile.interface';
 import { MatMenuModule } from '@angular/material/menu';
 
 export interface CustomerDialogData {
@@ -91,8 +89,6 @@ export class CustomerDialogComponent implements OnInit, OnDestroy {
   isLoading = false;
   isSaving = false;
   relationTypeOptions = RELATION_TYPE_OPTIONS;
-  constraintFields = CONSTRAINT_FIELDS;
-  currentInfoField: ConstraintFieldConfig | null = null;
   // Company autocomplete
   filteredCompanies$!: Observable<Company[]>;
   selectedCompany: Company | null = null;
@@ -135,9 +131,6 @@ export class CustomerDialogComponent implements OnInit, OnDestroy {
     }
   }
 
-  showFieldInfo(field: ConstraintFieldConfig): void {
-    this.currentInfoField = field;
-  }
 
   ngOnDestroy(): void {
     this.destroy$.next();
@@ -145,26 +138,10 @@ export class CustomerDialogComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Constraint field'larını gruplara göre döndür
-   * Template: @for (group of constraintGroups; track group.key)
-   */
-  get constraintGroups(): Array<{ key: string; fields: ConstraintFieldConfig[] }> {
-    const groupMap = new Map<string, ConstraintFieldConfig[]>();
-    for (const field of this.constraintFields) {
-      if (!groupMap.has(field.group)) {
-        groupMap.set(field.group, []);
-      }
-      groupMap.get(field.group)!.push(field);
-    }
-    return Array.from(groupMap.entries()).map(([key, fields]) => ({ key, fields }));
-  }
-
-  /**
    * Initialize form
    */
   private initForm(): void {
     const defaults = createDefaultCompanyRelation();
-    const constraintDefaults = createDefaultConstraintProfile();
 
     const formConfig: any = {
       target_company: [null, Validators.required],
@@ -181,22 +158,6 @@ export class CustomerDialogComponent implements OnInit, OnDestroy {
         : (defaults.extra_data as any)?.[field.key];
       const validators = field.validators || [];
       formConfig[field.key] = [defaultValue, validators];
-    });
-
-    // ── YENİ: Constraint fields ──
-    this.constraintFields.forEach(field => {
-      if (field.disabled) {
-        // Disabled alanlar: form'a koyma, sadece template'te placeholder
-        return;
-      }
-      if (field.type === 'multi-product') {
-        // side_product_ids — chip listesi olarak yönetilir, form'a array konur
-        formConfig[field.key] = [(constraintDefaults as any)[field.key] || []];
-      } else {
-        const defaultValue = (constraintDefaults as any)[field.key];
-        const validators = field.validators || [];
-        formConfig[field.key] = [defaultValue, validators];
-      }
     });
 
     // Product autocomplete için search control
@@ -317,20 +278,8 @@ export class CustomerDialogComponent implements OnInit, OnDestroy {
       formValues[field.key] = (relation.extra_data as any)?.[field.key] ?? null;
     });
 
-    // ── YENİ: Constraint profile değerleri ──
-    const constraintDefaults = createDefaultConstraintProfile();
-    const incomingProfile = relation.constraint_profile || constraintDefaults;
-
-    this.constraintFields.forEach(field => {
-      if (field.disabled) return; // disabled alanlar form'da yok
-      formValues[field.key] = (incomingProfile as any)[field.key]
-        ?? (constraintDefaults as any)[field.key];
-    });
-
     this.form.patchValue(formValues);
 
-    // Side products chip listesini yükle
-    this.loadSelectedSideProducts(incomingProfile.side_product_ids || []);
   }
   // ─── Side product autocomplete ───
   private setupSideProductAutocomplete(): void {
@@ -500,23 +449,14 @@ export class CustomerDialogComponent implements OnInit, OnDestroy {
       }
     });
 
-    // ── YENİ: Constraint profile payload ──
-    const constraintProfile: Partial<ConstraintProfile> = {};
-    this.constraintFields.forEach(field => {
-      if (field.disabled) return; // disabled alanları gönderme
-      const value = formValue[field.key];
-      if (value !== null && value !== undefined) {
-        (constraintProfile as any)[field.key] = value;
-      }
-    });
+
 
     const payload: CompanyRelationDto = {
       target_company: formValue.target_company,
       relation_type: formValue.relation_type,
       is_active: formValue.is_active,
       notes: formValue.notes || null,
-      extra_data: extraData,
-      constraint_profile: constraintProfile, // ← YENİ
+      extra_data: extraData
     };
 
     const request$ = this.data.mode === 'create'

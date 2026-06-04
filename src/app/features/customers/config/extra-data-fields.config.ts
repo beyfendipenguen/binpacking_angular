@@ -14,43 +14,6 @@ export interface ExtraDataFieldConfig {
 
 export const EXTRA_DATA_FIELDS: ExtraDataFieldConfig[] = [
   {
-    key: 'is_made_in_turkey',
-    label: 'CUSTOMER.EXTRA_DATA.IS_MADE_IN_TURKEY',
-    type: 'boolean',
-    icon: 'flag'
-  },
-  {
-    key: 'has_console',
-    label: 'CUSTOMER.EXTRA_DATA.HAS_CONSOLE',
-    type: 'boolean',
-    icon: 'computer'
-  },
-  {
-    key: 'label_name',
-    label: 'CUSTOMER.EXTRA_DATA.LABEL_NAME',
-    type: 'string',
-    icon: 'label',
-    validators: [Validators.required]
-  },
-  {
-    key: 'core_type',
-    label: 'CUSTOMER.EXTRA_DATA.CORE_TYPE',
-    type: 'string',
-    icon: 'category',
-  },
-  {
-    key: 'fumigation_type',
-    label: 'CUSTOMER.EXTRA_DATA.FUMIGATION_TYPE',
-    type: 'string',
-    icon: 'pest_control',
-  },
-  {
-    key: 'side_cover_type',
-    label: 'CUSTOMER.EXTRA_DATA.SIDE_COVER_TYPE',
-    type: 'string',
-    icon: 'shield',
-  },
-  {
     key: 'show_logo',
     label: 'CUSTOMER.EXTRA_DATA.SHOW_LOGO',
     type: 'boolean',

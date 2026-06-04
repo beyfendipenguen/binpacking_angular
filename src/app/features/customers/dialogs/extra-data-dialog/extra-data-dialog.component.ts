@@ -27,6 +27,8 @@ import { DisableAuthDirective } from "@app/core/auth/directives/disable-auth.dir
 import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged, takeUntil } from 'rxjs/operators';
 import { EXTRA_DATA_FIELDS, ExtraDataFieldConfig } from '../../config/extra-data-fields.config';
+import { ExtraHeaderField } from '@app/features/interfaces/report-profile.interface';
+import { CompanyReportProfileService } from '@app/features/services/company-report-profile.service';
 
 interface DynamicField {
   key: string;
@@ -69,6 +71,7 @@ export class ExtraDataDialogComponent implements OnInit, OnDestroy {
   private translate = inject(TranslateService);
   private dialogRef = inject(MatDialogRef<ExtraDataDialogComponent>);
   private dialog = inject(MatDialog);
+  private profileService = inject(CompanyReportProfileService);
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
@@ -106,16 +109,41 @@ export class ExtraDataDialogComponent implements OnInit, OnDestroy {
   // ExtraData field configuration
   extraDataFields = EXTRA_DATA_FIELDS;
 
+  dynamicReportFields: ExtraHeaderField[] = [];
+  isLoadingProfile = false;
+
+
   ngOnInit(): void {
     this.initForms();
     this.setupSearchDebounce();
     this.loadRelations();
     this.loadPalletGroups();
+    this.loadReportProfile();
   }
 
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  private loadReportProfile(): void {
+    this.isLoadingProfile = true;
+    this.profileService.getMyProfile().subscribe({
+      next: (profile) => {
+        this.dynamicReportFields = profile.report_config?.extra_header_fields || [];
+        // Dinamik alanları forma ekle
+        this.dynamicReportFields.forEach(field => {
+          if (!this.updateForm.contains(field.key)) {
+            this.updateForm.addControl(field.key, this.fb.control(null));
+          }
+        });
+        this.isLoadingProfile = false;
+      },
+      error: () => {
+        this.dynamicReportFields = [];
+        this.isLoadingProfile = false;
+      }
+    });
   }
 
   /**
@@ -175,7 +203,10 @@ export class ExtraDataDialogComponent implements OnInit, OnDestroy {
       params.search = searchTerm;
     }
 
-    this.companyRelationService.getAll(params).subscribe({
+    this.companyRelationService.getAll({
+      ...params,
+      _skipLoading: true
+    }).subscribe({
       next: (page) => {
         this.allRelations = page.results;
         this.totalItems = page.count;
@@ -465,6 +496,13 @@ export class ExtraDataDialogComponent implements OnInit, OnDestroy {
     this.extraDataFields.forEach(field => {
       const value = this.updateForm.get(field.key)?.value;
       extraDataUpdates[field.key] = value;
+    });
+
+    this.dynamicReportFields.forEach(field => {
+      const value = this.updateForm.get(field.key)?.value;
+      if (value !== null && value !== undefined && value !== '') {
+        extraDataUpdates[field.key] = value;
+      }
     });
 
     // Dynamic fields ekle

@@ -24,6 +24,7 @@ import { ExtraDataDialogComponent } from './dialogs/extra-data-dialog/extra-data
 import { debounceTime, distinctUntilChanged, Subject } from 'rxjs';
 import { FormsModule } from '@angular/forms';
 import { ConstraintBulkDialogComponent } from './dialogs/constraint-bulk-dialog/constraint-bulk-dialog';
+import { ReportProfileDialogComponent } from './dialogs/report-profile-dialog/report-profile-dialog.component';
 
 @Component({
   selector: 'app-customers',
@@ -149,7 +150,10 @@ export class CustomersComponent implements OnInit, OnDestroy {
       params.search = this.searchTerm.trim();
     }
 
-    this.companyRelationService.getAll(params).subscribe({
+    this.companyRelationService.getAll({
+      ...params,
+      _skipLoading: true
+    }).subscribe({
       next: (page) => {
         this.dataSource.data = page.results;
         this.totalItems = page.count;
@@ -215,23 +219,38 @@ export class CustomersComponent implements OnInit, OnDestroy {
     });
   }
 
-  openConstraintBulkDialog(): void {
-  const dialogRef = this.dialog.open(ConstraintBulkDialogComponent, {
-    width: '900px',
-    maxWidth: '95vw',
-    maxHeight: '90vh',
-    disableClose: false,
-    panelClass: 'constraint-bulk-dialog-panel'
-  });
+  openReportProfileDialog(): void {
+    const dialogRef = this.dialog.open(ReportProfileDialogComponent, {
+      width: '700px',
+      maxWidth: '95vw',
+      maxHeight: '90vh',
+      disableClose: true,
+    });
 
-  dialogRef.afterClosed().subscribe(result => {
-    if (result) {
-      // İsteğe bağlı: listeyi yenile
-      // this.loadRelations();
-      this.loadData();
-    }
-  });
-}
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.toastService.success(this.translate.instant('REPORT_PROFILE.SAVED'));
+      }
+    });
+  }
+
+  openConstraintBulkDialog(): void {
+    const dialogRef = this.dialog.open(ConstraintBulkDialogComponent, {
+      width: '900px',
+      maxWidth: '95vw',
+      maxHeight: '90vh',
+      disableClose: false,
+      panelClass: 'constraint-bulk-dialog-panel'
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        // İsteğe bağlı: listeyi yenile
+        // this.loadRelations();
+        this.loadData();
+      }
+    });
+  }
   /**
    * Open dialog to add new customer
    */
