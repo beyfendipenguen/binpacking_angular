@@ -114,7 +114,7 @@ export class FilesDialogComponent implements OnInit {
       return 'picture_as_pdf';
     } else if (type.includes('image') || type.includes('jpg') || type.includes('jpeg') || type.includes('png')) {
       return 'image';
-    } else if (type.includes('excel') || type.includes('sheet') || type.includes('xlsx') || type.includes('xls')) {
+    } else if (type.includes('excel') || type.includes('sheet') || type.includes('xlsx') || type.includes('xls') || type.includes('order_template_report')) {
       return 'table_chart';
     } else if (type.includes('word') || type.includes('doc')) {
       return 'description';
@@ -141,7 +141,7 @@ export class FilesDialogComponent implements OnInit {
 
     if (typeStr.includes('pdf')) return 'PDF';
     if (typeStr.includes('image')) return this.translate.instant('FILE.IMAGE');
-    if (typeStr.includes('excel') || typeStr.includes('sheet')) return 'Excel';
+    if (typeStr.includes('excel') || typeStr.includes('sheet')|| typeStr.includes('order_template_report')) return 'Excel';
     if (typeStr.includes('word') || typeStr.includes('doc')) return 'Word';
     if (typeStr.includes('zip') || typeStr.includes('rar')) return this.translate.instant('FILE.ARCHIVE');
     if (typeStr.includes('text')) return this.translate.instant('FILE.TEXT');

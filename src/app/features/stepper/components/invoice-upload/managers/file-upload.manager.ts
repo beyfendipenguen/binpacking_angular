@@ -9,6 +9,7 @@ import { FileState, FileValidationResult } from '../models/invoice-upload-interf
 import { AppState } from '@app/store';
 import { StepperInvoiceUploadActions } from '@app/store/stepper/actions/stepper-invoice-upload.actions';
 import { TranslateService } from '@ngx-translate/core';
+import { FileService } from '@app/core/services/file.service';
 @Injectable({
   providedIn: 'root'
 })
@@ -21,6 +22,7 @@ export class FileUploadManager {
   private readonly toastService = inject(ToastService);
   private readonly store = inject(Store<AppState>);
   private readonly translate = inject(TranslateService);
+  private readonly fileService = inject(FileService);
 
   private fileState: FileState = {
     file: null,
@@ -84,7 +86,7 @@ export class FileUploadManager {
 
     this.toastService.info(this.translate.instant(INVOICE_UPLOAD_CONSTANTS.MESSAGES.INFO.FILE_UPLOADING));
 
-    return this.repositoryService.processFile(this.fileState.file).pipe(
+    return this.fileService.processFile(this.fileState.file).pipe(
       tap(() => {
         this.toastService.info(this.translate.instant(INVOICE_UPLOAD_CONSTANTS.MESSAGES.INFO.FILE_PROCESSING) );
       }),
@@ -98,7 +100,7 @@ export class FileUploadManager {
     if (!this.fileState.tempFile) {
       throw new Error('No temp file available');
     }
-    return this.repositoryService.uploadFile(this.fileState.tempFile, orderId, "first_excel");
+    return this.fileService.uploadFile(this.fileState.tempFile, orderId, "first_excel");
   }
 
   resetFileInput(): void {

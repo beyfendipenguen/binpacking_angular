@@ -1,3 +1,4 @@
+import { CompanyReportProfile } from "./report-profile.interface";
 
 export interface Company {
   id: string;
@@ -6,4 +7,5 @@ export interface Company {
   logo: string;
   contract_end_date: string | null;
   is_active: boolean;
+  report_profile:CompanyReportProfile
 }
