@@ -153,4 +153,10 @@ export class ProductService extends GenericCrudService<Product> {
     formData.append('file', file);
     return this.http.post<any>(`${this.apiUrl}bulk-update/`, formData);
   }
+
+  checkUsage(id: string): Observable<{ in_use: boolean; orders: { id: string; name: string }[] }> {
+    this.ensureApiUrl();
+    const context = new HttpContext().set(SKIP_LOADING, true);
+    return this.http.get<any>(`${this.apiUrl}${id}/check-usage/`, { context });
+  }
 }

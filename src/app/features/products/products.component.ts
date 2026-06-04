@@ -18,6 +18,7 @@ import { ToastService } from '@app/core/services/toast.service';
 import { MatMenuModule } from '@angular/material/menu';
 import { createProductBulkUpdateConfig } from './config/product-bulk-update.config';
 import { WeightCategoryDialogComponent } from './dialogs/weight-category-dialog/weight-category-dialog.component';
+import { ConfirmDialogComponent } from '@app/shared/generic-table/confirm-dialog/confirm-dialog.component';
 
 @Component({
   selector: 'app-products',
@@ -138,7 +139,7 @@ export class ProductsComponent implements OnInit {
 
   columnTypes: { [key: string]: string } = {
     'created_at': 'date',
-    'weights':'weights'
+    'weights': 'weights'
   };
 
   ngOnInit(): void { }
@@ -157,6 +158,35 @@ export class ProductsComponent implements OnInit {
 
   // Ürün ekle/güncelle dialog
   openProductDialog(product?: Product): void {
+    if (product) {
+      // Güncelleme — önce check-usage
+      this.productService.checkUsage(product.id).subscribe({
+        next: (usage) => {
+          if (usage.in_use) {
+            const orderNames = usage.orders.map((o: any) => o.name).join(', ');
+            const count = usage.orders.length
+            const confirmRef = this.dialog.open(ConfirmDialogComponent, {
+              width: '450px',
+              data: {
+                message: this.translate.instant('GENERIC_TABLE.IN_USE_ERROR', {count:count ,model:this.translate.instant('PRODUCT.PRODUCT'),orders: orderNames }),
+              }
+            });
+            confirmRef.afterClosed().subscribe(confirmed => {
+              if (confirmed) this._openProductEditDialog(product);
+            });
+          } else {
+            this._openProductEditDialog(product);
+          }
+        },
+        error: () => this._openProductEditDialog(product)
+      });
+      return;
+    }
+    // Yeni ürün — direkt aç
+    this._openProductEditDialog();
+  }
+
+  private _openProductEditDialog(product?: Product): void {
     const dialogRef = this.dialog.open(ProductDialogComponent, {
       width: '640px',
       maxWidth: '95vw',
@@ -166,7 +196,6 @@ export class ProductsComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe(result => {
       if (!result) return;
-
       if (product) {
         this.productService.update(product.id, result).subscribe({
           next: () => {
@@ -182,8 +211,7 @@ export class ProductsComponent implements OnInit {
             this.genericTable?.refreshData();
           },
           error: (err) => {
-            const message = err?.error?.errors?.[0]?.message
-              ?? this.translate.instant('PRODUCT.CREATE_ERROR');
+            const message = err?.error?.errors?.[0]?.message ?? this.translate.instant('PRODUCT.CREATE_ERROR');
             this.toastService.error(message);
           }
         });
@@ -215,7 +243,27 @@ export class ProductsComponent implements OnInit {
       }
     });
   }
-
+  onBeforeDelete(event: { id: any; proceed: () => void; cancel: () => void }): void {
+    this.productService.checkUsage(event.id).subscribe({
+      next: (usage) => {
+        if (usage.in_use) {
+          const orderNames = usage.orders.map((o: any) => o.name).join(', ');
+          const count = usage.orders.length
+          this.dialog.open(ConfirmDialogComponent, {
+            width: '450px',
+            data: {
+              message: this.translate.instant('GENERIC_TABLE.IN_USE_ERROR', {count:count ,model:this.translate.instant('PRODUCT.PRODUCT'),orders: orderNames }),
+              hideConfirm: true,
+            }
+          });
+          event.cancel();
+        } else {
+          event.proceed();
+        }
+      },
+      error: () => event.proceed()
+    });
+  }
   // Bulk update — dosya seç ve yükle
   onBulkUpdateFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;

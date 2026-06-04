@@ -14,6 +14,7 @@ import { PalletGroupDialogComponent } from './pallet-group-dialog/pallet-group-d
 import { DisableAuthDirective } from '@app/core/auth/directives/disable-auth.directive';
 import { HasPermissionDirective } from '@app/core/auth/directives/has-permission.directive';
 import { ColumnDefinition } from '@app/shared/generic-table/interfaces/column-definition.interface';
+import { ConfirmDialogComponent } from '@app/shared/generic-table/confirm-dialog/confirm-dialog.component';
 
 @Component({
   selector: 'app-pallets',
@@ -100,7 +101,7 @@ export class PalletsComponent implements OnInit {
     'created_at': 'date'
   };
 
-  ngOnInit(): void {}
+  ngOnInit(): void { }
 
   openPalletGroupsDialog(): void {
     const dialogRef = this.dialog.open(PalletGroupDialogComponent, {
@@ -113,7 +114,53 @@ export class PalletsComponent implements OnInit {
     });
 
     dialogRef.afterClosed().subscribe(result => {
-      if (result) {}
+      if (result) { }
     });
   }
+
+  onBeforeUpdate(event: { row: any; result: any; proceed: () => void; cancel: () => void }): void {
+    this.palletService.checkUsage(event.row.id).subscribe({
+      next: (usage) => {
+        if (usage.in_use) {
+          const orderNames = usage.orders.map((o: any) => o.name).join(', ');
+          const count = usage.orders.length
+          const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+            width: '450px',
+            data: {
+              message: this.translate.instant('GENERIC_TABLE.UPDATE_IN_USE_WARNING', { count: count, model: this.translate.instant('PALLET.PALLET'), orders: orderNames }),
+            }
+          });
+          dialogRef.afterClosed().subscribe(confirmed => {
+            confirmed ? event.proceed() : event.cancel();
+          });
+        } else {
+          event.proceed();
+        }
+      },
+      error: () => event.proceed()
+    });
+  }
+
+  onBeforeDelete(event: { id: any; proceed: () => void; cancel: () => void }): void {
+    this.palletService.checkUsage(event.id).subscribe({
+      next: (usage) => {
+        if (usage.in_use) {
+          const orderNames = usage.orders.map((o: any) => o.name).join(', ');
+          const count = usage.orders.length
+          this.dialog.open(ConfirmDialogComponent, {
+            width: '450px',
+            data: {
+              message: this.translate.instant('GENERIC_TABLE.IN_USE_ERROR', { count: count, model: this.translate.instant('PALLET.PALLET'), orders: orderNames }),
+              hideConfirm: true,
+            }
+          });
+          event.cancel();
+        } else {
+          event.proceed();
+        }
+      },
+      error: () => event.proceed()
+    });
+  }
+
 }

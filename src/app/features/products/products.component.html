@@ -43,6 +43,7 @@
       [filterableColumns]="filterableColumns" [columnDefinitions]="columnDefinitions" [title]="'PRODUCT.PRODUCTS'"
       [showRowNumbers]="true" [excludeFields]="['name']" [deletePermission]="['products.delete_product']"
       [addPermission]="['products.add_product']" [updatePermission]="['products.change_product']"
+      (beforeDelete)="onBeforeDelete($event)"
       [columnTypes]="columnTypes" [columnPermissions]="{
         'created_at': ['access_control.view_audited_fields'],
         'created_by': ['access_control.view_audited_fields']

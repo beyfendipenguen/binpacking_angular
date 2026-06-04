@@ -167,5 +167,10 @@ export class PalletService extends GenericCrudService<Pallet> {
     return params;
   }
 
+  checkUsage(id: string): Observable<{ in_use: boolean; orders: { id: string; name: string }[] }> {
+    this.ensureApiUrl();
+    const context = new HttpContext().set(SKIP_LOADING, true);
+    return this.http.get<any>(`${this.apiUrl}${id}/check-usage/`, { context });
+  }
 
 }

@@ -45,6 +45,8 @@
       [deletePermission]="['logistics.delete_pallet']"
       [addPermission]="['logistics.add_pallet']"
       [updatePermission]="['logistics.change_pallet']"
+      (beforeDelete)="onBeforeDelete($event)"
+      (beforeUpdate)="onBeforeUpdate($event)"
       [columnPermissions]="{
         'created_at': ['access_control.view_audited_fields'],
         'created_by': ['access_control.view_audited_fields']

@@ -123,6 +123,8 @@ export class GenericTableComponent<T extends { id: any }> implements OnInit, Aft
   @Output() externalDataUpdate = new EventEmitter<{ item: T, data: any }>(); // Event for updating an item externally
   @Output() externalDataCreate = new EventEmitter<any>(); // Event for creating an item externally
   @Output() externalDataDelete = new EventEmitter<any>(); // Event for deleting an item externally
+  @Output() beforeUpdate = new EventEmitter<{ row: any; result: any; proceed: () => void; cancel: () => void }>();
+  @Output() beforeDelete = new EventEmitter<{ id: any; proceed: () => void; cancel: () => void }>();
 
   @Output() rowClick = new EventEmitter<T>();
   @Output() rowDeleted = new EventEmitter<any>();
@@ -582,31 +584,17 @@ export class GenericTableComponent<T extends { id: any }> implements OnInit, Aft
     dialogRef.afterClosed().subscribe((result) => {
       if (result) {
         if (row) {
-          // Mevcut öğeyi güncelle
-          this.isLoading = true;
-
-          // Check if using external mode or service
-          if (this.isExternalMode) {
-            // Emit event for external update
-            this.externalDataUpdate.emit({ item: row, data: result });
-            this.isLoading = false;
-          } else if (this.service) {
-            // Use the service (original behavior)
-            this.service.update((row as any).id, result).subscribe({
-              next: (updatedItem) => {
-                this.updateItem.emit(updatedItem); // Güncellenmiş nesneyi bildir
-                this.toastService.success(
-                  this.translate.instant('GENERIC_TABLE.UPDATE_SUCCESS'),
-                  this.translate.instant('GENERIC_TABLE.UPDATED')
-                );
-                this.loadData(); // Tabloyu yenile
-                this.isLoading = false;
-              },
-              error: (error) => {
-                this.toastService.error(this.translate.instant('GENERIC_TABLE.ADD_ERROR'), this.translate.instant('GENERIC_TABLE.UPDATE_FAILED'));
-                this.isLoading = false;
-              },
+          if (this.beforeUpdate.observed) {
+            // Dışarıdan kontrol var — emit et, karar dışarıda
+            this.beforeUpdate.emit({
+              row,
+              result,
+              proceed: () => this._doUpdate(row, result),
+              cancel: () => { this.isLoading = false; }
             });
+          } else {
+            // Kontrol yok — direkt güncelle
+            this._doUpdate(row, result);
           }
         } else {
           // Yeni öğe ekle
@@ -645,6 +633,27 @@ export class GenericTableComponent<T extends { id: any }> implements OnInit, Aft
     });
   }
 
+  private _doUpdate(row: any, result: any): void {
+    this.service!.update((row as any).id, result).subscribe({
+      next: (updatedItem) => {
+        this.updateItem.emit(updatedItem);
+        this.toastService.success(
+          this.translate.instant('GENERIC_TABLE.UPDATE_SUCCESS'),
+          this.translate.instant('GENERIC_TABLE.UPDATED')
+        );
+        this.loadData();
+        this.isLoading = false;
+      },
+      error: (error) => {
+        this.toastService.error(
+          this.translate.instant('GENERIC_TABLE.ADD_ERROR'),
+          this.translate.instant('GENERIC_TABLE.UPDATE_FAILED')
+        );
+        this.isLoading = false;
+      },
+    });
+  }
+
   confirmDelete(id: any): void {
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       width: '350px',
@@ -653,7 +662,15 @@ export class GenericTableComponent<T extends { id: any }> implements OnInit, Aft
 
     dialogRef.afterClosed().subscribe((result) => {
       if (result) {
-        this.deleteItem(id);
+        if (this.beforeDelete.observed) {
+          this.beforeDelete.emit({
+            id,
+            proceed: () => this.deleteItem(id),
+            cancel: () => { }
+          });
+        } else {
+          this.deleteItem(id);
+        }
       }
     });
   }
@@ -692,7 +709,10 @@ export class GenericTableComponent<T extends { id: any }> implements OnInit, Aft
           this.isLoading = false;
         },
         error: (error) => {
-          this.toastService.error(this.translate.instant('GENERIC_TABLE.DELETE_FAILED'), this.translate.instant('COMMON.ERROR'));
+          this.toastService.error(
+            this.translate.instant('GENERIC_TABLE.DELETE_FAILED'),
+            this.translate.instant('COMMON.ERROR')
+          );
           this.isLoading = false;
         },
       });

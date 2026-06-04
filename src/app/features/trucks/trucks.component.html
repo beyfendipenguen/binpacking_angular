@@ -24,6 +24,8 @@
       [deletePermission]="['logistics.delete_truck']"
       [addPermission]="['logistics.add_truck']"
       [updatePermission]="['logistics.change_truck']"
+      (beforeDelete)="onBeforeDelete($event)"
+      (beforeUpdate)="onBeforeUpdate($event)"
       [columnPermissions]="{
         'created_at': ['access_control.view_audited_fields'],
         'created_by': ['access_control.view_audited_fields']
