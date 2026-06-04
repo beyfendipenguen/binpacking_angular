@@ -2893,7 +2893,6 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
         }
       }
     }
-
     return null;
   }
 
