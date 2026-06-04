@@ -109,32 +109,6 @@ export class RepositoryService {
     );
   }
 
-
-  uploadFile(file: File, orderId: string, type: string): Observable<FileResponse> {
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('order_id', orderId); // Burada order_id olarak gönderiyoruz
-    formData.append('type', type);
-
-    return this.http.post<FileResponse>(
-      `${this.api.getApiUrl()}/orders/files/`,
-      formData
-    );
-  }
-
-  processFile(
-    file: File
-  ): Observable<{ message: string; order: Order; orderDetail: OrderDetailRead[] }> {
-    const formData = new FormData();
-    formData.append('file', file);
-
-    return this.http.post<{
-      message: string;
-      order: Order;
-      orderDetail: OrderDetailRead[];
-    }>(`${this.api.getApiUrl()}/orders/process-file/`, formData);
-  }
-
   calculatePackageDetails(
     verticalSort: boolean,
     order_id: string = this.getOrderId(),
