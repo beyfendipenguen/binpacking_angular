@@ -776,7 +776,9 @@
     "UPDATE_FAILED": "Could not be updated",
     "UNEXPECTED_RESPONSE": "API response is not in expected format",
     "DATA_LOADED": "Data loaded",
-    "DATA_LOAD_ERROR": "Error loading data"
+    "DATA_LOAD_ERROR": "Error loading data",
+    "IN_USE_ERROR": "This {{model}} is used in {{count}} orders and cannot be deleted: {{orders}}",
+    "UPDATE_IN_USE_WARNING": "This {{model}} is used in {{count}} orders: {{orders}}. If the update proceeds, order data will be affected (reports will not change). Do you want to continue?"
   },
   "TRUCK_VISUALIZATION": {
     "NO_DATA": "No Loading Data Yet",
@@ -786,7 +788,7 @@
     "FRONT_LOAD": "Load at front of truck",
     "TON": "ton",
     "SELECTED_PACKAGE": "Selected Package",
-    "ID": "ID:",
+    "ID": "Pallet No:",
     "TRUCK_END": "To truck end:",
     "DIMENSIONS": "Dimensions:",
     "WEIGHT": "Weight:",

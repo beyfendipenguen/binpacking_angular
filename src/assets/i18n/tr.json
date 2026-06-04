@@ -776,7 +776,9 @@
     "UPDATE_FAILED": "Güncellenemedi",
     "UNEXPECTED_RESPONSE": "API yanıtı beklenen formatta değil",
     "DATA_LOADED": "Veri yüklendi",
-    "DATA_LOAD_ERROR": "Veri yüklenirken hata"
+    "DATA_LOAD_ERROR": "Veri yüklenirken hata",
+    "IN_USE_ERROR": "Bu {{model}} {{count}} siparişte kullanılıyor ve silinemez: {{orders}}",
+    "UPDATE_IN_USE_WARNING": "Bu {{model}} {{count}} siparişte kullanılıyor: {{orders}}. Güncelleme devam ederse sipariş verileri etkilenecek (raporlar değişmeyecek). Devam etmek istiyor musunuz?"
   },
   "TRUCK_VISUALIZATION": {
     "NO_DATA": "Henüz Yükleme Verisi Yok",
@@ -786,7 +788,7 @@
     "FRONT_LOAD": "Tırın ön kısmındaki yük",
     "TON": "ton",
     "SELECTED_PACKAGE": "Seçili Paket",
-    "ID": "ID:",
+    "ID": "Palet No:",
     "TRUCK_END": "Tır sonuna:",
     "DIMENSIONS": "Boyutlar:",
     "WEIGHT": "Ağırlık:",
