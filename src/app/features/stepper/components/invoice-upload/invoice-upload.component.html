@@ -180,7 +180,7 @@
               <mat-form-field class="units-field" appearance="outline">
                 <input matInput type="number" [formControl]="unitsControl" min="100" step="100"
                   (change)="onUnitsManualChange($any($event.target).value)"
-                  [placeholder]="'INVOICE_UPLOAD.STACK_COUNT' | translate" [appDisableAuth]="['orders.add_order']" />
+                  [placeholder]="'INVOICE_UPLOAD.MAX_PALLET_HEIGHT' | translate" [appDisableAuth]="['orders.add_order']" />
               </mat-form-field>
 
               <!-- Artırma butonu -->
