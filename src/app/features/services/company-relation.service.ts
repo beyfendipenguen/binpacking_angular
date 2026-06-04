@@ -31,20 +31,7 @@ export class CompanyRelationService extends GenericCrudService<CompanyRelation> 
       `${this.apiUrl}${relationId}/settings/`
     );
   }
-
-  /**
-   * Tüm company relation'ları listele
-   */
-  getCompanyRelations1(): Observable<any[]> {
-    return this.http
-      .get<any>(`${this.ensureApiUrl()}`, {
-        params: new HttpParams().set('limit', 100).set('offset', 0),
-      })
-      .pipe(
-        map((response) => response.results)
-      );
-  }
-
+  
   /**
  * Toplu extra_data güncellemesi
  */
