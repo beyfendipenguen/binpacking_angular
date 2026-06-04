@@ -567,10 +567,7 @@ export class GenericBulkUploadDialogComponent implements OnInit {
   }
 
   getTemplateFile(): void {
-    const company_id = this.userSignal()?.company.id;
-
     this.fileService.getAll({
-      company_id: company_id,
       type: this.config.templateType
     }).subscribe({
       next: (response) => {
