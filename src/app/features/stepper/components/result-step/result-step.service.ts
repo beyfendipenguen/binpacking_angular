@@ -161,7 +161,8 @@ export class ResultStepService {
       type.includes('excel') ||
       type.includes('sheet') ||
       type.includes('xlsx') ||
-      type.includes('xls')
+      type.includes('xls') ||
+      type.includes('order_template_report')
     ) {
       return 'table_chart';
     } else if (type.includes('word') || type.includes('doc')) {
