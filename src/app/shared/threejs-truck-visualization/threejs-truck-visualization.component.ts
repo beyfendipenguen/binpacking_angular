@@ -24,7 +24,7 @@ import { StepperUiActions } from '@app/store/stepper/actions/stepper-ui.actions'
 import { ThreeJSRenderManagerService } from './services/threejs-render-manager.service';
 import { ThreeJSComponents, ThreeJSInitializationService } from './services/threejs-initialization.service';
 import { PackagesStateService } from './services/packages-state.service';
-import { PackageData, PackageSnapshot } from '@app/features/interfaces/order-result.interface';
+import { PackageData, PackagePosition, PackageSnapshot } from '@app/features/interfaces/order-result.interface';
 import { toObservable } from '@angular/core/rxjs-interop';
 import { skip, distinctUntilChanged, takeUntil, Subject } from 'rxjs';
 import { ToastService } from '@app/core/services/toast.service';
@@ -1839,8 +1839,6 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     if (deletedPackage) {
       this.isLocalOperation = true;
       this.packagesStateService.moveToDeleted(deletedPackage.pkgId);
-      this.store.dispatch(StepperResultActions.removePackageFromTruck({ pkgId: deletedPackage.pkgId }));
-      this.store.dispatch(StepperResultActions.changeDeletedPackageIsRemaining());
 
       this.packagesStateService.clearSelection();
       this.applyGravityToAllPackages();
@@ -1896,13 +1894,6 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
       this.createPackageMesh(packageData);
       this.packagesStateService.addToProcessedPackages(packageData);
 
-      this.store.dispatch(StepperResultActions.placePackageInTruck({
-        pkgId: packageData.pkgId,
-        x: packageData.x,
-        y: packageData.y,
-        z: packageData.z
-      }));
-      this.store.dispatch(StepperResultActions.changeDeletedPackageIsRemaining());
       this.orderResultChange();
 
     } else {
@@ -2261,11 +2252,34 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
   }
 
   private orderResultChange(): void {
-    if (!this.isDirty()) {
-      this.ngZone.run(() => {
+    // Mevcut tüm package state'inden orderResult'u rebuild et
+    const processed = this.processedPackagesSignal();
+    const deleted = this.deletedPackagesSignal();
+
+    const orderResult: PackagePosition[] = [...processed, ...deleted].map(pkg => [
+      pkg.x,
+      pkg.y,
+      pkg.z,
+      pkg.length,
+      pkg.width,
+      pkg.height,
+      pkg.id,
+      pkg.weight,
+      pkg.pkgId
+    ] as PackagePosition);
+
+    this.ngZone.run(() => {
+      // 1) orderResult'u güncelle (kaynak güncel oldu)
+      this.store.dispatch(StepperResultActions.setOrderResult({ orderResult }));
+
+      // 2) Artık is_remaining doğru hesaplanabilir
+      this.store.dispatch(StepperResultActions.changeDeletedPackageIsRemaining());
+
+      // 3) Dirty flag
+      if (!this.isDirty()) {
         this.store.dispatch(StepperUiActions.setStep3IsDirty());
-      });
-    }
+      }
+    });
   }
 
   // ========================================

@@ -183,6 +183,8 @@ export class ResultStepComponent implements OnInit, OnDestroy {
             reportFiles: result.reportFiles
           }));
 
+          this.store.dispatch(StepperResultActions.changeDeletedPackageIsRemaining());
+
           this.threeJSComponent?.reset();
           this.threeJSComponent?.safeProcessData();
           this.piecesData = result.orderResult;
