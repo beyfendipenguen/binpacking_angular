@@ -14,17 +14,3 @@ export interface Product extends Base {
   company?: Company;
 }
 
-export interface BulkUploadResponse {
-  total_rows: number;
-  successful: number;
-  skipped: number;
-  failed: number;
-  errors: {
-    row: number;
-    message: string;
-  }[];
-  success_details: {
-    row: number;
-    message: string;
-  }[];
-}

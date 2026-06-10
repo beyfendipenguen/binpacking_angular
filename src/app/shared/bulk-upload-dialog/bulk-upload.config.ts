@@ -1,5 +1,13 @@
-import { BulkUploadResponse } from '@app/features/interfaces/product.interface';
 import { Observable } from 'rxjs';
+
+export interface BulkUploadResponse {
+  total_rows: number;
+  successful: number;
+  skipped: number;
+  failed: number;
+  errors: BulkUploadError[];
+  success_details: BulkUploadSuccess[];
+}
 
 export interface BulkUploadConfig {
   entityName: string;

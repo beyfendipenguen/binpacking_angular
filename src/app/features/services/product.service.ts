@@ -5,7 +5,8 @@ import { SKIP_LOADING } from "@app/shared/loading/skip-loading.token";
 import { AppState, selectOrderDetails } from "@app/store";
 import { Store } from "@ngrx/store";
 import { Observable, map, catchError, of, take, switchMap } from "rxjs";
-import { BulkUploadResponse, Product } from "../interfaces/product.interface";
+import { Product } from "../interfaces/product.interface";
+import { BulkUploadResponse } from "../interfaces/pallet.interface";
 
 @Injectable({
   providedIn: 'root',

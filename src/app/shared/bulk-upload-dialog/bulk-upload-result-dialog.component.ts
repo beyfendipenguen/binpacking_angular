@@ -4,7 +4,7 @@ import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/materia
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTableModule } from '@angular/material/table';
-import { BulkUploadResponse, BulkUploadConfig } from './bulk-upload.config';
+import { BulkUploadConfig, BulkUploadError, BulkUploadResponse } from './bulk-upload.config';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 interface ResultDialogData {
@@ -150,7 +150,7 @@ interface ResultDialogData {
   </mat-dialog-actions>
 </div>
   `,
-styles: [`
+  styles: [`
   .dialog-container {
     width: 100%;
     max-width: 900px;
@@ -495,13 +495,13 @@ export class GenericBulkUploadResultDialogComponent {
   constructor(
     private dialogRef: MatDialogRef<GenericBulkUploadResultDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: ResultDialogData
-  ) {}
+  ) { }
 
   getDisplayName(rowData: any): string {
     // Farklı entity tipleri için name field'ı belirle
     return rowData.type_name || rowData.name || rowData.title ||
-           rowData.customer_name || rowData.company_name ||
-           'İsimsiz';
+      rowData.customer_name || rowData.company_name ||
+      'İsimsiz';
   }
 
   onClose(): void {
@@ -527,7 +527,7 @@ export class GenericBulkUploadResultDialogComponent {
       return 'error';
     }
 
-    const hasExistingErrors = this.data.response.errors.some(e =>
+    const hasExistingErrors = this.data.response.errors.some((e: BulkUploadError) =>
       e.message.includes('zaten mevcut')
     );
 
@@ -535,9 +535,9 @@ export class GenericBulkUploadResultDialogComponent {
   }
 
   getErrorSectionTitle(): string {
-  const type = this.getMajorErrorType();
-  return type === 'warning'
-    ? this.translate.instant('BULK_ADD.EXISTING_RECORDS', { plural: this.data.config.entityNamePlural })
-    : this.translate.instant('BULK_ADD.ERROR_RECORDS');
-}
+    const type = this.getMajorErrorType();
+    return type === 'warning'
+      ? this.translate.instant('BULK_ADD.EXISTING_RECORDS', { plural: this.data.config.entityNamePlural })
+      : this.translate.instant('BULK_ADD.ERROR_RECORDS');
+  }
 }
