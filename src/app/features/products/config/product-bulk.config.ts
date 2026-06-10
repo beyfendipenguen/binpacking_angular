@@ -5,7 +5,7 @@ import { TranslateService } from '@ngx-translate/core';
 
 export function createProductBulkConfig(): BulkUploadConfig {
   const productService = inject(ProductService);
-  const translate = inject(TranslateService)
+  const translate = inject(TranslateService);
 
   return {
     entityName: translate.instant('PRODUCT.PRODUCT'),
@@ -14,6 +14,7 @@ export function createProductBulkConfig(): BulkUploadConfig {
     templateType: 'product_template',
     templateFileName: 'urun_sablonu.xlsx',
     uploadFn: (file: File) => productService.bulkUpload(file),
+    uploadUrl: productService.getApiUrl() + 'bulk-upload/',   // YENİ
     instructions: [
       `1️⃣ ${translate.instant('PRODUCT.DOWNLOAD_TEMPLATE')}`,
       `2️⃣ ${translate.instant('PRODUCT.FILL_TEMPLATE')}`,
@@ -21,6 +22,6 @@ export function createProductBulkConfig(): BulkUploadConfig {
       `4️⃣ Std, Eco, Pre: ${translate.instant('PRODUCT.WEIGHT_INFO')}`
     ],
     acceptedFileTypes: ['.xlsx', '.xls'],
-    showTemplateDownload:true
+    showTemplateDownload: true
   };
 }

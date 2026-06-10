@@ -738,7 +738,9 @@
     "DOWNLOAD_OPTIONAL": "Download our ready-made template and fill it in (optional)",
     "TEMPLATE_DOWNLOADED": "Template downloaded",
     "FILL_AND_UPLOAD": "Fill it in and upload below",
-    "UPLOADING": "Uploading..."
+    "UPLOADING": "Uploading...",
+    "UPLOADING_FILE": "Uploading file...",
+    "PROCESSING": "Processing, please wait..."
   },
   "ERROR_PAGE": {
     "GO_HOME": "Go to Home",

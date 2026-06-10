@@ -16,6 +16,11 @@ export class ProductService extends GenericCrudService<Product> {
     super(http, 'products/products');
   }
 
+  getApiUrl(): string {
+    this.ensureApiUrl();
+    return this.apiUrl;
+  }
+
   bulkUpload(file: File): Observable<BulkUploadResponse> {
     this.ensureApiUrl();
     const formData = new FormData();

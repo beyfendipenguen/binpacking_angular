@@ -12,6 +12,7 @@ import { AppState, selectUser } from '@app/store';
 import { BulkUploadConfig } from './bulk-upload.config';
 import { Document } from '@app/features/interfaces/file.interface';
 import { GenericBulkUploadResultDialogComponent } from './bulk-upload-result-dialog.component';
+import { BulkUploadAsyncService } from './bulk-upload-async.service';
 
 @Component({
   selector: 'app-generic-bulk-upload-dialog',
@@ -150,11 +151,11 @@ import { GenericBulkUploadResultDialogComponent } from './bulk-upload-result-dia
           (click)="onSave()"
           [disabled]="!canSave()">
           @if(isUploading) {
-            <mat-spinner diameter="18" style="display: inline-block; margin-right: 8px;"></mat-spinner>
+            <mat-spinner diameter="18" style="display:inline-block; margin-right:8px;"></mat-spinner>
           } @else {
             <mat-icon>save</mat-icon>
           }
-          {{ (isUploading ? 'BULK_ADD.UPLOADING' : 'BULK_ADD.SAVE_AND_IMPORT') | translate }}
+          {{ getUploadStateLabel() | translate }}
         </button>
       </mat-dialog-actions>
     </div>
@@ -491,8 +492,11 @@ export class GenericBulkUploadDialogComponent implements OnInit {
   toastService = inject(ToastService);
   dialog = inject(MatDialog);
   private readonly store = inject(Store<AppState>);
+  private asyncUploadService = inject(BulkUploadAsyncService);
   public userSignal = this.store.selectSignal(selectUser);
   public templateFile: Document | undefined;
+
+  uploadState: 'idle' | 'uploading' | 'processing' | 'done' = 'idle';
 
   constructor(
     private dialogRef: MatDialogRef<GenericBulkUploadDialogComponent>,
@@ -643,41 +647,50 @@ export class GenericBulkUploadDialogComponent implements OnInit {
   }
 
   onSave(): void {
-    if (!this.canSave() || !this.selectedFile) {
-      return;
-    }
+    if (!this.canSave() || !this.selectedFile) return;
 
     this.isUploading = true;
+    this.uploadState = 'uploading';
 
-    this.config.uploadFn(this.selectedFile).subscribe({
-      next: (response) => {
-        this.isUploading = false;
+    this.asyncUploadService.upload(this.selectedFile, this.config.uploadUrl).subscribe({
+      next: (statusResponse) => {
+        if (statusResponse.state === 'PENDING' || statusResponse.state === 'STARTED') {
+          this.uploadState = 'processing';
+          return;
+        }
 
-        this.dialog.open(GenericBulkUploadResultDialogComponent, {
-          width: '900px',
-          maxWidth: '95vw',
-          maxHeight: '90vh',
-          data: {
-            response: response,
-            config: this.config
-          },
-          disableClose: false
-        });
+        if (statusResponse.state === 'SUCCESS') {
+          this.isUploading = false;
+          this.uploadState = 'done';
+          this.dialog.open(GenericBulkUploadResultDialogComponent, {
+            width: '900px',
+            maxWidth: '95vw',
+            maxHeight: '90vh',
+            data: { response: statusResponse.result, config: this.config },
+            disableClose: false
+          });
+          this.dialogRef.close({ saved: true, result: statusResponse.result });
+        }
 
-        this.dialogRef.close({
-          saved: true,
-          result: response
-        });
+        if (statusResponse.state === 'FAILURE') {
+          this.isUploading = false;
+          this.uploadState = 'idle';
+          this.toastService.error(statusResponse.error || 'İşlem başarısız oldu.');
+        }
       },
       error: (error) => {
         this.isUploading = false;
-
-        const errorMessage = error.error?.error ||
-          error.error?.message ||
-          this.translate.instant('BULK_ADD.FILE_UPLOAD_ERROR');
-
-        this.toastService.error(errorMessage);
+        this.uploadState = 'idle';
+        this.toastService.error(error.error?.error || 'Yükleme hatası oluştu.');
       }
     });
+  }
+
+  getUploadStateLabel(): string {
+    switch (this.uploadState) {
+      case 'uploading': return 'BULK_ADD.UPLOADING_FILE';
+      case 'processing': return 'BULK_ADD.PROCESSING';
+      default: return 'BULK_ADD.SAVE_AND_IMPORT';
+    }
   }
 }

@@ -738,7 +738,9 @@
     "DOWNLOAD_OPTIONAL": "Hazır şablonu indirip doldurabilirsin (isteğe bağlı)",
     "TEMPLATE_DOWNLOADED": "Şablon indirildi",
     "FILL_AND_UPLOAD": "Doldurduktan sonra aşağıdan yükleyebilirsin",
-    "UPLOADING": "Yükleniyor..."
+    "UPLOADING": "Yükleniyor...",
+    "UPLOADING_FILE": "Dosya yükleniyor...",
+    "PROCESSING": "İşleniyor, lütfen bekleyin..."
   },
   "ERROR_PAGE": {
     "GO_HOME": "Ana Sayfaya Git",

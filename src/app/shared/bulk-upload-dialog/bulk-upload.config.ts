@@ -1,36 +1,28 @@
+import { BulkUploadResponse } from '@app/features/interfaces/product.interface';
 import { Observable } from 'rxjs';
 
 export interface BulkUploadConfig {
-  // Entity bilgileri
-  entityName: string;              // 'Ürün', 'Müşteri', vb.
-  entityNamePlural: string;        // 'Ürünler', 'Müşteriler', vb.
-
-  // Icon
-  icon: string;                    // 'add_shopping_cart', 'person_add', vb.
-
-  // Template bilgileri
-  templateType: string;            // 'product_template', 'customer_template', vb.
-  templateFileName: string;        // 'urun_sablonu.xlsx', 'musteri_sablonu.xlsx'
-
-  // Upload endpoint'i çağıracak servis metodu
+  entityName: string;
+  entityNamePlural: string;
+  icon: string;
+  templateType: string;
+  templateFileName: string;
   uploadFn: (file: File) => Observable<BulkUploadResponse>;
-
-  // Talimatlar (opsiyonel)
+  uploadUrl: string;   // YENİ
   instructions?: string[];
-
-  // Kabul edilen dosya tipleri
-  acceptedFileTypes?: string[];    // default: ['.xlsx', '.xls']
-
+  acceptedFileTypes?: string[];
   showTemplateDownload?: boolean;
 }
 
-export interface BulkUploadResponse {
-  total_rows: number;
-  successful: number;
-  skipped: number;
-  failed: number;
-  errors: BulkUploadError[];
-  success_details: BulkUploadSuccess[];
+// YENİ tipler
+export interface BulkUploadJobResponse {
+  task_id: string;
+}
+
+export interface BulkUploadStatusResponse {
+  state: 'PENDING' | 'STARTED' | 'SUCCESS' | 'FAILURE';
+  result?: BulkUploadResponse;
+  error?: string;
 }
 
 export interface BulkUploadError {

@@ -16,6 +16,11 @@ export class PalletService extends GenericCrudService<Pallet> {
     super(http, 'logistics/pallets');
   }
 
+  getApiUrl(): string {
+    this.ensureApiUrl();
+    return this.apiUrl;
+  }
+
   bulkUpload(file: File): Observable<BulkUploadResponse> {
     this.ensureApiUrl();
     const formData = new FormData();
