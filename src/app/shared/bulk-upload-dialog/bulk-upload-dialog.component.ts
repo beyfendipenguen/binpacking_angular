@@ -13,6 +13,7 @@ import { BulkUploadConfig } from './bulk-upload.config';
 import { Document } from '@app/features/interfaces/file.interface';
 import { GenericBulkUploadResultDialogComponent } from './bulk-upload-result-dialog.component';
 import { BulkUploadAsyncService } from './bulk-upload-async.service';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
 
 @Component({
   selector: 'app-generic-bulk-upload-dialog',
@@ -23,7 +24,8 @@ import { BulkUploadAsyncService } from './bulk-upload-async.service';
     MatButtonModule,
     MatIconModule,
     MatProgressSpinnerModule,
-    TranslateModule
+    TranslateModule,
+    MatProgressBarModule
   ],
   template: `
     <div class="dialog-container">
@@ -145,6 +147,18 @@ import { BulkUploadAsyncService } from './bulk-upload-async.service';
 
       <mat-dialog-actions align="end">
         <button mat-button (click)="onClose()">{{'COMMON.CANCEL' | translate}}</button>
+        @if(isUploading) {
+          <div class="upload-progress-bar">
+            <mat-progress-bar mode="indeterminate" color="primary"></mat-progress-bar>
+            <span class="progress-label">
+              @if(uploadState === 'uploading') {
+                {{ 'BULK_ADD.UPLOADING_FILE' | translate }}
+              } @else {
+                {{ 'BULK_ADD.PROCESSING' | translate }}
+              }
+            </span>
+          </div>
+        }
         <button
           mat-raised-button
           color="primary"
@@ -443,6 +457,23 @@ import { BulkUploadAsyncService } from './bulk-upload-async.service';
           }
         }
       }
+    }
+  }
+
+  .upload-progress-bar {
+    padding: 0 24px 12px;
+    border-top: 1px solid #e0e0e0;
+
+    mat-progress-bar {
+      border-radius: 4px;
+      margin-bottom: 8px;
+    }
+
+    .progress-label {
+      font-size: 0.85rem;
+      color: #006a6a;
+      display: block;
+      text-align: center;
     }
   }
 
