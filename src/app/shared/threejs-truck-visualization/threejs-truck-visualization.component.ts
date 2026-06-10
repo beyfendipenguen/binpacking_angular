@@ -146,6 +146,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
   canRedo = signal(false);
 
   // Data
+  private skipStoreSync = false;
 
   currentFPS = 60;
 
@@ -468,7 +469,8 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
   // ========================================
 
   public async safeProcessData(): Promise<void> {
-
+    console.log('[safeProcessData] tetiklendi, isLocalOp:', this.isLocalOperation);
+    console.trace();  // ← çağırıcı zinciri
     if (this.isDestroyed || !this.isViewReady) return;
 
     this.isLoadingData = true;
@@ -492,6 +494,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
   }
 
   private processData(): void {
+    console.log('[processData] çağrıldı, mevcut paket:', this.processedPackagesSignal().length);
     const pieces = this.piecesDataSignal();
 
     if (!pieces || pieces.length === 0) {
@@ -518,8 +521,8 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     const deleted: PackageData[] = [];
 
     pieces.forEach((piece: any, index: number) => {
-      const id = piece[6] || index;
-      const saved = stateMap.get(id);
+      const pkgId = piece[8];
+      const saved = stateMap.get(pkgId);
 
       let length = piece[3] || 0;
       let width = piece[4] || 0;
@@ -550,7 +553,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
       }
 
       const pkg: PackageData = {
-        id,
+        id: piece[6],
         x: piece[0] || 0,
         y: piece[1] || 0,
         z: piece[2] || 0,
@@ -1429,7 +1432,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
           material.wireframe = false;
           material.emissive.setHex(0x444444);
         }
-
+        this.skipStoreSync = true;
         this.orderResultChange();
         this.cdr.markForCheck();
       }
@@ -1455,6 +1458,9 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     if (this.selectedPackageSignal()) {
       this.highlightSelectedPackage();
     }
+
+    this.skipStoreSync = false;
+    this.orderResultChange();
 
     // ✅ Gravity uygula
     this.applyGravityToAllPackages();
@@ -2252,30 +2258,29 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
   }
 
   private orderResultChange(): void {
-    // Mevcut tüm package state'inden orderResult'u rebuild et
     const processed = this.processedPackagesSignal();
     const deleted = this.deletedPackagesSignal();
 
     const orderResult: PackagePosition[] = [...processed, ...deleted].map(pkg => [
-      pkg.x,
-      pkg.y,
-      pkg.z,
-      pkg.length,
-      pkg.width,
-      pkg.height,
-      pkg.id,
-      pkg.weight,
-      pkg.pkgId
+      pkg.x, pkg.y, pkg.z,
+      pkg.length, pkg.width, pkg.height,
+      pkg.id, pkg.weight, pkg.pkgId
     ] as PackagePosition);
 
     this.ngZone.run(() => {
-      // 1) orderResult'u güncelle (kaynak güncel oldu)
-      this.store.dispatch(StepperResultActions.setOrderResult({ orderResult }));
+      if (this.skipStoreSync) {
+        if (!this.isDirty()) {
+          this.store.dispatch(StepperUiActions.setStep3IsDirty());
+        }
+        return;
+      }
 
-      // 2) Artık is_remaining doğru hesaplanabilir
+      // ← KRİTİK SATIR
+      this.isLocalOperation = true;
+
+      this.store.dispatch(StepperResultActions.setOrderResult({ orderResult }));
       this.store.dispatch(StepperResultActions.changeDeletedPackageIsRemaining());
 
-      // 3) Dirty flag
       if (!this.isDirty()) {
         this.store.dispatch(StepperUiActions.setStep3IsDirty());
       }

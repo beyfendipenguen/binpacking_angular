@@ -134,7 +134,7 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
   // NgRx Observables
   public isEditMode$ = this.store.select(selectIsEditMode);
 
-  companySearchControl = new FormControl<string | any>('');
+  companySearchControl = new FormControl<string | any>({ value: '', disabled: false });
   filteredCompanies = signal<any[]>([]);
   private cachedTemplateBlob = signal<Blob | null>(null);
   // Form and data
@@ -212,6 +212,11 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    if(this.isEditModeSignal()){
+      this.companySearchControl.disable();
+    }else{
+      this.companySearchControl.enable();
+    }
     this.uploadForm = this.orderFormManager.initializeForm();
     this.weightCategoryService.getCategories().subscribe({
       next: (categories) => this.availableWeightCategories.set(categories),
