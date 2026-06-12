@@ -23,4 +23,11 @@ export class CompanyService extends GenericCrudService<Company> {
   getAllTargetCompanies(): Observable<Company[]> {
     return this.http.get<Company[]>(`${this.apiUrl}/target-companies/`);
   }
+
+  getAvailableCompanies(search?: string): Observable<any> {
+    this.ensureApiUrl();
+    const params: any = {};
+    if (search) params['search'] = search;
+    return this.http.get(`${this.apiUrl}available_invoice_companies/`, { params });
+  }
 }

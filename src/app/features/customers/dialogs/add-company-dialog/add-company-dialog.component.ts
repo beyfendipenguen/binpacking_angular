@@ -160,13 +160,10 @@ export class AddCompanyDialogComponent implements OnInit, OnDestroy {
         this.isSearching = true;
 
         // Backend'den ara
-        return this.companyService.getAll({
-          search: searchTerm.trim(),
-          limit: 5 // İlk 5 sonuç
-        }).pipe(
+        return this.companyService.getAvailableCompanies(searchTerm.trim()).pipe(
           map(response => {
             this.isSearching = false;
-            return response.results || [];
+            return response || [];
           }),
           catchError(error => {
             this.isSearching = false;
