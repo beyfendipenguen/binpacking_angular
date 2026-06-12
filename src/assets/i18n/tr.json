@@ -74,7 +74,9 @@
     "REMOVE_ALL": "Tümünü çıkar",
     "UNDO": "Geri Al",
     "REDO": "İleri Al",
-    "COMING_SOON": "Yakında"
+    "COMING_SOON": "Yakında",
+    "MOVE_UP":"Yukarı Taşı",
+    "MOVE_DOWN": "Aşağı Taşı"
   },
   "MENU": {
     "HOME": "Ana Sayfa",

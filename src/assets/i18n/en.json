@@ -74,7 +74,9 @@
     "REMOVE_ALL": "Remove All",
     "UNDO": "Undo",
     "REDO": "Redo",
-    "COMING_SOON": "Coming Soon"
+    "COMING_SOON": "Coming Soon",
+    "MOVE_UP": "Move Up",
+    "MOVE_DOWN": "Move Down"
   },
   "MENU": {
     "HOME": "Home",

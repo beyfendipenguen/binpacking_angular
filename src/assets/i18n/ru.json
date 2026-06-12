@@ -826,7 +826,9 @@
     "AUTO_PLACE_NO_SPACE": "Подходящая позиция для пакета не найдена",
     "UNDO": "Отменить (Ctrl+Z)",
     "REDO": "Повторить (Ctrl+Y)",
-    "COMING_SOON": "Скоро"
+    "COMING_SOON": "Скоро",
+    "MOVE_UP": "Переместить вверх",
+    "MOVE_DOWN": "Переместить вниз"
   },
   "STEPPER": {
     "ERROR": "Ошибка",
