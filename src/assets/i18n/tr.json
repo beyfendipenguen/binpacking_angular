@@ -345,7 +345,10 @@
     "PRODUCTS": "Sipariş Ürünleri",
     "NO_ORDER_INFO": "Sipariş Bilgisi Bulunamadı",
     "INCOMPLETE_ORDER": "Eksik Sipariş",
-    "NO_COMPANY_RELATION": "Sipariş için müşteri ilişkisi tanımlı değil"
+    "NO_COMPANY_RELATION": "Sipariş için müşteri ilişkisi tanımlı değil",
+    "CUSTOMER_VIEW": "Müşteri Linki",
+"COPY_CUSTOMER_LINK": "Müşteri linkini kopyala",
+"LINK_COPIED": "Link kopyalandı!"
   },
   "ORDER_DETAILS": {
     "TITLE": "Ürün Detayları",
@@ -688,7 +691,10 @@
     "REQUEST_ERROR": "İstek hatası. Lütfen parametreleri kontrol edin.",
     "SERVER_ERROR": "Sunucu hatası. Lütfen daha sonra tekrar deneyin.",
     "UNEXPECTED_ERROR": "Beklenmeyen bir hata oluştu.",
-    "DRAG_DROP": "Sürükle & Bırak"
+    "DRAG_DROP": "Sürükle & Bırak",
+    "CUSTOMER_VIEW_OPEN": "Müşteri görünümünü aç",
+    "COPY_LINK": "Müşteri Linki Kopyala",
+    "COPIED": "Kopyalandı!"
   },
   "TRUCK": {
     "TITLE": "Sevkiyat Aracı Yönetimi",
@@ -1236,5 +1242,46 @@
     "DUPLICATE_KEY": "Bu anahtar zaten mevcut",
     "NO_FIELDS": "Henüz ekstra alan eklenmedi",
     "SAVED": "Rapor profili kaydedildi"
+  },
+   "PUBLIC_ORDER_VIEW": {
+    "LOADING": "Yükleniyor...",
+    "BRAND_SUBTITLE": "Yükleme Görünümü",
+    "ERROR": {
+      "TITLE": "Sipariş Bulunamadı",
+      "INVALID_LINK": "Geçersiz bağlantı.",
+      "NOT_FOUND": "Sipariş bulunamadı veya bağlantı geçersiz.",
+      "GENERIC": "Bir hata oluştu. Lütfen tekrar deneyin.",
+      "THREE_JS": "3D görünüm başlatılamadı.",
+      "CONTACT": "Gönderici firma ile iletişime geçin."
+    },
+    "SUMMARY": {
+      "COMPANY": "Firma",
+      "PACKAGES": "Paket",
+      "WEIGHT": "Ağırlık",
+      "DATE": "Tarih"
+    },
+    "VIEW": {
+      "ISOMETRIC": "İzometrik görünüm (1)",
+      "FRONT": "Ön görünüm (2)",
+      "SIDE": "Yan görünüm (3)",
+      "TOP": "Üst görünüm (4)",
+      "FULLSCREEN": "Tam ekran (F)",
+      "EXIT_FULLSCREEN": "Tam ekrandan çık"
+    },
+    "HINT": {
+      "ROTATE": "🖱 Sağ tık → döndür",
+      "PAN": "⚲ Orta tık → kaydır",
+      "ZOOM": "⊕ Scroll → zoom",
+      "SELECT": "📦 Tıkla → detay"
+    },
+    "DETAIL": {
+      "TITLE": "Paket",
+      "CLOSE": "Kapat",
+      "DIMENSIONS": "Boyutlar",
+      "WEIGHT": "Ağırlık",
+      "POS_X": "Konum X",
+      "POS_Y": "Konum Y",
+      "POS_Z": "Konum Z"
+    }
   }
 }

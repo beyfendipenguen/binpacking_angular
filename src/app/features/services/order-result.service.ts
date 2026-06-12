@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { GenericCrudService } from '@app/core/services/generic-crud.service';
 import { OrderResult } from '../interfaces/order-result.interface';
 import { map, Observable } from 'rxjs';
+import { PublicOrderViewData } from '../interfaces/order.interface';
 
 @Injectable({
   providedIn: 'root'
@@ -17,6 +18,13 @@ export class OrderResultService extends GenericCrudService<OrderResult> {
       map((response: any) => {
         return response.results || [];
       })
+    );
+  }
+
+  getPublicOrderView(guid: string) {
+    this.ensureApiUrl();
+    return this.http.get<PublicOrderViewData>(
+      `${this.apiUrl}public-view/${guid}/`
     );
   }
 }

@@ -12,3 +12,22 @@ export interface Order extends Base {
   max_pallet_height: number;
   truck_weight_limit: number;
 }
+
+export interface PublicOrderViewData {
+  order_id: string;
+  created_at: string;
+  company_name: string;
+  organization_name: string;
+  truck_dimensions: [number, number, number];
+  order_result: PackagePosition[];
+  package_count: number;
+  total_weight: number;
+}
+
+export type PackagePosition = [
+  number, number, number, // x, y, z
+  number, number, number, // length, width, height
+  number,                 // id
+  number,                 // weight
+  string                  // pkgId
+];

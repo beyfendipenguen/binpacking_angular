@@ -477,6 +477,66 @@ $white: #ffffff;
           color: $white;
         }
       }
+
+      .customer-view-actions {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-left: auto;
+
+        .customer-view-btn {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 34px;
+          height: 34px;
+          background: linear-gradient(135deg, $primary-color, $dark-primary);
+          color: $white;
+          border-radius: 6px;
+          text-decoration: none;
+          transition: all 0.2s ease;
+          box-shadow: 0 2px 6px rgba($primary-color, 0.3);
+
+          mat-icon {
+            font-size: 18px;
+            width: 18px;
+            height: 18px;
+            color: $white;
+          }
+
+          &:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba($primary-color, 0.4);
+          }
+        }
+
+        .customer-copy-btn {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          padding: 6px 12px;
+          height: 34px;
+          background: rgba($primary-color, 0.08);
+          color: $primary-color;
+          border: 1px solid rgba($primary-color, 0.25);
+          border-radius: 6px;
+          font-size: 12px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.2s ease;
+
+          mat-icon {
+            font-size: 16px;
+            width: 16px;
+            height: 16px;
+          }
+
+          &:hover {
+            background: rgba($primary-color, 0.15);
+            border-color: $primary-color;
+          }
+        }
+      }
     }
 
     .report-files-list {

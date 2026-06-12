@@ -1,0 +1,120 @@
+<div class="pov-root">
+
+  <!-- ══ LOADING ════════════════════════════════════════════════════════════ -->
+  @if (isLoading()) {
+  <div class="pov-loading">
+    <div class="pov-spinner"></div>
+    <p>{{ 'PUBLIC_ORDER_VIEW.LOADING' | translate }}</p>
+  </div>
+  }
+
+  <!-- ══ ERROR ══════════════════════════════════════════════════════════════ -->
+  @if (hasError()) {
+  <div class="pov-error">
+    <!-- <div class="pov-error__icon">TRUNAM</div> -->
+    <h2>{{ 'PUBLIC_ORDER_VIEW.ERROR.TITLE' | translate }}</h2>
+    <p>{{ errorMessage() }}</p>
+    <small>{{ 'PUBLIC_ORDER_VIEW.ERROR.CONTACT' | translate }}</small>
+  </div>
+  }
+
+  <!-- ══ CANVAS ═════════════════════════════════════════════════════════════ -->
+  <div #threeContainer class="pov-canvas" [class.pov-canvas--hidden]="isLoading() || hasError()">
+  </div>
+
+  <!-- ══ UI OVERLAYS ════════════════════════════════════════════════════════ -->
+  @if (!isLoading() && !hasError() && orderData) {
+
+  <!-- Marka şeridi -->
+  <div class="pov-brand">
+    <span class="pov-brand__logo">{{orderData.company_name}}</span>
+    <span class="pov-brand__sep">|</span>
+    <span class="pov-brand__sub">{{ 'PUBLIC_ORDER_VIEW.BRAND_SUBTITLE' | translate }}</span>
+  </div>
+
+  <!-- Özet çubuğu -->
+  <div class="pov-summary">
+    <div class="pov-summary__item">
+      <span class="pov-summary__label">{{ 'PUBLIC_ORDER_VIEW.SUMMARY.COMPANY' | translate }}</span>
+      <span class="pov-summary__value">{{ orderData.organization_name }}</span>
+    </div>
+    <div class="pov-summary__divider"></div>
+    <div class="pov-summary__item">
+      <span class="pov-summary__label">{{ 'PUBLIC_ORDER_VIEW.SUMMARY.PACKAGES' | translate }}</span>
+      <span class="pov-summary__value">{{ orderData.package_count }}</span>
+    </div>
+    <div class="pov-summary__divider"></div>
+    <div class="pov-summary__item">
+      <span class="pov-summary__label">{{ 'PUBLIC_ORDER_VIEW.SUMMARY.WEIGHT' | translate }}</span>
+      <span class="pov-summary__value">{{ totalWeightDisplay }}</span>
+    </div>
+    <div class="pov-summary__divider"></div>
+    <div class="pov-summary__item">
+      <span class="pov-summary__label">{{ 'PUBLIC_ORDER_VIEW.SUMMARY.DATE' | translate }}</span>
+      <span class="pov-summary__value">{{ formattedDate }}</span>
+    </div>
+  </div>
+
+  <!-- Kamera kontrolleri -->
+  <div class="pov-controls">
+    <button class="pov-ctrl-btn" [class.pov-ctrl-btn--active]="currentView === 'isometric'"
+      (click)="setView('isometric')" [title]="'PUBLIC_ORDER_VIEW.VIEW.ISOMETRIC' | translate">
+      ⬡
+    </button>
+    <button class="pov-ctrl-btn" [class.pov-ctrl-btn--active]="currentView === 'front'" (click)="setView('front')"
+      [title]="'PUBLIC_ORDER_VIEW.VIEW.FRONT' | translate">
+      ◫
+    </button>
+    <button class="pov-ctrl-btn" [class.pov-ctrl-btn--active]="currentView === 'side'" (click)="setView('side')"
+      [title]="'PUBLIC_ORDER_VIEW.VIEW.SIDE' | translate">
+      ⊟
+    </button>
+    <button class="pov-ctrl-btn" [class.pov-ctrl-btn--active]="currentView === 'top'" (click)="setView('top')"
+      [title]="'PUBLIC_ORDER_VIEW.VIEW.TOP' | translate">
+      ⊡
+    </button>
+    <div class="pov-controls__sep"></div>
+    <button class="pov-ctrl-btn pov-ctrl-btn--fs" (click)="toggleFullscreen()"
+      [title]="(isFullscreen ? 'PUBLIC_ORDER_VIEW.VIEW.EXIT_FULLSCREEN' : 'PUBLIC_ORDER_VIEW.VIEW.FULLSCREEN') | translate">
+      {{ isFullscreen ? '✕' : '⛶' }}
+    </button>
+  </div>
+
+  <!-- Zoom -->
+  <div class="pov-zoom">
+    <button class="pov-zoom__btn" (click)="applyZoom(zoomLevel + 10)">+</button>
+    <input class="pov-zoom__slider" type="range" [min]="minZoom" [max]="maxZoom" [ngModel]="zoomLevel"
+      (input)="applyZoom(+$any($event.target).value)" orient="vertical" />
+    <button class="pov-zoom__btn" (click)="applyZoom(zoomLevel - 10)">−</button>
+  </div>
+
+  <!-- İpuçları -->
+  <div class="pov-hint">
+    <span>{{ 'PUBLIC_ORDER_VIEW.HINT.ROTATE' | translate }}</span>
+    <span>{{ 'PUBLIC_ORDER_VIEW.HINT.PAN' | translate }}</span>
+    <span>{{ 'PUBLIC_ORDER_VIEW.HINT.ZOOM' | translate }}</span>
+    <span>{{ 'PUBLIC_ORDER_VIEW.HINT.SELECT' | translate }}</span>
+  </div>
+
+  <!-- Seçili paket detayı -->
+  @if (selectedPackage(); as pkg) {
+  <div class="pov-detail">
+    <button class="pov-detail__close" (click)="clearSelection()" [title]="'PUBLIC_ORDER_VIEW.DETAIL.CLOSE' | translate">
+      ✕
+    </button>
+    <h4 class="pov-detail__title">
+      📦 {{ 'PUBLIC_ORDER_VIEW.DETAIL.TITLE' | translate }} #{{ pkg.id }}
+    </h4>
+    <div class="pov-detail__grid">
+      <span class="pov-detail__lbl">{{ 'PUBLIC_ORDER_VIEW.DETAIL.DIMENSIONS' | translate }}</span>
+      <span class="pov-detail__val">{{ pkg.dimensions }}</span>
+
+      <span class="pov-detail__lbl">{{ 'PUBLIC_ORDER_VIEW.DETAIL.WEIGHT' | translate }}</span>
+      <span class="pov-detail__val">{{ pkg.weight }} kg</span>
+    </div>
+  </div>
+  }
+
+  }
+
+</div>

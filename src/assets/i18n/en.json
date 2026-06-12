@@ -345,7 +345,10 @@
     "PRODUCTS": "Order Products",
     "NO_ORDER_INFO": "No Order Information Found",
     "INCOMPLETE_ORDER": "Incomplete Order",
-    "NO_COMPANY_RELATION": "No customer relation defined for this order"
+    "NO_COMPANY_RELATION": "No customer relation defined for this order",
+    "CUSTOMER_VIEW": "Customer Link",
+    "COPY_CUSTOMER_LINK": "Copy customer link",
+    "LINK_COPIED": "Link copied!"
   },
   "ORDER_DETAILS": {
     "TITLE": "Product Details",
@@ -688,7 +691,10 @@
     "REQUEST_ERROR": "Request error. Please check parameters.",
     "SERVER_ERROR": "Server error. Please try again later.",
     "UNEXPECTED_ERROR": "An unexpected error occurred.",
-    "DRAG_DROP": "Drag & Drop"
+    "DRAG_DROP": "Drag & Drop",
+    "CUSTOMER_VIEW_OPEN": "Open customer view",
+    "COPY_LINK": "Customer Copy Link",
+    "COPIED": "Copied!"
   },
   "TRUCK": {
     "TITLE": "Vehicle Management",
@@ -1236,5 +1242,46 @@
     "DUPLICATE_KEY": "This key already exists",
     "NO_FIELDS": "No extra fields have been added yet",
     "SAVED": "Report profile saved"
+  },
+  "PUBLIC_ORDER_VIEW": {
+    "LOADING": "Loading...",
+    "BRAND_SUBTITLE": "Load View",
+    "ERROR": {
+      "TITLE": "Order Not Found",
+      "INVALID_LINK": "Invalid link.",
+      "NOT_FOUND": "Order not found or link is invalid.",
+      "GENERIC": "An error occurred. Please try again.",
+      "THREE_JS": "Failed to initialize 3D view.",
+      "CONTACT": "Please contact the sender."
+    },
+    "SUMMARY": {
+      "COMPANY": "Company",
+      "PACKAGES": "Packages",
+      "WEIGHT": "Weight",
+      "DATE": "Date"
+    },
+    "VIEW": {
+      "ISOMETRIC": "Isometric view (1)",
+      "FRONT": "Front view (2)",
+      "SIDE": "Side view (3)",
+      "TOP": "Top view (4)",
+      "FULLSCREEN": "Fullscreen (F)",
+      "EXIT_FULLSCREEN": "Exit fullscreen"
+    },
+    "HINT": {
+      "ROTATE": "🖱 Right click → rotate",
+      "PAN": "⚲ Middle click → pan",
+      "ZOOM": "⊕ Scroll → zoom",
+      "SELECT": "📦 Click → details"
+    },
+    "DETAIL": {
+      "TITLE": "Package",
+      "CLOSE": "Close",
+      "DIMENSIONS": "Dimensions",
+      "WEIGHT": "Weight",
+      "POS_X": "Position X",
+      "POS_Y": "Position Y",
+      "POS_Z": "Position Z"
+    }
   }
 }

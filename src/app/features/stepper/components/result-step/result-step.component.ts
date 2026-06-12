@@ -91,6 +91,8 @@ export class ResultStepComponent implements OnInit, OnDestroy {
   hasThreeJSError = false;
   optimizationProgress = 0;
 
+  linkCopied = false;
+
   // File download
   private pendingFileName = signal<string | null>(null);
 
@@ -135,6 +137,13 @@ export class ResultStepComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  copyCustomerLink(): void {
+    const url = `${window.location.origin}/order-view/${this.orderIdSignal()}`;
+    navigator.clipboard.writeText(url).then(() => {
+      this.linkCopied = true;
+    });
   }
 
   // ========================================

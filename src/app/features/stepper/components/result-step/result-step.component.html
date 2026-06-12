@@ -2,9 +2,8 @@
   <!-- Enhanced Controls Container -->
   <div class="controls-container">
     <div class="action-buttons">
-      <button id="optimize-button" mat-raised-button class="calculate-button"
-        [disabled]="isLoading" (click)="calculateBinpacking()"
-        [appDisableAuth]="['orders.change_orderresult']">
+      <button id="optimize-button" mat-raised-button class="calculate-button" [disabled]="isLoading"
+        (click)="calculateBinpacking()" [appDisableAuth]="['orders.change_orderresult']">
         <mat-icon>play_arrow</mat-icon>
         {{ (isLoading ? 'RESULT_STEP.PROCESSING' : 'RESULT_STEP.RUN_OPTIMIZATION') | translate }}
       </button>
@@ -100,8 +99,21 @@
     <div class="report-files-header">
       <mat-icon>description</mat-icon>
       <span>{{ 'RESULT_STEP.REPORT_FILES' | translate }}</span>
-      <div class="file-count">{{ reportFilesSignal().length }}</div>
+      
+      <div class="customer-view-actions">
+        <a class="customer-view-btn" [href]="'/order-view/' + orderIdSignal()" target="_blank"
+          [title]="'RESULT_STEP.CUSTOMER_VIEW_OPEN' | translate">
+          <mat-icon>open_in_new</mat-icon>
+        </a>
+        <button class="customer-copy-btn" (click)="copyCustomerLink()"
+          [title]="'RESULT_STEP.COPY_LINK' | translate">
+          <mat-icon>{{ linkCopied ? 'check' : 'content_copy' }}</mat-icon>
+          <span>{{ (linkCopied ? 'RESULT_STEP.COPIED' : 'RESULT_STEP.COPY_LINK') | translate }}</span>
+        </button>
+      </div>
 
+      <div class="file-count">{{ reportFilesSignal().length }}</div>
+      
       <!-- ✅ NEW: Unsaved Changes Badge -->
       @if (isDirtySignal()) {
       <div class="unsaved-badge" [title]="'RESULT_STEP.UNSAVED_CHANGES' | translate">
@@ -153,7 +165,7 @@
   </div>
   }
 
-  <button  mat-button class="prev-button" (click)="goPreviousStep()">
+  <button mat-button class="prev-button" (click)="goPreviousStep()">
     <mat-icon>arrow_back</mat-icon>
     <span>{{ 'COMMON.BACK' | translate }}</span>
   </button>

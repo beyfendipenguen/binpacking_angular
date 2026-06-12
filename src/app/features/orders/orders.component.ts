@@ -37,6 +37,7 @@ export class OrdersComponent implements OnInit {
   fileService = inject(FileService);
   dialog = inject(MatDialog);
   router = inject(Router);
+  copiedOrderId: string | null = null;
 
   @ViewChild(GenericTableComponent) genericTable!: GenericTableComponent<any>;
 
@@ -49,6 +50,7 @@ export class OrdersComponent implements OnInit {
     'order_details',
     'package',
     'files',
+    'customer_view',
     'is_completed',
     'created_by',
     'created_at',
@@ -122,6 +124,18 @@ export class OrdersComponent implements OnInit {
       }
     },
     {
+      key: 'customer_view',
+      label: this.translate.instant('ORDER.CUSTOMER_VIEW'),
+      type: 'button',
+      required: false,
+      buttonConfig: {
+        icon: 'content_copy',
+        color: 'primary',
+        tooltip: this.translate.instant('ORDER.COPY_CUSTOMER_LINK'),
+        class: 'customer-view-button'
+      }
+    },
+    {
       key: 'is_completed',
       label: this.translate.instant('COMMON.STATUS'),
       type: 'status',
@@ -138,8 +152,9 @@ export class OrdersComponent implements OnInit {
     'date': this.translate.instant('INVOICE_UPLOAD.ORDER_DATE'),
     'name': this.translate.instant('ORDER.ORDER_NAME'),
     'is_completed': this.translate.instant('COMMON.STATUS'),
-    'created_by':this.translate.instant('COMMON.USER'),
-    'created_at' : this.translate.instant('ORDER.CREATION_DATE')
+    'created_by': this.translate.instant('COMMON.USER'),
+    'created_at': this.translate.instant('ORDER.CREATION_DATE'),
+    'customer_view': this.translate.instant('ORDER.CUSTOMER_VIEW'),
   };
 
   filterableColumns: string[] = [
@@ -167,7 +182,18 @@ export class OrdersComponent implements OnInit {
       case 'files':
         this.openFilesDialog(row);
         break;
+      case 'customer_view':
+        this.copyCustomerLink(row.id);
+        break;
     }
+  }
+
+  copyCustomerLink(orderId: string): void {
+    const url = `${window.location.origin}/order-view/${orderId}`;
+    navigator.clipboard.writeText(url).then(() => {
+      this.copiedOrderId = orderId;
+      setTimeout(() => this.copiedOrderId = null, 2000);
+    });
   }
 
   /**

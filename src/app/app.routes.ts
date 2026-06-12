@@ -5,11 +5,17 @@ import ADMIN_ROUTES from './features/admin.routes';
 import { LayoutComponent } from './features/layout/layout.component';
 import { ErrorComponent } from './shared/error/error.component';
 import { PermissionDeniedComponent } from './shared/permission-denied/permission-denied.component';
+import { PublicOrderViewComponent } from './features/order-public-view/public-order-view.component';
 
 export const routes: Routes = [
     {
         path: 'auth',
         children: AUTH_ROUTES
+    },
+    {
+        path: 'order-view/:guid',
+        component: PublicOrderViewComponent,
+        title: 'TrunamBox',
     },
     {
         path: '',
