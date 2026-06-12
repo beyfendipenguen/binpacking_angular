@@ -287,7 +287,7 @@ export class PalletControlComponent
       return total + (weight * count);
     }, 0);
 
-    return Math.round((palletWeight + productsWeight) * 100) / 100;
+    return Math.trunc((palletWeight + productsWeight) * 100) / 100;
   }
 
   packageTotalMeter(pkg: UiPackage): number {

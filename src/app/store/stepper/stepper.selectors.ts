@@ -311,9 +311,9 @@ export const selectAddedPackages = createSelector(
   (changes) => changes.added
 );
 
-export const selectCanUndo = (state:any) =>
+export const selectCanUndo = (state: any) =>
   state.stepper.step2State.undoStack.length > 0;
-export const selectCanRedo = (state:any) =>
+export const selectCanRedo = (state: any) =>
   state.stepper.step2State.redoStack.length > 0;
 
 
@@ -340,8 +340,8 @@ export const selectPackageWeightList = createSelector(
   selectValidPackages,
   selectOrder,
   (packages, order) => {
-    if (!order?.weight_category) return [];
-    return packages.map(pkg => packageTotalWeight(pkg, order.weight_category!.key));
+    const weightKey = order?.weight_category?.key ?? 'std';
+    return packages.map(pkg => packageTotalWeight(pkg, weightKey));
   }
 );
 
@@ -356,8 +356,15 @@ export const selectPackageWeightList = createSelector(
 export const selectTotalPackageWeight = createSelector(
   selectPackageWeightList,
   (weights) => {
-    const total = weights.reduce((sum, w) => sum + w, 0);
-    return Math.round(total * 100) / 100;
+    // 1. Tüm paketlerin KÜSURATLI, TAM DEĞERLERİNİ topluyoruz
+    const total = weights.reduce((sum, w) => sum + (Number(w) || 0), 0);
+
+    // 2. Toplam işlem bittikten sonra noktadan sonra 2 basamak kalacak şekilde
+    // YUVARLAMADAN KESİYORUZ (Örn: 12.569 -> 12.56)
+    const truncatedTotal = Math.trunc(total * 100) / 100;
+
+    // 3. Ekranda her zaman 2 basamak gösterecek metne çeviriyoruz (Örn: "12.50")
+    return truncatedTotal.toFixed(2);
   }
 );
 
@@ -367,18 +374,23 @@ export const selectRemainingWeight = createSelector(
   (order, totalWeight) => {
     if (order) {
       const trailerWeightLimit = Number(order.truck_weight_limit) || 0;
-      const remaining = trailerWeightLimit - totalWeight;
 
-      // Sonucu noktadan sonra 2 haneye yuvarla
-      return Math.round(remaining * 100) / 100;
+      // totalWeight artık string geldiği için Number() ile matematiksel işleme dahil ediyoruz
+      const remaining = trailerWeightLimit - Number(totalWeight);
+
+      // Rapor mantığıyla aynı olması için yuvarlama (round) yerine kesiyoruz (trunc)
+      const truncatedRemaining = Math.trunc(remaining * 100) / 100;
+
+      return truncatedRemaining.toFixed(2);
     }
-    return 0;
+    return "0.00";
   }
 );
 
 export const selectIsWeightLimitExceeded = createSelector(
   selectRemainingWeight,
-  (remainingWeight) => remainingWeight < 0
+  // Gelen string değeri Number() ile sayıya çevirip 0'dan küçük mü diye kontrol ediyoruz
+  (remainingWeight) => Number(remainingWeight) < 0
 );
 
 export const selectTotalProductsMeter = createSelector(selectOrderDetails, (orderDetails) => {
@@ -502,17 +514,22 @@ export const selectRemainingArea = createSelector(selectUiPackages, selectOrder,
 });
 
 function packageTotalWeight(pkg: UiPackage, weightKey: string): number {
-  const palletWeight = Math.floor(pkg.pallet?.weight ?? 0);
+  const palletWeight = Number(pkg.pallet?.weight) || 0;
+
   const productsWeight = pkg.package_details.reduce(
     (total, packageDetail) => {
       const productWeight = packageDetail.product.weights?.find(
         w => w.category.key === weightKey
       );
       const weight = productWeight ? Number(productWeight.value) : 0;
-      return total + Math.floor(weight * packageDetail.count);
+      const count = Number(packageDetail.count) || 0;
+
+      // Çarpım işlemi tam küsuratıyla yapılıyor
+      return total + (weight * count);
     }, 0
   );
 
+  // DİKKAT: Hiçbir yuvarlama veya kesme yapmadan TAM SAYIYI dönüyoruz.
   return palletWeight + productsWeight;
 }
 

@@ -413,6 +413,8 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
       this.scene = this.threeComponents.scene;
       this.camera = this.threeComponents.camera;
       this.renderer = this.threeComponents.renderer;
+      this.renderer.domElement.style.width = '100%';
+      this.renderer.domElement.style.height = '100%';
       this.packagesGroup = this.threeComponents.packagesGroup;
 
       // Setup camera target
@@ -469,8 +471,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
   // ========================================
 
   public async safeProcessData(): Promise<void> {
-    console.log('[safeProcessData] tetiklendi, isLocalOp:', this.isLocalOperation);
-    console.trace();  // ← çağırıcı zinciri
+
     if (this.isDestroyed || !this.isViewReady) return;
 
     this.isLoadingData = true;
@@ -494,7 +495,6 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
   }
 
   private processData(): void {
-    console.log('[processData] çağrıldı, mevcut paket:', this.processedPackagesSignal().length);
     const pieces = this.piecesDataSignal();
 
     if (!pieces || pieces.length === 0) {
@@ -2237,14 +2237,13 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
   onWindowResize(): void {
     if (!this.renderer || !this.camera || !this.threeContainer) return;
 
-    const container = this.threeContainer.nativeElement;
-    const width = container.clientWidth;
-    const height = container.clientHeight;
+    const w = window.innerWidth;
+    const h = window.innerHeight;
 
-    if (width > 0 && height > 0) {
-      this.camera.aspect = width / height;
+    if (w > 0 && h > 0) {
+      this.camera.aspect = w / h;
       this.camera.updateProjectionMatrix();
-      this.renderer.setSize(width, height, false); // false → CSS'i override etme
+      this.renderer.setSize(w, h, false);
       this.renderManager.requestRender();
     }
   }
