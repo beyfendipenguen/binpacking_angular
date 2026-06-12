@@ -345,7 +345,7 @@ export class PalletControlComponent
     const safeProductHeight = this.safeNumber(packageDetail.product.dimension.height);
     const safePalletWidth = this.safeNumber(pallet.dimension.width);
     const safePalletDepth = this.safeNumber(pallet.dimension.depth);
-    const safePalletHeight = this.safeNumber(pallet.dimension.height);
+    const safePalletHeight = this.safeNumber(this.orderSignal()?.max_pallet_height);
 
     if (safeProductHeight > safePalletHeight) {
       return false;
@@ -373,7 +373,7 @@ export class PalletControlComponent
     const palletTotalVolume =
       this.safeNumber(pallet.dimension.width) *
       this.safeNumber(pallet.dimension.depth) *
-      this.safeNumber(pallet.dimension.height);
+      this.safeNumber(this.orderSignal()?.max_pallet_height);
 
     const usedVolume = this.calculateUsedVolume(existingPackageDetails);
 
@@ -433,7 +433,7 @@ export class PalletControlComponent
     const palletTotalVolume =
       this.safeNumber(pallet.dimension.width) *
       this.safeNumber(pallet.dimension.depth) *
-      this.safeNumber(pallet.dimension.height);
+      this.safeNumber(this.orderSignal()?.max_pallet_height);
     const usedVolume = this.calculateUsedVolume(existingPacakgeDetails);
     return Math.max(0, palletTotalVolume - usedVolume);
   }
@@ -884,7 +884,9 @@ export class PalletControlComponent
 
     // Palet kapasitesi
     const palletCapacity =
-      pallet.dimension.depth * pallet.dimension.width * pallet.dimension.height;
+      pallet.dimension.depth *
+      pallet.dimension.width *
+      (this.orderSignal()?.max_pallet_height ?? pallet.dimension.height);
 
     // Mevcut ürünlerin toplam hacmi
     const usedVolume = existingPacakgeDetails.reduce((total, pd) => {
