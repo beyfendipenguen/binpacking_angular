@@ -1043,14 +1043,24 @@ export class PalletControlComponent
         });
 
         dialogRef.afterClosed().subscribe((result: ConstraintProfile | null) => {
-          if (!result || !companyRelationId || !constraintProfile.id) return;
-          this.store.dispatch(
-            StepperInvoiceUploadActions.updateConstraintProfile({
-              relationId: companyRelationId,
-              profileId: constraintProfile.id,
-              changes: result
-            })
-          );
+          if (!result || !companyRelationId) return;
+
+          if (!constraintProfile.id) {
+            this.store.dispatch(
+              StepperInvoiceUploadActions.createConstraintProfile({
+                relationId: companyRelationId,
+                data: result,
+              })
+            );
+          } else {
+            this.store.dispatch(
+              StepperInvoiceUploadActions.updateConstraintProfile({
+                relationId: companyRelationId,
+                profileId: constraintProfile.id,
+                changes: result,
+              })
+            );
+          }
         });
       },
       error: () => {

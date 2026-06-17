@@ -196,6 +196,11 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
     effect(() => {
       const val = this.orderSignal()?.max_pallet_height ?? null;
       this.unitsControl.setValue(val ? Math.round(Number(val)) : null, { emitEvent: false });
+      if (this.isEditModeSignal()) {
+        this.companySearchControl.disable();
+      } else {
+        this.companySearchControl.enable();
+      }
     });
 
     effect(() => {
@@ -212,11 +217,6 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    if(this.isEditModeSignal()){
-      this.companySearchControl.disable();
-    }else{
-      this.companySearchControl.enable();
-    }
     this.uploadForm = this.orderFormManager.initializeForm();
     this.weightCategoryService.getCategories().subscribe({
       next: (categories) => this.availableWeightCategories.set(categories),

@@ -13,7 +13,7 @@ import { TranslateModule } from '@ngx-translate/core'; // ✅ Comment'i kaldır
 import { AuthService } from '@app/core/auth/services/auth.service';
 import { OrderService } from '@app/features/services/order.service';
 import { CancelConfirmationDialogComponent } from '@app/shared/cancel-confirmation-dialog/cancel-confirmation-dialog.component';
-import { AppState, selectOrderId, selectUser } from '@app/store';
+import { AppState, selectOrderId, selectUser, StepperUiActions } from '@app/store';
 import { LanguageService, Language } from '@app/core/services/language.service'; // ✅ Comment'i kaldır
 import { DisableAuthDirective } from '@app/core/auth/directives/disable-auth.directive';
 
@@ -99,6 +99,7 @@ export class HeaderComponent implements OnInit {
 
   onExitClick(): void {
     this.authService.clearLocalAndStore();
+    this.store.dispatch(StepperUiActions.disableEditMode())
   }
 
   onCancelClick(): void {
@@ -128,6 +129,7 @@ export class HeaderComponent implements OnInit {
     this.orderService.delete(this.orderId()).subscribe({
       next: () => {
         this.authService.clearLocalAndStore();
+        this.store.dispatch(StepperUiActions.disableEditMode())
       },
       error: (error) => {
         this.authService.clearLocalAndStore();
