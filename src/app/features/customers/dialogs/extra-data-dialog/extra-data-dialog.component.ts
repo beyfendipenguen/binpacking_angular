@@ -20,7 +20,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { CompanyRelationService } from '../../../services/company-relation.service';
 import { PalletGroupService } from '../../../services/pallet-group.service';
 import { ToastService } from '@app/core/services/toast.service';
-import { CompanyRelation } from '../../../interfaces/company-relation.interface';
+import { CompanyRelation, ExtraData } from '../../../interfaces/company-relation.interface';
 import { PalletGroup } from '../../../interfaces/pallet-group.interface';
 import { PalletGroupDialogComponent } from '@app/features/pallets/pallet-group-dialog/pallet-group-dialog.component';
 import { DisableAuthDirective } from "@app/core/auth/directives/disable-auth.directive";
@@ -169,18 +169,31 @@ export class ExtraDataDialogComponent implements OnInit, OnDestroy {
    * Initialize forms
    */
   private initForms(): void {
-    const formConfig: any = {
-      merge_mode: ['replace'] // Default to replace
-    };
+    if (!this.updateForm) {
+      // İlk kurulum — burada gerçekten oluştur
+      const formConfig: any = {
+        merge_mode: ['replace']
+      };
+      this.extraDataFields.forEach(field => {
+        const validators = field.validators || [];
+        formConfig[field.key] = [null, validators];
+      });
+      this.updateForm = this.fb.group(formConfig);
+    } else {
+      // Sonraki çağrılarda — mevcut formu resetle, instance'ı koru
+      const resetValues: Record<string, any> = { merge_mode: 'replace' };
+      this.extraDataFields.forEach(field => {
+        resetValues[field.key] = null;
+      });
+      this.dynamicReportFields.forEach(field => {
+        if (this.updateForm.contains(field.key)) {
+          resetValues[field.key] = null;
+        }
+      });
+      this.updateForm.reset(resetValues);
+    }
 
-    this.extraDataFields.forEach(field => {
-      const validators = field.validators || [];
-      formConfig[field.key] = [null, validators];
-    });
-
-    this.updateForm = this.fb.group(formConfig);
-
-    this.dynamicFieldForm = this.fb.group({
+    this.dynamicFieldForm = this.dynamicFieldForm || this.fb.group({
       field_key: ['', Validators.required],
       field_value: ['', Validators.required],
       field_type: ['string', Validators.required]
@@ -412,7 +425,38 @@ export class ExtraDataDialogComponent implements OnInit, OnDestroy {
       this.toastService.warning(this.translate.instant('EXTRA_DATA.SELECT_AT_LEAST_ONE'));
       return;
     }
+
+    if (this.selectedRelationIds.length === 1) {
+      this.initForms(); // önce sıfırla
+      const selectedRelation = this.allRelations.find(r => r.id === this.selectedRelationIds[0]);
+      if (selectedRelation?.extra_data) {
+        this.populateFormFromExtraData(selectedRelation.extra_data);
+      }
+    } else {
+      this.initForms();
+    }
+
     this.currentStep = 2;
+  }
+
+  private populateFormFromExtraData(extraData: ExtraData): void {
+    const formValues: Record<string, any> = {};
+
+    this.extraDataFields.forEach(field => {
+      const value = (extraData as any)[field.key];
+      if (value !== undefined) {
+        formValues[field.key] = value;
+      }
+    });
+
+    this.dynamicReportFields.forEach(field => {
+      const value = (extraData as any)[field.key];
+      if (value !== undefined && this.updateForm.contains(field.key)) {
+        formValues[field.key] = value;
+      }
+    });
+
+    this.updateForm.patchValue(formValues);
   }
 
   /**
@@ -420,6 +464,7 @@ export class ExtraDataDialogComponent implements OnInit, OnDestroy {
    */
   previousStep(): void {
     this.currentStep = 1;
+
   }
 
   /**
