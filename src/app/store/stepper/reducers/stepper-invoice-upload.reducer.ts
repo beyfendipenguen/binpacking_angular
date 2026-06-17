@@ -64,6 +64,21 @@ export const stepperOrderHandlers = [
     }
   })),
 
+  on(StepperInvoiceUploadActions.createConstraintProfileSuccess, (state: StepperState, { createdProfile }) => ({
+  ...state,
+  order: state.order
+    ? {
+        ...state.order,
+        company_relation: state.order.company_relation
+          ? {
+              ...state.order.company_relation,
+              constraint_profile: createdProfile
+            }
+          : null
+      }
+    : null
+})),
+
   on(StepperInvoiceUploadActions.updateConstraintProfileSuccess, (state: StepperState, { updatedProfile }) => ({
     ...state,
     order: state.order

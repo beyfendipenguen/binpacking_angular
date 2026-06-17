@@ -9,6 +9,7 @@
 export interface ConstraintProfile  {
   id:string;
   // ─── Bölüm 1 — temel tolerans ───
+  company_relation?: string;
   size_tolerance_mm: number;
   depth_short_tolerance_mm: number;
   combination_tolerance_mm: number;

@@ -12,6 +12,7 @@ export const StepperUiActions = createActionGroup({
 
     // Edit Modu
     'Enable Edit Mode': props<{ orderId: string }>(),
+    'Disable Edit Mode': emptyProps(),
     'Set Edit Mode Stepper Data':props<{order:Order, orderDetails:OrderDetailRead[], pallets:UiPallet[], packages:UiPackage[]}>(), //Daha kullanilmiyor
 
     //Revize Order Name
@@ -44,5 +45,7 @@ export const StepperUiActions = createActionGroup({
     'Set Step1 Is Dirty': emptyProps(),
     'Set Step2 Is Dirty': emptyProps(),
     'Set Step3 Is Dirty': emptyProps()
+
+
   }
 });

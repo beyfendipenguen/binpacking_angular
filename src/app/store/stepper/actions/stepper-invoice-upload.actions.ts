@@ -49,5 +49,10 @@ export const StepperInvoiceUploadActions = createActionGroup({
     'Update Constraint Profile': props<{ relationId: string; profileId: string; changes: ConstraintProfile }>(),
     'Update Constraint Profile Success': props<{ updatedProfile: ConstraintProfile }>(),
     'Update Constraint Profile Failure': props<{ error: any }>(),
+
+    // Constraint Profile Oluşturma Action'ları
+    'Create Constraint Profile': props<{ relationId: string; data: ConstraintProfile }>(),
+    'Create Constraint Profile Success': props<{ createdProfile: ConstraintProfile }>(),
+    'Create Constraint Profile Failure': props<{ error: any }>(),
   }
 });

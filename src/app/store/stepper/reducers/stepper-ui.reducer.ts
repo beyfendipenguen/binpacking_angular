@@ -34,6 +34,11 @@ export const stepperUiHandlers = [
     loading: true
   })),
 
+  on(StepperUiActions.disableEditMode, (state: StepperState) => ({
+    ...state,
+    isEditMode: false
+  })),
+
   // Step Navigation
   on(StepperUiActions.navigateToStep, (state: StepperState, { stepIndex }) => ({
     ...state,

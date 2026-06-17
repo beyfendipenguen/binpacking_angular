@@ -74,6 +74,21 @@ export class StepperInvoiceUploadEffects {
     )
   );
 
+  createConstraintProfile$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(StepperInvoiceUploadActions.createConstraintProfile),
+      mergeMap(({ relationId, data }) =>
+        this.constraintProfileService.create({ ...data, company_relation: relationId }).pipe(
+          map((createdProfile) => {
+            return StepperInvoiceUploadActions.createConstraintProfileSuccess({ createdProfile });
+          }),
+          catchError((error) => {
+            return of(StepperInvoiceUploadActions.createConstraintProfileFailure({ error }));
+          })
+        )
+      )
+    )
+  );
   // Fatura Yükleme ve İşleme
   uploadInvoiceProcessFile$ = createEffect(() =>
     this.actions$.pipe(
