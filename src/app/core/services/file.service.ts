@@ -24,10 +24,14 @@ export class FileService extends GenericCrudService<Document> {
     );
   }
 
+  downloadBlob(url: string): Observable<Blob> {
+    return this.http.get(url, { responseType: 'blob' });
+  }
+
   uploadFile(file: File, orderId: string, type: string): Observable<FileResponse> {
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('order_id', orderId); // Burada order_id olarak gönderiyoruz
+    formData.append('order_id', orderId);
     formData.append('type', type);
 
     return this.http.post<FileResponse>(

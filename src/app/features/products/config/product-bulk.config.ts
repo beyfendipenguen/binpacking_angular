@@ -13,8 +13,9 @@ export function createProductBulkConfig(): BulkUploadConfig {
     icon: 'add_shopping_cart',
     templateType: 'product_template',
     templateFileName: 'urun_sablonu.xlsx',
+    dynamicTemplateUrl: productService.getApiUrl() + 'product-template/', // YENİ
     uploadFn: (file: File) => productService.bulkUpload(file),
-    uploadUrl: productService.getApiUrl() + 'bulk-upload/',   // YENİ
+    uploadUrl: productService.getApiUrl() + 'bulk-upload/',
     instructions: [
       `1️⃣ ${translate.instant('PRODUCT.DOWNLOAD_TEMPLATE')}`,
       `2️⃣ ${translate.instant('PRODUCT.FILL_TEMPLATE')}`,

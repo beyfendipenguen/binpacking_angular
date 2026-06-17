@@ -20,6 +20,7 @@ export interface BulkUploadConfig {
   instructions?: string[];
   acceptedFileTypes?: string[];
   showTemplateDownload?: boolean;
+  dynamicTemplateUrl?: string;
 }
 
 // YENİ tipler

@@ -56,7 +56,7 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
           </div>
 
           <!-- Şablon İndirme — Kompakt, isteğe bağlı banner -->
-          @if(config.showTemplateDownload && templateFile) {
+          @if(config.showTemplateDownload || templateFile) {
             <div class="template-banner" [class.downloaded]="isTemplateDownloaded">
               <div class="template-banner-content">
                 <mat-icon class="template-icon">
@@ -535,7 +535,10 @@ export class GenericBulkUploadDialogComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
-    // Template indirme banner'ı isteniyorsa template'i fetch et
+    if (this.config.dynamicTemplateUrl) {
+      // Dinamik template — statik File lookup'a hiç gerek yok
+      return;
+    }
     if (this.config.showTemplateDownload !== false) {
       this.getTemplateFile();
     }
@@ -561,26 +564,26 @@ export class GenericBulkUploadDialogComponent implements OnInit {
   }
 
   downloadTemplate(): void {
+    this.isDownloading = true;
+
+    if (this.config.dynamicTemplateUrl) {
+      const lang = this.translate.currentLang || this.translate.defaultLang || 'tr';
+      const url = `${this.config.dynamicTemplateUrl}?lang=${lang}`;
+
+      this.fileService.downloadBlob(url).subscribe({
+        next: (blob: Blob) => this.triggerDownload(blob),
+        error: () => {
+          this.toastService.error(this.translate.instant('BULK_ADD.TEMPLATE_DOWNLOAD_ERROR'));
+          this.isDownloading = false;
+        }
+      });
+      return;
+    }
+
     if (!this.templateFile) {
       this.toastService.error(this.translate.instant('BULK_ADD.TEMPLATE_NOT_FOUND'));
       return;
     }
-
-    this.isDownloading = true;
-
-    const download = (blob: Blob) => {
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = this.config.templateFileName;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
-
-      this.isTemplateDownloaded = true;
-      this.isDownloading = false;
-    };
 
     if (typeof this.templateFile.file === 'string') {
       fetch(this.templateFile.file)
@@ -588,17 +591,31 @@ export class GenericBulkUploadDialogComponent implements OnInit {
           if (!response.ok) throw new Error(this.translate.instant('BULK_ADD.FILE_NOT_DOWNLOAD'));
           return response.blob();
         })
-        .then(download)
-        .catch(error => {
+        .then(blob => this.triggerDownload(blob))
+        .catch(() => {
           this.toastService.error(this.translate.instant('BULK_ADD.TEMPLATE_DOWNLOAD_ERROR'));
           this.isDownloading = false;
         });
     } else if (this.templateFile.file instanceof File) {
-      download(this.templateFile.file);
+      this.triggerDownload(this.templateFile.file);
     } else {
       this.toastService.error(this.translate.instant('BULK_ADD.INVALID_FILE_FORMAT'));
       this.isDownloading = false;
     }
+  }
+
+  private triggerDownload(blob: Blob): void {
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = this.config.templateFileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+
+    this.isTemplateDownloaded = true;
+    this.isDownloading = false;
   }
 
   getTemplateFile(): void {

@@ -14,6 +14,7 @@ export function createPalletBulkConfig(): BulkUploadConfig {
     templateType: 'pallet_template',
     templateFileName: 'palet_sablonu.xlsx',
     uploadFn: (file: File) => palletService.bulkUpload(file),
+    dynamicTemplateUrl: palletService.getApiUrl() + 'pallet-template/',
     uploadUrl: palletService.getApiUrl() + 'bulk-upload/',  // YENİ
     instructions: [
       `1️⃣  ${translate.instant('PALLET.DOWNLOAD_TEMPLATE')}`,
