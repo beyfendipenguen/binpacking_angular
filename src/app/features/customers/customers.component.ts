@@ -23,7 +23,7 @@ import { MatMenuModule } from "@angular/material/menu";
 import { ExtraDataDialogComponent } from './dialogs/extra-data-dialog/extra-data-dialog.component';
 import { debounceTime, distinctUntilChanged, Subject } from 'rxjs';
 import { FormsModule } from '@angular/forms';
-import { ConstraintBulkDialogComponent } from './dialogs/constraint-bulk-dialog/constraint-bulk-dialog';
+import { ConstraintBulkDialogComponent } from './dialogs/constraint-bulk-dialog/constraint-bulk-dialog.component';
 import { ReportProfileDialogComponent } from './dialogs/report-profile-dialog/report-profile-dialog.component';
 
 @Component({
@@ -237,8 +237,7 @@ export class CustomersComponent implements OnInit, OnDestroy {
   openConstraintBulkDialog(): void {
     const dialogRef = this.dialog.open(ConstraintBulkDialogComponent, {
       width: '900px',
-      maxWidth: '95vw',
-      maxHeight: '90vh',
+      maxWidth: '110vw',
       disableClose: false,
       panelClass: 'constraint-bulk-dialog-panel'
     });
