@@ -1,15 +1,9 @@
 name: Deploy Frontend to VDS
 
 on:
-  push:
-    branches:
-      - master
-    paths:
-      - 'src/**'
-      - 'angular.json'
-      - 'package.json'
-      - 'tsconfig*.json'
-      - '.github/workflows/deploy-frontend.yml'
+  schedule:
+    - cron: '0 1 * * *'  # Her gece 01:00 UTC = 04:00 Türkiye
+  workflow_dispatch:
 
 jobs:
   build-and-deploy:
