@@ -308,7 +308,7 @@ export class PalletGroupDialogComponent implements OnInit {
    */
   loadAllPallets(): void {
     this.isLoadingPallets = true;
-    this.palletService.getAll({ limit: 100 }).subscribe({
+    this.palletService.getAll({ limit: 500 }).subscribe({
       next: (response) => {
         this.allPallets = response.results;
         this.isLoadingPallets = false;
