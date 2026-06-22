@@ -594,6 +594,7 @@ export class GenericTableComponent<T extends { id: any }> implements OnInit, Aft
             });
           } else {
             // Kontrol yok — direkt güncelle
+            console.log('dialog result:', result);
             this._doUpdate(row, result);
           }
         } else {
@@ -634,6 +635,15 @@ export class GenericTableComponent<T extends { id: any }> implements OnInit, Aft
   }
 
   private _doUpdate(row: any, result: any): void {
+    // External modda ise emit et, service çağırma
+    if (this.isExternalMode) {
+      this.externalDataUpdate.emit({ item: row, data: result });
+      this.toastService.success(this.translate.instant('GENERIC_TABLE.UPDATE_SUCCESS'));
+      this.isLoading = false;
+      return;
+    }
+
+    // Internal mod — service ile güncelle
     this.service!.update((row as any).id, result).subscribe({
       next: (updatedItem) => {
         this.updateItem.emit(updatedItem);
