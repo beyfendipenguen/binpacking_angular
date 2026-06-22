@@ -572,9 +572,22 @@ export class GenericBulkUploadDialogComponent implements OnInit {
 
       this.fileService.downloadBlob(url).subscribe({
         next: (blob: Blob) => this.triggerDownload(blob),
-        error: () => {
-          this.toastService.error(this.translate.instant('BULK_ADD.TEMPLATE_DOWNLOAD_ERROR'));
-          this.isDownloading = false;
+        error: (err) => {
+          if (err.error instanceof Blob) {
+            err.error.text().then((text: string) => {
+              try {
+                const parsed = JSON.parse(text);
+                this.toastService.error(parsed.message, this.translate.instant('BULK_ADD.TEMPLATE_DOWNLOAD_ERROR'));
+              } catch {
+                this.toastService.error(this.translate.instant('BULK_ADD.TEMPLATE_DOWNLOAD_ERROR'));
+              }
+              this.isDownloading = false;
+            });
+          } else {
+            const message = err?.error?.message || this.translate.instant('BULK_ADD.TEMPLATE_DOWNLOAD_ERROR');
+            this.toastService.error(message);
+            this.isDownloading = false;
+          }
         }
       });
       return;

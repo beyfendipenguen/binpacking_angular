@@ -594,7 +594,6 @@ export class GenericTableComponent<T extends { id: any }> implements OnInit, Aft
             });
           } else {
             // Kontrol yok — direkt güncelle
-            console.log('dialog result:', result);
             this._doUpdate(row, result);
           }
         } else {
