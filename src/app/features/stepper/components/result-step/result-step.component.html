@@ -7,7 +7,15 @@
         <mat-icon>play_arrow</mat-icon>
         {{ (isLoading ? 'RESULT_STEP.PROCESSING' : 'RESULT_STEP.RUN_OPTIMIZATION') | translate }}
       </button>
-      
+      <button class="multi-shipment-btn" [class.active]="isMultiShipmentSignal()"
+        (click)="isMultiShipmentSignal.set(!isMultiShipmentSignal())"
+        [title]="'RESULT_STEP.MULTI_SHIPMENT_TIP' | translate" type="button">
+        <mat-icon>{{ isMultiShipmentSignal() ? 'local_shipping' : 'local_shipping' }}</mat-icon>
+        <span>{{ 'RESULT_STEP.MULTI_SHIPMENT' | translate }}</span>
+        <span class="toggle-indicator" [class.on]="isMultiShipmentSignal()">
+          {{ isMultiShipmentSignal() ? 'ON' : 'OFF' }}
+        </span>
+      </button>
     </div>
 
     <!-- Enhanced View Controls -->

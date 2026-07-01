@@ -46,6 +46,65 @@ $white: #ffffff;
       gap: 12px;
       align-items: center;
 
+      .multi-shipment-btn {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 18px;
+        border: 2px solid rgba($primary-color, 0.3);
+        border-radius: 4px;
+        background: $white;
+        color: $neutral-gray;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.25s ease;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+
+        mat-icon {
+          font-size: 18px;
+          width: 18px;
+          height: 18px;
+          color: $neutral-gray;
+          transition: color 0.25s ease;
+        }
+
+        .toggle-indicator {
+          font-size: 10px;
+          font-weight: 700;
+          padding: 2px 6px;
+          border-radius: 3px;
+          background: rgba($neutral-gray, 0.15);
+          color: $neutral-gray;
+          letter-spacing: 0.5px;
+          transition: all 0.25s ease;
+
+          &.on {
+            background: rgba($primary-color, 0.15);
+            color: $primary-color;
+          }
+        }
+
+        &:hover {
+          border-color: $primary-color;
+          color: $primary-color;
+
+          mat-icon {
+            color: $primary-color;
+          }
+        }
+
+        &.active {
+          border-color: $primary-color;
+          background: rgba($primary-color, 0.06);
+          color: $primary-color;
+
+          mat-icon {
+            color: $primary-color;
+          }
+        }
+      }
+
       .calculate-button {
         background-color: $primary-color !important;
         color: $white !important;

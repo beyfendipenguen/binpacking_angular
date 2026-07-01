@@ -695,7 +695,9 @@
     "DRAG_DROP": "Drag & Drop",
     "CUSTOMER_VIEW_OPEN": "Open customer view",
     "COPY_LINK": "Customer Copy Link",
-    "COPIED": "Copied!"
+    "COPIED": "Copied!",
+    "MULTI_SHIPMENT": "Multi Shipment",
+    "MULTI_SHIPMENT_TIP": "Enables placement mode for multiple trucks"
   },
   "TRUCK": {
     "TITLE": "Vehicle Management",

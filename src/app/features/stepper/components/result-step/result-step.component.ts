@@ -80,10 +80,7 @@ export class ResultStepComponent implements OnInit, OnDestroy {
 
   // Signal ekle
   readonly isMultiShipmentSignal = signal(false);
-  readonly shipmentsSignal = this.store.selectSignal(selectShipments);
-  readonly activeShipmentIndexSignal = this.store.selectSignal(selectActiveShipmentIndex);
-  readonly isMultiShipmentStoreSignal = this.store.selectSignal(selectIsMultiShipment);
-  isMultiShipmentValue = false;
+  isMultiShipmentValue1 = false;
 
   // Computed
   readonly canCompleteShipment = computed(() =>

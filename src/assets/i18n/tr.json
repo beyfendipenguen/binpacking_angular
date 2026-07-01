@@ -695,7 +695,9 @@
     "DRAG_DROP": "Sürükle & Bırak",
     "CUSTOMER_VIEW_OPEN": "Müşteri görünümünü aç",
     "COPY_LINK": "Müşteri Linki Kopyala",
-    "COPIED": "Kopyalandı!"
+    "COPIED": "Kopyalandı!",
+    "MULTI_SHIPMENT": "Çoklu Sevkiyat",
+    "MULTI_SHIPMENT_TIP": "Birden fazla TIR'a yerleştirme modunu etkinleştirir"
   },
   "TRUCK": {
     "TITLE": "Sevkiyat Aracı Yönetimi",
