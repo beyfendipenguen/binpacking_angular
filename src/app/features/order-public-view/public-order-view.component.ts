@@ -36,6 +36,11 @@ interface PackageData {
   mesh?: THREE.Mesh;
 }
 
+interface ShipmentData {
+  shipment: number;
+  result: PackagePosition[];
+}
+
 const COLOR_PALETTE = [
   '#D32F2F', '#1976D2', '#388E3C', '#F57C00', '#7B1FA2',
   '#0097A7', '#FBC02D', '#C2185B', '#00796B', '#455A64',
@@ -106,6 +111,9 @@ export class PublicOrderViewComponent implements OnInit, AfterViewInit, OnDestro
   private resizeObserver?: ResizeObserver;
   private destroy$ = new Subject<void>();
 
+  shipments: ShipmentData[] = [];
+  activeShipmentIndex = signal(0);
+
   // ─── Lifecycle ─────────────────────────────────────────────────────────────
 
   ngOnInit(): void {
@@ -146,7 +154,17 @@ export class PublicOrderViewComponent implements OnInit, AfterViewInit, OnDestro
         next: async (data) => {
           this.orderData = data;
           await this.initThreeJS(data.truck_dimensions);
-          this.buildPackages(data.order_result);
+
+          // Yeni format: {"shipments": [...]}
+          const raw = data.order_result as any;
+          if (raw?.shipments) {
+            this.shipments = raw.shipments;
+          } else {
+            // Eski format fallback
+            this.shipments = [{ shipment: 1, result: data.order_result as any }];
+          }
+
+          this.buildPackages(this.shipments[0]?.result ?? []);
           this.isLoading.set(false);
           this.cdr.markForCheck();
         },
@@ -158,6 +176,25 @@ export class PublicOrderViewComponent implements OnInit, AfterViewInit, OnDestro
         }
       });
   }
+
+  goToShipment(index: number): void {
+    this.activeShipmentIndex.set(index);
+    this.buildPackages(this.shipments[index]?.result ?? []);
+    this.ngZone.run(() => this.cdr.markForCheck());
+  }
+
+  get isMultiShipment(): boolean {
+    return this.shipments.length > 1;
+  }
+
+  get totalWeightDisplay(): string {
+  const currentResult = this.shipments[this.activeShipmentIndex()]?.result ?? [];
+  const w = currentResult
+    .filter(r => r[0] !== -1)
+    .reduce((sum, r) => sum + (r[7] || 0), 0);
+  return w >= 1000 ? `${(w / 1000).toFixed(1)} Ton` : `${w.toFixed(0)} kg`;
+}
+
 
   private buildPackages(positions: PackagePosition[]): void {
     if (!this.packagesGroup) return;
@@ -617,7 +654,7 @@ export class PublicOrderViewComponent implements OnInit, AfterViewInit, OnDestro
     this.cdr.markForCheck();
   }
 
-  get totalWeightDisplay(): string {
+  get totalWeightDisplay1(): string {
     const w = this.orderData?.total_weight ?? 0;
     return w >= 1000 ? `${(w / 1000).toFixed(1)} t` : `${w.toFixed(0)} kg`;
   }

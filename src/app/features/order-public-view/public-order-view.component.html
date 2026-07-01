@@ -55,6 +55,28 @@
     </div>
   </div>
 
+  <!-- Shipment Navigation — sadece multi shipment modunda -->
+  @if (isMultiShipment) {
+  <div class="pov-shipment-nav">
+    <div class="pov-shipment-weight">
+      {{ totalWeightDisplay }}
+    </div>
+    <div class="pov-shipment-controls">
+      <button class="pov-shipment-btn" [disabled]="activeShipmentIndex() === 0"
+        (click)="goToShipment(activeShipmentIndex() - 1)">
+        ‹
+      </button>
+      <span class="pov-shipment-label">
+        {{ activeShipmentIndex() + 1 }} / {{ shipments.length }}
+      </span>
+      <button class="pov-shipment-btn" [disabled]="activeShipmentIndex() === shipments.length - 1"
+        (click)="goToShipment(activeShipmentIndex() + 1)">
+        ›
+      </button>
+    </div>
+  </div>
+  }
+
   <!-- Kamera kontrolleri -->
   <div class="pov-controls">
     <button class="pov-ctrl-btn" [class.pov-ctrl-btn--active]="currentView === 'isometric'"

@@ -1,13 +1,13 @@
 // public-order-view.component.scss
 // Tam ekran, marka renkli, sade yönetici arayüzü
 
-$teal:       #006A6A;
-$teal-dark:  #004A4A;
-$gold:       #D6BB86;
-$white:      #ffffff;
-$black:      #000000;
-$gray:       #6b7280;
-$bg:         #0d1117;   // koyu arka plan — 3D sahneyi güzel gösterir
+$teal: #006A6A;
+$teal-dark: #004A4A;
+$gold: #D6BB86;
+$white: #ffffff;
+$black: #000000;
+$gray: #6b7280;
+$bg: #0d1117; // koyu arka plan — 3D sahneyi güzel gösterir
 
 // ── Kök ─────────────────────────────────────────────────────────────────────
 .pov-root {
@@ -31,7 +31,9 @@ $bg:         #0d1117;   // koyu arka plan — 3D sahneyi güzel gösterir
   user-select: none;
   cursor: grab;
 
-  &:active { cursor: grabbing; }
+  &:active {
+    cursor: grabbing;
+  }
 
   canvas {
     display: block;
@@ -72,7 +74,11 @@ $bg:         #0d1117;   // koyu arka plan — 3D sahneyi güzel gösterir
   animation: spin 0.9s linear infinite;
 }
 
-@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
 
 // ── Error ────────────────────────────────────────────────────────────────────
 .pov-error {
@@ -87,7 +93,10 @@ $bg:         #0d1117;   // koyu arka plan — 3D sahneyi güzel gösterir
   gap: 1rem;
   color: $white;
 
-  &__icon { font-size: 4rem; opacity: 0.6; }
+  &__icon {
+    font-size: 4rem;
+    opacity: 0.6;
+  }
 
   h2 {
     font-size: 1.6rem;
@@ -276,7 +285,10 @@ $bg:         #0d1117;   // koyu arka plan — 3D sahneyi güzel gösterir
     justify-content: center;
     transition: background 0.2s;
 
-    &:hover { background: rgba($teal, 0.35); color: $white; }
+    &:hover {
+      background: rgba($teal, 0.35);
+      color: $white;
+    }
   }
 
   &__slider {
@@ -345,7 +357,10 @@ $bg:         #0d1117;   // koyu arka plan — 3D sahneyi güzel gösterir
     justify-content: center;
     transition: background 0.2s;
 
-    &:hover { background: rgba(#ef4444, 0.5); color: $white; }
+    &:hover {
+      background: rgba(#ef4444, 0.5);
+      color: $white;
+    }
   }
 
   &__title {
@@ -387,8 +402,15 @@ $bg:         #0d1117;   // koyu arka plan — 3D sahneyi güzel gösterir
 }
 
 @keyframes slideUp {
-  from { opacity: 0; transform: translateY(16px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 // ── Responsive ───────────────────────────────────────────────────────────────
@@ -400,20 +422,42 @@ $bg:         #0d1117;   // koyu arka plan — 3D sahneyi güzel gösterir
     transform: translateX(-50%);
     font-size: 0.8rem;
 
-    &__item { padding: 0 0.5rem; }
-    &__value { font-size: 0.75rem; }
-    &__label { font-size: 0.52rem; }
+    &__item {
+      padding: 0 0.5rem;
+    }
+
+    &__value {
+      font-size: 0.75rem;
+    }
+
+    &__label {
+      font-size: 0.52rem;
+    }
   }
 
   .pov-brand {
     padding: 0.4rem 0.75rem;
-    &__logo { font-size: 0.85rem; }
-    &__sub  { display: none; }
+
+    &__logo {
+      font-size: 0.85rem;
+    }
+
+    &__sub {
+      display: none;
+    }
   }
 
-  .pov-hint { display: none; }  // Mobilde yer kaplıyor
+  .pov-hint {
+    display: none;
+  }
 
-  .pov-zoom { display: none; }  // Mobilde pinch yeterli
+  // Mobilde yer kaplıyor
+
+  .pov-zoom {
+    display: none;
+  }
+
+  // Mobilde pinch yeterli
 
   .pov-detail {
     left: 1rem;
@@ -443,4 +487,76 @@ $bg:         #0d1117;   // koyu arka plan — 3D sahneyi güzel gösterir
     width: 100vw !important;
     height: 100vh !important;
   }
+}
+
+.pov-shipment-nav {
+  position: fixed;
+  bottom: 5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(8px);
+  border-radius: 10px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.5rem 0.75rem;
+}
+
+.pov-shipment-weight {
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 0.9rem;
+  font-weight: 700;
+  text-align: center;
+  font-family: 'Courier New', monospace;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+  padding-bottom: 0.3rem;
+  width: 100%;
+}
+
+.pov-shipment-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.pov-shipment-btn {
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  width: 2rem;
+  height: 2rem;
+  cursor: pointer;
+  font-size: 1.2rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+
+  &:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(1.1);
+  }
+
+  &:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
+}
+
+.pov-shipment-label {
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.2rem 0.6rem;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  min-width: 70px;
+  text-align: center;
+  font-family: 'Courier New', monospace;
 }
