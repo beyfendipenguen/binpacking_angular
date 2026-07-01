@@ -4,15 +4,24 @@ import { Store } from '@ngrx/store';
 import { map, switchMap, catchError, withLatestFrom, tap } from 'rxjs/operators';
 import { of, filter } from 'rxjs';
 
-import { AppState, selectHasRevisedOrder, selectIsEditMode, selectOrderResultId, selectOriginalPackages, selectPackages, selectStep2Changes, selectStep3IsDirty, StepperPackageActions } from '../../index';
+import {
+  AppState,
+  selectDeletedPackages,
+  selectHasRevisedOrder,
+  selectIsEditMode,
+  selectIsMultiShipment,
+  selectOrderResultId,
+  selectOriginalPackages,
+  selectShipments,
+  selectStep3IsDirty,
+  StepperPackageActions
+} from '../../index';
 import { RepositoryService } from '@features/stepper/services/repository.service';
 import { StepperUiActions } from '../actions/stepper-ui.actions';
 import { StepperResultActions } from '../actions/stepper-result.actions';
 import { OrderService } from '@app/features/services/order.service';
 import { AuthService } from '@app/core/auth/services/auth.service';
-import { PackageData } from '@app/features/interfaces/order-result.interface';
-import { PackagesStateService } from '@app/shared/threejs-truck-visualization/services/packages-state.service';
-import { ResultStepService } from '@app/features/stepper/components/result-step/result-step.service';
+import { PackagePosition } from '@app/features/interfaces/order-result.interface';
 
 @Injectable()
 export class StepperResultEffects {
@@ -21,14 +30,10 @@ export class StepperResultEffects {
   private repositoryService = inject(RepositoryService);
   private orderService = inject(OrderService);
   private authService = inject(AuthService);
-  private packagesStateService = inject(PackagesStateService);
-  private resultStepService = inject(ResultStepService)
 
   // Result Step Submit
-
-  // is dirty degilse ise reset stepepr/
-  // is dirty ise backend git gel rest stepper true mu bak
-  // ona gore yap
+  // orderResult artık { shipments: [{shipment, result}, ...] } formatında —
+  // bkz. ResultStepService.formatAllShipmentsForResult
   resultStepSubmit$ = createEffect(() =>
     this.actions$.pipe(
       ofType(StepperResultActions.resultStepSubmit),
@@ -45,7 +50,6 @@ export class StepperResultEffects {
       }),
       filter(([, isDirty]) => isDirty),
       switchMap(([action, , isEditMode, hasRevised, orderResultId]) => {
-        // Önce reviseOrder çalışsın (eğer edit mode ise)
         if (isEditMode && !hasRevised) {
           return this.orderService.reviseOrder(action.orderId).pipe(
             tap(() => {
@@ -58,7 +62,6 @@ export class StepperResultEffects {
           );
         }
 
-        // Edit mode değilse direkt partialUpdate
         return this.repositoryService.partialUpdateOrderResult(orderResultId, action.orderResult).pipe(
           map(() => action)
         );
@@ -89,97 +92,65 @@ export class StepperResultEffects {
     )
   );
 
+  /**
+   * Step 2'de paket eklendiğinde/değiştiğinde, bu yeni paketleri global
+   * deletedPackages havuzuna (store) ekler. Çoklu sevkiyatın TÜMÜNDE
+   * senkron olmalı — sadece aktif shipment'ta değil, bu yüzden kaynak
+   * olarak PackagesStateService (runtime/local) DEĞİL, store kullanılır.
+   */
   syncBackendPackages$ = createEffect(() =>
     this.actions$.pipe(
       ofType(StepperPackageActions.upsertManySuccess),
-
       withLatestFrom(
         this.store.select(selectOrderResultId),
-        this.store.select(selectOriginalPackages)
+        this.store.select(selectOriginalPackages),
+        this.store.select(selectDeletedPackages),
+        this.store.select(selectShipments),
+        this.store.select(selectIsMultiShipment),
       ),
-
       filter(([action, orderResultId]) => !!orderResultId),
+      map(([action, orderResultId, originalPackages, currentDeletedRows, shipments, isMultiShipment]) => {
+        // Sistemde (herhangi bir shipment'ta veya deleted'ta) var olan tüm pkgId'ler
+        const allShipmentPkgIds = new Set(
+          (isMultiShipment ? shipments : []).flat().map(row => row[8])
+        );
+        const deletedPkgIds = new Set(currentDeletedRows.map(row => row[8]));
+        const allKnownPkgIds = new Set([...allShipmentPkgIds, ...deletedPkgIds]);
 
-      tap(([action, orderResultId, originalPackages]) => {
-        // Mevcut state'i al
-        const currentProcessed = this.packagesStateService.processedPackages();
-        const currentDeleted = this.packagesStateService.deletedPackages();
-        const allCurrentPackages = [...currentProcessed, ...currentDeleted];
-
-        // Backend'deki package ID'lerini set olarak tut
         const backendPackageIds = new Set(originalPackages.map(p => p.id));
 
-
-        // ✅ 1. ÖNCE TÜM MEVCUT PACKAGE'LARIN NAME'LERİNİ GÜNCELLE
-        allCurrentPackages.forEach(pkg => {
-          const backendPkg = originalPackages.find(p => p.id === pkg.pkgId);
+        // 1. Deleted satırlarında name (id) güncellemesi gerekiyorsa uygula
+        const updatedDeletedRows = currentDeletedRows.map(row => {
+          const backendPkg = originalPackages.find(p => p.id === row[8]);
           if (backendPkg) {
-            const updated = {
-              ...pkg,
-              id: Number(backendPkg.name)
-            };
-            this.packagesStateService.updatePackageName(pkg.pkgId, Number(backendPkg.name));
+            return [row[0], row[1], row[2], row[3], row[4], row[5], Number(backendPkg.name), row[7], row[8]] as PackagePosition;
           }
+          return row;
         });
 
-        currentDeleted.forEach(pkg => {
-          const backendPkg = originalPackages.find(p => p.id === pkg.pkgId);
-          if (backendPkg) {
-            const updated = {
-              ...pkg,
-              id: Number(backendPkg.name)
-            };
-            this.packagesStateService.updateDeletedPackage(updated);
-          }
-        });
-
-        // ✅ 2. YENİ EKLENEN PACKAGE'LARI BUL VE DELETED'A EKLE
+        // 2. Backend'de yeni eklenmiş, sistemde hiç olmayan paketleri deleted'a ekle
+        const newRows: PackagePosition[] = [];
         originalPackages.forEach(backendPkg => {
-          const existsInService = allCurrentPackages.some(p => p.pkgId === backendPkg.id);
-
-          if (!existsInService) {
-            // Service'de yok, yeni eklenmiş - deleted'a ekle
+          if (!allKnownPkgIds.has(backendPkg.id)) {
             const depth = Number(backendPkg.pallet?.dimension?.depth || 0);
             const width = Number(backendPkg.pallet?.dimension?.width || 0);
             const height = Number(backendPkg.pallet?.dimension?.height || 0);
 
-            const newPackage: PackageData = {
-              id: Number(backendPkg.name),
-              pkgId: backendPkg.id,
-              x: -1,
-              y: -1,
-              z: -1,
-              length: depth,
-              width: width,
-              height: height,
-              weight: 0,
-              color: '#808080',
-              originalColor: '#808080',
-              dimensions: `${depth}×${width}×${height}mm`,
-              rotation: 0,
-              originalLength: depth,
-              originalWidth: width,
-              isForcePlaced: false,
-              isBeingDragged: false
-            };
-
-            this.packagesStateService.addToDeletedPackages(newPackage);
+            newRows.push([
+              -1, -1, -1,
+              depth, width, height,
+              Number(backendPkg.name), 0, backendPkg.id
+            ] as PackagePosition);
           }
         });
 
-        // ✅ 3. SİLİNEN PACKAGE'LARI BUL VE KALDIR
-        const toRemove = allCurrentPackages
-          .filter(pkg => !backendPackageIds.has(pkg.pkgId))
-          .map(pkg => pkg.pkgId);
+        // 3. Backend'de artık olmayan paketleri deleted'tan çıkar
+        //    (shipment'larda olanlara dokunulmaz, ayrı akışla yönetilir)
+        const finalDeletedRows = [...updatedDeletedRows, ...newRows]
+          .filter(row => backendPackageIds.has(row[8]));
 
-        if (toRemove.length > 0) {
-          this.packagesStateService.removeFromBothLists(toRemove);
-        }
-
-        this.resultStepService.formatPackagesForResult([...this.packagesStateService.processedPackages(), ...this.packagesStateService.deletedPackages()])
-
+        return StepperResultActions.setDeletedPackages({ deletedPackages: finalDeletedRows });
       })
-    ),
-    { dispatch: false }
+    )
   );
 }

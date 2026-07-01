@@ -38,7 +38,6 @@ export class StepperGeneralEffects {
     this.actions$.pipe(
       ofType(StepperUiActions.enableEditMode),
       tap(() => {
-        // 🧹 Yeni sipariş açılırken önce tüm state'i temizle
         this.authService.clearLocalAndStoreForEditMode()
       }),
       switchMap((action) =>
@@ -74,19 +73,39 @@ export class StepperGeneralEffects {
               StepperPackageActions.getPalletsSuccess({ pallets }),
             ];
 
-
             if (orderResult && orderResult.length > 0 && orderResult[0]) {
-              const cleanedResult = orderResult[0].result as PackagePosition[] || [];
+              // Backend her zaman {"shipments": [{shipment, result}, ...]} formatında
+              // kaydediyor — tek sevkiyatta da bu format kullanılır (1 elemanlı).
+              const raw = orderResult[0].result as any;
               const orderResultId = orderResult[0].id;
+
+              const allShipments: PackagePosition[][] = raw?.shipments
+                ? raw.shipments.map((s: any) => s.result)
+                : [];
+              const isMultiShipment = allShipments.length > 1;
+
+              // -1 işaretli (sığmayan) satırları her shipment'tan ayıkla,
+              // global deleted havuzuna topla.
+              const deletedRows: PackagePosition[] = [];
+              const cleanShipments: PackagePosition[][] = allShipments.map(shipment => {
+                const valid = shipment.filter(row => row[0] !== -1);
+                const invalid = shipment.filter(row => row[0] === -1);
+                deletedRows.push(...invalid);
+                return valid;
+              });
+
+              const firstShipmentResult = cleanShipments[0] ?? [];
 
               return [
                 ...baseActions,
                 StepperResultActions.setOrderResultId({ orderResultId }),
                 StepperResultActions.loadOrderResultSuccess({
-                  orderResult: cleanedResult,
-                  reportFiles: filteredFiles
+                  orderResult: firstShipmentResult,
+                  reportFiles: filteredFiles,
+                  shipments: cleanShipments,
+                  isMultiShipment,
+                  deletedPackages: deletedRows
                 }),
-                StepperResultActions.changeDeletedPackageIsRemaining()
               ];
             }
 
@@ -99,6 +118,7 @@ export class StepperGeneralEffects {
       )
     )
   )
+
   //Order name i edit modda rev1 2 artirmak icin
   reviseOrder$ = createEffect(() =>
     this.actions$.pipe(
@@ -192,10 +212,20 @@ export class StepperGeneralEffects {
         StepperPackageActions.movePartialPackageDetailBetweenPackages,
         StepperPackageActions.addPalletToAvailable,
 
-        //Result Actions
+        // Result Actions — NOT: orderResult/deletedPackages/shipment'ı
+        // değiştiren HER action burada olmalı, aksi halde sayfa
+        // yenilenince son değişiklikler kaybolur (localStorage'a yazılmaz).
         StepperResultActions.loadOrderResultSuccess,
         StepperResultActions.setOrderResultId,
-        StepperResultActions.setOrderResult
+        StepperResultActions.setOrderResult,
+        StepperResultActions.setActiveShipment,
+        StepperResultActions.removePackageFromTruck,
+        StepperResultActions.addPackageToTruck,
+        StepperResultActions.placePackageInTruck,
+        StepperResultActions.setDeletedPackages,
+        StepperResultActions.addDeletedPackage,
+        StepperResultActions.removeDeletedPackage,
+        StepperResultActions.syncRemainingPackages,
       ),
       map(() => StepperUiActions.stepperStepUpdated())
     )
