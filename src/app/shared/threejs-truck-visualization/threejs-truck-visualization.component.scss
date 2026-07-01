@@ -2,7 +2,7 @@
 @use "sass:color";
 
 // ========================================
-// CSS VARIABLES (Modern Approach)
+// CSS VARIABLES
 // ========================================
 $primary-color: #006A6A;
 $primary-dark: #004A4A;
@@ -18,31 +18,22 @@ $bg-light: #f8fafc;
 $white: #ffffff;
 
 :root {
-  // Base Colors
   --primary: #{$primary-color};
   --primary-dark: #{$primary-dark};
   --primary-light: #{color.adjust($primary-color, $lightness: 10%)};
   --secondary: #{$secondary-color};
   --secondary-light: #{$secondary-light};
-
-  // Status Colors
   --error: #{$error-red};
   --error-dark: #{$error-dark};
   --success: #{$success-green};
   --success-dark: #{$success-dark};
   --warning: #{$warning-amber};
-
-  // Neutral Colors
   --gray: #{$gray};
   --bg-light: #{$bg-light};
   --white: #{$white};
-
-  // Shadows
   --shadow-sm: 0 2px 8px rgba(0, 106, 106, 0.1);
   --shadow-md: 0 8px 24px rgba(0, 106, 106, 0.2);
   --shadow-lg: 0 12px 32px rgba(0, 106, 106, 0.25);
-
-  // Transitions
   --transition-base: all 0.3s ease;
   --transition-fast: all 0.2s ease;
 }
@@ -89,10 +80,7 @@ $white: #ffffff;
 
   &.drag-mode canvas {
     cursor: grab;
-
-    &:active {
-      cursor: grabbing;
-    }
+    &:active { cursor: grabbing; }
   }
 
   &.loading {
@@ -102,58 +90,69 @@ $white: #ffffff;
 }
 
 .loading-overlay {
-  backdrop-filter: blur(3px); // Arkayı bulanıklaştır
+  backdrop-filter: blur(3px);
 }
 
 // ========================================
-// TOP CONTROL BAR
+// TOP CONTROL BAR — yatay, ince header
 // ========================================
 .top-control-bar {
   position: absolute;
-  top: 0.75rem;
+  top: 0.6rem;
   left: 50%;
   transform: translateX(-50%);
   z-index: 6;
   background: linear-gradient(135deg, rgba($primary-color, 0.97), rgba($primary-dark, 0.97));
-  border-radius: 12px;
-  padding: 0.5rem 0.6rem 0.45rem;
+  border-radius: 10px;
+  padding: 0.4rem 0.6rem;
   box-shadow: var(--shadow-md);
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 0.4rem;
+  gap: 0.5rem;
   white-space: nowrap;
-  min-width: 200px;
+  width: max-content;
+  max-width: 90vw;
 }
 
-.top-row {
+.ctrl-group {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
-  width: 100%;
-  justify-content: space-between;
-}
+  gap: 0.35rem;
 
-.bottom-row {
-  width: 100%;
-  border-top: 1px solid rgba($white, 0.15);
-  padding-top: 0.4rem;
+  &.ctrl-left {
+    flex-shrink: 0;
+    padding-right: 0.5rem;
+    border-right: 1px solid rgba($white, 0.2);
+  }
+
+  &.ctrl-center {
+    flex: 1;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0 0.5rem;
+  }
+
+  &.ctrl-right {
+    flex-shrink: 0;
+    padding-left: 0.5rem;
+    border-left: 1px solid rgba($white, 0.2);
+    gap: 0.4rem;
+  }
 }
 
 .history-btn {
   background: rgba($white, 0.12);
   color: $white;
   border: none;
-  border-radius: 7px;
-  width: 2rem;
-  height: 2rem;
+  border-radius: 6px;
+  width: 1.8rem;
+  height: 1.8rem;
   cursor: pointer;
-  font-size: 1rem;
+  font-size: 0.95rem;
   transition: var(--transition-base);
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
 
   &:hover:not(:disabled) {
     background: rgba($white, 0.25);
@@ -170,56 +169,21 @@ $white: #ffffff;
   }
 }
 
-.weight-display-panel {
-  text-align: center;
-  padding: 0.15rem 0.75rem;
-  flex: 1;
-
-  .weight-content {
-    h4 {
-      margin: 0 0 0.15rem;
-      color: rgba($white, 0.75);
-      font-size: 0.55rem;
-      font-weight: 500;
-      letter-spacing: 0.5px;
-      text-transform: uppercase;
-    }
-
-    .weight-value {
-      font-size: 1.1rem;
-      font-weight: 800;
-      color: $white;
-      font-family: 'Courier New', monospace;
-      line-height: 1;
-      margin-bottom: 0.1rem;
-    }
-
-    .weight-description {
-      font-size: 0.5rem;
-      color: rgba($white, 0.65);
-    }
-  }
-}
-
 .auto-place-bar-btn {
-  background: rgba($white, 0.12);
+  background: rgba($white, 0.15);
   color: $white;
-  border: none;
-  border-radius: 7px;
-  width: 100%;
+  border: 1px solid rgba($white, 0.25);
+  border-radius: 6px;
   height: 1.8rem;
+  padding: 0 0.75rem;
   cursor: pointer;
   font-size: 0.7rem;
   font-weight: 700;
   transition: var(--transition-base);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.3rem;
-  letter-spacing: 0.2px;
+  white-space: nowrap;
 
   &:hover {
-    background: rgba($white, 0.22);
+    background: rgba($white, 0.25);
     transform: translateY(-1px);
   }
 
@@ -228,21 +192,71 @@ $white: #ffffff;
   }
 }
 
-// Responsive
-@media (max-width: 768px) {
-  .top-control-bar {
-    top: 0.5rem;
-    min-width: 170px;
-    padding: 0.4rem 0.5rem 0.4rem;
+.shipment-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
 
-    .weight-display-panel .weight-content {
-      .weight-value { font-size: 0.95rem; }
-      h4 { font-size: 0.5rem; }
+  .shipment-nav-btn {
+    background: rgba($white, 0.12);
+    color: $white;
+    border: none;
+    border-radius: 5px;
+    width: 1.6rem;
+    height: 1.6rem;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 700;
+    transition: var(--transition-base);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    &:hover:not(:disabled) {
+      background: rgba($white, 0.25);
+      transform: scale(1.1);
     }
 
-    .auto-place-bar-btn {
-      font-size: 0.65rem;
+    &:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
     }
+  }
+
+  .shipment-label {
+    color: $white;
+    font-size: 0.7rem;
+    font-weight: 700;
+    background: rgba($white, 0.12);
+    border-radius: 5px;
+    padding: 0.2rem 0.5rem;
+    min-width: 55px;
+    text-align: center;
+  }
+}
+
+.weight-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: rgba($white, 0.1);
+  border-radius: 6px;
+  padding: 0.2rem 0.5rem;
+  min-width: 52px;
+
+  .weight-chip-label {
+    color: rgba($white, 0.65);
+    font-size: 0.55rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+
+  .weight-chip-value {
+    color: $white;
+    font-size: 0.72rem;
+    font-weight: 800;
+    font-family: 'Courier New', monospace;
   }
 }
 
@@ -278,54 +292,31 @@ $white: #ffffff;
       background: linear-gradient(135deg, $primary-dark, color.adjust($primary-dark, $lightness: -10%));
     }
 
-    &:active {
-      transform: scale(0.95);
-    }
+    &:active { transform: scale(0.95); }
   }
 
   .exit-fullscreen-btn {
     background: linear-gradient(135deg, $error-red, $error-dark);
-
     &:hover {
       background: linear-gradient(135deg, $error-dark, color.adjust($error-dark, $lightness: -10%));
     }
   }
 }
 
-// Fullscreen modda container'ı tam ekran yap
 .threejs-visualization-container:fullscreen {
   height: 100vh !important;
   border-radius: 0 !important;
 
-  .fullscreen-controls {
-    z-index: 1000;
-  }
+  .fullscreen-controls { z-index: 1000; }
 
   .package-info-panel,
   .package-products-panel,
-  .deleted-packages-panel,
-  .weight-display-panel {
-    z-index: 999;
-  }
+  .deleted-packages-panel { z-index: 999; }
 }
 
-// Webkit desteği
-.threejs-visualization-container:-webkit-full-screen {
-  height: 100vh !important;
-  border-radius: 0 !important;
-}
-
-// Mozilla desteği
-.threejs-visualization-container:-moz-full-screen {
-  height: 100vh !important;
-  border-radius: 0 !important;
-}
-
-// MS desteği
-.threejs-visualization-container:-ms-fullscreen {
-  height: 100vh !important;
-  border-radius: 0 !important;
-}
+.threejs-visualization-container:-webkit-full-screen { height: 100vh !important; border-radius: 0 !important; }
+.threejs-visualization-container:-moz-full-screen { height: 100vh !important; border-radius: 0 !important; }
+.threejs-visualization-container:-ms-fullscreen { height: 100vh !important; border-radius: 0 !important; }
 
 // ========================================
 // PACKAGE INFO PANEL (Top Right)
@@ -431,17 +422,7 @@ $white: #ffffff;
 
       &:has(.force-place-btn, .rotate-btn, .delete-btn),
       &:has(.unforce-btn, .rotate-btn, .delete-btn) {
-        grid-template-columns: 1fr; // Tek sütun yap, alt alta
-
-        .rotate-btn,
-        .force-place-btn,
-        .unforce-btn {
-          grid-column: 1;
-        }
-
-        .delete-btn {
-          grid-column: 1;
-        }
+        grid-template-columns: 1fr;
       }
 
       .action-btn {
@@ -458,8 +439,6 @@ $white: #ffffff;
         &.force-place-btn {
           color: $warning-amber;
           border-color: $warning-amber;
-          background: $white;
-
           &:hover:not(:disabled) {
             background: $warning-amber;
             color: $white;
@@ -468,12 +447,9 @@ $white: #ffffff;
           }
         }
 
-        // ⭐ YENİ: Normal hale getir butonu
         &.unforce-btn {
           color: $success-green;
           border-color: $success-green;
-          background: $white;
-
           &:hover:not(:disabled) {
             background: $success-green;
             color: $white;
@@ -482,15 +458,11 @@ $white: #ffffff;
           }
         }
 
-        &:disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
-        }
+        &:disabled { opacity: 0.5; cursor: not-allowed; }
 
         &.rotate-btn {
           color: $primary-color;
           border-color: $primary-color;
-
           &:hover:not(:disabled) {
             background: $primary-color;
             color: $white;
@@ -502,7 +474,6 @@ $white: #ffffff;
         &.delete-btn {
           color: $error-red;
           border-color: $error-red;
-
           &:hover:not(:disabled) {
             background: $error-red;
             color: $white;
@@ -586,13 +557,10 @@ $white: #ffffff;
         border: 1px solid rgba($primary-color, 0.15);
         transition: var(--transition-fast);
 
-        &:last-child {
-          margin-bottom: 0;
-        }
+        &:last-child { margin-bottom: 0; }
 
         &:hover {
           background: linear-gradient(135deg, rgba($primary-color, 0.1), rgba($secondary-color, 0.12));
-          // transform: translateX(3px);
           box-shadow: -2px 2px 8px rgba($primary-color, 0.15);
           border-color: rgba($primary-color, 0.25);
         }
@@ -651,10 +619,7 @@ $white: #ffffff;
     box-shadow: 0 12px 32px rgba($error-red, 0.25);
   }
 
-  &.below-selection {
-    top: auto;
-    bottom: 1rem;
-  }
+  &.below-selection { top: auto; bottom: 1rem; }
 
   .deleted-content {
     display: flex;
@@ -701,9 +666,7 @@ $white: #ffffff;
         border: 2px solid rgba($error-red, 0.15);
         transition: var(--transition-base);
 
-        &:last-child {
-          margin-bottom: 0;
-        }
+        &:last-child { margin-bottom: 0; }
 
         &:hover {
           background: linear-gradient(135deg, rgba($error-red, 0.1), rgba($error-red, 0.15));
@@ -784,31 +747,19 @@ $white: #ffffff;
         &.restore-all-btn {
           background: linear-gradient(135deg, $success-green, $success-dark);
           box-shadow: 0 2px 8px rgba($success-green, 0.3);
-
-          &:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba($success-green, 0.4);
-          }
+          &:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba($success-green, 0.4); }
         }
 
         &.clear-all-btn {
           background: linear-gradient(135deg, $error-red, $error-dark);
           box-shadow: 0 2px 8px rgba($error-red, 0.3);
-
-          &:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba($error-red, 0.4);
-          }
+          &:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba($error-red, 0.4); }
         }
 
         &.auto-place-btn {
           background: linear-gradient(135deg, $primary-color, $primary-dark);
           box-shadow: 0 2px 8px rgba($primary-color, 0.3);
-
-          &:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba($primary-color, 0.4);
-          }
+          &:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba($primary-color, 0.4); }
         }
       }
     }
@@ -851,21 +802,13 @@ $white: #ffffff;
       &.loaded {
         color: #4caf50;
         font-weight: 600;
-
-        &::after {
-          content: ' ✓';
-          color: #4caf50;
-        }
+        &::after { content: ' ✓'; color: #4caf50; }
       }
     }
   }
 }
 
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
+@keyframes spin { to { transform: rotate(360deg); } }
 
 // ========================================
 // NO DATA MESSAGE
@@ -883,25 +826,9 @@ $white: #ffffff;
     padding: 3rem;
     max-width: 400px;
 
-    .empty-icon {
-      font-size: 4rem;
-      margin-bottom: 1.5rem;
-      opacity: 0.7;
-    }
-
-    h4 {
-      margin: 0 0 1rem;
-      font-size: 1.5rem;
-      color: $primary-color;
-      font-weight: 700;
-    }
-
-    p {
-      margin: 0;
-      color: $gray;
-      line-height: 1.6;
-      font-size: 1rem;
-    }
+    .empty-icon { font-size: 4rem; margin-bottom: 1.5rem; opacity: 0.7; }
+    h4 { margin: 0 0 1rem; font-size: 1.5rem; color: $primary-color; font-weight: 700; }
+    p { margin: 0; color: $gray; line-height: 1.6; font-size: 1rem; }
   }
 }
 
@@ -928,225 +855,101 @@ $white: #ffffff;
     align-items: center;
     gap: 1rem;
 
-    .warning-icon {
-      font-size: 2rem;
-      animation: pulse 1s infinite;
-    }
-
-    .warning-text {
-      font-weight: 700;
-      font-size: 1rem;
-      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-    }
+    .warning-icon { font-size: 2rem; animation: pulse 1s infinite; }
+    .warning-text { font-weight: 700; font-size: 1rem; text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3); }
   }
 }
 
 @keyframes shake {
-
-  0%,
-  20%,
-  40%,
-  60%,
-  80%,
-  100% {
-    transform: translate(-50%, -50%);
-  }
-
-  10%,
-  30%,
-  50%,
-  70%,
-  90% {
-    transform: translate(-48%, -52%);
-  }
+  0%, 20%, 40%, 60%, 80%, 100% { transform: translate(-50%, -50%); }
+  10%, 30%, 50%, 70%, 90% { transform: translate(-48%, -52%); }
 }
 
 @keyframes pulse {
-
-  0%,
-  100% {
-    transform: scale(1);
-  }
-
-  50% {
-    transform: scale(1.1);
-  }
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
 }
 
 // ========================================
 // ANIMATIONS
 // ========================================
-
 @keyframes slideInLeft {
-  from {
-    opacity: 0;
-    transform: translateX(-30px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
+  from { opacity: 0; transform: translateX(-30px); }
+  to { opacity: 1; transform: translateX(0); }
 }
 
 @keyframes slideInRight {
-  from {
-    opacity: 0;
-    transform: translateX(30px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
+  from { opacity: 0; transform: translateX(30px); }
+  to { opacity: 1; transform: translateX(0); }
 }
 
 @keyframes slideInUp {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 // ========================================
-// SCROLLBAR STYLING
+// SCROLLBAR
 // ========================================
 * {
   scrollbar-width: thin;
   scrollbar-color: $primary-color rgba($primary-color, 0.2);
 
-  &::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-  }
-
-  &::-webkit-scrollbar-track {
-    background: rgba($primary-color, 0.1);
-    border-radius: 4px;
-  }
-
+  &::-webkit-scrollbar { width: 8px; height: 8px; }
+  &::-webkit-scrollbar-track { background: rgba($primary-color, 0.1); border-radius: 4px; }
   &::-webkit-scrollbar-thumb {
     background: linear-gradient(135deg, $primary-color, $primary-dark);
     border-radius: 4px;
-
-    &:hover {
-      background: linear-gradient(135deg, $primary-dark, color.adjust($primary-dark, $lightness: -10%));
-    }
+    &:hover { background: linear-gradient(135deg, $primary-dark, color.adjust($primary-dark, $lightness: -10%)); }
   }
 }
 
 // ========================================
-// RESPONSIVE DESIGN
+// RESPONSIVE
 // ========================================
 @media (max-width: 768px) {
-  .package-actions {
-    grid-template-columns: 1fr !important;
-  }
-
   .top-control-bar {
     top: 0.5rem;
-    padding: 0.4rem 0.6rem;
+    padding: 0.3rem 0.5rem;
     gap: 0.35rem;
     max-width: 95vw;
 
     .auto-place-bar-btn {
-      font-size: 0.65rem;
-      padding: 0 0.6rem;
+      font-size: 0.62rem;
+      padding: 0 0.5rem;
     }
 
-    .weight-display-panel {
-      padding: 0.25rem 0.6rem;
+    .weight-chip {
+      min-width: 44px;
+      padding: 0.15rem 0.4rem;
+      .weight-chip-label { font-size: 0.5rem; }
+      .weight-chip-value { font-size: 0.65rem; }
+    }
 
-      .weight-content {
-        .weight-value {
-          font-size: 1rem;
-        }
-
-        h4 {
-          font-size: 0.55rem;
-        }
-      }
+    .shipment-label {
+      font-size: 0.62rem;
+      min-width: 48px;
     }
   }
 
   .threejs-visualization-container {
-    height: 70vh; // Viewport yüksekliğine göre
+    height: 70vh;
     min-height: 400px;
     max-height: 700px;
     border-radius: 8px;
-    // Touch action - browser scroll'u engelle, kendi touch'ımızı kullanalım
     touch-action: none;
 
     .threejs-canvas-container {
       touch-action: none;
-
-      canvas {
-        touch-action: none;
-      }
+      canvas { touch-action: none; }
     }
 
-    .auto-place-floating {
-      bottom: 0.5rem;
-
-      right: 0.5rem;
-
-      .auto-place-all-btn {
-        padding: 0.6rem 0.9rem;
-        font-size: 0.75rem;
-      }
-    }
-
-    .threejs-visualization-container:has(.deleted-packages-panel) .auto-place-floating {
-      bottom: calc(0.5rem + 45vh);
-    }
-
-    // Weight panel — üstte kompakt
-    .weight-display-panel {
-      top: 0.5rem;
-      left: 50%;
-      transform: translateX(-50%);
-      padding: 0.4rem 1rem;
-      min-width: 140px;
-      border-radius: 6px;
-
-      &:hover {
-        transform: translateX(-50%); // Mobilde scale yok
-      }
-
-      .weight-content {
-        h4 {
-          font-size: 0.6rem;
-        }
-
-        .weight-value {
-          font-size: 1.1rem;
-        }
-
-        .weight-description {
-          font-size: 0.55rem;
-        }
-      }
-    }
-
-    // Fullscreen butonu — daha büyük dokunma hedefi
     .fullscreen-controls {
       top: 0.5rem;
       right: 0.5rem;
-
-      .fullscreen-btn,
-      .exit-fullscreen-btn {
-        width: 3rem;
-        height: 3rem;
-        font-size: 1.4rem;
-      }
+      .fullscreen-btn, .exit-fullscreen-btn { width: 3rem; height: 3rem; font-size: 1.4rem; }
     }
 
-    // Package info panel — altta drawer olarak
     .package-info-panel {
       position: absolute;
       top: auto;
@@ -1163,52 +966,26 @@ $white: #ffffff;
       z-index: 10;
 
       .info-content {
-        h4 {
-          font-size: 0.9rem;
-          margin-bottom: 0.75rem;
-          padding-bottom: 0.5rem;
-        }
+        h4 { font-size: 0.9rem; margin-bottom: 0.75rem; padding-bottom: 0.5rem; }
 
-        .package-details {
-          .detail-row {
-            margin-bottom: 0.5rem;
-            font-size: 0.8rem;
-
-            .label {
-              min-width: 70px;
-              font-size: 0.75rem;
-            }
-
-            .value {
-              padding: 0.25rem 0.5rem;
-              font-size: 0.75rem;
-            }
-          }
+        .package-details .detail-row {
+          margin-bottom: 0.5rem;
+          font-size: 0.8rem;
+          .label { min-width: 70px; font-size: 0.75rem; }
+          .value { padding: 0.25rem 0.5rem; font-size: 0.75rem; }
         }
 
         .package-actions {
           gap: 0.5rem;
           margin-top: 0.75rem;
           padding-top: 0.75rem;
-
-          .action-btn {
-            padding: 0.7rem;
-            font-size: 0.75rem;
-            // Minimum dokunma hedefi
-            min-height: 44px;
-          }
+          .action-btn { padding: 0.7rem; font-size: 0.75rem; min-height: 44px; }
         }
 
-        .close-btn {
-          top: -0.5rem;
-          right: 0.5rem;
-          width: 2.5rem;
-          height: 2.5rem;
-        }
+        .close-btn { top: -0.5rem; right: 0.5rem; width: 2.5rem; height: 2.5rem; }
       }
     }
 
-    // Products panel — sol üstte küçük
     .package-products-panel {
       top: 0.5rem;
       left: 0.5rem;
@@ -1217,31 +994,19 @@ $white: #ffffff;
       padding: 0.5rem 0.75rem;
 
       .products-content {
-        h4 {
-          font-size: 0.75rem;
-        }
-
+        h4 { font-size: 0.75rem; }
         .products-list {
           max-height: 120px;
-
           .product-item {
             padding: 0.35rem 0.5rem;
             margin-bottom: 0.35rem;
-
-            .product-name {
-              font-size: 0.65rem;
-            }
-
-            .product-count {
-              font-size: 0.6rem;
-              padding: 0.2rem 0.4rem;
-            }
+            .product-name { font-size: 0.65rem; }
+            .product-count { font-size: 0.6rem; padding: 0.2rem 0.4rem; }
           }
         }
       }
     }
 
-    // Deleted packages panel — altta drawer
     .deleted-packages-panel {
       position: absolute;
       bottom: 0;
@@ -1255,72 +1020,31 @@ $white: #ffffff;
       padding: 1rem;
       z-index: 9;
 
-      &.below-selection {
-        // Seçim paneli açıkken gizle (üst üste binmesin)
-        display: none;
-      }
+      &.below-selection { display: none; }
 
       .deleted-content {
-        h4 {
-          font-size: 0.9rem;
-        }
-
-        .deleted-list {
-          .deleted-item {
-            padding: 0.6rem;
-            margin-bottom: 0.5rem;
-
-            .deleted-info {
-              .deleted-id {
-                font-size: 0.8rem;
-              }
-
-              .deleted-dims {
-                font-size: 0.65rem;
-              }
-
-              .deleted-weight {
-                font-size: 0.6rem;
-              }
-            }
-
-            .restore-btn {
-              padding: 0.5rem 0.7rem;
-              font-size: 0.7rem;
-              min-height: 44px;
-              min-width: 44px;
-            }
+        h4 { font-size: 0.9rem; }
+        .deleted-list .deleted-item {
+          padding: 0.6rem;
+          margin-bottom: 0.5rem;
+          .deleted-info {
+            .deleted-id { font-size: 0.8rem; }
+            .deleted-dims { font-size: 0.65rem; }
+            .deleted-weight { font-size: 0.6rem; }
           }
+          .restore-btn { padding: 0.5rem 0.7rem; font-size: 0.7rem; min-height: 44px; min-width: 44px; }
         }
-
-        .bulk-actions {
-          .bulk-btn {
-            padding: 0.7rem;
-            font-size: 0.7rem;
-            min-height: 44px;
-          }
-        }
+        .bulk-actions .bulk-btn { padding: 0.7rem; font-size: 0.7rem; min-height: 44px; }
       }
     }
 
-    // No data mesajı
     .no-data-message .no-data-content {
       padding: 2rem 1.5rem;
-
-      .empty-icon {
-        font-size: 3rem;
-      }
-
-      h4 {
-        font-size: 1.2rem;
-      }
-
-      p {
-        font-size: 0.9rem;
-      }
+      .empty-icon { font-size: 3rem; }
+      h4 { font-size: 1.2rem; }
+      p { font-size: 0.9rem; }
     }
 
-    // Collision warning
     .collision-warning {
       position: fixed;
       top: auto;
@@ -1330,17 +1054,10 @@ $white: #ffffff;
       max-width: 85vw;
       padding: 0.75rem 1.25rem;
       z-index: 9999;
-
       .warning-content {
         gap: 0.5rem;
-
-        .warning-icon {
-          font-size: 1.5rem;
-        }
-
-        .warning-text {
-          font-size: 0.85rem;
-        }
+        .warning-icon { font-size: 1.5rem; }
+        .warning-text { font-size: 0.85rem; }
       }
     }
   }
@@ -1353,53 +1070,19 @@ $white: #ffffff;
     max-height: 550px;
     border-radius: 4px;
 
-    .weight-display-panel {
-      padding: 0.3rem 0.7rem;
-      min-width: 120px;
-
-      .weight-content {
-        h4 {
-          font-size: 0.55rem;
-        }
-
-        .weight-value {
-          font-size: 0.95rem;
-        }
-
-        .weight-description {
-          font-size: 0.5rem;
-        }
-      }
-    }
-
     .package-info-panel {
       padding: 0.75rem;
       max-height: 50vh;
-
       .info-content {
-        h4 {
-          font-size: 0.8rem;
-        }
-
+        h4 { font-size: 0.8rem; }
         .package-details .detail-row {
           flex-direction: column;
           gap: 0.25rem;
           align-items: flex-start;
-
-          .label {
-            min-width: auto;
-          }
-
-          .value {
-            width: 100%;
-            text-align: left;
-          }
+          .label { min-width: auto; }
+          .value { width: 100%; text-align: left; }
         }
-
-        .package-actions .action-btn {
-          padding: 0.6rem;
-          font-size: 0.7rem;
-        }
+        .package-actions .action-btn { padding: 0.6rem; font-size: 0.7rem; }
       }
     }
 
@@ -1407,42 +1090,27 @@ $white: #ffffff;
       max-width: 150px;
       min-width: auto;
       padding: 0.4rem 0.6rem;
-
       .products-content {
-        h4 {
-          font-size: 0.7rem;
-        }
-
-        .products-list {
-          max-height: 80px;
-        }
+        h4 { font-size: 0.7rem; }
+        .products-list { max-height: 80px; }
       }
     }
 
     .deleted-packages-panel {
       padding: 0.75rem;
       max-height: 40vh;
-
       .deleted-content {
         .deleted-list .deleted-item {
           padding: 0.5rem;
           flex-direction: column;
           gap: 0.5rem;
           align-items: stretch;
-
-          .restore-btn {
-            width: 100%;
-            text-align: center;
-          }
+          .restore-btn { width: 100%; text-align: center; }
         }
-
         .bulk-actions {
           flex-direction: column;
           gap: 0.5rem;
-
-          .bulk-btn {
-            padding: 0.6rem;
-          }
+          .bulk-btn { padding: 0.6rem; }
         }
       }
     }
@@ -1451,43 +1119,22 @@ $white: #ffffff;
 
 @media (hover: none) and (pointer: coarse) {
   .threejs-visualization-container {
-
-    // Touch cihazlarda hover efektlerini kaldır
     .package-info-panel:hover,
     .deleted-packages-panel:hover,
-    .package-products-panel:hover,
-    .weight-display-panel:hover {
-      transform: none;
-    }
+    .package-products-panel:hover { transform: none; }
 
-    .weight-display-panel:hover {
-      transform: translateX(-50%); // Orijinal pozisyonu koru
-    }
-
-    // Tüm butonlar için minimum dokunma hedefi (WCAG 2.5.5)
     .action-btn,
     .restore-btn,
     .bulk-btn,
     .close-btn,
     .fullscreen-btn,
-    .exit-fullscreen-btn {
-      min-width: 44px;
-      min-height: 44px;
-    }
+    .exit-fullscreen-btn { min-width: 44px; min-height: 44px; }
 
-    // Deleted item hover efektini kaldır
-    .deleted-packages-panel .deleted-content .deleted-list .deleted-item:hover {
-      transform: none;
-    }
-
-    // Package row hover efektini kaldır
-    .package-info-panel .info-content .package-actions .action-btn:hover {
-      transform: none;
-    }
+    .deleted-packages-panel .deleted-content .deleted-list .deleted-item:hover { transform: none; }
+    .package-info-panel .info-content .package-actions .action-btn:hover { transform: none; }
   }
 }
 
-// Landscape mobil
 @media (max-height: 500px) and (orientation: landscape) {
   .threejs-visualization-container {
     height: 100vh;
@@ -1525,37 +1172,23 @@ $white: #ffffff;
   outline-offset: 2px;
 }
 
-// Dark Mode
 @media (prefers-color-scheme: dark) {
   .threejs-visualization-container {
     background: #1f2937;
-
     .package-info-panel,
     .deleted-packages-panel,
-    .weight-display-panel {
+    .package-products-panel {
       background: rgba(31, 41, 55, 0.95);
       color: #f3f4f6;
       border-color: rgba($primary-color, 0.4);
-
-      h4 {
-        color: color.adjust($primary-color, $lightness: 20%);
-      }
+      h4 { color: color.adjust($primary-color, $lightness: 20%); }
     }
   }
 }
 
-// Print Styles
 @media print {
-
   .package-info-panel,
   .deleted-packages-panel,
-  .weight-display-panel,
-  .collision-warning {
-    display: none !important;
-  }
-
-  .threejs-canvas-container {
-    background: $white !important;
-    border: 3px solid #000 !important;
-  }
+  .collision-warning { display: none !important; }
+  .threejs-canvas-container { background: $white !important; border: 3px solid #000 !important; }
 }

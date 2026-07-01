@@ -10,7 +10,7 @@
   @if (!isLoadingModels && !isLoadingData && (!piecesDataSignal() || piecesDataSignal().length === 0)) {
   <div class="no-data-message">
     <div class="no-data-content">
-      <div class="empty-icon">🚛</div>
+      <mat-icon style="font-size: 0.8rem; width: 0.8rem; height: 0.8rem; line-height: 0.8rem;">local_shipping</mat-icon>
       <h4>{{ 'TRUCK_VISUALIZATION.NO_DATA' | translate }}</h4>
       <p>{{ 'TRUCK_VISUALIZATION.NO_DATA_MESSAGE' | translate }}</p>
     </div>
@@ -18,49 +18,53 @@
   }
 
   <!-- Weight Display Panel (Top Center) -->
- @if (!isLoadingModels && !isLoadingData && piecesDataSignal() && piecesDataSignal().length > 0) {
-<div class="top-control-bar">
+  @if (!isLoadingModels && !isLoadingData && piecesDataSignal() && piecesDataSignal().length > 0) {
+  <div class="top-control-bar">
 
-  <div class="top-row">
-    <!-- Sol: Undo -->
-    <button class="history-btn"
-      (click)="undo()"
-      [disabled]="!canUndo()"
-      [title]="'TRUCK_VISUALIZATION.UNDO' | translate">
-      ↩
-    </button>
+    <!-- Sol: Undo / Redo -->
+    <div class="ctrl-group ctrl-left">
+      <button class="history-btn" (click)="undo()" [disabled]="!canUndo()"
+        [title]="'TRUCK_VISUALIZATION.UNDO' | translate">↩</button>
+      <button class="history-btn" (click)="redo()" [disabled]="!canRedo()"
+        [title]="'TRUCK_VISUALIZATION.REDO' | translate">↪</button>
+    </div>
 
-    <!-- Orta: Ağırlık -->
-    <div class="weight-display-panel" [title]="getWeightTitle()">
-      <div class="weight-content">
-        <h4>{{'TRUCK_VISUALIZATION.FIRST' | translate}} {{ (weightCalculationDepth / 1000).toFixed(1) }}
-          {{'TRUCK_VISUALIZATION.M_WEIGHT' | translate}}</h4>
-        <div class="weight-value">{{ frontSectionWeightDisplay }}</div>
-        <div class="weight-description">{{ 'TRUCK_VISUALIZATION.FRONT_LOAD' | translate }}</div>
+    <!-- Orta: Auto Place + Shipment Nav -->
+    <div class="ctrl-group ctrl-center">
+      <button class="auto-place-bar-btn" (click)="autoPlaceAll()"
+        [title]="'TRUCK_VISUALIZATION.AUTO_PLACE_ALL_TIP' | translate" [appDisableAuth]="['orders.change_orderresult']">
+        {{ 'TRUCK_VISUALIZATION.AUTO_PLACE_ALL' | translate }}
+      </button>
+
+      @if (isMultiShipmentSignal()) {
+      <div class="shipment-nav">
+        <button class="shipment-nav-btn" [disabled]="activeShipmentIndexSignal() === 0"
+          (click)="onPrevShipment()">‹</button>
+        <span class="shipment-label">
+          <mat-icon
+            style="font-size: 0.8rem; width: 0.8rem; height: 0.8rem; line-height: 0.8rem;">local_shipping</mat-icon>
+          {{ activeShipmentIndexSignal() + 1 }} / {{ shipmentsSignal().length }}
+        </span>
+        <button class="shipment-nav-btn" [disabled]="activeShipmentIndexSignal() === shipmentsSignal().length - 1"
+          (click)="onNextShipment()">›</button>
+      </div>
+      }
+    </div>
+
+    <!-- Sağ: Ağırlıklar -->
+    <div class="ctrl-group ctrl-right">
+      <div class="weight-chip" [title]="getWeightTitle()">
+        <span class="weight-chip-label">{{ (weightCalculationDepth / 1000).toFixed(1) }}m</span>
+        <span class="weight-chip-value">{{ frontSectionWeightDisplay }}</span>
+      </div>
+      <div class="weight-chip">
+        <span class="weight-chip-label">⚖️</span>
+        <span class="weight-chip-value">{{ totalWeightDisplay }}</span>
       </div>
     </div>
 
-    <!-- Sağ: Redo -->
-    <button class="history-btn"
-      (click)="redo()"
-      [disabled]="!canRedo()"
-      [title]="'TRUCK_VISUALIZATION.REDO' | translate">
-      ↪
-    </button>
   </div>
-
-  <!-- Alt: Otomatik Yerleştir -->
-  <div class="bottom-row">
-    <button class="auto-place-bar-btn"
-      (click)="autoPlaceAll()"
-      [title]="'TRUCK_VISUALIZATION.AUTO_PLACE_ALL_TIP' | translate"
-      [appDisableAuth]="['orders.change_orderresult']">
-      {{ 'TRUCK_VISUALIZATION.AUTO_PLACE_ALL' | translate }}
-    </button>
-  </div>
-
-</div>
-}
+  }
 
   @if (!isLoadingModels && !isLoadingData && piecesDataSignal() && piecesDataSignal().length > 0) {
   <div class="fullscreen-controls">
