@@ -103,24 +103,27 @@ export const stepperResultHandlers = [
 
   on(StepperResultActions.setDeletedPackages, (state: StepperState, { deletedPackages }) => ({
     ...state,
+    step2State: syncStep2Remaining(state, deletedPackages),
     step3State: { ...state.step3State, deletedPackages }
   })),
 
-  on(StepperResultActions.addDeletedPackage, (state: StepperState, { row }) => ({
-    ...state,
-    step3State: {
-      ...state.step3State,
-      deletedPackages: [...state.step3State.deletedPackages, row]
-    }
-  })),
+  on(StepperResultActions.addDeletedPackage, (state: StepperState, { row }) => {
+    const newDeleted = [...state.step3State.deletedPackages, row];
+    return {
+      ...state,
+      step2State: syncStep2Remaining(state, newDeleted),
+      step3State: { ...state.step3State, deletedPackages: newDeleted }
+    };
+  }),
 
-  on(StepperResultActions.removeDeletedPackage, (state: StepperState, { pkgId }) => ({
-    ...state,
-    step3State: {
-      ...state.step3State,
-      deletedPackages: state.step3State.deletedPackages.filter(row => row[8] !== pkgId)
-    }
-  })),
+  on(StepperResultActions.removeDeletedPackage, (state: StepperState, { pkgId }) => {
+    const newDeleted = state.step3State.deletedPackages.filter(row => row[8] !== pkgId);
+    return {
+      ...state,
+      step2State: syncStep2Remaining(state, newDeleted),
+      step3State: { ...state.step3State, deletedPackages: newDeleted }
+    };
+  }),
 
   // step2State.packages[].is_remaining senkronizasyonu
   on(StepperResultActions.syncRemainingPackages, (state: StepperState, { deletedPkgIds }) => {
@@ -186,3 +189,14 @@ export const stepperResultHandlers = [
     orderResultId: orderResultId
   }))
 ];
+
+function syncStep2Remaining(state: StepperState, deletedPackages: PackagePosition[]) {
+  const deletedSet = new Set(deletedPackages.map(row => row[8]));
+  return {
+    ...state.step2State,
+    packages: state.step2State.packages.map(pkg => ({
+      ...pkg,
+      is_remaining: !deletedSet.has(pkg.id)
+    }))
+  };
+}

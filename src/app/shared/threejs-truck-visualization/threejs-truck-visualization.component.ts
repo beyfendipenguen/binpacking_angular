@@ -1908,50 +1908,9 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
       ];
       this.store.dispatch(StepperResultActions.addDeletedPackage({ row }));
 
-      this.syncRemaining();
     }
   }
 
-  private syncDeletedPackagesFromStoreReactive(deletedRows: PackagePosition[]): void {
-    const storePkgIds = new Set(deletedRows.map(row => row[8]));
-    const currentServiceDeleted = this.packagesStateService.deletedPackages();
-    const serviceIds = new Set(currentServiceDeleted.map(p => p.pkgId));
-
-    // Store'da olup service'te olmayanları ekle
-    const toAdd: PackageData[] = deletedRows
-      .filter(row => !serviceIds.has(row[8]))
-      .map(row => ({
-        id: row[6],
-        x: -1, y: -1, z: -1,
-        length: row[3],
-        width: row[4],
-        height: row[5],
-        weight: row[7],
-        pkgId: row[8],
-        dimensions: `${row[3]}×${row[4]}×${row[5]} mm`,
-        color: this.getUniqueColor(),
-        originalColor: undefined,
-        isBeingDragged: false,
-      } as PackageData));
-
-    if (toAdd.length > 0) {
-      this.packagesStateService.addToDeletedPackages(toAdd);
-    }
-
-    // Service'te olup store'da olmayanları çıkar (örn. başka yerden restore edildiyse)
-    const toRemove = currentServiceDeleted
-      .filter(p => !storePkgIds.has(p.pkgId))
-      .map(p => p.pkgId);
-
-    if (toRemove.length > 0) {
-      this.packagesStateService.removeFromDeletedPackages(toRemove);
-    }
-  }
-
-  private syncRemaining(): void {
-    const deletedIds = this.packagesStateService.deletedPackages().map(p => p.pkgId);
-    this.store.dispatch(StepperResultActions.syncRemainingPackages({ deletedPkgIds: deletedIds }));
-  }
 
   restorePackage(packageData: PackageData): void {
     const realPkg = this.packagesStateService.getDeletedPackageById(packageData.pkgId) ?? packageData;
@@ -2006,7 +1965,6 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
       ];
       this.store.dispatch(StepperResultActions.addPackageToTruck({ position }));
       this.store.dispatch(StepperResultActions.removeDeletedPackage({ pkgId: realPkg.pkgId }));
-      this.syncRemaining();
       this.orderResultChange();
 
     } else {
@@ -2495,7 +2453,6 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
       -1, -1, -1, p.length, p.width, p.height, p.id, p.weight, p.pkgId
     ] as PackagePosition);
     this.store.dispatch(StepperResultActions.setDeletedPackages({ deletedPackages: deletedRows }));
-    this.syncRemaining();
   }
 
   undo(): void {
@@ -2828,7 +2785,6 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
       this.toastService.success(this.translate.instant('TRUCK_VISUALIZATION.AUTO_PLACE_SUCCESS'));
     }
 
-    this.syncRemaining();
     this.renderManager.requestRender();
     this.cdr.markForCheck();
   }
@@ -2891,7 +2847,6 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     }
 
     if (placedCount > 0) {
-      this.syncRemaining();
       this.orderResultChange();
       this.renderManager.requestRender();
       this.cdr.markForCheck();

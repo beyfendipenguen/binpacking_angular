@@ -230,20 +230,20 @@
         @for(package of uiPackages(); track package.id){
         <div class="package-card" [class.remaining-package]="!package.is_remaining" [class.heavy-package]="isHeavyPackage(package)">
           <div class="package-header">
-            <span *ngIf="!package.is_remaining"
-                  class="warning-icon remaining-warning-icon"
+            @if(!package.is_remaining){
+            <span class="warning-icon remaining-warning-icon"
                   [matTooltip]="'PALLET.REMAINING_TOOLTIP' | translate"
                   matTooltipPosition="above">
                   ⚠
             </span>
-
-            <span *ngIf="isHeavyPackage(package)"
-                  class="warning-icon heavy-warning-icon"
+            }
+            @if(isHeavyPackage(package)){
+            <span class="warning-icon heavy-warning-icon"
                   [matTooltip]="'PALLET.HEAVY_WARNING_TOOLTIP' | translate"
                   matTooltipPosition="above">
                   ❗
             </span>
-
+            }
             <div class="package-title">
               <mat-icon>inbox</mat-icon>
               <span>{{'PALLET.PALLET'| translate}} {{ package.name }}</span>
