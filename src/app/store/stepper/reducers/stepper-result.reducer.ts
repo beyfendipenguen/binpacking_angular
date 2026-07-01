@@ -3,24 +3,42 @@ import { StepperState } from '../stepper.state';
 import { StepperResultActions } from '../actions/stepper-result.actions';
 import { PackagePosition } from '@app/features/interfaces/order-result.interface';
 
+/**
+ * Aktif shipment'ın orderResult'unu günceller VE shipments[activeIndex]'i
+ * aynı veriyle senkron tutar. orderResult'ı değiştiren her reducer bunu
+ * kullanmalı — aksi halde shipment'lar arası geçişte eski veri geri gelir.
+ */
+function syncActiveShipment(state: StepperState, newOrderResult: PackagePosition[]) {
+  const idx = state.step3State.activeShipmentIndex;
+  const updatedShipments = state.step3State.shipments.length > 0
+    ? state.step3State.shipments.map((s, i) => i === idx ? newOrderResult : s)
+    : state.step3State.shipments;
+  return { orderResult: newOrderResult, shipments: updatedShipments };
+}
+
 export const stepperResultHandlers = [
 
-  // Load Order Result Success (Edit Mode)
-  on(StepperResultActions.loadOrderResultSuccess, (state: StepperState, { orderResult, reportFiles }) => ({
+  // Load Order Result Success (Edit Mode / Calculate sonrası)
+  on(StepperResultActions.loadOrderResultSuccess, (state: StepperState, { orderResult, reportFiles, shipments, isMultiShipment, deletedPackages }) => ({
     ...state,
     step3State: {
       ...state.step3State,
       orderResult: [...orderResult],
-      reportFiles: reportFiles,
+      reportFiles,
+      shipments: shipments ?? [],
+      isMultiShipment: isMultiShipment ?? false,
+      deletedPackages: deletedPackages ?? [],
+      activeShipmentIndex: 0,
       isDirty: false
     }
   })),
 
-  on(StepperResultActions.setOrderResult, (state: StepperState, { orderResult }) => ({
+  on(StepperResultActions.setActiveShipment, (state: StepperState, { index }) => ({
     ...state,
     step3State: {
       ...state.step3State,
-      orderResult: orderResult,
+      activeShipmentIndex: index,
+      orderResult: state.step3State.shipments[index] ?? [],
     }
   })),
 
@@ -43,59 +61,81 @@ export const stepperResultHandlers = [
     }
   })),
 
-  on(StepperResultActions.placePackageInTruck, (state: StepperState, { pkgId, x, y, z }) => ({
-    ...state,
-    step3State: {
-      ...state.step3State,
-      orderResult: state.step3State.orderResult.map(pos =>
-        pos[8] === pkgId
-          ? [x, y, z, pos[3], pos[4], pos[5], pos[6], pos[7], pkgId] as PackagePosition
-          : pos
-      )
-    }
-  })),
+  // ───────── Aktif shipment'ın orderResult'unu değiştiren action'lar ─────────
 
   on(StepperResultActions.removePackageFromTruck, (state: StepperState, { pkgId }) => ({
     ...state,
     step3State: {
       ...state.step3State,
-      orderResult: state.step3State.orderResult.map(pos =>
-        pos[8] === pkgId
-          ? [-1, -1, -1, pos[3], pos[4], pos[5], pos[6], pos[7], pkgId] as PackagePosition
-          : pos
-      )
+      ...syncActiveShipment(state, state.step3State.orderResult.filter(pos => pos[8] !== pkgId))
     }
   })),
 
-  // Add Deleted Package Id List
-  on(StepperResultActions.changeDeletedPackageIsRemaining, (state: StepperState) => {
-    // orderResult'tan hangi pkgId'lerin -1,-1,-1 olduğunu bul
-    const deletedPkgIds = new Set(
-      state.step3State.orderResult
-        .filter(pos => pos[0] === -1 && pos[1] === -1 && pos[2] === -1)
-        .map(pos => pos[8]) // pkgId index 8'de
-    );
+  on(StepperResultActions.addPackageToTruck, (state: StepperState, { position }) => ({
+    ...state,
+    step3State: {
+      ...state.step3State,
+      ...syncActiveShipment(state, [...state.step3State.orderResult, position])
+    }
+  })),
 
+  on(StepperResultActions.placePackageInTruck, (state: StepperState, { pkgId, x, y, z }) => ({
+    ...state,
+    step3State: {
+      ...state.step3State,
+      ...syncActiveShipment(state, state.step3State.orderResult.map(pos =>
+        pos[8] === pkgId
+          ? [x, y, z, pos[3], pos[4], pos[5], pos[6], pos[7], pkgId] as PackagePosition
+          : pos
+      ))
+    }
+  })),
+
+  on(StepperResultActions.setOrderResult, (state: StepperState, { orderResult }) => ({
+    ...state,
+    step3State: {
+      ...state.step3State,
+      ...syncActiveShipment(state, orderResult)
+    }
+  })),
+
+  // ───────── Deleted packages — global havuz ─────────
+
+  on(StepperResultActions.setDeletedPackages, (state: StepperState, { deletedPackages }) => ({
+    ...state,
+    step3State: { ...state.step3State, deletedPackages }
+  })),
+
+  on(StepperResultActions.addDeletedPackage, (state: StepperState, { row }) => ({
+    ...state,
+    step3State: {
+      ...state.step3State,
+      deletedPackages: [...state.step3State.deletedPackages, row]
+    }
+  })),
+
+  on(StepperResultActions.removeDeletedPackage, (state: StepperState, { pkgId }) => ({
+    ...state,
+    step3State: {
+      ...state.step3State,
+      deletedPackages: state.step3State.deletedPackages.filter(row => row[8] !== pkgId)
+    }
+  })),
+
+  // step2State.packages[].is_remaining senkronizasyonu
+  on(StepperResultActions.syncRemainingPackages, (state: StepperState, { deletedPkgIds }) => {
+    const deletedSet = new Set(deletedPkgIds);
     return {
       ...state,
       step2State: {
         ...state.step2State,
         packages: state.step2State.packages.map(pkg => ({
           ...pkg,
-          is_remaining: !deletedPkgIds.has(pkg.id) // -1 ise true, değilse false
+          is_remaining: !deletedSet.has(pkg.id)
         }))
       }
     };
   }),
-
-  // Clear Deleted Packages
-  on(StepperResultActions.clearDeletedPackages, (state: StepperState) => ({
-    ...state,
-    step3State: {
-      ...state.step3State,
-      deletedPackageIds: []
-    }
-  })),
 
   // Set Is Dirty
   on(StepperResultActions.setIsDirty, (state: StepperState, { isDirty }) => ({
@@ -103,15 +143,6 @@ export const stepperResultHandlers = [
     step3State: {
       ...state.step3State,
       isDirty: isDirty
-    }
-  })),
-
-  // Result Step Submit
-  on(StepperResultActions.resultStepSubmit, (state: StepperState, { orderResult }) => ({
-    ...state,
-    step3State: {
-      ...state.step3State,
-      orderResult: orderResult
     }
   })),
 
@@ -130,7 +161,7 @@ export const stepperResultHandlers = [
     globalError: {
       message: error,
       stepIndex: 3,
-      timestamp: new Date()
+      timestamp: new Date().toISOString()
     }
   })),
 
@@ -139,11 +170,13 @@ export const stepperResultHandlers = [
     ...state,
     step3State: {
       orderResult: [],
+      deletedPackages: [],
+      shipments: [],
+      activeShipmentIndex: 0,
+      isMultiShipment: false,
       reportFiles: [],
       currentViewType: 'isometric',
       hasThreeJSError: false,
-      deletedPackages: [],
-      processedPackages: [],
       isDirty: false
     }
   })),

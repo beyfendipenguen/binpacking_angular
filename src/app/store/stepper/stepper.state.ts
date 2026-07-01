@@ -30,7 +30,7 @@ export interface StepperState {
     message: string;
     code?: string;
     stepIndex?: number;
-    timestamp?: Date;
+    timestamp?: string;
   } | null;
 
   step1State: {
@@ -58,8 +58,25 @@ export interface StepperState {
     isDirty: boolean;
   };
 
+  // ─────────────────────────────────────────────────────────────
+  // step3State — Sonuç ekranı state'i.
+  //
+  // orderResult       → AKTİF shipment'ın PackagePosition listesi.
+  //                      Three.js component bunu okur/yazar.
+  // shipments         → TÜM shipment'ların PackagePosition listeleri.
+  //                      orderResult her değiştiğinde shipments[activeIndex]
+  //                      de senkron güncellenir (bkz. syncActiveShipment).
+  // deletedPackages   → GLOBAL silinen/yerleşmemiş paket havuzu.
+  //                      Shipment'tan bağımsızdır — hangi shipment'tan
+  //                      silindiği bilgisi tutulmaz, kullanıcı aktif
+  //                      shipment'a serbestçe geri ekleyebilir.
+  // ─────────────────────────────────────────────────────────────
   step3State: {
     orderResult: PackagePosition[];
+    deletedPackages: PackagePosition[];
+    shipments: PackagePosition[][];
+    activeShipmentIndex: number;
+    isMultiShipment: boolean;
     reportFiles: ReportFile[];
     currentViewType: string;
     hasThreeJSError: boolean;
@@ -106,6 +123,10 @@ export const initialStepperState: StepperState = {
 
   step3State: {
     orderResult: [],
+    deletedPackages: [],
+    shipments: [],
+    activeShipmentIndex: 0,
+    isMultiShipment: false,
     reportFiles: [],
     currentViewType: 'isometric',
     hasThreeJSError: false,
