@@ -3,7 +3,7 @@ import { Validators } from '@angular/forms';
 export interface ConstraintFieldConfig {
   key: string;
   label: string; // translation key
-  type: 'number' | 'string' | 'boolean' | 'select' | 'multi-product' | 'disabled-placeholder';
+  type: 'number' | 'string' | 'boolean' | 'select' | 'multi-product' | 'disabled-placeholder'| 'zone-limits';
   icon: string;
   group: string; // grup başlığı (translation key)
   placeholder?: string;
@@ -189,6 +189,15 @@ export const CONSTRAINT_FIELDS: ConstraintFieldConfig[] = [
     hint: 'CONSTRAINT.MAX_PALLET_WEIGHT_HINT',
     validators: [Validators.min(0)],
     detailedInfo: 'CONSTRAINT.MAX_PALLET_WEIGHT_DETAIL',
+  },
+  {
+    key: 'zone_weight_limits',
+    label: 'CONSTRAINT.ZONE_WEIGHT_LIMITS',
+    type: 'zone-limits',       // özel tip — form component'te ayrı render edilecek
+    icon: 'add_location_alt',
+    group: 'CONSTRAINT.GROUP_WEIGHT',
+    hint: 'CONSTRAINT.ZONE_WEIGHT_LIMITS_HINT',
+    detailedInfo: 'CONSTRAINT.ZONE_WEIGHT_LIMITS_DETAIL',
   },
 
   // ─── Grup 7: Gelecek Özellikler (disabled) ───

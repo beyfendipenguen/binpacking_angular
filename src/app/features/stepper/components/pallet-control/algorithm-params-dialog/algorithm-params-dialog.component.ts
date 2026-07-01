@@ -1,6 +1,6 @@
 import { Component, Inject, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef, MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -13,7 +13,6 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatMenuModule } from '@angular/material/menu';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { HasPermissionDirective } from '@app/core/auth/directives/has-permission.directive';
 import { ToastService } from '@app/core/services/toast.service';
 
 import { Subject, of } from 'rxjs';
@@ -45,7 +44,8 @@ export interface AlgorithmParamsDialogData {
     MatTooltipModule,
     MatChipsModule,
     MatMenuModule,
-    TranslateModule
+    TranslateModule,
+    FormsModule
   ],
   templateUrl: './algorithm-params-dialog.component.html',
   styleUrl: './algorithm-params-dialog.component.scss',
@@ -66,7 +66,7 @@ export class AlgorithmParamsDialogComponent implements OnInit, OnDestroy {
   filteredProducts: Product[] = [];
   isSearchingProducts = false;
   selectedSideProducts: Product[] = [];
-
+  singleZoneLimit = { x_limit_mm: 0, max_kg: 0 };
   // Info popover
   currentInfoField: ConstraintFieldConfig | null = null;
 
@@ -84,7 +84,7 @@ export class AlgorithmParamsDialogComponent implements OnInit, OnDestroy {
   constructor(
     public dialogRef: MatDialogRef<AlgorithmParamsDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: AlgorithmParamsDialogData,
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.initForm();
@@ -123,6 +123,16 @@ export class AlgorithmParamsDialogComponent implements OnInit, OnDestroy {
     this.form.patchValue({ side_product_ids: this.selectedSideProducts.map(p => p.id) });
   }
 
+
+
+  onZoneLimitChange(): void {
+    // Sadece dolu ise gönder (ikisi de 0 ise boş array)
+    const hasValue = this.singleZoneLimit.x_limit_mm > 0 || this.singleZoneLimit.max_kg > 0;
+    this.form.patchValue({
+      zone_weight_limits: hasValue ? [{ ...this.singleZoneLimit }] : []
+    });
+  }
+
   onSave(): void {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
@@ -154,7 +164,7 @@ export class AlgorithmParamsDialogComponent implements OnInit, OnDestroy {
 
     this.constraintFields.forEach(field => {
       if (field.disabled) return;
-      if (field.type === 'multi-product') {
+      if (field.type === 'multi-product' || field.type === 'zone-limits') {
         formConfig[field.key] = [(defaults as any)[field.key] ?? []];
       } else {
         formConfig[field.key] = [(defaults as any)[field.key], field.validators ?? []];
@@ -196,6 +206,10 @@ export class AlgorithmParamsDialogComponent implements OnInit, OnDestroy {
     });
 
     this.form.patchValue(formValues);
+    const zones = profile.zone_weight_limits ?? [];
+    this.singleZoneLimit = zones.length > 0
+      ? { ...zones[0] }
+      : { x_limit_mm: 0, max_kg: 0 };
     this.loadSelectedSideProducts(profile.side_product_ids ?? []);
   }
 

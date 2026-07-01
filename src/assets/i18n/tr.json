@@ -75,7 +75,7 @@
     "UNDO": "Geri Al",
     "REDO": "İleri Al",
     "COMING_SOON": "Yakında",
-    "MOVE_UP":"Yukarı Taşı",
+    "MOVE_UP": "Yukarı Taşı",
     "MOVE_DOWN": "Aşağı Taşı"
   },
   "MENU": {
@@ -347,8 +347,8 @@
     "INCOMPLETE_ORDER": "Eksik Sipariş",
     "NO_COMPANY_RELATION": "Sipariş için müşteri ilişkisi tanımlı değil",
     "CUSTOMER_VIEW": "Müşteri Linki",
-"COPY_CUSTOMER_LINK": "Müşteri linkini kopyala",
-"LINK_COPIED": "Link kopyalandı!"
+    "COPY_CUSTOMER_LINK": "Müşteri linkini kopyala",
+    "LINK_COPIED": "Link kopyalandı!"
   },
   "ORDER_DETAILS": {
     "TITLE": "Ürün Detayları",
@@ -578,7 +578,7 @@
     "NO_PACKAGES_WARNING": "Önce 'Hesapla' butonuna basmalısınız.",
     "ALGORITHM_PARAMS": "Algoritma Kısıtları",
     "ALGORITHM_PARAMS_TOOLTIP": "Algoritmanın kısıtlarını buradan değiştirebilirsiniz. Bu kısıtlar '{{ company_name }}' müşterisine aittir. ",
-    "PRIORITY":"Yükleme Önceliği"
+    "PRIORITY": "Yükleme Önceliği"
   },
   "INVOICE_UPLOAD": {
     "TITLE": "İhracat Sipariş Bildirimi",
@@ -1223,7 +1223,12 @@
       "NO_CHANGES": "Hiçbir alan doldurmadın, güncellenecek bir şey yok",
       "UPDATE_SUCCESS": "{{count}} müşterinin algoritma ayarları güncellendi",
       "UPDATE_ERROR": "Güncelleme sırasında hata oluştu"
-    }
+    },
+    "ZONE_WEIGHT_LIMITS": "Bölge Ağırlık Limiti",
+    "ZONE_WEIGHT_LIMITS_HINT": "Belirli mesafeye kadar maksimum yük ağırlığı",
+    "ZONE_WEIGHT_LIMITS_DETAIL": "Örn: İlk 3000mm'ye max 5000kg yüklenebilir.",
+    "ZONE_X_LIMIT": "Mesafe Sınırı",
+    "ZONE_MAX_KG": "Maksimum Ağırlık"
   },
   "REPORT_PROFILE": {
     "TITLE": "Rapor Profili",
@@ -1244,7 +1249,7 @@
     "NO_FIELDS": "Henüz ekstra alan eklenmedi",
     "SAVED": "Rapor profili kaydedildi"
   },
-   "PUBLIC_ORDER_VIEW": {
+  "PUBLIC_ORDER_VIEW": {
     "LOADING": "Yükleniyor...",
     "BRAND_SUBTITLE": "Yükleme Görünümü",
     "ERROR": {

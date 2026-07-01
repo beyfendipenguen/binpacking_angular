@@ -1,6 +1,6 @@
 <div class="constraint-dialog">
   <div class="dialog-header">
-    <h2 mat-dialog-title>{{  'CONSTRAINT.ALGORITHM_TITLE' | translate }}</h2>
+    <h2 mat-dialog-title>{{ 'CONSTRAINT.ALGORITHM_TITLE' | translate }}</h2>
     <button mat-icon-button (click)="onCancel()" class="close-btn">
       <mat-icon>close</mat-icon>
     </button>
@@ -16,65 +16,105 @@
         <div class="fields-grid">
           @for (field of group.fields; track field.key) {
 
-            <!-- Disabled placeholder -->
-            @if (field.type === 'disabled-placeholder') {
-            <div class="disabled-field">
-              <div class="disabled-field-header">
-                <mat-icon>{{ field.icon }}</mat-icon>
-                <span>{{ field.label | translate }}</span>
-                <span class="coming-soon-badge">{{ 'COMMON.COMING_SOON' | translate }}</span>
-                @if (field.detailedInfo) {
-                <button mat-icon-button class="info-btn" [matMenuTriggerFor]="infoMenu" type="button"
-                  (click)="showFieldInfo(field); $event.stopPropagation()">
-                  <mat-icon>info_outline</mat-icon>
-                </button>
-                }
-              </div>
-              @if (field.helpText) {
-              <p class="field-hint">{{ field.helpText | translate }}</p>
+          <!-- Disabled placeholder -->
+          @if (field.type === 'disabled-placeholder') {
+          <div class="disabled-field">
+            <div class="disabled-field-header">
+              <mat-icon>{{ field.icon }}</mat-icon>
+              <span>{{ field.label | translate }}</span>
+              <span class="coming-soon-badge">{{ 'COMMON.COMING_SOON' | translate }}</span>
+              @if (field.detailedInfo) {
+              <button mat-icon-button class="info-btn" [matMenuTriggerFor]="infoMenu" type="button"
+                (click)="showFieldInfo(field); $event.stopPropagation()">
+                <mat-icon>info_outline</mat-icon>
+              </button>
               }
             </div>
+            @if (field.helpText) {
+            <p class="field-hint">{{ field.helpText | translate }}</p>
             }
+          </div>
+          }
 
-            <!-- Boolean -->
-            @if (field.type === 'boolean') {
-            <div class="boolean-field">
-              <div class="boolean-row">
-                <mat-slide-toggle [formControlName]="field.key" color="primary">
-                  <div class="label-with-icon">
-                    <mat-icon>{{ field.icon }}</mat-icon>
-                    <span>{{ field.label | translate }}</span>
-                  </div>
-                </mat-slide-toggle>
-                @if (field.detailedInfo) {
-                <button mat-icon-button class="info-btn" [matMenuTriggerFor]="infoMenu" type="button"
-                  (click)="showFieldInfo(field); $event.stopPropagation()">
-                  <mat-icon>info_outline</mat-icon>
-                </button>
-                }
-              </div>
+          <!-- Boolean -->
+          @if (field.type === 'boolean') {
+          <div class="boolean-field">
+            <div class="boolean-row">
+              <mat-slide-toggle [formControlName]="field.key" color="primary">
+                <div class="label-with-icon">
+                  <mat-icon>{{ field.icon }}</mat-icon>
+                  <span>{{ field.label | translate }}</span>
+                </div>
+              </mat-slide-toggle>
+              @if (field.detailedInfo) {
+              <button mat-icon-button class="info-btn" [matMenuTriggerFor]="infoMenu" type="button"
+                (click)="showFieldInfo(field); $event.stopPropagation()">
+                <mat-icon>info_outline</mat-icon>
+              </button>
+              }
+            </div>
+            @if (field.hint) {
+            <p class="field-hint">{{ field.hint | translate }}</p>
+            }
+          </div>
+          }
+
+          <!-- Number -->
+          @if (field.type === 'number') {
+          <div class="field-with-info">
+            <mat-form-field appearance="outline">
+              <mat-label>{{ field.label | translate }}</mat-label>
+              <input matInput type="number" [formControlName]="field.key" [placeholder]="field.placeholder || ''" />
+              <mat-icon matPrefix>{{ field.icon }}</mat-icon>
+              @if (field.suffix) {
+              <span matSuffix>{{ field.suffix }}</span>
+              }
+              @if (form.get(field.key)?.hasError('min')) {
+              <mat-error>{{ 'CONSTRAINT.MIN_VALUE_ERROR' | translate }}</mat-error>
+              }
+              @if (form.get(field.key)?.hasError('max')) {
+              <mat-error>{{ 'CONSTRAINT.MAX_VALUE_ERROR' | translate }}</mat-error>
+              }
               @if (field.hint) {
-              <p class="field-hint">{{ field.hint | translate }}</p>
+              <mat-hint>{{ field.hint | translate }}</mat-hint>
               }
-            </div>
+            </mat-form-field>
+            @if (field.detailedInfo) {
+            <button mat-icon-button class="info-btn" [matMenuTriggerFor]="infoMenu" type="button"
+              (click)="showFieldInfo(field); $event.stopPropagation()">
+              <mat-icon>info_outline</mat-icon>
+            </button>
             }
+          </div>
+          }
 
-            <!-- Number -->
-            @if (field.type === 'number') {
+          <!-- Multi-product -->
+          @if (field.type === 'multi-product') {
+          <div class="multi-product-field">
             <div class="field-with-info">
-              <mat-form-field appearance="outline">
+              <mat-form-field appearance="outline" class="full-width">
                 <mat-label>{{ field.label | translate }}</mat-label>
-                <input matInput type="number" [formControlName]="field.key" [placeholder]="field.placeholder || ''" />
+                <input type="text" matInput formControlName="side_product_search" [matAutocomplete]="productAuto"
+                  [placeholder]="'CONSTRAINT.SEARCH_PRODUCT_PLACEHOLDER' | translate" />
                 <mat-icon matPrefix>{{ field.icon }}</mat-icon>
-                @if (field.suffix) {
-                <span matSuffix>{{ field.suffix }}</span>
+                @if (isSearchingProducts) {
+                <mat-spinner matSuffix diameter="20"></mat-spinner>
                 }
-                @if (form.get(field.key)?.hasError('min')) {
-                <mat-error>{{ 'CONSTRAINT.MIN_VALUE_ERROR' | translate }}</mat-error>
-                }
-                @if (form.get(field.key)?.hasError('max')) {
-                <mat-error>{{ 'CONSTRAINT.MAX_VALUE_ERROR' | translate }}</mat-error>
-                }
+                <mat-autocomplete #productAuto="matAutocomplete" [displayWith]="displayProductFn"
+                  (optionSelected)="onSideProductSelected($event.option.value)">
+                  @for (product of filteredProducts; track product.id) {
+                  <mat-option [value]="product">{{ product.name }}</mat-option>
+                  }
+                  @if (filteredProducts.length === 0 && form.get('side_product_search')?.value?.length >= 3 &&
+                  !isSearchingProducts) {
+                  <mat-option disabled>
+                    <div class="no-results">
+                      <mat-icon>search_off</mat-icon>
+                      <span>{{ 'COMMON.NO_RESULTS' | translate }}</span>
+                    </div>
+                  </mat-option>
+                  }
+                </mat-autocomplete>
                 @if (field.hint) {
                 <mat-hint>{{ field.hint | translate }}</mat-hint>
                 }
@@ -86,59 +126,56 @@
               </button>
               }
             </div>
+            @if (selectedSideProducts.length > 0) {
+            <mat-chip-set class="chips">
+              @for (product of selectedSideProducts; track product.id) {
+              <mat-chip (removed)="removeSideProduct(product)">
+                {{ product.name }}
+                <button matChipRemove aria-label="remove"><mat-icon>cancel</mat-icon></button>
+              </mat-chip>
+              }
+            </mat-chip-set>
             }
+          </div>
+          }
 
-            <!-- Multi-product -->
-            @if (field.type === 'multi-product') {
-            <div class="multi-product-field">
-              <div class="field-with-info">
-                <mat-form-field appearance="outline" class="full-width">
-                  <mat-label>{{ field.label | translate }}</mat-label>
-                  <input type="text" matInput formControlName="side_product_search"
-                    [matAutocomplete]="productAuto"
-                    [placeholder]="'CONSTRAINT.SEARCH_PRODUCT_PLACEHOLDER' | translate" />
-                  <mat-icon matPrefix>{{ field.icon }}</mat-icon>
-                  @if (isSearchingProducts) {
-                  <mat-spinner matSuffix diameter="20"></mat-spinner>
-                  }
-                  <mat-autocomplete #productAuto="matAutocomplete" [displayWith]="displayProductFn"
-                    (optionSelected)="onSideProductSelected($event.option.value)">
-                    @for (product of filteredProducts; track product.id) {
-                    <mat-option [value]="product">{{ product.name }}</mat-option>
-                    }
-                    @if (filteredProducts.length === 0 && form.get('side_product_search')?.value?.length >= 3 && !isSearchingProducts) {
-                    <mat-option disabled>
-                      <div class="no-results">
-                        <mat-icon>search_off</mat-icon>
-                        <span>{{ 'COMMON.NO_RESULTS' | translate }}</span>
-                      </div>
-                    </mat-option>
-                    }
-                  </mat-autocomplete>
-                  @if (field.hint) {
-                  <mat-hint>{{ field.hint | translate }}</mat-hint>
-                  }
-                </mat-form-field>
-                @if (field.detailedInfo) {
-                <button mat-icon-button class="info-btn" [matMenuTriggerFor]="infoMenu" type="button"
-                  (click)="showFieldInfo(field); $event.stopPropagation()">
-                  <mat-icon>info_outline</mat-icon>
-                </button>
-                }
+          <!-- Zone Limits -->
+          @if (field.type === 'zone-limits') {
+          <div class="zone-limits-field">
+            <div class="zone-limits-header">
+              <div class="label-with-icon">
+                <mat-icon>{{ field.icon }}</mat-icon>
+                <span>{{ field.label | translate }}</span>
               </div>
-              @if (selectedSideProducts.length > 0) {
-              <mat-chip-set class="chips">
-                @for (product of selectedSideProducts; track product.id) {
-                <mat-chip (removed)="removeSideProduct(product)">
-                  {{ product.name }}
-                  <button matChipRemove aria-label="remove"><mat-icon>cancel</mat-icon></button>
-                </mat-chip>
-                }
-              </mat-chip-set>
+              @if (field.detailedInfo) {
+              <button mat-icon-button class="info-btn" [matMenuTriggerFor]="infoMenu" type="button"
+                (click)="showFieldInfo(field); $event.stopPropagation()">
+                <mat-icon>info_outline</mat-icon>
+              </button>
               }
             </div>
+
+            @if (field.hint) {
+            <p class="field-hint">{{ field.hint | translate }}</p>
             }
 
+            <div class="zone-row">
+              <mat-form-field appearance="outline" class="zone-input">
+                <mat-label>{{ 'CONSTRAINT.ZONE_X_LIMIT' | translate }}</mat-label>
+                <input matInput type="number" [(ngModel)]="singleZoneLimit.x_limit_mm"
+                  [ngModelOptions]="{standalone: true}" (change)="onZoneLimitChange()" min="0" />
+                <span matSuffix>mm</span>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="zone-input">
+                <mat-label>{{ 'CONSTRAINT.ZONE_MAX_KG' | translate }}</mat-label>
+                <input matInput type="number" [(ngModel)]="singleZoneLimit.max_kg" [ngModelOptions]="{standalone: true}"
+                  (change)="onZoneLimitChange()" min="0" />
+                <span matSuffix>kg</span>
+              </mat-form-field>
+            </div>
+          </div>
+          }
           }
         </div>
       </div>

@@ -298,3 +298,44 @@ $white: #ffffff;
     --mdc-switch-selected-track-color: #{$primary};
   }
 }
+
+.zone-limits-field {
+  width: 100%;
+
+  .zone-limits-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+
+    .label-with-icon {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-weight: 600;
+      color: var(--primary);
+    }
+  }
+
+  .zone-rows {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .zone-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+
+    .zone-input {
+      flex: 1;
+    }
+  }
+
+  .add-zone-btn {
+    width: 100%;
+    border-style: dashed;
+  }
+}

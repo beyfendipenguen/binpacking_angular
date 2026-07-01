@@ -575,7 +575,7 @@
     "NO_PACKAGES_WARNING": "You must click the 'Calculate' button first.",
     "ALGORITHM_PARAMS": "Ограничения алгоритма",
     "ALGORITHM_PARAMS_TOOLTIP": "Здесь вы можете изменить ограничения алгоритма. Эти ограничения принадлежат клиенту '{{ company_name }}'. ",
-    "PRIORITY":"приоритет погрузки поддонов"
+    "PRIORITY": "приоритет погрузки поддонов"
   },
   "INVOICE_UPLOAD": {
     "TITLE": "Декларация экспортного заказа",
@@ -1223,7 +1223,12 @@
       "NO_CHANGES": "Вы не заполнили ни одного поля, обновлять нечего",
       "UPDATE_SUCCESS": "Настройки алгоритма обновлены для {{count}} клиентов",
       "UPDATE_ERROR": "При обновлении произошла ошибка"
-    }
+    },
+    "ZONE_WEIGHT_LIMITS": "Лимит веса зоны",
+    "ZONE_WEIGHT_LIMITS_HINT": "Максимальный вес груза до определённого расстояния",
+    "ZONE_WEIGHT_LIMITS_DETAIL": "Напр: макс. 5000 кг в первых 3000 мм.",
+    "ZONE_X_LIMIT": "Предел расстояния",
+    "ZONE_MAX_KG": "Максимальный вес"
   },
   "REPORT_PROFILE": {
     "TITLE": "Профиль отчёта",
