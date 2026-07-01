@@ -577,7 +577,8 @@
     "ONLY_REMAINING_PRODUCTS": "Sadece kalan ürünleri hesapla",
     "NO_PACKAGES_WARNING": "Önce 'Hesapla' butonuna basmalısınız.",
     "ALGORITHM_PARAMS": "Algoritma Kısıtları",
-    "ALGORITHM_PARAMS_TOOLTIP": "Algoritmanın kısıtlarını buradan değiştirebilirsiniz. Bu kısıtlar '{{ company_name }}' müşterisine aittir. "
+    "ALGORITHM_PARAMS_TOOLTIP": "Algoritmanın kısıtlarını buradan değiştirebilirsiniz. Bu kısıtlar '{{ company_name }}' müşterisine aittir. ",
+    "PRIORITY":"Yükleme Önceliği"
   },
   "INVOICE_UPLOAD": {
     "TITLE": "İhracat Sipariş Bildirimi",

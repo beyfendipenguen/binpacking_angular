@@ -10,4 +10,5 @@ export interface IUiPackage {
   name: number;
   alignment: string;
   height: number;
+  priority: number;
 }

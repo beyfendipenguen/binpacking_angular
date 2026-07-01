@@ -9,6 +9,7 @@ export interface PackageReadDto extends Base {
   is_remaining: boolean;
   alignment: string;
   height: number;
+  priority: number | null;
   package_details: PackageDetailReadDto[];
 }
 
@@ -19,5 +20,6 @@ export interface PackageWriteDto extends Base {
   is_remaining: boolean;
   alignment: string;
   height: number;
+  priority: number | null;
   package_details: PackageDetailWriteDto[];
 }

@@ -606,3 +606,7 @@ export const selectStep3HasThreeJSError = createSelector(
   (step3State) => step3State.hasThreeJSError
 );
 
+export const selectShipments = createSelector(selectStep3State, s => s.shipments);
+export const selectActiveShipmentIndex = createSelector(selectStep3State, s => s.activeShipmentIndex);
+export const selectIsMultiShipment = createSelector(selectStep3State, s => s.isMultiShipment);
+export const selectDeletedPackages = createSelector(selectStep3State, s => s.deletedPackages);

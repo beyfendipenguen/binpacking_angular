@@ -66,7 +66,7 @@ export const stepperUiHandlers = [
     ...state,
     globalError: {
       ...error,
-      timestamp: new Date()
+      timestamp: new Date().toISOString()
     },
     loading: false
   })),

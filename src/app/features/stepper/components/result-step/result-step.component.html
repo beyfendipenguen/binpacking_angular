@@ -7,6 +7,7 @@
         <mat-icon>play_arrow</mat-icon>
         {{ (isLoading ? 'RESULT_STEP.PROCESSING' : 'RESULT_STEP.RUN_OPTIMIZATION') | translate }}
       </button>
+      
     </div>
 
     <!-- Enhanced View Controls -->
@@ -99,21 +100,20 @@
     <div class="report-files-header">
       <mat-icon>description</mat-icon>
       <span>{{ 'RESULT_STEP.REPORT_FILES' | translate }}</span>
-      
+
       <div class="customer-view-actions">
         <a class="customer-view-btn" [href]="'/order-view/' + orderIdSignal()" target="_blank"
           [title]="'RESULT_STEP.CUSTOMER_VIEW_OPEN' | translate">
           <mat-icon>open_in_new</mat-icon>
         </a>
-        <button class="customer-copy-btn" (click)="copyCustomerLink()"
-          [title]="'RESULT_STEP.COPY_LINK' | translate">
+        <button class="customer-copy-btn" (click)="copyCustomerLink()" [title]="'RESULT_STEP.COPY_LINK' | translate">
           <mat-icon>{{ linkCopied ? 'check' : 'content_copy' }}</mat-icon>
           <span>{{ (linkCopied ? 'RESULT_STEP.COPIED' : 'RESULT_STEP.COPY_LINK') | translate }}</span>
         </button>
       </div>
 
       <div class="file-count">{{ reportFilesSignal().length }}</div>
-      
+
       <!-- ✅ NEW: Unsaved Changes Badge -->
       @if (isDirtySignal()) {
       <div class="unsaved-badge" [title]="'RESULT_STEP.UNSAVED_CHANGES' | translate">

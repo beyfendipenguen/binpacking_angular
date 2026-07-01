@@ -13,6 +13,7 @@ export function mapPackageReadDtoListToIUiPackageList(packages: PackageReadDto[]
       name: pkg.name,
       is_remaining: pkg.is_remaining,
       alignment: pkg.alignment,
+      priority: pkg.priority,
       height: pkg.height,
       pallet: pkg.pallet ? new UiPallet({ ...pkg.pallet }) : null,
       package_details: pkg.package_details,
@@ -33,6 +34,7 @@ export function mapUiPackageToPackageWriteDto(uiPkg: IUiPackage): PackageWriteDt
     is_remaining: uiPkg.is_remaining,
     name: uiPkg.name,
     order_id: uiPkg.order_id,
+    priority: uiPkg.priority,
     package_details: uiPkg.package_details.map(detail => ({
       id: detail.id,
       product_id: detail.product.id,
@@ -54,6 +56,7 @@ export function mapPackageReadDtoToPackageWriteDto(pkg: PackageReadDto): Package
     pallet_id: pkg.pallet.id,
     height: pkg.height,
     name: pkg.name,
+    priority: pkg.priority,
     is_remaining: pkg.is_remaining,
     order_id: pkg.order_id,
     package_details: pkg.package_details.map(pd => ({

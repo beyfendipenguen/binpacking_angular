@@ -259,7 +259,18 @@
                 </div>
               </button>
               }
+              @if(package.pallet){
+                <button type="button" 
+                  class="priority-toggle" 
+                  [appDisableAuth]="['logistics.change_package']"
+                  [class.active]="package.priority"
+                  (click)="packagePriority(package)"
+                  [matTooltip]="'PALLET_CONTROL.PRIORITY' | translate">
+                  {{ package.priority || '-' }}
+                </button>
+              }
             </div>
+            
             <div class="package-actions">
               <button mat-icon-button class="small-action" [matTooltip]="'PALLET_CONTROL.REMOVE_PACKAGE' | translate"
                 (click)="removePackage(package)" [appDisableAuth]="['logistics.add_package']">

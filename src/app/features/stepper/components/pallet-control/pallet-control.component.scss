@@ -2008,3 +2008,63 @@ form {
     box-shadow: none;
   }
 }
+
+/* =====================
+   PACKAGE PRIORITY TOGGLE
+===================== */
+.priority-toggle {
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  border: 1px dashed rgba(255, 255, 255, 0.4);
+  background-color: rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+  cursor: pointer;
+  @include flex-center; /* Mevcut mixin'i kullanıyoruz */
+  color: $white;
+  font-size: 14px;
+  font-weight: 600;
+  margin-right: 8px; /* Silme butonu ile arasına boşluk */
+  transition: all 0.3s ease; /* orientation-toggle ile aynı süre */
+  padding: 0;
+  outline: none;
+  user-select: none;
+
+  &:hover {
+    background-color: rgba(255, 255, 255, 0.25);
+    border-color: rgba(255, 255, 255, 0.8);
+    transform: scale(1.05); /* orientation-toggle hover efekti */
+  }
+
+  &:active {
+    transform: scale(0.95); /* orientation-toggle active efekti */
+  }
+
+  /* Değer 1, 2 veya 3 olduğunda (active class'ı eklendiğinde) */
+  &.active {
+    background-color: $secondary-color; 
+    border: 1px solid $secondary-color;
+    color: $primary-color; 
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+
+    &:hover {
+      background-color: $light-accent;
+      border-color: $light-accent;
+      transform: scale(1.05); /* Rakamlıyken de aynı hover efektini koru */
+    }
+    
+    &:active {
+      transform: scale(0.95);
+    }
+  }
+}
+
+/* Mobil görünüm için boyut optimizasyonu */
+@media (max-width: 480px) {
+  .priority-toggle {
+    width: 28px;
+    height: 28px;
+    min-width: 28px;
+    font-size: 13px;
+  }
+}

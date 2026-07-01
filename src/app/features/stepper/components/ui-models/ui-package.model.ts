@@ -15,6 +15,7 @@ export class UiPackage implements IUiPackage {
   height: number;
   order_id: string;
   is_remaining: boolean;
+  priority: number;
 
   constructor(init: Partial<IUiPackage>) {
     this.pallet = init.pallet || null;
@@ -25,6 +26,7 @@ export class UiPackage implements IUiPackage {
     this.package_details = init.package_details || [];
     this.is_remaining = init.is_remaining || false
     this.alignment = init.alignment || "h";
+    this.priority = init.priority || 0;
   }
 
 }

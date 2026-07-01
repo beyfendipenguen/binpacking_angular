@@ -184,10 +184,10 @@ export class RepositoryService {
     );
   }
 
-  calculatePacking(order_id: string = this.getOrderId()) {
+  calculatePacking(multiShipment: boolean = false, order_id: string = this.getOrderId()) {
     return this.http.post<any>(
       `${this.api.getApiUrl()}/logistics/calculate-bin-packing/${order_id}/`,
-      {}
+      { multi_shipment: multiShipment }
     );
   }
 
@@ -197,7 +197,10 @@ export class RepositoryService {
     )
   }
 
-  partialUpdateOrderResult(orderResultId: string, orderResult: any[]): Observable<any> {
+  partialUpdateOrderResult(
+    orderResultId: string,
+    orderResult: { shipments: { shipment: number; result: any[] }[] }
+  ): Observable<any> {
 
     const payload = {
       result: orderResult

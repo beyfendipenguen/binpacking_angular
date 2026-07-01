@@ -39,7 +39,7 @@ export const StepperPackageActions = createActionGroup({
     'Move Ui Product In Same Package Success': emptyProps(),
     'Set Vertical Sort': props<{ verticalSort: boolean }>(),
     'Set Vertical Sort In Package': props<{ pkgId: string, alignment: string }>(),
-
+    'Set Package Priority': props<{pkgId:string,priority:number}>(),
     // Paketler Arası
     'Move Package Detail In Package To Package': props<{ sourcePackageId: string, targetPackageId: string, previousIndex: number }>(),
     'Move Partial Package Detail Between Packages': props<{ sourcePackageId: string, targetPackageId: string, previousIndex: number, maxCount: number }>(),

@@ -93,6 +93,10 @@ export function arePackagesEqual(pkg1: IUiPackage, pkg2: PackageReadDto): boolea
     return false;
   }
 
+  if(pkg1.priority !== pkg2.priority){
+    return false;
+  }
+  
   // 2. Alignment karşılaştırması
   if (pkg1.alignment !== pkg2.alignment) {
     return false;

@@ -45,6 +45,7 @@ const createEmptyPackage = (packageNo: number, order: any) => (
     height: 2400,
     package_details: [],
     is_remaining: true,
+    priority:0,
     alignment: "h"
   }
 )
@@ -135,6 +136,18 @@ export const stepperPackageHandlers = [
 
   on(StepperPackageActions.setVerticalSortInPackage, (state: StepperState, { pkgId, alignment }) => {
     const packages = state.step2State.packages.map(p => p.id === pkgId ? { ...p, alignment } : p)
+
+    return {
+      ...state,
+      step2State: {
+        ...state.step2State,
+        packages: packages,
+      }
+    }
+  }),
+
+  on(StepperPackageActions.setPackagePriority, (state: StepperState, { pkgId, priority }) => {
+    const packages = state.step2State.packages.map(p => p.id === pkgId ? { ...p, priority } : p)
 
     return {
       ...state,
@@ -998,12 +1011,6 @@ export const stepperPackageHandlers = [
 
 
     const changes = calculatePackageChanges(packages, originalPackages);
-    const isDirty = originalPackages.length === 0
-      ? false
-      : (changes.added.length > 0 ||
-        changes.modified.length > 0 ||
-        changes.deletedIds.length > 0);
-
 
     return {
       ...state,

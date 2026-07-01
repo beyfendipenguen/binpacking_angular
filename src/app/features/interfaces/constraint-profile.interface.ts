@@ -37,6 +37,7 @@ export interface ConstraintProfile  {
   force_top_product_ids: string[];
   force_bottom_product_ids: string[];
   load_order_priorities: Record<string, number>; // {uuid: priority}
+  zone_weight_limits: Array<{ x_limit_mm: number; max_kg: number }>;
 }
 
 /**
@@ -66,5 +67,6 @@ export function createDefaultConstraintProfile(): ConstraintProfile {
     force_top_product_ids: [],
     force_bottom_product_ids: [],
     load_order_priorities: {},
+    zone_weight_limits: [],
   };
 }

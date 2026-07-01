@@ -26,12 +26,14 @@ import { ToastService } from '@core/services/toast.service';
 import { CancelConfirmationDialogComponent } from '@shared/cancel-confirmation-dialog/cancel-confirmation-dialog.component';
 import { ThreeJSTruckVisualizationComponent } from '@shared/threejs-truck-visualization/threejs-truck-visualization.component';
 
-import { AppState, selectRemainingProducts, selectStep3IsDirty, selectOrderId, selectIsEditMode, selectHasRevisedOrder, selectOrderResult, selectOrderResultId, selectStep3CurrentViewType, selectStep3ReportFiles } from '@app/store';
+import { AppState, selectRemainingProducts, selectStep3IsDirty, selectOrderId, selectIsEditMode, selectHasRevisedOrder, selectOrderResult, selectOrderResultId, selectStep3CurrentViewType, selectStep3ReportFiles, selectActiveShipmentIndex, selectIsMultiShipment, selectShipments } from '@app/store';
 import { StepperUiActions } from '@app/store/stepper/actions/stepper-ui.actions';
 import { StepperResultActions } from '@app/store/stepper/actions/stepper-result.actions';
 import { ReportFile, ResultStepService } from './result-step.service';
 import { PackagePosition } from '@app/features/interfaces/order-result.interface';
 import { DisableAuthDirective } from '@app/core/auth/directives/disable-auth.directive';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-result-step',
@@ -41,7 +43,7 @@ import { DisableAuthDirective } from '@app/core/auth/directives/disable-auth.dir
     MatIconModule,
     ThreeJSTruckVisualizationComponent,
     TranslateModule,
-    DisableAuthDirective
+    DisableAuthDirective, MatCheckboxModule, FormsModule
   ],
   templateUrl: './result-step.component.html',
   styleUrl: './result-step.component.scss',
@@ -76,6 +78,12 @@ export class ResultStepComponent implements OnInit, OnDestroy {
   readonly orderResultIdSignal = this.store.selectSignal(selectOrderResultId);
   readonly currentViewTypeSignal = this.store.selectSignal(selectStep3CurrentViewType);
 
+  // Signal ekle
+  readonly isMultiShipmentSignal = signal(false);
+  readonly shipmentsSignal = this.store.selectSignal(selectShipments);
+  readonly activeShipmentIndexSignal = this.store.selectSignal(selectActiveShipmentIndex);
+  readonly isMultiShipmentStoreSignal = this.store.selectSignal(selectIsMultiShipment);
+  isMultiShipmentValue = false;
 
   // Computed
   readonly canCompleteShipment = computed(() =>
@@ -169,7 +177,7 @@ export class ResultStepComponent implements OnInit, OnDestroy {
     });
 
     this.resultStepService
-      .calculateAndGenerateReport()
+      .calculateAndGenerateReport(this.isMultiShipmentSignal())
       .pipe(
         takeUntil(this.destroy$),
         finalize(() => {
@@ -187,21 +195,35 @@ export class ResultStepComponent implements OnInit, OnDestroy {
             orderResultId: result.orderResultId
           }));
 
-          this.store.dispatch(StepperResultActions.loadOrderResultSuccess({
-            orderResult: result.orderResult,
-            reportFiles: result.reportFiles
-          }));
+          // -1 işaretli satırları her shipment'tan ayıkla, deleted havuzuna topla
+          const allShipments = result.shipments && result.shipments.length > 0
+            ? result.shipments
+            : [result.orderResult];
 
-          this.store.dispatch(StepperResultActions.changeDeletedPackageIsRemaining());
+          const deletedRows: PackagePosition[] = [];
+          const cleanShipments: PackagePosition[][] = allShipments.map(shipment => {
+            const valid = shipment.filter(row => row[0] !== -1);
+            const invalid = shipment.filter(row => row[0] === -1);
+            deletedRows.push(...invalid);
+            return valid;
+          });
+
+          const firstShipmentResult = cleanShipments[0] ?? [];
+
+          this.store.dispatch(StepperResultActions.loadOrderResultSuccess({
+            orderResult: firstShipmentResult,
+            reportFiles: result.reportFiles,
+            shipments: result.isMultiShipment ? cleanShipments : [],
+            isMultiShipment: result.isMultiShipment,
+            deletedPackages: deletedRows
+          }));
 
           this.threeJSComponent?.reset();
           this.threeJSComponent?.safeProcessData();
-          this.piecesData = result.orderResult;
-
 
           this.toastService.success(this.translate.instant('RESULT_STEP.PACKAGING_SUCCESS'));
 
-          if (this.piecesData.find(pkg => pkg[0] === -1 && pkg[1] === -1 && pkg[2] === -1)) {
+          if (deletedRows.length > 0) {
             this.store.dispatch(StepperResultActions.setIsDirty({ isDirty: true }));
           }
 
@@ -316,9 +338,8 @@ export class ResultStepComponent implements OnInit, OnDestroy {
       if (deletedPackages.length > 0) {
         await this.warningDialog();
       } else {
-        const processedPackages = this.threeJSComponent?.processedPackagesSignal() || [];
-        const orderResult = await this.resultStepService.formatPackagesForResult(processedPackages);
-        this.submitOrderResult(orderResult, resetStepper);
+        const formatted = await this.resultStepService.formatAllShipmentsForResult();
+        this.submitOrderResult(formatted, resetStepper);
       }
     } catch (error) {
       this.toastService.error(this.translate.instant('RESULT_STEP.ORDER_COMPLETE_ERROR'));
@@ -347,7 +368,7 @@ export class ResultStepComponent implements OnInit, OnDestroy {
   /**
    * Submit order result to store
    */
-  private submitOrderResult(orderResult: PackagePosition[], resetStepper: boolean): void {
+  private submitOrderResult(orderResult: { shipments: any[] }, resetStepper: boolean): void {
     this.store.dispatch(StepperResultActions.resultStepSubmit({
       orderId: this.orderIdSignal(),
       orderResult,

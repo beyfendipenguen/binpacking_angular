@@ -3,7 +3,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { Store } from '@ngrx/store';
 import { firstValueFrom, Observable } from 'rxjs';
 import { map, switchMap, take } from 'rxjs/operators';
-import { AppState, selectOrderId, selectPackages, selectStep3IsDirty, StepperResultActions } from '@app/store';
+import { AppState, selectActiveShipmentIndex, selectIsMultiShipment, selectOrderId, selectOrderResult, selectPackages, selectShipments, selectStep3IsDirty, StepperResultActions } from '@app/store';
 import { ToastService } from '@core/services/toast.service';
 import { RepositoryService } from '@features/stepper/services/repository.service';
 import { PackageData, PackagePosition } from '@app/features/interfaces/order-result.interface';
@@ -45,21 +45,29 @@ export class ResultStepService {
   /**
    * Calculate binpacking and generate report
    */
-  calculateAndGenerateReport(): Observable<{
+  calculateAndGenerateReport(multiShipment: boolean = false): Observable<{
     orderResultId: string;
     orderResult: PackagePosition[];
     reportFiles: ReportFile[];
+    shipments?: PackagePosition[][];
+    isMultiShipment: boolean;
   }> {
-    return this.repositoryService.calculatePacking().pipe(
+    return this.repositoryService.calculatePacking(multiShipment).pipe(
       switchMap(packingResponse => {
         const orderResultId = packingResponse.order_result.id;
-        const orderResult = packingResponse.order_result.result;
+        const raw = packingResponse.order_result.result;
 
+        // Multi shipment ise shipments array gelir
+        const shipments: PackagePosition[][] = raw.shipments.map((s: any) => s.result);
+        const isMultiShipment = shipments.length > 1;
+        const orderResult: PackagePosition[] = shipments[0] ?? [];
 
         return this.repositoryService.createReport(this.orderIdSignal()).pipe(
           map(reportResponse => ({
             orderResultId,
-            orderResult: orderResult,
+            orderResult,
+            shipments,
+            isMultiShipment,
             reportFiles: Array.isArray(reportResponse?.files)
               ? reportResponse.files.map((file: any) => ({
                 id: file.id,
@@ -78,28 +86,36 @@ export class ResultStepService {
   /**
    * Convert pieces data to JSON string for submission
    */
-  async formatPackagesForResult(processedPackages: PackageData[]): Promise<PackagePosition[]> {
+  async formatAllShipmentsForResult(): Promise<{ shipments: { shipment: number; result: PackagePosition[] }[] }> {
     const packages = await firstValueFrom(this.store.select(selectPackages));
+    const shipments = await firstValueFrom(this.store.select(selectShipments));
+    const isMultiShipment = await firstValueFrom(this.store.select(selectIsMultiShipment));
+    const currentOrderResult = await firstValueFrom(this.store.select(selectOrderResult));
+    const activeIndex = await firstValueFrom(this.store.select(selectActiveShipmentIndex));
 
-    const formattedData: PackagePosition[] = processedPackages.map(piece => {
-      const matchingPackage = packages.find((pkg: any) => pkg.id === piece.pkgId);
-      const pieceId = matchingPackage ? matchingPackage.name : piece.id;
+    const mapToName = (row: PackagePosition): PackagePosition => {
+      const matchingPackage = packages.find((pkg: any) => pkg.id === row[8]);
+      const pieceId = matchingPackage ? matchingPackage.name : row[6];
+      return [row[0], row[1], row[2], row[3], row[4], row[5], pieceId, row[7], row[8]] as PackagePosition;
+    };
 
-      return [
-        piece.x,
-        piece.y,
-        piece.z,
-        piece.length,      // width
-        piece.width,     // height
-        piece.height,     // depth (PackageData.length → depth)
-        pieceId,          // label
-        piece.weight,
-        piece.pkgId
-      ] as PackagePosition;
-    });
+    if (!isMultiShipment || shipments.length === 0) {
+      // Tek shipment — mevcut orderResult'u kullan
+      const formatted = currentOrderResult.map(mapToName);
+      return { shipments: [{ shipment: 1, result: formatted }] };
+    }
 
-    this.store.dispatch(StepperResultActions.setOrderResult({ orderResult: formattedData }));
-    return formattedData;
+    // Çoklu shipment — store'daki tüm shipments array'ini kullan
+    // (aktif olanı en güncel orderResult ile değiştir, çünkü orderResult zaten
+    //  her değişiklikte shipments[activeIndex]'e yazılıyordu, ama garantiye alalım)
+    const finalShipments = shipments.map((s, i) => i === activeIndex ? currentOrderResult : s);
+
+    return {
+      shipments: finalShipments.map((result, i) => ({
+        shipment: i + 1,
+        result: result.map(mapToName)
+      }))
+    };
   }
 
   /**

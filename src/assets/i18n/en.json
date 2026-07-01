@@ -577,7 +577,8 @@
     "ONLY_REMAINING_PRODUCTS": "Calculate only remaining products",
     "NO_PACKAGES_WARNING": "You must click the 'Calculate' button first.",
     "ALGORITHM_PARAMS": "Algorithm Constraints",
-    "ALGORITHM_PARAMS_TOOLTIP": "You can change the algorithm constraints here. These constraints belong to the '{{ company_name }}' customer. "
+    "ALGORITHM_PARAMS_TOOLTIP": "You can change the algorithm constraints here. These constraints belong to the '{{ company_name }}' customer. ",
+    "PRIORITY":"Loading Priority"
   },
   "INVOICE_UPLOAD": {
     "TITLE": "Export Order Declaration",

@@ -969,6 +969,11 @@ export class PalletControlComponent
     this.store.dispatch(StepperPackageActions.setVerticalSortInPackage({ pkgId: _package.id, alignment: _package.alignment }))
   }
 
+  packagePriority(_package:any):void{
+    _package.priority = _package.priority === 3 ? null : (_package.priority ? _package.priority + 1 : 1)
+    this.store.dispatch(StepperPackageActions.setPackagePriority({ pkgId:_package.id,priority: _package.priority }))
+  }
+
   addPackageDetail(packageDetailId: string) {
     this.saveSnapshot();
     this.store.dispatch(StepperPackageActions.addPackageDetailToRemainingProducts({ packageDetailId }));
