@@ -447,7 +447,7 @@ $c-text-sub:  #64748b;
   background: rgba($c-warn, 0.1);
   border: 1px solid rgba($c-warn, 0.25);
   border-radius: var(--radius-sm);
-  color: darken($c-warn, 15%);
+  color: color.adjust($c-warn, $lightness: -15%);
   font-size: 0.68rem;
   font-weight: 600;
 
@@ -515,7 +515,7 @@ $c-text-sub:  #64748b;
   }
 
   &--warn {
-    color: darken($c-warn, 10%);
+    color: color.adjust($c-warn, $lightness: -10%);
     border-color: rgba($c-warn, 0.35);
     &:hover:not(:disabled) { background: rgba($c-warn, 0.06); border-color: $c-warn; }
   }
