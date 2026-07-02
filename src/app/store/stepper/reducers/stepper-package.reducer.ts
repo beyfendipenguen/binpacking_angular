@@ -13,6 +13,7 @@ import { mapPackageReadDtoListToIUiPackageList } from '@app/features/mappers/pac
 import { IUiPackage } from '@app/features/stepper/interfaces/ui-interfaces/ui-package.interface';
 import { OrderDetailRead } from '@app/features/interfaces/order-detail.interface';
 import { Order } from '@app/features/interfaces/order.interface';
+import { PackageReadDto } from '@app/features/interfaces/package.interface';
 
 // Helper Functions
 const consolidatePackageDetails = (packageDetails: PackageDetailReadDto[]): PackageDetailReadDto[] => {
@@ -34,6 +35,25 @@ const consolidatePackageDetails = (packageDetails: PackageDetailReadDto[]): Pack
     }
   }
   return Array.from(consolidatedMap.values());
+};
+
+const applyBackendPackages = (state: StepperState, { packages }: { packages: PackageReadDto[] }) => {
+  const sortedPackages = [...packages].sort((a, b) => a.name - b.name);
+  const emptyPackageNo = toInteger(sortedPackages.at(-1)?.name) + 1;
+  const uiPackages = mapPackageReadDtoListToIUiPackageList(sortedPackages);
+
+  return {
+    ...state,
+    completedStep: 2,
+    step2State: {
+      ...state.step2State,
+      packages: [...uiPackages, createEmptyPackage(emptyPackageNo, state.order)],
+      originalPackages: sortedPackages,
+      addedPackages: [],
+      modifiedPackages: [],
+      deletedPackageIds: [],
+    }
+  };
 };
 
 const createEmptyPackage = (packageNo: number, order: any) => (
@@ -981,28 +1001,11 @@ export const stepperPackageHandlers = [
       }
     };
   }),
-
+  
   // Package Details Upsert Many Success
-  on(StepperPackageActions.upsertManySuccess, (state: StepperState, { packages }) => {
-    const sortedPackages = [...packages].sort((a, b) => a.name - b.name);
-
-    const emptyPackageNo = toInteger(sortedPackages.at(-1)?.name) + 1;
-    const uiPackages = mapPackageReadDtoListToIUiPackageList(sortedPackages);
-
-    return {
-      ...state,
-      completedStep: 2,
-      step2State: {
-        ...state.step2State,
-        packages: [...uiPackages, createEmptyPackage(emptyPackageNo, state.order)],
-        originalPackages: sortedPackages,
-        addedPackages: [],
-        modifiedPackages: [],
-        deletedPackageIds: [],
-      }
-    };
-  }),
-
+  on(StepperPackageActions.upsertManySuccess, applyBackendPackages),
+  on(StepperPackageActions.loadPackagesSuccess, applyBackendPackages),
+  
   // Calculate Package Changes
   on(StepperPackageActions.calculatePackageChanges, (state: StepperState) => {
 

@@ -125,7 +125,7 @@ export class StepperPackageEffects {
       filter(([, , isDirty]) => isDirty),
       switchMap(([_, changes]) =>
         this.repositoryService.bulkUpdatePackageDetails(changes).pipe(
-          map((result) => StepperPackageActions.upsertManySuccess({ packages: result.packages })),
+          map((result) => StepperPackageActions.upsertManySuccess({ packages: result.packages,changes})),
           catchError((error) => of(StepperPackageActions.upsertManyFailure()))
         )
       )

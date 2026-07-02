@@ -55,5 +55,10 @@ export const StepperResultActions = createActionGroup({
 
     // Reset Step3
     'Reset Step3 State': emptyProps(),
+
+    'Apply Backend Sync': props<{
+      deletedPackages: PackagePosition[];
+      removedPkgIds: string[];   // kamyondan (orderResult + shipments) çıkarılacaklar
+    }>(),
   }
 });

@@ -102,6 +102,7 @@ import { CalculateParamsDialogComponent } from './calculate-params-dialog/calcul
 import { AlgorithmParamsDialogComponent, AlgorithmParamsDialogData } from './algorithm-params-dialog/algorithm-params-dialog.component';
 import { ConstraintProfileService } from '@app/features/services/constraint-profile.service';
 import { ConstraintProfile } from '@app/features/interfaces/constraint-profile.interface';
+import { calculatePackageTotalWeight } from '@app/features/utils/package-weight.util';
 
 @Component({
   selector: 'app-pallet-control',
@@ -273,21 +274,7 @@ export class PalletControlComponent
   }
 
   packageTotalWeight(pkg: UiPackage): number {
-    const order = this.orderSignal();
-    const palletWeight = Number(pkg.pallet?.weight) || 0;
-    const weightKey = order?.weight_category?.key ?? 'std';
-
-    const productsWeight = pkg.package_details.reduce((total, packageDetail) => {
-      if (!order) return 0;
-      const productWeight = packageDetail.product.weights?.find(
-        w => w.category.key === weightKey
-      );
-      const weight = productWeight ? Number(productWeight.value) : 0;
-      const count = Number(packageDetail.count) || 0;
-      return total + (weight * count);
-    }, 0);
-
-    return Math.trunc((palletWeight + productsWeight) * 100) / 100;
+    return calculatePackageTotalWeight(pkg, this.orderSignal());
   }
 
   packageTotalMeter(pkg: UiPackage): number {

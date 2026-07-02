@@ -2,7 +2,7 @@ import { createActionGroup, emptyProps, props } from '@ngrx/store';
 import { UiPackage } from '@features/stepper/components/ui-models/ui-package.model';
 import { UiPallet } from '@features/stepper/components/ui-models/ui-pallet.model';
 import { PackageDetailReadDto } from '@app/features/interfaces/package-detail.interface';
-import { PackageReadDto } from '@app/features/interfaces/package.interface';
+import { PackageReadDto, PackageWriteDto } from '@app/features/interfaces/package.interface';
 import { OrderDetailRead } from '@app/features/interfaces/order-detail.interface';
 
 export const StepperPackageActions = createActionGroup({
@@ -16,9 +16,10 @@ export const StepperPackageActions = createActionGroup({
 
     //Package Detail
     'Upsert Many': emptyProps(),
-    'Upsert Many Success': props<{ packages: PackageReadDto[] }>(),
+    'Upsert Many Success': props<{ packages: PackageReadDto[], changes: { added: PackageWriteDto[]; modified: PackageWriteDto[]; deletedIds: string[] }}>(),
     'Upsert Many Failure': emptyProps(),
-
+    'Load Packages Success': props<{ packages: PackageReadDto[] }>(),
+    
     // Palet İşlemleri
     'Get Pallets': emptyProps(),
     'Get Pallets Success': props<{ pallets: UiPallet[] }>(),

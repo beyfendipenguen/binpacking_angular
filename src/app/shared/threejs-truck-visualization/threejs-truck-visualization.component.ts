@@ -232,16 +232,16 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
 
     // Artık hazır observable'ı kullan
     this.piecesData$
-      .pipe(
-        skip(1),
-        distinctUntilChanged(),
-        takeUntil(this.destroy$)
-      )
-      .subscribe((pieces) => {
+      .pipe(skip(1), distinctUntilChanged(), takeUntil(this.destroy$))
+      .subscribe(() => {
         if (this.isLocalOperation) {
-          this.isLocalOperation = false; // ← Burada sıfırla, setTimeout yok
+          this.isLocalOperation = false;
           return;
         }
+        // Dışarıdan (step 2 sync) geldi → sahneyi yeniden kur, sonra gravity
+        this.safeProcessData().then(() => {
+          this.applyGravityToAllPackages();
+        });
       });
     document.addEventListener('fullscreenchange', this.handleFullscreenChange.bind(this));
   }
@@ -249,6 +249,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
   onPrevShipment(): void {
     const idx = this.activeShipmentIndexSignal();
     if (idx > 0) {
+      this.isLocalOperation = true;
       this.store.dispatch(StepperResultActions.setActiveShipment({ index: idx - 1 }));
       this.reset();
       this.safeProcessData();
@@ -258,10 +259,15 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
   onNextShipment(): void {
     const idx = this.activeShipmentIndexSignal();
     if (idx < this.shipmentsSignal().length - 1) {
+      this.isLocalOperation = true;
       this.store.dispatch(StepperResultActions.setActiveShipment({ index: idx + 1 }));
       this.reset();
       this.safeProcessData();
     }
+  }
+
+  public suppressNextStoreSync(): void {
+    this.isLocalOperation = true;
   }
 
   private hasChangePerm(): boolean {

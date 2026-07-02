@@ -207,6 +207,7 @@ export class ResultStepComponent implements OnInit, OnDestroy {
 
           const firstShipmentResult = cleanShipments[0] ?? [];
 
+          this.threeJSComponent?.suppressNextStoreSync();
           this.store.dispatch(StepperResultActions.loadOrderResultSuccess({
             orderResult: firstShipmentResult,
             reportFiles: result.reportFiles,

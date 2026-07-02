@@ -10,6 +10,8 @@ import {
   selectHasRevisedOrder,
   selectIsEditMode,
   selectIsMultiShipment,
+  selectOrder,
+  selectOrderResult,
   selectOrderResultId,
   selectOriginalPackages,
   selectShipments,
@@ -22,6 +24,7 @@ import { StepperResultActions } from '../actions/stepper-result.actions';
 import { OrderService } from '@app/features/services/order.service';
 import { AuthService } from '@app/core/auth/services/auth.service';
 import { PackagePosition } from '@app/features/interfaces/order-result.interface';
+import { calculatePackageTotalWeight } from '@app/features/utils/package-weight.util';
 
 @Injectable()
 export class StepperResultEffects {
@@ -107,49 +110,66 @@ export class StepperResultEffects {
         this.store.select(selectDeletedPackages),
         this.store.select(selectShipments),
         this.store.select(selectIsMultiShipment),
+        this.store.select(selectOrderResult),
+        this.store.select(selectOrder),
       ),
-      filter(([action, orderResultId]) => !!orderResultId),
-      map(([action, orderResultId, originalPackages, currentDeletedRows, shipments, isMultiShipment]) => {
-        // Sistemde (herhangi bir shipment'ta veya deleted'ta) var olan tüm pkgId'ler
-        const allShipmentPkgIds = new Set(
-          (isMultiShipment ? shipments : []).flat().map(row => row[8])
-        );
-        const deletedPkgIds = new Set(currentDeletedRows.map(row => row[8]));
-        const allKnownPkgIds = new Set([...allShipmentPkgIds, ...deletedPkgIds]);
+      filter(([_, orderResultId]) => !!orderResultId),
+      map(([action, _, originalPackages, currentDeletedRows,
+        shipments, isMultiShipment, orderResult, order]) => {
+        const changes = action.changes ?? { added: [], modified: [], deletedIds: [] };
+        const modifiedIds = new Set(changes.modified.map((p: any) => p.id));
 
         const backendPackageIds = new Set(originalPackages.map(p => p.id));
 
-        // 1. Deleted satırlarında name (id) güncellemesi gerekiyorsa uygula
-        const updatedDeletedRows = currentDeletedRows.map(row => {
-          const backendPkg = originalPackages.find(p => p.id === row[8]);
-          if (backendPkg) {
-            return [row[0], row[1], row[2], row[3], row[4], row[5], Number(backendPkg.name), row[7], row[8]] as PackagePosition;
-          }
-          return row;
+        // FIX: tek sevkiyatta orderResult da "sistemde var" sayılır
+        const truckRows = isMultiShipment ? shipments.flat() : orderResult;
+        const truckPkgIds = new Set(truckRows.map(r => r[8]));
+        const deletedPkgIds = new Set(currentDeletedRows.map(r => r[8]));
+        const allKnownPkgIds = new Set([...truckPkgIds, ...deletedPkgIds]);
+        const makeRow = (pkg: any): PackagePosition => [
+          -1, -1, -1,
+          Number(pkg.pallet?.dimension?.depth || 0),
+          Number(pkg.pallet?.dimension?.width || 0),
+          Number(pkg.pallet?.dimension?.height || 0),
+          Number(pkg.name),
+          calculatePackageTotalWeight(pkg, order),   // ← 0 yerine
+          pkg.id
+        ] as PackagePosition;
+
+        // 1) Mevcut deleted satırları: backend'de silinenleri at,
+        //    modified olanların boyut/name'ini yenile, diğerlerinin name'ini güncelle
+        const updatedDeletedRows = currentDeletedRows
+          .filter(row => backendPackageIds.has(row[8]))
+          .map(row => {
+            const backendPkg = originalPackages.find(p => p.id === row[8]);
+            if (!backendPkg) return row;
+            if (modifiedIds.has(backendPkg.id)) return makeRow(backendPkg);
+            return [row[0], row[1], row[2], row[3], row[4], row[5],
+            Number(backendPkg.name), row[7], row[8]] as PackagePosition;
+          });
+
+        // 2) Yeni eklenen paketler (sistemde hiç yok) → deleted havuzu
+        const newRows = originalPackages
+          .filter(p => !allKnownPkgIds.has(p.id))
+          .map(makeRow);
+
+        // 3) Modified olup şu an kamyonda duranlar → kamyondan çıkar, havuza koy
+        const movedRows = originalPackages
+          .filter(p => modifiedIds.has(p.id)
+            && truckPkgIds.has(p.id)
+            && !deletedPkgIds.has(p.id))
+          .map(makeRow);
+
+        // Kamyondan çıkarılacaklar: backend'de silinenler + modified olanlar
+        const removedPkgIds = [
+          ...changes.deletedIds,
+          ...movedRows.map(r => r[8] as string)
+        ];
+
+        return StepperResultActions.applyBackendSync({
+          deletedPackages: [...updatedDeletedRows, ...newRows, ...movedRows],
+          removedPkgIds
         });
-
-        // 2. Backend'de yeni eklenmiş, sistemde hiç olmayan paketleri deleted'a ekle
-        const newRows: PackagePosition[] = [];
-        originalPackages.forEach(backendPkg => {
-          if (!allKnownPkgIds.has(backendPkg.id)) {
-            const depth = Number(backendPkg.pallet?.dimension?.depth || 0);
-            const width = Number(backendPkg.pallet?.dimension?.width || 0);
-            const height = Number(backendPkg.pallet?.dimension?.height || 0);
-
-            newRows.push([
-              -1, -1, -1,
-              depth, width, height,
-              Number(backendPkg.name), 0, backendPkg.id
-            ] as PackagePosition);
-          }
-        });
-
-        // 3. Backend'de artık olmayan paketleri deleted'tan çıkar
-        //    (shipment'larda olanlara dokunulmaz, ayrı akışla yönetilir)
-        const finalDeletedRows = [...updatedDeletedRows, ...newRows]
-          .filter(row => backendPackageIds.has(row[8]));
-
-        return StepperResultActions.setDeletedPackages({ deletedPackages: finalDeletedRows });
       })
     )
   );

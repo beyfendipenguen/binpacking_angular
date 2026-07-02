@@ -21,6 +21,7 @@ export const stepperResultHandlers = [
   // Load Order Result Success (Edit Mode / Calculate sonrası)
   on(StepperResultActions.loadOrderResultSuccess, (state: StepperState, { orderResult, reportFiles, shipments, isMultiShipment, deletedPackages }) => ({
     ...state,
+    step2State: syncStep2Remaining(state, deletedPackages ?? []),
     step3State: {
       ...state.step3State,
       orderResult: [...orderResult],
@@ -187,7 +188,36 @@ export const stepperResultHandlers = [
   on(StepperResultActions.setOrderResultId, (state: StepperState, { orderResultId }) => ({
     ...state,
     orderResultId: orderResultId
-  }))
+  })),
+
+  on(StepperResultActions.applyBackendSync, (state: StepperState, { deletedPackages, removedPkgIds }) => {
+    const removedSet = new Set(removedPkgIds);
+
+    const shipments = state.step3State.shipments.map(s =>
+      s.filter(row => !removedSet.has(row[8]))
+    );
+
+    const idx = state.step3State.activeShipmentIndex;
+    const orderResult = state.step3State.isMultiShipment
+      ? (shipments[idx] ?? [])
+      : state.step3State.orderResult.filter(row => !removedSet.has(row[8]));
+
+    const changed =
+      removedSet.size > 0 ||
+      deletedPackages.length !== state.step3State.deletedPackages.length;
+
+    return {
+      ...state,
+      step2State: syncStep2Remaining(state, deletedPackages),
+      step3State: {
+        ...state.step3State,
+        orderResult,
+        shipments,
+        deletedPackages,
+        isDirty: changed ? true : state.step3State.isDirty
+      }
+    };
+  }),
 ];
 
 function syncStep2Remaining(state: StepperState, deletedPackages: PackagePosition[]) {

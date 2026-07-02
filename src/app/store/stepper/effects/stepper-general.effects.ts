@@ -69,7 +69,7 @@ export class StepperGeneralEffects {
             const baseActions = [
               StepperInvoiceUploadActions.saveSuccess({ order }),
               StepperInvoiceUploadActions.upsertManySuccess({ orderDetails }),
-              StepperPackageActions.upsertManySuccess({ packages }),
+              StepperPackageActions.loadPackagesSuccess({ packages }),
               StepperPackageActions.getPalletsSuccess({ pallets }),
             ];
 
