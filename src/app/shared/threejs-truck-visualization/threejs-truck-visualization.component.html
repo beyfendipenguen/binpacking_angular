@@ -1,247 +1,199 @@
-<div class="threejs-visualization-container" [class.loading]="isLoadingModels || isLoadingData">
-  <!-- Three.js Canvas Container -->
+<div class="tjs-root" [class.is-loading]="isLoadingModels || isLoadingData">
 
-  <div #threeContainer class="threejs-canvas-container" [class.drag-mode]="dragModeEnabled"
-    [class.loading]="isLoadingModels" (contextmenu)="$event.preventDefault()">
+  <div #threeContainer class="tjs-canvas" [class.drag-mode]="dragModeEnabled"
+    [class.is-loading]="isLoadingModels" (contextmenu)="$event.preventDefault()">
   </div>
 
-
-  <!-- No Data Message -->
   @if (!isLoadingModels && !isLoadingData && (!piecesDataSignal() || piecesDataSignal().length === 0)) {
-  <div class="no-data-message">
-    <div class="no-data-content">
-      <mat-icon style="font-size: 0.8rem; width: 0.8rem; height: 0.8rem; line-height: 0.8rem;">local_shipping</mat-icon>
-      <h4>{{ 'TRUCK_VISUALIZATION.NO_DATA' | translate }}</h4>
-      <p>{{ 'TRUCK_VISUALIZATION.NO_DATA_MESSAGE' | translate }}</p>
-    </div>
+  <div class="tjs-empty">
+    <mat-icon class="tjs-empty__icon">local_shipping</mat-icon>
+    <p class="tjs-empty__title">{{ 'TRUCK_VISUALIZATION.NO_DATA' | translate }}</p>
+    <p class="tjs-empty__sub">{{ 'TRUCK_VISUALIZATION.NO_DATA_MESSAGE' | translate }}</p>
   </div>
   }
 
-  <!-- Weight Display Panel (Top Center) -->
-  @if (!isLoadingModels && !isLoadingData && piecesDataSignal() && piecesDataSignal().length > 0) {
-  <div class="top-control-bar">
-
-    <!-- Sol: Undo / Redo -->
-    <div class="ctrl-group ctrl-left">
-      <button class="history-btn" (click)="undo()" [disabled]="!canUndo()"
-        [title]="'TRUCK_VISUALIZATION.UNDO' | translate">↩</button>
-      <button class="history-btn" (click)="redo()" [disabled]="!canRedo()"
-        [title]="'TRUCK_VISUALIZATION.REDO' | translate">↪</button>
+  @if (!isLoadingModels && !isLoadingData && piecesDataSignal().length > 0) {
+  <div class="tjs-toolbar">
+    <div class="tjs-toolbar__group tjs-toolbar__group--left">
+      <button class="tjs-icon-btn" (click)="undo()" [disabled]="!canUndo()"
+        [title]="'TRUCK_VISUALIZATION.UNDO' | translate" aria-label="Geri al">
+        <mat-icon>undo</mat-icon>
+      </button>
+      <button class="tjs-icon-btn" (click)="redo()" [disabled]="!canRedo()"
+        [title]="'TRUCK_VISUALIZATION.REDO' | translate" aria-label="Yinele">
+        <mat-icon>redo</mat-icon>
+      </button>
     </div>
 
-    <!-- Orta: Auto Place + Shipment Nav -->
-    <div class="ctrl-group ctrl-center">
-      <button class="auto-place-bar-btn" (click)="autoPlaceAll()"
-        [title]="'TRUCK_VISUALIZATION.AUTO_PLACE_ALL_TIP' | translate" [appDisableAuth]="['orders.change_orderresult']">
-        {{ 'TRUCK_VISUALIZATION.AUTO_PLACE_ALL' | translate }}
+    <div class="tjs-toolbar__group tjs-toolbar__group--center">
+      <button class="tjs-action-btn" (click)="autoPlaceAll()"
+        [title]="'TRUCK_VISUALIZATION.AUTO_PLACE_ALL_TIP' | translate"
+        [appDisableAuth]="['orders.change_orderresult']">
+        <mat-icon>auto_fix_high</mat-icon>
+        <span>{{ 'TRUCK_VISUALIZATION.AUTO_PLACE_ALL' | translate }}</span>
       </button>
 
       @if (isMultiShipmentSignal()) {
-      <div class="shipment-nav">
-        <button class="shipment-nav-btn" [disabled]="activeShipmentIndexSignal() === 0"
-          (click)="onPrevShipment()">‹</button>
-        <span class="shipment-label">
-          <mat-icon
-            style="font-size: 0.8rem; width: 0.8rem; height: 0.8rem; line-height: 0.8rem;">local_shipping</mat-icon>
-          {{ activeShipmentIndexSignal() + 1 }} / {{ shipmentsSignal().length }}
+      <div class="tjs-shipment-nav">
+        <button class="tjs-nav-btn" [disabled]="activeShipmentIndexSignal() === 0"
+          (click)="onPrevShipment()" aria-label="Önceki sevkiyat">
+          <mat-icon>chevron_left</mat-icon>
+        </button>
+        <span class="tjs-shipment-badge">
+          <mat-icon>local_shipping</mat-icon>
+          {{ activeShipmentIndexSignal() + 1 }}<span class="tjs-shipment-sep">/</span>{{ shipmentsSignal().length }}
         </span>
-        <button class="shipment-nav-btn" [disabled]="activeShipmentIndexSignal() === shipmentsSignal().length - 1"
-          (click)="onNextShipment()">›</button>
+        <button class="tjs-nav-btn" [disabled]="activeShipmentIndexSignal() === shipmentsSignal().length - 1"
+          (click)="onNextShipment()" aria-label="Sonraki sevkiyat">
+          <mat-icon>chevron_right</mat-icon>
+        </button>
       </div>
       }
     </div>
 
-    <!-- Sağ: Ağırlıklar -->
-    <div class="ctrl-group ctrl-right">
-      <div class="weight-chip" [title]="getWeightTitle()">
-        <span class="weight-chip-label">{{ (weightCalculationDepth / 1000).toFixed(1) }}m</span>
-        <span class="weight-chip-value">{{ frontSectionWeightDisplay }}</span>
+    <div class="tjs-toolbar__group tjs-toolbar__group--right">
+      <div class="tjs-weight-pill" [title]="getWeightTitle()">
+        <span class="tjs-weight-pill__label">{{ (weightCalculationDepth / 1000).toFixed(1) }}m</span>
+        <span class="tjs-weight-pill__value">{{ frontSectionWeightDisplay }}</span>
       </div>
-      <div class="weight-chip">
-        <span class="weight-chip-label">⚖️</span>
-        <span class="weight-chip-value">{{ totalWeightDisplay }}</span>
+      <div class="tjs-divider"></div>
+      <div class="tjs-weight-pill">
+        <span class="tjs-weight-pill__label">{{'PALLET_CONTROL.TOTAL_WEIGHT' | translate}}</span>
+        <span class="tjs-weight-pill__value">{{ totalWeightDisplay }}</span>
       </div>
-    </div>
-
-  </div>
-  }
-
-  @if (!isLoadingModels && !isLoadingData && piecesDataSignal() && piecesDataSignal().length > 0) {
-  <div class="fullscreen-controls">
-    @if (!isFullscreen) {
-    <button class="fullscreen-btn" (click)="toggleFullscreen()" [title]="'TRUCK_VISUALIZATION.FULLSCREEN' | translate">
-      ⛶
-    </button>
-    }
-    @if (isFullscreen) {
-    <button class="exit-fullscreen-btn" (click)="toggleFullscreen()"
-      [title]="'TRUCK_VISUALIZATION.EXIT_FULLSCREEN' | translate">
-      ✕
-    </button>
-    }
-  </div>
-  }
-
-  <!-- Package Products Panel (Top Left) -->
-  @if (selectedPackageSignal(); as selected) {
-  @if (!isLoadingModels && !isLoadingData && selectedPackageProducts.length > 0) {
-  <div class="package-products-panel">
-    <div class="products-content">
-      <h4>📦 {{'PERMISSION.MODELS.PACKAGEDETAIL' | translate}}</h4>
-
-      <div class="products-list">
-        @for (detail of selectedPackageProducts; track detail.id) {
-        <div class="product-item">
-          <span class="product-name">{{ detail.product.name }}</span>
-          <span class="product-count">{{ detail.count }}x</span>
-        </div>
-        }
-      </div>
+      <div class="tjs-divider"></div>
+      <button class="tjs-icon-btn" (click)="toggleFullscreen()"
+        [title]="(isFullscreen ? 'TRUCK_VISUALIZATION.EXIT_FULLSCREEN' : 'TRUCK_VISUALIZATION.FULLSCREEN') | translate">
+        <mat-icon>{{ isFullscreen ? 'fullscreen_exit' : 'fullscreen' }}</mat-icon>
+      </button>
     </div>
   </div>
   }
-  }
-  <!-- Package Info Panel (Top Right) -->
+
   @if (selectedPackageSignal(); as selected) {
   @if (!isLoadingModels && !isLoadingData) {
-  <div class="package-info-panel">
-    <div class="info-content">
-      <h4>📦 {{'TRUCK_VISUALIZATION.SELECTED_PACKAGE' | translate}}</h4>
+  <div class="tjs-panel tjs-panel--info">
+    <div class="tjs-panel__header">
+      <span class="tjs-panel__title">Paket #{{ selected.id }}</span>
+      <button class="tjs-close-btn" (click)="clearSelection()">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
 
-      <div class="package-details">
-        <div class="detail-row">
-          <span class="label">{{ 'TRUCK_VISUALIZATION.ID' | translate }}</span>
-          <span class="value">#{{ selected.id }}</span>
-        </div>
-        <div class="detail-row distance-row">
-          <span class="label">{{ 'TRUCK_VISUALIZATION.TRUCK_END' | translate }}</span>
-          <span class="value distance-value">{{ selectedPackageDistanceToEndDisplay }}</span>
-        </div>
-        <div class="detail-row">
-          <span class="label">{{ 'TRUCK_VISUALIZATION.DIMENSIONS' | translate }}</span>
-          <span class="value">{{ selected.dimensions }}</span>
-        </div>
-        <div class="detail-row">
-          <span class="label">{{ 'TRUCK_VISUALIZATION.WEIGHT' | translate }}</span>
-          <span class="value">{{ selected.weight }} kg</span>
-        </div>
-        <div class="detail-row">
-          <span class="label">{{ 'TRUCK_VISUALIZATION.POSITION' | translate }}</span>
-          <span class="value">
-            ({{ selected.x | number:'1.0-0' }},
-            {{ selected.y | number:'1.0-0' }},
-            {{ selected.z | number:'1.0-0' }})
-          </span>
-        </div>
-        @if (selected.isForcePlaced) {
-        <div class="detail-row force-status">
-          <span class="warning-badge">{{ 'TRUCK_VISUALIZATION.OUT_OF_TOLERANCE' | translate }}</span>
-        </div>
-        }
-        @if (selected.rotation) {
-        <div class="detail-row">
-          <span class="label">{{ 'TRUCK_VISUALIZATION.ROTATION' | translate }}</span>
-          <span class="value">{{ selected.rotation }}°</span>
+    <div class="tjs-panel__body">
+      <div class="tjs-stat-row">
+        <span class="tjs-stat-row__label">{{ 'TRUCK_VISUALIZATION.DIMENSIONS' | translate }}</span>
+        <span class="tjs-stat-row__value tjs-mono">{{ selected.dimensions }}</span>
+      </div>
+      <div class="tjs-stat-row">
+        <span class="tjs-stat-row__label">{{ 'TRUCK_VISUALIZATION.WEIGHT' | translate }}</span>
+        <span class="tjs-stat-row__value tjs-mono">{{ selected.weight }} kg</span>
+      </div>
+      <div class="tjs-stat-row tjs-stat-row--accent">
+        <span class="tjs-stat-row__label">{{ 'TRUCK_VISUALIZATION.TRUCK_END' | translate }}</span>
+        <span class="tjs-stat-row__value tjs-mono">{{ selectedPackageDistanceToEndDisplay }}</span>
+      </div>
+      @if (selected.rotation) {
+      <div class="tjs-stat-row">
+        <span class="tjs-stat-row__label">{{ 'TRUCK_VISUALIZATION.ROTATION' | translate }}</span>
+        <span class="tjs-stat-row__value tjs-mono">{{ selected.rotation }}°</span>
+      </div>
+      }
+      @if (selected.isForcePlaced) {
+      <div class="tjs-warn-badge">
+        <mat-icon>warning_amber</mat-icon>
+        {{ 'TRUCK_VISUALIZATION.OUT_OF_TOLERANCE' | translate }}
+      </div>
+      }
+    </div>
+
+    @if (selectedPackageProducts.length > 0) {
+    <div class="tjs-panel__section">
+      <p class="tjs-panel__section-title">{{ 'PERMISSION.MODELS.PACKAGEDETAIL' | translate }}</p>
+      <div class="tjs-product-list">
+        @for (detail of selectedPackageProducts; track detail.id) {
+        <div class="tjs-product-item">
+          <span class="tjs-product-item__name">{{ detail.product.name }}</span>
+          <span class="tjs-product-item__count">{{ detail.count }}×</span>
         </div>
         }
       </div>
+    </div>
+    }
 
-      <!-- Package Actions -->
-      <div class="package-actions">
-        @if (!selected.isForcePlaced) {
-        <button class="action-btn force-place-btn" (click)="forcePlacePackage()"
-          [title]="'TRUCK_VISUALIZATION.FORCE_PLACE_TIP' | translate" [disabled]="!selectedPackageSignal()"
-          [appDisableAuth]="['orders.change_orderresult']">
-          💪 {{ 'TRUCK_VISUALIZATION.FORCE_PLACE' | translate }}
-        </button>
-        }
-        @if (selected.isForcePlaced) {
-        <button class="action-btn unforce-btn" (click)="unforcePlacePackage()"
-          [title]="'TRUCK_VISUALIZATION.NORMALIZE_TIP' | translate" [disabled]="!selectedPackageSignal()"
-          [appDisableAuth]="['orders.change_orderresult']">
-          ↩️ {{ 'TRUCK_VISUALIZATION.NORMALIZE' | translate }}
-        </button>
-        }
-        <button class="action-btn rotate-btn" (click)="rotateSelectedPackage()"
-          [title]="'TRUCK_VISUALIZATION.ROTATE_TIP' | translate" [disabled]="!selectedPackageSignal()"
-          [appDisableAuth]="['orders.change_orderresult']">
-          🔄 {{ 'TRUCK_VISUALIZATION.ROTATE' | translate }}
-        </button>
-        <button class="action-btn delete-btn" (click)="deleteSelectedPackage()"
-          [title]="'TRUCK_VISUALIZATION.DELETE_PACKAGE' | translate" [disabled]="!selectedPackageSignal()"
-          [appDisableAuth]="['orders.change_orderresult']">
-          🗑️ {{ 'COMMON.DELETE' | translate }}
-        </button>
-      </div>
-
-      <button class="close-btn" (click)="clearSelection()" [title]="'TRUCK_VISUALIZATION.DESELECT' | translate">
-        ✖
+    <div class="tjs-panel__actions">
+      @if (!selected.isForcePlaced) {
+      <button class="tjs-panel-btn tjs-panel-btn--warn" (click)="forcePlacePackage()"
+        [disabled]="!selectedPackageSignal()" [appDisableAuth]="['orders.change_orderresult']">
+        <mat-icon>push_pin</mat-icon>{{ 'TRUCK_VISUALIZATION.FORCE_PLACE' | translate }}
+      </button>
+      } @else {
+      <button class="tjs-panel-btn tjs-panel-btn--success" (click)="unforcePlacePackage()"
+        [disabled]="!selectedPackageSignal()" [appDisableAuth]="['orders.change_orderresult']">
+        <mat-icon>undo</mat-icon>{{ 'TRUCK_VISUALIZATION.NORMALIZE' | translate }}
+      </button>
+      }
+      <button class="tjs-panel-btn tjs-panel-btn--neutral" (click)="rotateSelectedPackage()"
+        [disabled]="!selectedPackageSignal()" [appDisableAuth]="['orders.change_orderresult']">
+        <mat-icon>rotate_right</mat-icon>{{ 'TRUCK_VISUALIZATION.ROTATE' | translate }}
+      </button>
+      <button class="tjs-panel-btn tjs-panel-btn--danger" (click)="deleteSelectedPackage()"
+        [disabled]="!selectedPackageSignal()" [appDisableAuth]="['orders.change_orderresult']">
+        <mat-icon>delete_outline</mat-icon>{{ 'COMMON.DELETE' | translate }}
       </button>
     </div>
   </div>
   }
   }
 
-  <!-- Deleted Packages Panel (Bottom Right) -->
   @if (deletedPackagesSignal().length > 0 && !isLoadingModels && !isLoadingData) {
-  <div class="deleted-packages-panel" [class.below-selection]="selectedPackageSignal()">
-    <div class="deleted-content">
-      <h4>
-        🗑️ {{ 'TRUCK_VISUALIZATION.UNPLACED_PACKAGES' | translate }}
-        <span class="delete-count">{{ deletedPackagesSignal().length }}</span>
-      </h4>
+  <div class="tjs-panel tjs-panel--deleted">
+    <div class="tjs-panel__header">
+      <span class="tjs-panel__title">
+        {{ 'TRUCK_VISUALIZATION.UNPLACED_PACKAGES' | translate }}
+      </span>
+      <span class="tjs-count-badge">{{ deletedPackagesSignal().length }}</span>
+    </div>
 
-      <div class="deleted-list">
-        @for (pkg of deletedPackagesSignal(); track trackDeletedPackage($index, pkg)) {
-        <div class="deleted-item">
-          <div class="deleted-info">
-            <span class="deleted-id">#{{ pkg.id }}</span>
-            <span class="deleted-dims">{{ pkg.dimensions }}</span>
-            <span class="deleted-weight">{{ pkg.weight }} kg</span>
-          </div>
-          <button class="restore-btn" (click)="restorePackage(pkg)"
-            [title]="'TRUCK_VISUALIZATION.ADD_PACKAGE_TIP' | translate">
-            ➕ {{'COMMON.ADD' | translate}}
-          </button>
+    <div class="tjs-deleted-list">
+      @for (pkg of deletedPackagesSignal(); track trackDeletedPackage($index, pkg)) {
+      <div class="tjs-deleted-item">
+        <div class="tjs-deleted-item__info">
+          <span class="tjs-deleted-item__id">#{{ pkg.id }}</span>
+          <span class="tjs-deleted-item__dims tjs-mono">{{ pkg.dimensions }}</span>
+          <span class="tjs-deleted-item__weight tjs-mono">{{ pkg.weight }} kg</span>
         </div>
-        }
+        <button class="tjs-restore-btn" (click)="restorePackage(pkg)">
+          <mat-icon>add</mat-icon>
+        </button>
       </div>
+      }
+    </div>
 
-      <!-- Bulk Actions -->
-      <div class="bulk-actions">
-        <button class="bulk-btn auto-place-btn" (click)="autoPlaceDeleted()"
-          [title]="'TRUCK_VISUALIZATION.AUTO_PLACE_DELETED_TIP' | translate">
-          {{ 'TRUCK_VISUALIZATION.AUTO_PLACE_DELETED' | translate }}
-        </button>
-        <button class="bulk-btn clear-all-btn" (click)="clearDeletedPackages()"
-          [title]="'TRUCK_VISUALIZATION.CLEAR_TIP' | translate" [disabled]="true">
-          {{ 'TRUCK_VISUALIZATION.CLEAR' | translate }}
-        </button>
-      </div>
+    <div class="tjs-panel__footer">
+      <button class="tjs-footer-btn tjs-footer-btn--primary" (click)="autoPlaceDeleted()">
+        <mat-icon>auto_fix_high</mat-icon>
+        {{ 'TRUCK_VISUALIZATION.AUTO_PLACE_DELETED' | translate }}
+      </button>
     </div>
   </div>
   }
 
-  <!-- Loading Overlay -->
   @if (isLoadingModels) {
-  <div class="loading-overlay">
-    <div class="loading-spinner">
-      <div class="spinner"></div>
-      <p>{{ 'TRUCK_VISUALIZATION.LOADING_3D' | translate }}</p>
-      <div class="loading-details">
-        <div class="model-status">
-          <span [class.loaded]="modelsLoaded.trailerWheel">⚙️ {{ 'TRUCK_VISUALIZATION.WHEEL_MODEL' | translate }}</span>
-        </div>
-      </div>
-    </div>
+  <div class="tjs-overlay">
+    <div class="tjs-spinner"></div>
+    <p class="tjs-overlay__text">{{ 'TRUCK_VISUALIZATION.LOADING_3D' | translate }}</p>
+    <span class="tjs-overlay__sub" [class.is-ready]="modelsLoaded.trailerWheel">
+      ⚙ {{ 'TRUCK_VISUALIZATION.WHEEL_MODEL' | translate }}
+    </span>
   </div>
   }
+
   @if (!isLoadingModels && isLoadingData) {
-  <div class="loading-overlay secondary">
-    <div class="loading-spinner">
-      <div class="spinner small"></div>
-      <p>{{ 'TRUCK_VISUALIZATION.PLACING_PACKAGES' | translate }}</p>
-    </div>
+  <div class="tjs-overlay tjs-overlay--light">
+    <div class="tjs-spinner tjs-spinner--sm"></div>
+    <p class="tjs-overlay__text">{{ 'TRUCK_VISUALIZATION.PLACING_PACKAGES' | translate }}</p>
   </div>
   }
+
 </div>
