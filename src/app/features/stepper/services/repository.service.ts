@@ -16,6 +16,7 @@ import { PackageReadDto } from "@app/features/interfaces/package.interface";
 import { PackageChanges } from "../components/pallet-control/package-changes.helper";
 import { PackagePosition } from "@app/features/interfaces/order-result.interface";
 import { BaseResponse } from "@app/core/interfaces/base-response.interface";
+import { LanguageService } from "@app/core/services/language.service";
 
 export interface CalculatePackageResponse {
   message: string;
@@ -30,7 +31,7 @@ export interface CalculatePackageResponse {
 })
 export class RepositoryService {
   private store = inject(Store<AppState>);
-
+  languageService = inject(LanguageService);
   constructor(private api: ApiService, private http: HttpClient) { }
 
   private getOrderId = this.store.selectSignal(selectOrderId)
@@ -178,10 +179,8 @@ export class RepositoryService {
   }
 
   createReport(order_id: string): Observable<any> {
-    return this.http.post<any>(
-      `${this.api.getApiUrl()}/logistics/create-report/${order_id}/`,
-      {}
-    );
+    const lang = this.languageService.getCurrentLanguage();
+    return this.http.post(`${this.api.getApiUrl()}/logistics/create-report/${order_id}/?lang=${lang}`, {});
   }
 
   calculatePacking(multiShipment: boolean = false, order_id: string = this.getOrderId()) {
