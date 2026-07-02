@@ -1,7 +1,7 @@
 <div class="tjs-root" [class.is-loading]="isLoadingModels || isLoadingData">
 
-  <div #threeContainer class="tjs-canvas" [class.drag-mode]="dragModeEnabled"
-    [class.is-loading]="isLoadingModels" (contextmenu)="$event.preventDefault()">
+  <div #threeContainer class="tjs-canvas" [class.drag-mode]="dragModeEnabled" [class.is-loading]="isLoadingModels"
+    (contextmenu)="$event.preventDefault()">
   </div>
 
   @if (!isLoadingModels && !isLoadingData && (!piecesDataSignal() || piecesDataSignal().length === 0)) {
@@ -27,16 +27,15 @@
 
     <div class="tjs-toolbar__group tjs-toolbar__group--center">
       <button class="tjs-action-btn" (click)="autoPlaceAll()"
-        [title]="'TRUCK_VISUALIZATION.AUTO_PLACE_ALL_TIP' | translate"
-        [appDisableAuth]="['orders.change_orderresult']">
+        [title]="'TRUCK_VISUALIZATION.AUTO_PLACE_ALL_TIP' | translate" [appDisableAuth]="['orders.change_orderresult']">
         <mat-icon>auto_fix_high</mat-icon>
         <span>{{ 'TRUCK_VISUALIZATION.AUTO_PLACE_ALL' | translate }}</span>
       </button>
 
       @if (isMultiShipmentSignal()) {
       <div class="tjs-shipment-nav">
-        <button class="tjs-nav-btn" [disabled]="activeShipmentIndexSignal() === 0"
-          (click)="onPrevShipment()" aria-label="Önceki sevkiyat">
+        <button class="tjs-nav-btn" [disabled]="activeShipmentIndexSignal() === 0" (click)="onPrevShipment()"
+          aria-label="Önceki sevkiyat">
           <mat-icon>chevron_left</mat-icon>
         </button>
         <span class="tjs-shipment-badge">
@@ -52,9 +51,13 @@
     </div>
 
     <div class="tjs-toolbar__group tjs-toolbar__group--right">
-      <div class="tjs-weight-pill" [title]="getWeightTitle()">
-        <span class="tjs-weight-pill__label">{{ (weightCalculationDepth / 1000).toFixed(1) }}m</span>
-        <span class="tjs-weight-pill__value">{{ frontSectionWeightDisplay }}</span>
+      <div class="tjs-weight-pill" [class.tjs-weight-pill--over]="isFrontSectionOverLimit" [title]="getWeightTitle()">
+        <span class="tjs-weight-pill__label">{{ (weightCalculationDepth / 1000).toFixed(1) }} m</span>
+        <span class="tjs-weight-pill__value">
+          <mat-icon *ngIf="isFrontSectionOverLimit" class="tjs-weight-pill__warn">warning</mat-icon>
+          {{ frontSectionWeightDisplay }}<ng-container *ngIf="firstZoneMaxKg() as limit"> / {{ formatWeight(limit)
+            }}</ng-container>
+        </span>
       </div>
       <div class="tjs-divider"></div>
       <div class="tjs-weight-pill">

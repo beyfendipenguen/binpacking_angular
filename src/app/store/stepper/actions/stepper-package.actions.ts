@@ -4,22 +4,23 @@ import { UiPallet } from '@features/stepper/components/ui-models/ui-pallet.model
 import { PackageDetailReadDto } from '@app/features/interfaces/package-detail.interface';
 import { PackageReadDto, PackageWriteDto } from '@app/features/interfaces/package.interface';
 import { OrderDetailRead } from '@app/features/interfaces/order-detail.interface';
+import { ConstraintProfile } from '@app/features/interfaces/constraint-profile.interface';
 
 export const StepperPackageActions = createActionGroup({
   source: 'Stepper Package',
   events: {
 
     //Package Snapshot
-    'Save Package Snapshot' : emptyProps(),
-    'Undo Package' : emptyProps(),
-    'Redo Package' : emptyProps(),
+    'Save Package Snapshot': emptyProps(),
+    'Undo Package': emptyProps(),
+    'Redo Package': emptyProps(),
 
     //Package Detail
     'Upsert Many': emptyProps(),
-    'Upsert Many Success': props<{ packages: PackageReadDto[], changes: { added: PackageWriteDto[]; modified: PackageWriteDto[]; deletedIds: string[] }}>(),
+    'Upsert Many Success': props<{ packages: PackageReadDto[], changes: { added: PackageWriteDto[]; modified: PackageWriteDto[]; deletedIds: string[] } }>(),
     'Upsert Many Failure': emptyProps(),
     'Load Packages Success': props<{ packages: PackageReadDto[] }>(),
-    
+
     // Palet İşlemleri
     'Get Pallets': emptyProps(),
     'Get Pallets Success': props<{ pallets: UiPallet[] }>(),
@@ -27,8 +28,8 @@ export const StepperPackageActions = createActionGroup({
     'Add Pallet To Available': props<{ pallet: UiPallet }>(),
     // Paket Hesaplama
     'Calculate Package Detail': emptyProps(),
-    'Calculate Package Detail Success': props<{ packages: PackageReadDto[] , pendingOrderDetails: OrderDetailRead[], reducedFromParams: OrderDetailRead[], lowFillRateOrderDetails: OrderDetailRead[], appendMode?: boolean}>(),
-    'Calculate Package Detail With Params': props<{orderDetailParams: { orderDetailId: string; count: number }[], verticalSort: boolean,onlyRemaining?: boolean, remainingProducts?: PackageDetailReadDto[]}>(),
+    'Calculate Package Detail Success': props<{ packages: PackageReadDto[], pendingOrderDetails: OrderDetailRead[], reducedFromParams: OrderDetailRead[], lowFillRateOrderDetails: OrderDetailRead[], appendMode?: boolean }>(),
+    'Calculate Package Detail With Params': props<{ orderDetailParams: { orderDetailId: string; count: number }[], verticalSort: boolean, onlyRemaining?: boolean, remainingProducts?: PackageDetailReadDto[] }>(),
     'Set Ui Packages': props<{ packages: UiPackage[] }>(),
     'Calculate Package Changes': emptyProps(),
     'Create Package Details Success': props<{ packageDetails: any }>(),
@@ -40,7 +41,7 @@ export const StepperPackageActions = createActionGroup({
     'Move Ui Product In Same Package Success': emptyProps(),
     'Set Vertical Sort': props<{ verticalSort: boolean }>(),
     'Set Vertical Sort In Package': props<{ pkgId: string, alignment: string }>(),
-    'Set Package Priority': props<{pkgId:string,priority:number}>(),
+    'Set Package Priority': props<{ pkgId: string, priority: number }>(),
     // Paketler Arası
     'Move Package Detail In Package To Package': props<{ sourcePackageId: string, targetPackageId: string, previousIndex: number }>(),
     'Move Partial Package Detail Between Packages': props<{ sourcePackageId: string, targetPackageId: string, previousIndex: number, maxCount: number }>(),

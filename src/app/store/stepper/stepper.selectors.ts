@@ -610,3 +610,17 @@ export const selectShipments = createSelector(selectStep3State, s => s.shipments
 export const selectActiveShipmentIndex = createSelector(selectStep3State, s => s.activeShipmentIndex);
 export const selectIsMultiShipment = createSelector(selectStep3State, s => s.isMultiShipment);
 export const selectDeletedPackages = createSelector(selectStep3State, s => s.deletedPackages);
+
+export const selectZoneWeightLimits = createSelector(
+  selectOrder,
+  (order) => order?.company_relation?.constraint_profile?.zone_weight_limits ?? []
+);
+
+export const selectFirstZoneDepthMm = createSelector(
+  selectZoneWeightLimits,
+  (zones) => {
+    const first = zones?.[0];
+    const depth = Number(first?.x_limit_mm);
+    return depth > 0 ? depth : 3000;
+  }
+);

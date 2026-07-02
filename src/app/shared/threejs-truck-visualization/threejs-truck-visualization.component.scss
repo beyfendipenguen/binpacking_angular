@@ -289,6 +289,26 @@ $c-text-sub:  #64748b;
     font-weight: 700;
     color: $c-white;
     font-family: 'Courier New', monospace;
+    display: inline-flex;        // ikon + metin hizası için
+    align-items: center;
+    gap: 3px;
+  }
+
+  &__warn {
+    color: #ff6b6b;
+    font-size: 13px;
+    width: 13px;
+    height: 13px;
+    line-height: 13px;
+  }
+
+  &--over {
+    .tjs-weight-pill__value {
+      color: #ff6b6b;
+    }
+    .tjs-weight-pill__label {
+      color: rgba(#ff6b6b, 0.7);
+    }
   }
 }
 

@@ -22,7 +22,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import * as THREE from 'three';
 import { Store } from '@ngrx/store';
-import { AppState, selectActiveShipmentIndex, selectDeletedPackages, selectIsMultiShipment, selectOrderResult, selectPackages, selectShipments, selectStep3IsDirty, selectTruck, selectUserPermissions, StepperResultActions } from '../../store';
+import { AppState, selectActiveShipmentIndex, selectDeletedPackages, selectFirstZoneDepthMm, selectIsMultiShipment, selectOrderResult, selectPackages, selectShipments, selectStep3IsDirty, selectTruck, selectUserPermissions, selectZoneWeightLimits, StepperResultActions } from '../../store';
 import { StepperUiActions } from '@app/store/stepper/actions/stepper-ui.actions';
 import { ThreeJSRenderManagerService } from './services/threejs-render-manager.service';
 import { ThreeJSComponents, ThreeJSInitializationService } from './services/threejs-initialization.service';
@@ -93,7 +93,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
   readonly activeShipmentIndexSignal = this.store.selectSignal(selectActiveShipmentIndex);
   private piecesData$ = toObservable(this.piecesDataSignal);
   private permissions = this.store.selectSignal(selectUserPermissions);
-
+  private readonly zoneWeightLimits = this.store.selectSignal(selectZoneWeightLimits);
   // Three.js components
   private threeComponents?: ThreeJSComponents;
   private scene!: THREE.Scene;
@@ -203,9 +203,14 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
   });
 
   get totalWeightDisplay(): string {
-    const total = this.processedPackagesSignal().reduce((sum, pkg) => sum + (pkg.weight || 0), 0);
-    if (total >= 1000) return `${(total / 1000).toFixed(2)} ton`;
-    return `${total.toFixed(0)} kg`;
+    const total = this.processedPackagesSignal()
+      .reduce((sum, pkg) => sum + (pkg.weight || 0), 0);
+    return this.formatWeight(total);
+  }
+
+  protected formatWeight(kg: number): string {
+    if (kg >= 1000) return `${(kg / 1000).toFixed(2)} ton`;
+    return `${kg.toFixed(0)} kg`;
   }
 
   private usedColors = new Set<string>();
@@ -2205,12 +2210,27 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
   }
 
   get frontSectionWeightDisplay(): string {
-    const weight = this.frontSectionWeight;
-    if (weight >= 1000) {
-      return `${(weight / 1000).toFixed(1)} ton`;
-    }
-    return `${weight.toFixed(0)} kg`;
+    return this.formatWeight(this.frontSectionWeight);
   }
+
+  readonly firstZoneMaxKg = computed(() => {
+    const kg = Number(this.zoneWeightLimits()?.[0]?.max_kg);
+    return kg > 0 ? kg : null;   // null = limit tanımsız, uyarı gösterme
+  });
+
+  get isFrontSectionOverLimit(): boolean {
+    const limit = this.firstZoneMaxKg();
+    return limit !== null && this.frontSectionWeight > limit;
+  }
+  
+  private weightDepthInitEffect = effect(() => {
+    const depth = this.store.selectSignal(selectFirstZoneDepthMm)();
+    untracked(() => {
+      this.weightCalculationDepth = depth;
+      this.cdr.markForCheck();
+    });
+  });
+
 
   // ========================================
   // COLOR MANAGEMENT
