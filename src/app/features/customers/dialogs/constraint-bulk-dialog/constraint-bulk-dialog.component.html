@@ -278,7 +278,42 @@
               }
             </div>
             }
+            <!-- Zone Limits -->
+            @if (field.type === 'zone-limits') {
+            <div class="zone-limits-field">
+              <div class="zone-limits-header">
+                <div class="field-label-with-icon">
+                  <mat-icon>{{ field.icon }}</mat-icon>
+                  <span>{{ field.label | translate }}</span>
+                </div>
+                @if (field.detailedInfo) {
+                <button mat-icon-button class="info-icon-btn" [matMenuTriggerFor]="sharedInfoMenu"
+                  [matTooltip]="field.hint ? (field.hint | translate) : ''" matTooltipPosition="above" type="button"
+                  (click)="showFieldInfo(field); $event.stopPropagation()">
+                  <mat-icon>info_outline</mat-icon>
+                </button>
+                }
+              </div>
 
+              <p class="field-hint">{{ 'CONSTRAINT.BULK.LEAVE_EMPTY' | translate }}</p>
+
+              <div class="zone-row">
+                <mat-form-field appearance="outline" class="zone-input">
+                  <mat-label>{{ 'CONSTRAINT.ZONE_X_LIMIT' | translate }}</mat-label>
+                  <input matInput type="number" [(ngModel)]="singleZoneLimit.x_limit_mm"
+                    [ngModelOptions]="{standalone: true}" (change)="onZoneLimitChange()" min="0" />
+                  <span matSuffix>mm</span>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="zone-input">
+                  <mat-label>{{ 'CONSTRAINT.ZONE_MAX_KG' | translate }}</mat-label>
+                  <input matInput type="number" [(ngModel)]="singleZoneLimit.max_kg"
+                    [ngModelOptions]="{standalone: true}" (change)="onZoneLimitChange()" min="0" />
+                  <span matSuffix>kg</span>
+                </mat-form-field>
+              </div>
+            </div>
+            }
             }
           </div>
         </div>

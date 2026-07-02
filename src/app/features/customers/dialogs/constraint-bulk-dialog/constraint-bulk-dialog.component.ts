@@ -90,6 +90,7 @@ export class ConstraintBulkDialogComponent implements OnInit, OnDestroy {
   filteredProducts: Product[] = [];
   isSearchingProducts = false;
   selectedSideProducts: Product[] = [];
+  singleZoneLimit = { x_limit_mm: 0, max_kg: 0 };
 
   ngOnInit(): void {
     this.initForm();
@@ -127,18 +128,17 @@ export class ConstraintBulkDialogComponent implements OnInit, OnDestroy {
     this.constraintFields.forEach(field => {
       if (field.disabled) return;
 
-      if (field.type === 'multi-product') {
+      if (field.type === 'multi-product' || field.type === 'zone-limits') {   // ← zone-limits eklendi
         formConfig[field.key] = [null];
       } else if (field.type === 'boolean') {
-        // (c) kararı: boolean default değeriyle başlar, kullanıcı ne yaparsa yapar
         formConfig[field.key] = [(constraintDefaults as any)[field.key]];
       } else {
-        // number/string: NULL başlar — dokunmadıysa gönderme
         formConfig[field.key] = [null, field.validators || []];
       }
     });
 
     formConfig['side_product_search'] = [''];
+    this.singleZoneLimit = { x_limit_mm: 0, max_kg: 0 };
     this.updateForm = this.fb.group(formConfig);
   }
 
@@ -292,6 +292,11 @@ export class ConstraintBulkDialogComponent implements OnInit, OnDestroy {
       this.updateForm.patchValue({ side_product_ids: profile.side_product_ids });
       this.loadSelectedSideProductsForBulk(profile.side_product_ids);
     }
+    
+    const zones = profile.zone_weight_limits ?? [];
+    this.singleZoneLimit = zones.length > 0
+      ? { ...zones[0] }
+      : { x_limit_mm: 0, max_kg: 0 };
   }
 
   private loadSelectedSideProductsForBulk(productIds: string[]): void {
@@ -355,6 +360,15 @@ export class ConstraintBulkDialogComponent implements OnInit, OnDestroy {
     this.selectedSideProducts = this.selectedSideProducts.filter(p => p.id !== product.id);
     this.updateForm.patchValue({
       side_product_ids: this.selectedSideProducts.map(p => p.id),
+    });
+  }
+
+  onZoneLimitChange(): void {
+    const hasValue = this.singleZoneLimit.x_limit_mm > 0 || this.singleZoneLimit.max_kg > 0;
+    this.updateForm.patchValue({
+      // BULK SEMANTİĞİ: boş = "dokunma" → null (payload'a girmez).
+      // [] gönderilirse seçili TÜM şirketlerin zone limiti silinir!
+      zone_weight_limits: hasValue ? [{ ...this.singleZoneLimit }] : null
     });
   }
 

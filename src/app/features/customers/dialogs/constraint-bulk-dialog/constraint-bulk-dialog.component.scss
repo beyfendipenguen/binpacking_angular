@@ -603,5 +603,58 @@ $white: #ffffff;
     .step-indicator .step-divider {
       width: 40px;
     }
+
+    .zone-limits-field .zone-row {
+      flex-direction: column;
+
+      .zone-input {
+        max-width: none;
+      }
+    }
+  }
+}
+.zone-limits-field {
+  grid-column: 1 / -1;                          // ← tam satır kapla (asıl fix)
+  padding: 16px;
+  border-radius: 8px;
+  background-color: rgba($primary-color, 0.03); // boolean-field-wrapper ile aynı dil
+  border: 1px solid rgba($primary-color, 0.1);
+
+  .zone-limits-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 4px;
+
+    .field-label-with-icon {                    // ← template'teki gerçek class
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 500;
+
+      mat-icon {
+        font-size: 20px;
+        width: 20px;
+        height: 20px;
+        color: $primary-color;                  // ← var(--primary) değil
+      }
+    }
+  }
+
+  .field-hint {
+    margin: 0 0 12px 28px;
+    font-size: 0.8rem;
+    color: $text-light;
+    font-style: italic;
+  }
+
+  .zone-row {
+    display: flex;
+    gap: 16px;
+
+    .zone-input {
+      flex: 1;
+      max-width: 280px;                         // iki input tüm satıra yayılmasın
+    }
   }
 }
