@@ -138,6 +138,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
   private dragOffset = new THREE.Vector3();
   private dragSensitivity = 0.9;
   private lastDragPosition = new THREE.Vector3();
+  private dragStartPosition: { x: number; y: number; z: number } | null = null;
 
   // Camera interaction
   private isRotatingCamera = false;
@@ -341,6 +342,9 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
   }
 
   ngOnDestroy(): void {
+    document.removeEventListener('mouseup', this.handleMouseUp.bind(this));
+    document.removeEventListener('touchend', this.handleTouchEnd.bind(this));
+    document.removeEventListener('touchcancel', this.handleTouchEnd.bind(this));
     document.removeEventListener('fullscreenchange', this.handleFullscreenChange.bind(this));
     this.resizeObserver?.disconnect();
     this.destroy$.next();
@@ -860,23 +864,19 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
   private setupMouseEvents(): void {
     const canvas = this.renderer.domElement;
 
-    // Mouse events
     canvas.addEventListener('mousedown', this.handleMouseDown.bind(this), { passive: false });
     canvas.addEventListener('mousemove', this.handleMouseMove.bind(this), { passive: false });
-    canvas.addEventListener('mouseup', this.handleMouseUp.bind(this), { passive: false });
-    canvas.addEventListener('click', this.handleMouseClick.bind(this), { passive: false });
     canvas.addEventListener('wheel', this.handleWheel.bind(this), { passive: false });
-    canvas.addEventListener('contextmenu', (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      return false;
-    }, { passive: false });
+    canvas.addEventListener('contextmenu', (e) => { e.preventDefault(); }, { passive: false });
+    canvas.addEventListener('click', this.handleMouseClick.bind(this), { passive: false });
 
-    // Touch events
-    canvas.addEventListener('touchstart', this.handleTouchStart.bind(this), { passive: false });
-    canvas.addEventListener('touchmove', this.handleTouchMove.bind(this), { passive: false });
-    canvas.addEventListener('touchend', this.handleTouchEnd.bind(this), { passive: false });
-    canvas.addEventListener('touchcancel', this.handleTouchEnd.bind(this), { passive: false });
+    // mouseup ve touchend'i document üzerinde dinle
+    // böylece canvas dışında bırakılsa da yakalanır
+    document.addEventListener('mouseup', this.handleMouseUp.bind(this));
+    document.addEventListener('touchstart', this.handleTouchStart.bind(this), { passive: false });
+    document.addEventListener('touchmove', this.handleTouchMove.bind(this), { passive: false });
+    document.addEventListener('touchend', this.handleTouchEnd.bind(this), { passive: false });
+    document.addEventListener('touchcancel', this.handleTouchEnd.bind(this), { passive: false });
   }
 
   private handleTouchStart(event: TouchEvent): void {
@@ -1355,6 +1355,9 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     this.draggedPackage = packageData;
     packageData.isBeingDragged = true;
 
+    // Başlangıç pozisyonunu kaydet
+    this.dragStartPosition = { x: packageData.x, y: packageData.y, z: packageData.z };
+
     if (packageData.mesh) {
       this.raycaster.setFromCamera(this.mouse, this.camera);
 
@@ -1493,17 +1496,29 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
 
   private completeDragging(): void {
     if (!this.isDragging || !this.draggedPackage) return;
+
+    const pkg = this.draggedPackage;
+    const startPos = this.dragStartPosition;
+
+    // Pozisyon gerçekten değişti mi?
+    const positionChanged = startPos && (
+      pkg.x !== startPos.x ||
+      pkg.y !== startPos.y ||
+      pkg.z !== startPos.z
+    );
+
     this.saveSnapshot();
 
-    if (this.draggedPackage.mesh) {
-      const material = this.draggedPackage.mesh.material as THREE.MeshStandardMaterial;
+    if (pkg.mesh) {
+      const material = pkg.mesh.material as THREE.MeshStandardMaterial;
       material.wireframe = this.wireframeMode;
       material.emissive.setHex(0x000000);
     }
 
-    this.draggedPackage.isBeingDragged = false;
+    pkg.isBeingDragged = false;
     this.isDragging = false;
     this.draggedPackage = null;
+    this.dragStartPosition = null;
     this.renderer.domElement.style.cursor = this.dragModeEnabled ? 'grab' : 'default';
     this.clearHighlights();
 
@@ -1512,10 +1527,12 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     }
 
     this.skipStoreSync = false;
-    this.orderResultChange();
 
-    // ✅ Gravity uygula
-    this.applyGravityToAllPackages();
+    // Sadece gerçekten pozisyon değiştiyse store güncelle
+    if (positionChanged) {
+      this.orderResultChange();
+      this.applyGravityToAllPackages();
+    }
 
     this.renderManager.requestRender();
   }
@@ -2317,6 +2334,10 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
   }
 
   private orderResultChange(): void {
+    console.trace('orderResultChange');
+    console.log('isDragging:', this.isDragging);
+    console.log('skipStoreSync:', this.skipStoreSync);
+    console.log('isLocalOperation:', this.isLocalOperation);
     const processed = this.processedPackagesSignal();
 
     const orderResult: PackagePosition[] = processed.map(pkg => [
@@ -2442,8 +2463,6 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     if (deleted.length > 0) {
       this.packagesStateService.setDeletedPackages(deleted);
     }
-
-    this.orderResultChange();
     this.renderManager.requestRender();
     this.cdr.markForCheck();
     this.isLocalOperation = true;
