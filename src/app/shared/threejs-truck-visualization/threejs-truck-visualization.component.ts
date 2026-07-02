@@ -2334,10 +2334,6 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
   }
 
   private orderResultChange(): void {
-    console.trace('orderResultChange');
-    console.log('isDragging:', this.isDragging);
-    console.log('skipStoreSync:', this.skipStoreSync);
-    console.log('isLocalOperation:', this.isLocalOperation);
     const processed = this.processedPackagesSignal();
 
     const orderResult: PackagePosition[] = processed.map(pkg => [
