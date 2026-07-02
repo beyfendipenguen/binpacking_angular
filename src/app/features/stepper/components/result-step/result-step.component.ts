@@ -80,7 +80,6 @@ export class ResultStepComponent implements OnInit, OnDestroy {
 
   // Signal ekle
   readonly isMultiShipmentSignal = signal(false);
-  isMultiShipmentValue1 = false;
 
   // Computed
   readonly canCompleteShipment = computed(() =>
@@ -137,6 +136,7 @@ export class ResultStepComponent implements OnInit, OnDestroy {
 
 
   ngOnInit(): void {
+      this.isMultiShipmentSignal.set(this.store.selectSignal(selectIsMultiShipment)());
   }
 
   ngOnDestroy(): void {
