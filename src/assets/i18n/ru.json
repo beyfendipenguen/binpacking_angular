@@ -345,7 +345,8 @@
     "NO_COMPANY_RELATION": "Для этого заказа не определена связь с клиентом",
     "CUSTOMER_VIEW": "Ссылка клиента",
     "COPY_CUSTOMER_LINK": "Скопировать ссылку клиента",
-    "LINK_COPIED": "Ссылка скопирована!"
+    "LINK_COPIED": "Ссылка скопирована!",
+    "VIEW_HISTORY": "Показать историю заказа"
   },
   "ORDER_DETAILS": {
     "TITLE": "Детали товара",
@@ -1291,5 +1292,28 @@
       "POS_Y": "Позиция Y",
       "POS_Z": "Позиция Z"
     }
+  },
+  "ORDER_HISTORY": {
+    "TITLE": "История заказа",
+    "MODE_TRANSITIONS": "Ревизии",
+    "MODE_ALL_STEPS": "Все шаги",
+    "MODE_SUMMARY": "Итоговое состояние",
+    "FIRST_STATE": "Начальное",
+    "LAST_STATE": "Итоговое",
+    "PRODUCT": "Товар",
+    "TOTAL": "Итого",
+    "STATUS_ADDED": "Новый",
+    "STATUS_REMOVED": "Удалён",
+    "STATUS_CHANGED": "Изменён",
+    "STATUS_UNCHANGED": "Без изменений",
+    "NO_HISTORY": "Для этого заказа пока нет записей истории",
+    "INITIAL_CONTENT": "Первоначальный состав — {{products}} товаров, всего {{total}} шт.",
+    "NO_CHANGES": "Количество товаров не изменилось",
+    "ADDED_COUNT": "добавлено {{count}} шт.",
+    "REMOVED_COUNT": "удалено {{count}} шт.",
+    "PRICE": "Цена",
+    "SOURCE_INITIAL": "Первая запись",
+    "SOURCE_MANUAL": "Вручную",
+    "SOURCE_BULK_UPLOAD": "Массовая загрузка"
   }
 }

@@ -14,6 +14,7 @@ import { Order } from '../interfaces/order.interface';
 import { OrderService } from '../services/order.service';
 import { HasPermissionDirective } from "@app/core/auth/directives/has-permission.directive";
 import { ColumnDefinition } from '@app/shared/generic-table/interfaces/column-definition.interface';
+import { OrderHistoryDialogComponent } from './dialogs/order-history-dialog/order-history-dialog.component';
 
 @Component({
   selector: 'app-orders',
@@ -52,6 +53,7 @@ export class OrdersComponent implements OnInit {
     'files',
     'customer_view',
     'is_completed',
+    'history',
     'created_by',
     'created_at',
   ];
@@ -124,6 +126,18 @@ export class OrdersComponent implements OnInit {
       }
     },
     {
+      key: 'history',
+      label: this.translate.instant('ORDER_HISTORY.TITLE'),
+      type: 'button',
+      required: false,
+      buttonConfig: {
+        icon: 'history',
+        color: 'primary',
+        tooltip: this.translate.instant('ORDER.VIEW_HISTORY'),
+        class: 'history-button'
+      }
+    },
+    {
       key: 'customer_view',
       label: this.translate.instant('ORDER.CUSTOMER_VIEW'),
       type: 'button',
@@ -152,6 +166,7 @@ export class OrdersComponent implements OnInit {
     'date': this.translate.instant('INVOICE_UPLOAD.ORDER_DATE'),
     'name': this.translate.instant('ORDER.ORDER_NAME'),
     'is_completed': this.translate.instant('COMMON.STATUS'),
+    'history': this.translate.instant('ORDER_HISTORY.TITLE'),
     'created_by': this.translate.instant('COMMON.USER'),
     'created_at': this.translate.instant('ORDER.CREATION_DATE'),
     'customer_view': this.translate.instant('ORDER.CUSTOMER_VIEW'),
@@ -185,6 +200,9 @@ export class OrdersComponent implements OnInit {
       case 'customer_view':
         this.copyCustomerLink(row.id);
         break;
+      case 'history':
+        this.openHistoryDialog(row);
+        break;
     }
   }
 
@@ -193,6 +211,22 @@ export class OrdersComponent implements OnInit {
     navigator.clipboard.writeText(url).then(() => {
       this.copiedOrderId = orderId;
       setTimeout(() => this.copiedOrderId = null, 2000);
+    });
+  }
+
+  /**
+ * Open Order History Dialog
+ */
+  openHistoryDialog(order: Order): void {
+    this.dialog.open(OrderHistoryDialogComponent, {
+      width: '700px',
+      maxWidth: '95vw',
+      maxHeight: '85vh',
+      data: {
+        orderId: order.id,
+        orderName: order.name,
+        companyName: order.company_relation?.target_company.company_name || 'N/A'
+      }
     });
   }
 

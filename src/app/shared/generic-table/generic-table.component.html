@@ -93,12 +93,12 @@
           } @else if (columnTypes[column] === 'status') {
           <div class="status-container">
             @if (row[column] === true) {
-            <span class="status-indicator status-success"></span>
-            <span class="status-text status-success-text">{{ 'COMMON.COMPLETED' | translate }}</span>
+            <span class="status-indicator status-success" [matTooltip]="'COMMON.COMPLETED' | translate"></span>
+            <!-- <span class="status-text status-success-text">{{ 'COMMON.COMPLETED' | translate }}</span> -->
             }
             @else {
-            <span class="status-indicator status-warning"></span>
-            <span class="status-text status-warning-text">{{ 'ORDER.INCOMPLETE_ORDER' | translate }}</span>
+            <span class="status-indicator status-warning" [matTooltip]="'ORDER.INCOMPLETE_ORDER' | translate"></span>
+            <!-- <span class="status-text status-warning-text">{{ 'ORDER.INCOMPLETE_ORDER' | translate }}</span> -->
             }
           </div>
           }

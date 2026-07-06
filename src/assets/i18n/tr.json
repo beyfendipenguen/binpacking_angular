@@ -348,7 +348,8 @@
     "NO_COMPANY_RELATION": "Sipariş için müşteri ilişkisi tanımlı değil",
     "CUSTOMER_VIEW": "Müşteri Linki",
     "COPY_CUSTOMER_LINK": "Müşteri linkini kopyala",
-    "LINK_COPIED": "Link kopyalandı!"
+    "LINK_COPIED": "Link kopyalandı!",
+    "VIEW_HISTORY": "Sipariş geçmişini görüntüle"
   },
   "ORDER_DETAILS": {
     "TITLE": "Ürün Detayları",
@@ -1291,5 +1292,28 @@
       "POS_Y": "Konum Y",
       "POS_Z": "Konum Z"
     }
+  },
+  "ORDER_HISTORY": {
+    "TITLE": "Sipariş Geçmişi",
+    "MODE_TRANSITIONS": "Revizyonlar",
+    "MODE_ALL_STEPS": "Tüm Adımlar",
+    "MODE_SUMMARY": "Son Durum",
+    "FIRST_STATE": "İlk Hal",
+    "LAST_STATE": "Son Hal",
+    "PRODUCT": "Ürün",
+    "TOTAL": "Toplam",
+    "STATUS_ADDED": "Yeni",
+    "STATUS_REMOVED": "Çıkarıldı",
+    "STATUS_CHANGED": "Değişti",
+    "STATUS_UNCHANGED": "Aynı",
+    "NO_HISTORY": "Bu sipariş için henüz geçmiş kaydı yok",
+    "INITIAL_CONTENT": "İlk sipariş içeriği — {{products}} ürün, toplam {{total}} adet",
+    "NO_CHANGES": "Ürün adetleri değişmedi",
+    "ADDED_COUNT": "{{count}} adet eklendi",
+    "REMOVED_COUNT": "{{count}} adet çıkarıldı",
+    "PRICE": "Fiyat",
+    "SOURCE_INITIAL": "İlk Kayıt",
+    "SOURCE_MANUAL": "Manuel",
+    "SOURCE_BULK_UPLOAD": "Toplu Yükleme"
   }
 }

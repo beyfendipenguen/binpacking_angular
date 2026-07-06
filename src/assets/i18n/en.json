@@ -348,7 +348,8 @@
     "NO_COMPANY_RELATION": "No customer relation defined for this order",
     "CUSTOMER_VIEW": "Customer Link",
     "COPY_CUSTOMER_LINK": "Copy customer link",
-    "LINK_COPIED": "Link copied!"
+    "LINK_COPIED": "Link copied!",
+    "VIEW_HISTORY": "View order history"
   },
   "ORDER_DETAILS": {
     "TITLE": "Product Details",
@@ -1291,5 +1292,28 @@
       "POS_Y": "Position Y",
       "POS_Z": "Position Z"
     }
+  },
+  "ORDER_HISTORY": {
+    "TITLE": "Order History",
+    "MODE_TRANSITIONS": "Revisions",
+    "MODE_ALL_STEPS": "All Steps",
+    "MODE_SUMMARY": "Final State",
+    "FIRST_STATE": "Initial",
+    "LAST_STATE": "Final",
+    "PRODUCT": "Product",
+    "TOTAL": "Total",
+    "STATUS_ADDED": "New",
+    "STATUS_REMOVED": "Removed",
+    "STATUS_CHANGED": "Changed",
+    "STATUS_UNCHANGED": "Same",
+    "NO_HISTORY": "No history records for this order yet",
+    "INITIAL_CONTENT": "Initial order content — {{products}} products, {{total}} pcs total",
+    "NO_CHANGES": "Product quantities unchanged",
+    "ADDED_COUNT": "{{count}} pcs added",
+    "REMOVED_COUNT": "{{count}} pcs removed",
+    "PRICE": "Price",
+    "SOURCE_INITIAL": "Initial",
+    "SOURCE_MANUAL": "Manual",
+    "SOURCE_BULK_UPLOAD": "Bulk Upload"
   }
 }

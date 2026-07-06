@@ -1,0 +1,385 @@
+// features/orders/dialogs/order-history-dialog/order-history-dialog.component.scss
+.history-dialog {
+  display: flex;
+  flex-direction: column;
+  min-width: 480px;
+  max-width: 720px;
+
+  .dialog-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 24px 8px;
+
+    .header-titles {
+      display: flex;
+      flex-direction: column;
+
+      h2 {
+        margin: 0;
+        padding: 0;
+      }
+
+      .header-subtitle {
+        font-size: 12px;
+        color: rgba(0, 0, 0, 0.55);
+      }
+    }
+
+    .view-toggle {
+      margin-left: auto;
+      font-size: 12px;
+    }
+
+    .close-button {
+      margin-left: 4px;
+    }
+  }
+}
+
+.loading-container {
+  display: flex;
+  justify-content: center;
+  padding: 48px 0;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 40px 0;
+  color: rgba(0, 0, 0, 0.45);
+
+  mat-icon {
+    font-size: 40px;
+    width: 40px;
+    height: 40px;
+  }
+}
+
+// ---- Timeline ----
+.timeline {
+  position: relative;
+  padding: 8px 0 8px 8px;
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: 13px;
+    top: 12px;
+    bottom: 12px;
+    width: 2px;
+    background: #e0e4e8;
+  }
+}
+
+.timeline-item {
+  position: relative;
+  display: flex;
+  gap: 14px;
+  margin-bottom: 14px;
+
+  .timeline-marker {
+    position: relative;
+    z-index: 1;
+    flex-shrink: 0;
+    width: 12px;
+    height: 12px;
+    margin-top: 14px;
+    border-radius: 50%;
+    background: #fff;
+    border: 3px solid #2c5482;
+
+    &.initial {
+      border-color: #7a8792;
+    }
+  }
+}
+
+.revision-card {
+  flex: 1;
+  border: 1px solid #e0e4e8;
+  border-radius: 8px;
+  padding: 10px 14px;
+  background: #fff;
+
+  .card-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+
+    .card-title {
+      font-weight: 600;
+      font-size: 14px;
+      color: #2c3e50;
+    }
+
+    .spacer {
+      flex: 1;
+    }
+
+    .card-meta {
+      font-size: 11px;
+      color: rgba(0, 0, 0, 0.5);
+      white-space: nowrap;
+    }
+  }
+}
+
+.source-chip {
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+
+  &.source-initial {
+    background: #eceff1;
+    color: #546e7a;
+  }
+
+  &.source-manual {
+    background: #e3f0fb;
+    color: #2c5482;
+  }
+
+  &.source-bulk_upload {
+    background: #ede7f6;
+    color: #5e35b1;
+  }
+}
+
+.initial-summary,
+.no-change {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: rgba(0, 0, 0, 0.6);
+
+  mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+  }
+}
+
+.no-change mat-icon {
+  color: #66bb6a;
+}
+
+// ---- Diff satırları ----
+.diff-lists {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.diff-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 13px;
+
+  mat-icon {
+    font-size: 17px;
+    width: 17px;
+    height: 17px;
+    flex-shrink: 0;
+  }
+
+  .diff-code {
+    font-family: 'Roboto Mono', monospace;
+    font-size: 12.5px;
+    font-weight: 500;
+  }
+
+  .diff-detail {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+  }
+
+  .count-change,
+  .price-change {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+
+    .arrow {
+      font-size: 13px;
+      width: 13px;
+      height: 13px;
+    }
+  }
+
+  &.added {
+    background: #f0f9f0;
+    mat-icon { color: #2e7d32; }
+    .diff-detail { color: #2e7d32; }
+  }
+
+  &.removed {
+    background: #fdf1f1;
+    mat-icon { color: #c62828; }
+    .diff-detail { color: #c62828; }
+    .diff-code { text-decoration: line-through; opacity: 0.75; }
+  }
+
+  &.changed {
+    background: #fdf8ee;
+    mat-icon { color: #ef6c00; }
+    .diff-detail { color: #b26500; }
+  }
+}
+
+// ---- Son Durum (summary) ----
+.summary-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 14px;
+  margin-bottom: 12px;
+  background: #f7f9fb;
+  border: 1px solid #e0e4e8;
+  border-radius: 8px;
+
+  .summary-side {
+    display: flex;
+    flex-direction: column;
+
+    &.right {
+      margin-left: auto;
+      text-align: right;
+    }
+
+    .summary-label {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      color: rgba(0, 0, 0, 0.45);
+    }
+
+    .summary-name {
+      font-weight: 600;
+      font-size: 14px;
+      color: #2c3e50;
+    }
+
+    .summary-date {
+      font-size: 11px;
+      color: rgba(0, 0, 0, 0.5);
+    }
+  }
+
+  .summary-arrow {
+    color: #2c5482;
+  }
+}
+
+.summary-no-change {
+  margin-bottom: 10px;
+}
+
+.summary-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+
+  th,
+  td {
+    padding: 7px 10px;
+    border-bottom: 1px solid #edf0f3;
+    text-align: left;
+  }
+
+  th {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    color: rgba(0, 0, 0, 0.5);
+    font-weight: 500;
+  }
+
+  .col-code {
+    font-family: 'Roboto Mono', monospace;
+    font-size: 12.5px;
+  }
+
+  .col-count {
+    text-align: right;
+    width: 90px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .col-status {
+    width: 110px;
+    text-align: right;
+  }
+
+  .status-badge {
+    font-size: 10.5px;
+    padding: 2px 8px;
+    border-radius: 10px;
+  }
+
+  tr.status-added {
+    background: #f0f9f0;
+    .status-badge { background: #dcedc8; color: #2e7d32; }
+  }
+
+  tr.status-removed {
+    background: #fdf1f1;
+    .col-code { text-decoration: line-through; opacity: 0.7; }
+    .status-badge { background: #ffcdd2; color: #c62828; }
+  }
+
+  tr.status-changed {
+    background: #fdf8ee;
+    .status-badge { background: #ffe0b2; color: #b26500; }
+    .col-count { font-weight: 600; }
+  }
+
+  tr.status-unchanged {
+    .status-badge { background: #eceff1; color: #78909c; }
+  }
+
+  tfoot td {
+    border-top: 2px solid #d5dae0;
+    border-bottom: none;
+    font-weight: 600;
+    color: #2c3e50;
+  }
+}
+
+// ---- Mobil ----
+@media (max-width: 600px) {
+  .history-dialog {
+    min-width: unset;
+
+    .dialog-header {
+      flex-wrap: wrap;
+
+      .view-toggle {
+        order: 3;
+        width: 100%;
+        margin: 8px 0 0;
+      }
+    }
+  }
+
+  .diff-row {
+    flex-wrap: wrap;
+
+    .diff-detail {
+      margin-left: 25px;
+      width: 100%;
+    }
+  }
+}

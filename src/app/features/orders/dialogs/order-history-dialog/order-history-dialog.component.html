@@ -1,0 +1,206 @@
+<!-- features/orders/dialogs/order-history-dialog/order-history-dialog.component.html -->
+<div class="history-dialog">
+  <div class="dialog-header">
+    <div class="header-titles">
+      <h2 mat-dialog-title>{{ 'ORDER_HISTORY.TITLE' | translate }}</h2>
+      <span class="header-subtitle">
+        {{ data.orderName }} · {{ data.companyName }}
+      </span>
+    </div>
+
+    <mat-button-toggle-group
+      class="view-toggle"
+      [value]="viewMode"
+      (change)="onViewModeChange($event.value)"
+      hideSingleSelectionIndicator>
+      <mat-button-toggle value="transitions">
+        {{ 'ORDER_HISTORY.MODE_TRANSITIONS' | translate }}
+      </mat-button-toggle>
+      <mat-button-toggle value="all">
+        {{ 'ORDER_HISTORY.MODE_ALL_STEPS' | translate }}
+      </mat-button-toggle>
+      <mat-button-toggle value="summary">
+        {{ 'ORDER_HISTORY.MODE_SUMMARY' | translate }}
+      </mat-button-toggle>
+    </mat-button-toggle-group>
+
+    <button mat-icon-button (click)="close()" class="close-button">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <mat-dialog-content>
+    @if (isLoading) {
+    <div class="loading-container">
+      <mat-spinner diameter="42"></mat-spinner>
+    </div>
+    }
+    <!-- ============ SON DURUM: ilk hal ↔ son hal ============ -->
+    @else if (viewMode === 'summary') {
+    @if (!summaryHasData) {
+    <div class="empty-state">
+      <mat-icon>history</mat-icon>
+      <p>{{ 'ORDER_HISTORY.NO_HISTORY' | translate }}</p>
+    </div>
+    } @else {
+    <div class="summary-header">
+      <span class="summary-side">
+        <span class="summary-label">{{ 'ORDER_HISTORY.FIRST_STATE' | translate }}</span>
+        <span class="summary-name">{{ summary?.first?.order_name }}</span>
+        <span class="summary-date">{{ summary?.first?.created_at | date: 'dd/MM/yyyy HH:mm' }}</span>
+      </span>
+      <mat-icon class="summary-arrow">east</mat-icon>
+      <span class="summary-side right">
+        <span class="summary-label">{{ 'ORDER_HISTORY.LAST_STATE' | translate }}</span>
+        <span class="summary-name">{{ summary?.last?.order_name }}</span>
+        <span class="summary-date">{{ summary?.last?.created_at | date: 'dd/MM/yyyy HH:mm' }}</span>
+      </span>
+    </div>
+
+    @if (!summaryHasChanges) {
+    <div class="no-change summary-no-change">
+      <mat-icon>check_circle_outline</mat-icon>
+      {{ 'ORDER_HISTORY.NO_CHANGES' | translate }}
+    </div>
+    }
+
+    <table class="summary-table">
+      <thead>
+        <tr>
+          <th class="col-code">{{ 'ORDER_HISTORY.PRODUCT' | translate }}</th>
+          <th class="col-count">{{ 'ORDER_HISTORY.FIRST_STATE' | translate }}</th>
+          <th class="col-count">{{ 'ORDER_HISTORY.LAST_STATE' | translate }}</th>
+          <th class="col-status">{{ 'COMMON.STATUS' | translate }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (row of summary?.rows; track row.code) {
+        <tr [class]="'status-' + row.status">
+          <td class="col-code">{{ row.code }}</td>
+          <td class="col-count">
+            @if (row.status === 'added') { — } @else { {{ row.first_count }} }
+          </td>
+          <td class="col-count">
+            @if (row.status === 'removed') { 0 } @else { {{ row.last_count }} }
+          </td>
+          <td class="col-status">
+            <span class="status-badge">
+              {{ 'ORDER_HISTORY.STATUS_' + row.status.toUpperCase() | translate }}
+            </span>
+          </td>
+        </tr>
+        }
+      </tbody>
+      @if (summary?.totals; as totals) {
+      <tfoot>
+        <tr>
+          <td class="col-code">{{ 'ORDER_HISTORY.TOTAL' | translate }}</td>
+          <td class="col-count">{{ totals.first_total }}</td>
+          <td class="col-count">{{ totals.last_total }}</td>
+          <td class="col-status"></td>
+        </tr>
+      </tfoot>
+      }
+    </table>
+    }
+    }
+    <!-- ============ REVİZYONLAR / TÜM ADIMLAR ============ -->
+    @else if (cards.length === 0) {
+    <div class="empty-state">
+      <mat-icon>history</mat-icon>
+      <p>{{ 'ORDER_HISTORY.NO_HISTORY' | translate }}</p>
+    </div>
+    } @else {
+    <div class="timeline">
+      @for (card of cards; track card.revision.id) {
+      <div class="timeline-item">
+        <div class="timeline-marker" [class.initial]="card.isInitial"></div>
+
+        <div class="revision-card">
+          <div class="card-header">
+            <span class="card-title">{{ card.title }}</span>
+
+            <span class="source-chip" [class]="'source-' + card.revision.source">
+              {{ 'ORDER_HISTORY.SOURCE_' + card.revision.source.toUpperCase() | translate }}
+            </span>
+
+            <span class="spacer"></span>
+
+            <span class="card-meta">
+              @if (card.revision.created_by) {
+              {{ card.revision.created_by }} ·
+              }
+              {{ card.revision.created_at | date: 'dd/MM/yyyy HH:mm' }}
+            </span>
+          </div>
+
+          <!-- İlk kayıt: fark yok, özet göster -->
+          @if (card.isInitial) {
+          <div class="initial-summary">
+            <mat-icon>playlist_add</mat-icon>
+            {{ 'ORDER_HISTORY.INITIAL_CONTENT' | translate:
+               { products: card.revision.snapshot.length, total: totalCount(card) } }}
+          </div>
+          }
+          <!-- Fark boş: içerik değişmedi -->
+          @else if (card.isEmpty) {
+          <div class="no-change">
+            <mat-icon>check_circle_outline</mat-icon>
+            {{ 'ORDER_HISTORY.NO_CHANGES' | translate }}
+          </div>
+          }
+          <!-- Fark var: added / removed / changed -->
+          @else {
+          <div class="diff-lists">
+            @for (item of card.diff?.added; track item.code) {
+            <div class="diff-row added">
+              <mat-icon>add_circle</mat-icon>
+              <span class="diff-code">{{ item.code }}</span>
+              <span class="diff-detail">
+                {{ 'ORDER_HISTORY.ADDED_COUNT' | translate: { count: item.count } }}
+              </span>
+            </div>
+            }
+
+            @for (item of card.diff?.removed; track item.code) {
+            <div class="diff-row removed">
+              <mat-icon>remove_circle</mat-icon>
+              <span class="diff-code">{{ item.code }}</span>
+              <span class="diff-detail">
+                {{ 'ORDER_HISTORY.REMOVED_COUNT' | translate: { count: item.count } }}
+              </span>
+            </div>
+            }
+
+            @for (item of card.diff?.changed; track item.code) {
+            <div class="diff-row changed">
+              <mat-icon>sync_alt</mat-icon>
+              <span class="diff-code">{{ item.code }}</span>
+              <span class="diff-detail">
+                @if (item.old_count !== undefined) {
+                <span class="count-change">
+                  {{ item.old_count }} <mat-icon class="arrow">east</mat-icon> {{ item.new_count }}
+                </span>
+                }
+                @if (item.old_price !== undefined) {
+                <span class="price-change">
+                  ({{ 'ORDER_HISTORY.PRICE' | translate }}:
+                  {{ item.old_price }} <mat-icon class="arrow">east</mat-icon> {{ item.new_price }})
+                </span>
+                }
+              </span>
+            </div>
+            }
+          </div>
+          }
+        </div>
+      </div>
+      }
+    </div>
+    }
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button (click)="close()">{{ 'COMMON.CLOSE' | translate }}</button>
+  </mat-dialog-actions>
+</div>
