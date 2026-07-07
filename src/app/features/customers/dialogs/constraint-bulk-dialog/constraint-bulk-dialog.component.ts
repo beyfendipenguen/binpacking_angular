@@ -1,5 +1,6 @@
 import { Component, OnInit, ViewChild, inject, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { getApiErrorMessage } from '@app/core/utils/api-error.util';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormControl } from '@angular/forms';
 import { FormsModule } from '@angular/forms';
 import { MatDialogRef, MatDialogModule, MatDialog } from '@angular/material/dialog';
@@ -423,8 +424,9 @@ export class ConstraintBulkDialogComponent implements OnInit, OnDestroy {
         this.dialogRef.close(true);
       },
       error: (error) => {
-        const errorMsg = error.error?.error || error.error?.message ||
-          this.translate.instant('CONSTRAINT.BULK.UPDATE_ERROR');
+        const errorMsg = getApiErrorMessage(
+          error, this.translate.instant('CONSTRAINT.BULK.UPDATE_ERROR')
+        );
         this.toastService.error(errorMsg);
         this.isSaving = false;
       }

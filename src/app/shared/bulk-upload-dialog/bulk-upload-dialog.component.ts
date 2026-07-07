@@ -1,5 +1,6 @@
 import { Component, inject, OnInit, Inject } from '@angular/core';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { getApiErrorMessage } from '@app/core/utils/api-error.util';
 import { CommonModule } from '@angular/common';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef, MatDialog } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
@@ -742,7 +743,7 @@ export class GenericBulkUploadDialogComponent implements OnInit {
       error: (error) => {
         this.isUploading = false;
         this.uploadState = 'idle';
-        this.toastService.error(error.error?.error || 'Yükleme hatası oluştu.');
+        this.toastService.error(getApiErrorMessage(error, 'Yükleme hatası oluştu.'));
       }
     });
   }

@@ -1,5 +1,6 @@
 import { Component, Inject, OnInit, inject, OnDestroy } from '@angular/core';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { getApiErrorMessage, getApiFieldError } from '@app/core/utils/api-error.util';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef, MatDialog, MatDialogModule } from '@angular/material/dialog';
@@ -472,11 +473,11 @@ export class CustomerDialogComponent implements OnInit, OnDestroy {
         this.dialogRef.close(result);
       },
       error: (error) => {
-        if (error.error?.non_field_errors) {
-          this.toastService.error(error.error.non_field_errors[0]);
-        } else {
-          this.toastService.error(this.translate.instant('CUSTOMER_MESSAGES.OPERATION_ERROR'));
-        }
+        // Önce field bazlı hata (merkezi errors[] veya eski DRF dict),
+        // yoksa genel backend mesajı, o da yoksa çeviri fallback'i
+        const msg = getApiFieldError(error, 'non_field_errors')
+          || getApiErrorMessage(error, this.translate.instant('CUSTOMER_MESSAGES.OPERATION_ERROR'));
+        this.toastService.error(msg);
         this.isSaving = false;
       }
     });

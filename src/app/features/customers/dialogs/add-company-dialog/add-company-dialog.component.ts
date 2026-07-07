@@ -1,5 +1,6 @@
 import { Component, OnInit, inject, Inject, OnDestroy } from '@angular/core';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { getApiErrorMessage, getApiFieldError } from '@app/core/utils/api-error.util';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef, MatDialogModule } from '@angular/material/dialog';
@@ -388,18 +389,20 @@ export class AddCompanyDialogComponent implements OnInit, OnDestroy {
    * Handle API errors
    */
   private handleError(error: any): void {
-    if (error.error?.company_name) {
-      this.toastService.error(error.error.company_name[0]);
-    } else if (error.error?.country) {
-      this.toastService.error(error.error.country[0]);
-    } else if (error.error?.logo) {
-      this.toastService.error(error.error.logo[0]);
-    } else {
-      const message = this.data.mode === 'create'
-        ? this.translate.instant('CUSTOMER_MESSAGES.COMPANY_ADD_ERROR')
-        : this.translate.instant('CUSTOMER_MESSAGES.COMPANY_UPDATE_ERROR');
-      this.toastService.error(message);
+    // Field bazlı hata (merkezi errors[] veya eski DRF dict), yoksa genel mesaj
+    const fieldMsg = getApiFieldError(error, 'company_name')
+      || getApiFieldError(error, 'country')
+      || getApiFieldError(error, 'logo');
+
+    if (fieldMsg) {
+      this.toastService.error(fieldMsg);
+      return;
     }
+
+    const fallback = this.data.mode === 'create'
+      ? this.translate.instant('CUSTOMER_MESSAGES.COMPANY_ADD_ERROR')
+      : this.translate.instant('CUSTOMER_MESSAGES.COMPANY_UPDATE_ERROR');
+    this.toastService.error(getApiErrorMessage(error, fallback));
   }
 
   /**

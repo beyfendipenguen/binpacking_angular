@@ -32,6 +32,7 @@ import { StepperResultActions } from '@app/store/stepper/actions/stepper-result.
 import { ReportFile, ResultStepService } from './result-step.service';
 import { PackagePosition } from '@app/features/interfaces/order-result.interface';
 import { DisableAuthDirective } from '@app/core/auth/directives/disable-auth.directive';
+import { getApiErrorMessage } from '@app/core/utils/api-error.util';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { FormsModule } from '@angular/forms';
 
@@ -399,13 +400,20 @@ export class ResultStepComponent implements OnInit, OnDestroy {
   private getErrorMessage(error: any): string {
     if (error?.status === 0) {
       return this.translate.instant('RESULT_STEP.CONNECTION_ERROR');
-    } else if (error?.status >= 400 && error?.status < 500) {
-      return this.translate.instant('RESULT_STEP.REQUEST_ERROR');
-    } else if (error?.status >= 500) {
-      return this.translate.instant('RESULT_STEP.SERVER_ERROR');
-    } else {
-      return error?.message || this.translate.instant('RESULT_STEP.UNEXPECTED_ERROR');
     }
+
+    // Backend'in dil destekli mesajı varsa onu göster (merkezi hata şekli)
+    const backendMsg = getApiErrorMessage(error);
+    if (backendMsg) {
+      return backendMsg;
+    }
+
+    if (error?.status >= 500) {
+      return this.translate.instant('RESULT_STEP.SERVER_ERROR');
+    } else if (error?.status >= 400) {
+      return this.translate.instant('RESULT_STEP.REQUEST_ERROR');
+    }
+    return this.translate.instant('RESULT_STEP.UNEXPECTED_ERROR');
   }
 
   /**

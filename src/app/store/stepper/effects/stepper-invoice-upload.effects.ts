@@ -18,6 +18,7 @@ import {
 } from '../../index';
 
 import { OrderService } from '@features/services/order.service';
+import { getApiErrorMessage } from '@app/core/utils/api-error.util';
 import { RepositoryService } from '@features/stepper/services/repository.service';
 import { FileUploadManager } from '@features/stepper/components/invoice-upload/managers/file-upload.manager';
 import { ConstraintProfileService } from '@app/features/services/constraint-profile.service';
@@ -104,7 +105,7 @@ export class StepperInvoiceUploadEffects {
             }),
             StepperInvoiceUploadActions.uploadInvoiceProcessFileSuccess(),
           )),
-          catchError((error) => of(StepperUiActions.setGlobalError({ error: { message: error.error.error } })))
+          catchError((error) => of(StepperUiActions.setGlobalError({ error: { message: getApiErrorMessage(error) } })))
         )
       )
     )
