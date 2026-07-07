@@ -126,6 +126,14 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
   private permissions = this.store.selectSignal(selectUserPermissions);
 
   unitsControl = new FormControl<number | null>(null);
+
+  // Sanica (Uyum ERP export'u): aktarılacak belge no. Dosya seçilmeden ÖNCE
+  // girilmeli; boş bırakılırsa backend ilk onaylı belgeyi alır.
+  docNumberControl = new FormControl<string>('');
+  isSanicaSchema = computed(() =>
+    (this.userSignal()?.company?.report_profile?.template_schema || 'default') === 'sanica'
+  );
+
   private destroy$ = new Subject<void>();
 
   public orderDetails$ = this.store.select(selectOrderDetails);
@@ -330,6 +338,9 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
   }
 
   uploadFile(): void {
+    this.fileUploadManager.setDocNumber(
+      this.isSanicaSchema() ? this.docNumberControl.value : null
+    );
     this.store.dispatch(StepperInvoiceUploadActions.uploadInvoiceProcessFile());
     this.resetForm();
 

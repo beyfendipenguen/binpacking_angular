@@ -15,7 +15,11 @@ export class ToastService {
   }
 
   error(message: string, title: string = this.translate.instant('COMMON.ERROR')): void {
-    this.toastr.error(message, title);
+    this.toastr.error(message, title,{
+      disableTimeOut: true,
+      closeButton: true,
+      tapToDismiss: false
+    });
   }
 
   warning(message: string, title: string = this.translate.instant('COMMON.WARNING')): void {

@@ -48,6 +48,22 @@
 
         <!-- Excel Upload Container - ID EKLE 👇 -->
         <div id="tour-excel-upload" class="file-upload-container">
+          <!-- Sanica (Uyum ERP): aktarılacak belge no — dosya seçilmeden önce girilmeli -->
+          @if (isSanicaSchema()) {
+          <div class="doc-number-wrapper">
+            <div class="doc-number-field">
+              <mat-icon>tag</mat-icon>
+              <input type="text" [formControl]="docNumberControl"
+                [placeholder]="'INVOICE_UPLOAD.DOC_NUMBER_PLACEHOLDER' | translate" />
+              @if (docNumberControl.value) {
+              <button type="button" class="doc-number-clear" (click)="docNumberControl.setValue('')" tabindex="-1">
+                <mat-icon>close</mat-icon>
+              </button>
+              }
+            </div>
+            <span class="doc-number-hint">{{ 'INVOICE_UPLOAD.DOC_NUMBER_HINT' | translate }}</span>
+          </div>
+          }
           <button mat-raised-button class="action-button secondary" (click)="fileInput.click()"
             [appDisableAuth]="['orders.add_order']">
             <mat-icon>file_upload</mat-icon>

@@ -29,6 +29,14 @@ export class FileUploadManager {
     tempFile: null
   };
 
+  // Çok siparişli ERP export'larında aktarılacak belge no (örn. Sanica/Uyum).
+  // Component upload'dan önce set eder; dosyayla birlikte backend'e gider.
+  private docNumber: string | null = null;
+
+  setDocNumber(value: string | null): void {
+    this.docNumber = value?.trim() || null;
+  }
+
   // File validation
   fileValidator = (control: AbstractControl): ValidationErrors | null => {
     const file = control.value as File;
@@ -86,7 +94,7 @@ export class FileUploadManager {
 
     this.toastService.info(this.translate.instant(INVOICE_UPLOAD_CONSTANTS.MESSAGES.INFO.FILE_UPLOADING));
 
-    return this.fileService.processFile(this.fileState.file).pipe(
+    return this.fileService.processFile(this.fileState.file, this.docNumber).pipe(
       tap(() => {
         this.toastService.info(this.translate.instant(INVOICE_UPLOAD_CONSTANTS.MESSAGES.INFO.FILE_PROCESSING) );
       }),
@@ -117,6 +125,7 @@ export class FileUploadManager {
   resetAllFiles(): void {
     this.fileState.file = null;
     this.fileState.tempFile = null;
+    this.docNumber = null;
   }
 
   getCurrentFile(): File | null {

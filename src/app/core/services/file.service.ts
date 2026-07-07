@@ -41,10 +41,17 @@ export class FileService extends GenericCrudService<Document> {
   }
 
   processFile(
-    file: File
+    file: File,
+    docNumber?: string | null
   ): Observable<{ message: string; order: Order; orderDetail: OrderDetailRead[] }> {
     const formData = new FormData();
     formData.append('file', file);
+    // Çok siparişli ERP export'larında (örn. Sanica/Uyum) hangi belgenin
+    // aktarılacağı. Boş gönderilmez; backend boşu ilk-onaylı fallback'iyle karşılar.
+    const trimmed = docNumber?.trim();
+    if (trimmed) {
+      formData.append('doc_number', trimmed);
+    }
 
     return this.http.post<{
       message: string;

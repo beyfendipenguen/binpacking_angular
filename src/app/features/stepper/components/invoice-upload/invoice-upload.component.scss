@@ -167,6 +167,19 @@
     border-radius: 24px;
   }
 
+  .doc-number-wrapper {
+    margin-bottom: 8px;
+
+    .doc-number-field {
+      height: 40px;
+      border-radius: 24px;
+    }
+
+    .doc-number-hint {
+      font-size: 11px;
+    }
+  }
+
   .divider {
     margin: 12px 0;
   }
@@ -430,6 +443,94 @@
   width: 100%;
   display: flex;
   flex-direction: column;
+}
+
+/* Sanica (Uyum ERP) — Belge No alanı */
+.doc-number-wrapper {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 12px;
+
+  .doc-number-field {
+    width: 100%;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 8px 0 16px;
+    background-color: #ffffff;
+    border: 1px solid rgba(0, 106, 106, 0.35);
+    border-radius: 30px;
+    box-sizing: border-box;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+
+    &:focus-within {
+      border-color: #006A6A;
+      box-shadow: 0 0 0 3px rgba(0, 106, 106, 0.12);
+    }
+
+    > mat-icon {
+      color: #006A6A;
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
+      flex-shrink: 0;
+    }
+
+    input {
+      flex: 1;
+      min-width: 0;
+      height: 100%;
+      border: none;
+      outline: none;
+      background: transparent;
+      font-size: 14px;
+      font-family: inherit;
+      color: #333333;
+
+      &::placeholder {
+        color: #999999;
+      }
+    }
+
+    .doc-number-clear {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      padding: 0;
+      border: none;
+      border-radius: 50%;
+      background: transparent;
+      cursor: pointer;
+      color: #999999;
+      flex-shrink: 0;
+      transition: background-color 0.2s ease, color 0.2s ease;
+
+      &:hover {
+        background-color: rgba(0, 106, 106, 0.08);
+        color: #006A6A;
+      }
+
+      mat-icon {
+        font-size: 18px;
+        width: 18px;
+        height: 18px;
+      }
+    }
+  }
+
+  .doc-number-hint {
+    font-size: 12px;
+    color: #666666;
+    line-height: 1.4;
+    padding: 0 12px;
+    text-align: center;
+  }
 }
 
 .divider {
