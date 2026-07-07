@@ -681,6 +681,7 @@
     "AUTO_SAVE_MESSAGE": "Changes will be automatically saved when you click the file",
     "COMPLETE_SHIPMENT": "Complete Shipment",
     "OPTIMIZATION_ERROR": "An error occurred during optimization calculation:",
+    "CALCULATION_FAILED": "Calculation could not be completed. Please try again.",
     "PACKAGING_SUCCESS": "Packaging and report created successfully",
     "FILE_NOT_FOUND": "File not found",
     "FILE_NOT_DOWNLOAD": "File could not be downloaded",

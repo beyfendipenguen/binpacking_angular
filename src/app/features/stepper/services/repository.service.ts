@@ -9,7 +9,7 @@ import { Pallet } from "@features/interfaces/pallet.interface";
 import { Truck } from "@features/interfaces/truck.interface";
 import { AppState, selectOrderId, selectOrderResultId } from "@app/store";
 import { Store } from "@ngrx/store";
-import { Observable, map, catchError } from "rxjs";
+import { Observable, map, catchError, timer, switchMap, filter, take, timeout } from "rxjs";
 import { OrderDetailChanges } from "../components/invoice-upload/models/invoice-upload-interfaces";
 import { FileResponse } from "../interfaces/file-response.interface";
 import { PackageReadDto } from "@app/features/interfaces/package.interface";
@@ -24,6 +24,14 @@ export interface CalculatePackageResponse {
   pending_order_details: OrderDetailRead[];
   reduced_from_params: OrderDetailRead[];
   low_fill_rate_order_details: OrderDetailRead[];
+}
+
+export interface CalculationStatus {
+  progress: number;
+  ready: boolean;
+  success: boolean;
+  updated_at: string;
+  error?: string;
 }
 
 @Injectable({
@@ -183,10 +191,38 @@ export class RepositoryService {
     return this.http.post(`${this.api.getApiUrl()}/logistics/create-report/${order_id}/?lang=${lang}`, {});
   }
 
+  /**
+   * Bin packing hesabını kuyruğa atar. Backend 202 + task_id döner;
+   * sonuç için pollCalculationStatus ile beklenmeli.
+   */
   calculatePacking(multiShipment: boolean = false, order_id: string = this.getOrderId()) {
-    return this.http.post<any>(
+    return this.http.post<{ status: string; task_id: string; order_id: string }>(
       `${this.api.getApiUrl()}/logistics/calculate-bin-packing/${order_id}/`,
       { multi_shipment: multiShipment }
+    );
+  }
+
+  getCalculationStatus(order_id: string = this.getOrderId()): Observable<CalculationStatus> {
+    return this.http.get<CalculationStatus>(
+      `${this.api.getApiUrl()}/logistics/calculate-bin-packing-status/${order_id}/`
+    );
+  }
+
+  /**
+   * ready=true olana kadar status endpoint'ini poll eder.
+   * Backend'in soft_time_limit'i 10 dk — 11 dk'da timeout ile vazgeçilir
+   * (task crash olur da progress hiç 100 olmazsa sonsuz beklemeyelim).
+   */
+  pollCalculationStatus(
+    order_id: string = this.getOrderId(),
+    intervalMs: number = 2500,
+    timeoutMs: number = 11 * 60 * 1000
+  ): Observable<CalculationStatus> {
+    return timer(0, intervalMs).pipe(
+      switchMap(() => this.getCalculationStatus(order_id)),
+      filter(status => status.ready),
+      take(1),
+      timeout(timeoutMs)
     );
   }
 

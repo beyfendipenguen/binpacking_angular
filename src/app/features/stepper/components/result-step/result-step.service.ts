@@ -6,6 +6,7 @@ import { map, switchMap, take } from 'rxjs/operators';
 import { AppState, selectActiveShipmentIndex, selectIsMultiShipment, selectOrderId, selectOrderResult, selectPackages, selectShipments, selectStep3IsDirty, StepperResultActions } from '@app/store';
 import { ToastService } from '@core/services/toast.service';
 import { RepositoryService } from '@features/stepper/services/repository.service';
+import { OrderResultService } from '@app/features/services/order-result.service';
 import { PackageData, PackagePosition } from '@app/features/interfaces/order-result.interface';
 
 /**
@@ -40,10 +41,14 @@ export class ResultStepService {
   private translate = inject(TranslateService);
   private readonly store = inject(Store<AppState>);
   private readonly repositoryService = inject(RepositoryService);
+  private readonly orderResultService = inject(OrderResultService);
   private readonly toastService = inject(ToastService);
   private readonly orderIdSignal = this.store.selectSignal(selectOrderId)
   /**
-   * Calculate binpacking and generate report
+   * Calculate binpacking and generate report — asenkron akış:
+   * 1. POST calculate-bin-packing → 202, hesap Celery'de başlar
+   * 2. Status endpoint'i poll edilir (ready=true olana kadar)
+   * 3. OrderResult çekilir, rapor üretilir
    */
   calculateAndGenerateReport(multiShipment: boolean = false): Observable<{
     orderResultId: string;
@@ -52,17 +57,35 @@ export class ResultStepService {
     shipments?: PackagePosition[][];
     isMultiShipment: boolean;
   }> {
-    return this.repositoryService.calculatePacking(multiShipment).pipe(
-      switchMap(packingResponse => {
-        const orderResultId = packingResponse.order_result.id;
-        const raw = packingResponse.order_result.result;
+    const orderId = this.orderIdSignal();
+
+    return this.repositoryService.calculatePacking(multiShipment, orderId).pipe(
+      // Hesap bitene kadar bekle
+      switchMap(() => this.repositoryService.pollCalculationStatus(orderId)),
+      switchMap(status => {
+        if (!status.success) {
+          throw new Error(
+            status.error || this.translate.instant('RESULT_STEP.CALCULATION_FAILED')
+          );
+        }
+        // Hesap bitti — sonucu çek
+        return this.orderResultService.getByOrderId(orderId);
+      }),
+      switchMap(results => {
+        const orderResultRecord: any = results[0];
+        if (!orderResultRecord) {
+          throw new Error(this.translate.instant('RESULT_STEP.CALCULATION_FAILED'));
+        }
+
+        const orderResultId = orderResultRecord.id;
+        const raw = orderResultRecord.result;
 
         // Multi shipment ise shipments array gelir
         const shipments: PackagePosition[][] = raw.shipments.map((s: any) => s.result);
         const isMultiShipment = shipments.length > 1;
         const orderResult: PackagePosition[] = shipments[0] ?? [];
 
-        return this.repositoryService.createReport(this.orderIdSignal()).pipe(
+        return this.repositoryService.createReport(orderId).pipe(
           map(reportResponse => ({
             orderResultId,
             orderResult,

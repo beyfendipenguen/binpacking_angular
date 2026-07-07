@@ -681,6 +681,7 @@
     "AUTO_SAVE_MESSAGE": "Dosyaya tıkladığınızda değişiklikler otomatik kaydedilecek",
     "COMPLETE_SHIPMENT": "Sevkiyatı Tamamla",
     "OPTIMIZATION_ERROR": "Optimizasyon hesaplaması sırasında hata oluştu:",
+    "CALCULATION_FAILED": "Hesaplama tamamlanamadı. Lütfen tekrar deneyin.",
     "PACKAGING_SUCCESS": "Paketleme ve rapor başarıyla oluşturuldu",
     "FILE_NOT_FOUND": "Dosya bulunamadı",
     "FILE_NOT_DOWNLOAD": "Dosya indirilemedi",
