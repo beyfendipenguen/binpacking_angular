@@ -46,23 +46,26 @@ export class PackageDialogComponent implements OnInit {
     'count'
   ];
 
+  // NOT: label çeviri ANAHTARı olarak tutulur — generic-table `| translate`
+  // pipe'ıyla render eder, dil değişince başlık günceller (instant() ile
+  // önceden çevirirsek dondurulmuş metin dil değişikliğini yakalayamaz).
   columnDefinitions: ColumnDefinition[] = [
     {
       key: 'product.name',
-      label: this.translate.instant('DIMENSIONS.PRODUCT_NAME'),
+      label: 'DIMENSIONS.PRODUCT_NAME',
       type: 'text',
       required: true
     },
     {
       key: 'count',
-      label: this.translate.instant('DIMENSIONS.QUANTITY'),
+      label: 'DIMENSIONS.QUANTITY',
       type: 'number',
       required: true
     }
   ];
 
   nestedDisplayColumns: { [key: string]: string } = {
-    'product.name': this.translate.instant('DIMENSIONS.PRODUCT_NAME')
+    'product.name': 'DIMENSIONS.PRODUCT_NAME'
   };
 
   constructor(

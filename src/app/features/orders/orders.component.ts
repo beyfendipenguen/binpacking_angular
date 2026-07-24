@@ -69,34 +69,39 @@ export class OrdersComponent implements OnInit {
     'is_completed': 'status'
   };
 
+  // NOT: label alanları çeviri ANAHTARI olarak tutulur (instant() ile önceden
+  // çevrilmiş metin DEĞİL) — generic-table bu değerleri `| translate` pipe'ı
+  // ile render eder, bu sayede dil değişince başlıklar sayfa yenilemeden
+  // güncellenir. tooltip alanları bu kuralın dışında (template'te pipe'sız
+  // kullanılıyor), o yüzden instant() ile aynen kalıyor.
   columnDefinitions: ColumnDefinition[] = [
     {
       key: 'name',
-      label: this.translate.instant('ORDER.ORDER_NAME'),
+      label: 'ORDER.ORDER_NAME',
       type: 'text',
       required: true
     },
     {
       key: 'date',
-      label: this.translate.instant('INVOICE_UPLOAD.ORDER_DATE'),
+      label: 'INVOICE_UPLOAD.ORDER_DATE',
       type: 'text',
       required: true
     },
     {
       key: 'company_relation.target_company.company_name',
-      label: this.translate.instant('ORDER.COMPANY_NAME'),
+      label: 'ORDER.COMPANY_NAME',
       type: 'text',
       required: false
     },
     {
       key: 'company_relation.target_company.country',
-      label: this.translate.instant('COMMON.COUNTRY'),
+      label: 'COMMON.COUNTRY',
       type: 'text',
       required: false
     },
     {
       key: 'order_details',
-      label: this.translate.instant('ORDER_DETAILS.TITLE'),
+      label: 'ORDER_DETAILS.TITLE',
       type: 'button',
       required: false,
       buttonConfig: {
@@ -108,7 +113,7 @@ export class OrdersComponent implements OnInit {
     },
     {
       key: 'package',
-      label: this.translate.instant('PALLET.PALLETS'),
+      label: 'PALLET.PALLETS',
       type: 'button',
       required: false,
       buttonConfig: {
@@ -120,7 +125,7 @@ export class OrdersComponent implements OnInit {
     },
     {
       key: 'files',
-      label: this.translate.instant('ORDER.FILES'),
+      label: 'ORDER.FILES',
       type: 'button',
       required: false,
       buttonConfig: {
@@ -132,7 +137,7 @@ export class OrdersComponent implements OnInit {
     },
     {
       key: 'history',
-      label: this.translate.instant('ORDER_HISTORY.TITLE'),
+      label: 'ORDER_HISTORY.TITLE',
       type: 'button',
       required: false,
       buttonConfig: {
@@ -144,7 +149,7 @@ export class OrdersComponent implements OnInit {
     },
     {
       key: 'customer_view',
-      label: this.translate.instant('ORDER.CUSTOMER_VIEW'),
+      label: 'ORDER.CUSTOMER_VIEW',
       type: 'button',
       required: false,
       buttonConfig: {
@@ -156,25 +161,25 @@ export class OrdersComponent implements OnInit {
     },
     {
       key: 'is_completed',
-      label: this.translate.instant('COMMON.STATUS'),
+      label: 'COMMON.STATUS',
       type: 'status',
       required: false,
     }
   ];
 
   nestedDisplayColumns: { [key: string]: string } = {
-    'company_relation.target_company.company_name': this.translate.instant('ORDER.COMPANY_NAME'),
-    'company_relation.target_company.country': this.translate.instant('COMMON.COUNTRY'),
-    'order_details': this.translate.instant('ORDER_DETAILS.TITLE'),
-    'package': this.translate.instant('PALLET.PALLETS'),
-    'files': this.translate.instant('ORDER.FILES'),
-    'date': this.translate.instant('INVOICE_UPLOAD.ORDER_DATE'),
-    'name': this.translate.instant('ORDER.ORDER_NAME'),
-    'is_completed': this.translate.instant('COMMON.STATUS'),
-    'history': this.translate.instant('ORDER_HISTORY.TITLE'),
-    'created_by': this.translate.instant('COMMON.USER'),
-    'created_at': this.translate.instant('ORDER.CREATION_DATE'),
-    'customer_view': this.translate.instant('ORDER.CUSTOMER_VIEW'),
+    'company_relation.target_company.company_name': 'ORDER.COMPANY_NAME',
+    'company_relation.target_company.country': 'COMMON.COUNTRY',
+    'order_details': 'ORDER_DETAILS.TITLE',
+    'package': 'PALLET.PALLETS',
+    'files': 'ORDER.FILES',
+    'date': 'INVOICE_UPLOAD.ORDER_DATE',
+    'name': 'ORDER.ORDER_NAME',
+    'is_completed': 'COMMON.STATUS',
+    'history': 'ORDER_HISTORY.TITLE',
+    'created_by': 'COMMON.USER',
+    'created_at': 'ORDER.CREATION_DATE',
+    'customer_view': 'ORDER.CUSTOMER_VIEW',
   };
 
   filterableColumns: string[] = [

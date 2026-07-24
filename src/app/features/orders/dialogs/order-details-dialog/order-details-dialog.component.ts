@@ -38,45 +38,48 @@ export class OrderDetailsDialogComponent implements OnInit {
     'product.dimension.height'
   ];
 
+  // NOT: label çeviri ANAHTARı olarak tutulur — generic-table `| translate`
+  // pipe'ıyla render eder, dil değişince başlık günceller (instant() ile
+  // önceden çevirirsek dondurulmuş metin dil değişikliğini yakalayamaz).
   columnDefinitions: ColumnDefinition[] = [
     {
       key: 'product.name',
-      label: this.translate.instant('DIMENSIONS.PRODUCT_NAME'),
+      label: 'DIMENSIONS.PRODUCT_NAME',
       type: 'text',
       required: true
     },
     {
       key: 'count',
-      label: this.translate.instant('DIMENSIONS.QUANTITY'),
+      label: 'DIMENSIONS.QUANTITY',
       type: 'number',
       required: true
     },
     {
       key: 'product.dimension.width',
-      label: this.translate.instant('DIMENSIONS.WIDTH_MM'),
+      label: 'DIMENSIONS.WIDTH_MM',
       type: 'number',
       required: false
     },
     {
       key: 'product.dimension.depth',
-      label: this.translate.instant('DIMENSIONS.DEPTH_MM'),
+      label: 'DIMENSIONS.DEPTH_MM',
       type: 'number',
       required: false
     },
     {
       key: 'product.dimension.height',
-      label: this.translate.instant('DIMENSIONS.HEIGHT_MM'),
+      label: 'DIMENSIONS.HEIGHT_MM',
       type: 'number',
       required: false
     }
   ];
 
   nestedDisplayColumns: { [key: string]: string } = {
-    'product.name': this.translate.instant('DIMENSIONS.PRODUCT_NAME'),
-    'product.dimension.width': this.translate.instant('DIMENSIONS.WIDTH_MM'),
-    'product.dimension.depth': this.translate.instant('DIMENSIONS.DEPTH_MM'),
-    'product.dimension.height': this.translate.instant('DIMENSIONS.HEIGHT_MM'),
-    'count': this.translate.instant('DIMENSIONS.QUANTITY')
+    'product.name': 'DIMENSIONS.PRODUCT_NAME',
+    'product.dimension.width': 'DIMENSIONS.WIDTH_MM',
+    'product.dimension.depth': 'DIMENSIONS.DEPTH_MM',
+    'product.dimension.height': 'DIMENSIONS.HEIGHT_MM',
+    'count': 'DIMENSIONS.QUANTITY'
   };
 
   filterableColumns: string[] = [

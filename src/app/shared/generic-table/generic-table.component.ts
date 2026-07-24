@@ -349,9 +349,35 @@ export class GenericTableComponent<T extends { id: any }> implements OnInit, Aft
   private buildColumnDisplayNames(): void {
     const names: { [key: string]: string } = {};
     [...this.displayedColumns, 'rowNumber'].forEach(col => {
-      names[col] = this.getColumnDisplayName(col);
+      names[col] = this.getColumnDisplayKey(col);
     });
     this.columnDisplayNames = names;
+  }
+
+  /**
+   * Sütun için çeviri ANAHTARINI (veya anahtar yoksa hazır metni) döner —
+   * instant() ile önceden çevrilmiş bir string DÖNMEZ. Template bu değeri
+   * `| translate` pipe'ı ile kullanır; pipe onLangChange'i dinlediği için
+   * dil değiştiğinde başlıklar otomatik güncellenir (önceden columnDisplayNames
+   * sadece ngOnInit/ngOnChanges'te bir kere hesaplanıp donuyordu).
+   */
+  private getColumnDisplayKey(column: string): string {
+    if (column === 'rowNumber') return '#';
+
+    if (this.nestedDisplayColumns?.[column]) {
+      return this.nestedDisplayColumns[column];
+    }
+
+    const colDef = this.columnDefinitions.find(c => c.key === column);
+    if (colDef?.label) {
+      return colDef.label;
+    }
+
+    return column
+      .replace(/\./g, ' ')
+      .split('_')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
   }
 
 
