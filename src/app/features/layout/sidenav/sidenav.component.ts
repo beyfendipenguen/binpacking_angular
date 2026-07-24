@@ -56,6 +56,11 @@ const NAV_LIST_ITEM: INavListItem[] = [
         title: 'STATS.STATS_MANAGEMENT',
         icon: 'query_stats'
       },
+      {
+        routerLink: ['/integration'],
+        title: 'INTEGRATION.TITLE',
+        icon: 'sync_alt'
+      },
     ]
   }
 ];

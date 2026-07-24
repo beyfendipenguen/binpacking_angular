@@ -1,0 +1,126 @@
+<div class="integration-container" *appHasPermission="'organizations.view_erpcredential'">
+  <div class="page-header">
+    <div class="header-content">
+      <div class="header-left">
+        <h1>{{ 'INTEGRATION.TITLE' | translate }}</h1>
+        <div class="breadcrumb">
+          <span>{{ 'MENU.HOME' | translate }}</span>
+          <span class="separator">/</span>
+          <span class="active">{{ 'INTEGRATION.TITLE' | translate }}</span>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button mat-raised-button color="primary" [matMenuTriggerFor]="actionsMenu" class="actions-btn">
+          <mat-icon>settings</mat-icon>{{ 'MENU.OPERATIONS' | translate }}
+          <mat-icon class="dropdown-icon">arrow_drop_down</mat-icon>
+        </button>
+        <mat-menu #actionsMenu="matMenu" class="actions-menu">
+          <button mat-menu-item (click)="openCredentialDialog()"
+            [appDisableAuth]="['organizations.change_erpcredential']">
+            <mat-icon>vpn_key</mat-icon>
+            <span>{{ 'INTEGRATION.CREDENTIAL_MENU_ITEM' | translate }}</span>
+          </button>
+        </mat-menu>
+      </div>
+    </div>
+  </div>
+
+  <div class="content-section">
+    @if (!isCredentialLoading && !credential?.is_configured) {
+    <div class="intro-section warning-banner">
+      <mat-icon>info</mat-icon>
+      <p>{{ 'INTEGRATION.NOT_CONFIGURED_HINT' | translate }}</p>
+    </div>
+    }
+
+    <div class="action-bar">
+      <button mat-raised-button color="primary" (click)="fetchOrders()" [disabled]="isFetchingOrders"
+        [appDisableAuth]="['orders.add_order']">
+        @if (isFetchingOrders) {
+        <mat-spinner diameter="18" class="button-spinner"></mat-spinner>
+        } @else {
+        <mat-icon>cloud_download</mat-icon>
+        }
+        {{ 'INTEGRATION.FETCH_ORDERS' | translate }}
+      </button>
+    </div>
+
+    <div class="table-container">
+      <table mat-table [dataSource]="dataSource" class="integration-table">
+
+        <ng-container matColumnDef="order_number">
+          <th mat-header-cell *matHeaderCellDef>{{ getColumnName('order_number') }}</th>
+          <td mat-cell *matCellDef="let row">{{ row.order_number }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="customer_name">
+          <th mat-header-cell *matHeaderCellDef>{{ getColumnName('customer_name') }}</th>
+          <td mat-cell *matCellDef="let row">{{ row.customer_name }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="customer_code">
+          <th mat-header-cell *matHeaderCellDef>{{ getColumnName('customer_code') }}</th>
+          <td mat-cell *matCellDef="let row">{{ row.customer_code || '-' }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="date">
+          <th mat-header-cell *matHeaderCellDef>{{ getColumnName('date') }}</th>
+          <td mat-cell *matCellDef="let row">{{ row.date ? (row.date | date:'dd.MM.yyyy HH:mm') : '-' }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="status">
+          <th mat-header-cell *matHeaderCellDef>{{ getColumnName('status') }}</th>
+          <td mat-cell *matCellDef="let row">
+            @if (row.status) {
+            <mat-chip class="status-chip">{{ row.status }}</mat-chip>
+            } @else {
+            <span>-</span>
+            }
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef>{{ getColumnName('actions') }}</th>
+          <td mat-cell *matCellDef="let row" class="actions-cell">
+            @if (getRowState(row.order_number) === 'imported') {
+            <button mat-stroked-button disabled class="imported-btn">
+              <mat-icon>check_circle</mat-icon>
+              {{ 'INTEGRATION.ALREADY_IMPORTED' | translate }}
+            </button>
+            } @else if (getRowState(row.order_number) === 'failed') {
+            <button mat-raised-button color="warn" (click)="importOrder(row)"
+              [matTooltip]="getRowError(row.order_number) || ('INTEGRATION.IMPORT_ERROR' | translate)"
+              [appDisableAuth]="['orders.add_order']">
+              <mat-icon>error_outline</mat-icon>
+              {{ 'INTEGRATION.RETRY_IMPORT' | translate }}
+            </button>
+            } @else {
+            <button mat-raised-button color="primary" (click)="importOrder(row)"
+              [disabled]="getRowState(row.order_number) === 'importing'"
+              [matTooltip]="'INTEGRATION.IMPORT_ORDER' | translate" [appDisableAuth]="['orders.add_order']">
+              @if (getRowState(row.order_number) === 'importing') {
+              <mat-spinner diameter="16" class="button-spinner"></mat-spinner>
+              } @else {
+              <mat-icon>login</mat-icon>
+              }
+              {{ 'INTEGRATION.IMPORT_ORDER' | translate }}
+            </button>
+            }
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="table-row"></tr>
+
+        <tr class="mat-row no-data-row" *matNoDataRow>
+          <td class="mat-cell" [attr.colspan]="displayedColumns.length">
+            <div class="no-data">
+              <mat-icon>inbox</mat-icon>
+              <p>{{ (hasFetchedOnce ? 'INTEGRATION.NO_ORDERS' : 'INTEGRATION.FETCH_HINT') | translate }}</p>
+            </div>
+          </td>
+        </tr>
+      </table>
+    </div>
+  </div>
+</div>
