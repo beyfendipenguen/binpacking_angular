@@ -42,4 +42,30 @@ export class OrderService extends GenericCrudService<Order> {
     }
     return this.http.post<{message:string}>(`${this.apiUrl}revise-order/`, payload)
   }
+
+  /**
+   * Sipariş numarasını değiştirir (PREFIX.NUMBER.RevN → sadece NUMBER).
+   * Backend eski rapor dosyalarını silip yeniden üretir.
+   * swap=true: hedef numarada başka sipariş varsa iki siparişin
+   * numarası takas edilir (her ikisinin raporları yeniden üretilir).
+   * Yetki: orders.change_order_number
+   */
+  changeOrderNumber(orderId: string, newNumber: number, swap: boolean = false) {
+    this.ensureApiUrl();
+    return this.http.post<{
+      status: string;
+      message: string;
+      old_name: string;
+      new_name: string;
+      other_old_name?: string;
+      other_new_name?: string;
+      deleted_files: number;
+      created_files: number;
+      swapped: boolean;
+      order: Order;
+    }>(`${this.apiUrl}${orderId}/change-order-number/`, {
+      new_number: newNumber,
+      swap,
+    });
+  }
 }

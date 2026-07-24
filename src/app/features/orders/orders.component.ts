@@ -5,6 +5,7 @@ import { Router } from '@angular/router';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { MatMenuModule } from '@angular/material/menu';
 import { OrderDetailsDialogComponent } from './dialogs/order-details-dialog/order-details-dialog.component';
 import { PackageDialogComponent } from './dialogs/package-dialog/package-dialog.component';
 import { FilesDialogComponent } from './dialogs/files-dialog/files-dialog.component';
@@ -13,8 +14,10 @@ import { GenericTableComponent, CellButtonClickEvent } from '@shared/generic-tab
 import { Order } from '../interfaces/order.interface';
 import { OrderService } from '../services/order.service';
 import { HasPermissionDirective } from "@app/core/auth/directives/has-permission.directive";
+import { DisableAuthDirective } from '@app/core/auth/directives/disable-auth.directive';
 import { ColumnDefinition } from '@app/shared/generic-table/interfaces/column-definition.interface';
 import { OrderHistoryDialogComponent } from './dialogs/order-history-dialog/order-history-dialog.component';
+import { ChangeOrderNumberDialogComponent } from './dialogs/change-order-number-dialog/change-order-number-dialog.component';
 
 @Component({
   selector: 'app-orders',
@@ -23,8 +26,10 @@ import { OrderHistoryDialogComponent } from './dialogs/order-history-dialog/orde
     MatButtonModule,
     MatIconModule,
     MatDialogModule,
+    MatMenuModule,
     GenericTableComponent,
     HasPermissionDirective,
+    DisableAuthDirective,
     TranslateModule,
   ],
   templateUrl: './orders.component.html',
@@ -204,6 +209,25 @@ export class OrdersComponent implements OnInit {
         this.openHistoryDialog(row);
         break;
     }
+  }
+
+  /**
+   * Sipariş numarası değiştirme dialog'u.
+   * Yetki: orders.change_order_number (menü öğesi appDisableAuth ile korunuyor)
+   */
+  openChangeOrderNumberDialog(): void {
+    const dialogRef = this.dialog.open(ChangeOrderNumberDialogComponent, {
+      width: '640px',
+      maxWidth: '95vw',
+      autoFocus: false,
+    });
+
+    dialogRef.afterClosed().subscribe((changed) => {
+      if (changed) {
+        // Tabloyu tazele — yeni sipariş adı görünsün
+        this.genericTable?.loadData();
+      }
+    });
   }
 
   copyCustomerLink(orderId: string): void {

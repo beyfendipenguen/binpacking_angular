@@ -1,0 +1,92 @@
+<div class="change-number-dialog">
+  <h2 mat-dialog-title>
+    <mat-icon>edit_note</mat-icon>
+    {{ 'ORDER.CHANGE_NUMBER_TITLE' | translate }}
+  </h2>
+
+  <mat-dialog-content>
+    <!-- 1. Sipariş seç -->
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>{{ 'ORDER.CHANGE_NUMBER_SELECT_ORDER' | translate }}</mat-label>
+      <input matInput [formControl]="orderSearchControl" [matAutocomplete]="orderAuto" />
+      <mat-icon matSuffix>search</mat-icon>
+      <mat-autocomplete #orderAuto="matAutocomplete" [displayWith]="displayOrderName"
+        (optionSelected)="onOrderSelected($event.option.value)">
+        @for (order of filteredOrders; track order.id) {
+        <mat-option [value]="order">
+          <span class="order-option-name">{{ order.name }}</span>
+          <span class="order-option-company">
+            {{ order.company_relation?.target_company?.company_name || '' }}
+          </span>
+        </mat-option>
+        }
+      </mat-autocomplete>
+    </mat-form-field>
+
+    @if (selectedOrder && !parsedName) {
+    <div class="warning-box">
+      <mat-icon>warning</mat-icon>
+      <span>{{ 'ORDER.CHANGE_NUMBER_PARSE_ERROR' | translate }}</span>
+    </div>
+    }
+
+    @if (parsedName) {
+    <!-- 2. Mevcut ad + yeni numara -->
+    <div class="name-parts">
+      <div class="name-part">
+        <span class="part-label">{{ 'ORDER.CHANGE_NUMBER_PREFIX' | translate }}</span>
+        <span class="part-value">{{ parsedName.prefix }}</span>
+      </div>
+      <span class="part-separator">.</span>
+      <mat-form-field appearance="outline" class="number-field">
+        <mat-label>{{ 'ORDER.CHANGE_NUMBER_NEW' | translate }}</mat-label>
+        <input matInput type="number" min="1" [formControl]="newNumberControl" />
+      </mat-form-field>
+      <span class="part-separator">.</span>
+      <div class="name-part">
+        <span class="part-label">Rev</span>
+        <span class="part-value">{{ parsedName.rev }}</span>
+      </div>
+    </div>
+
+    @if (previewName && previewName !== selectedOrder?.name) {
+    <div class="preview-box">
+      <span class="preview-old">{{ selectedOrder?.name }}</span>
+      <mat-icon>arrow_forward</mat-icon>
+      <span class="preview-new">{{ previewName }}</span>
+    </div>
+    }
+
+    <!-- Hedef numarada başka sipariş var → takas uyarısı -->
+    @if (swapConflictOrder) {
+    <div class="swap-warning-box">
+      <mat-icon>swap_horiz</mat-icon>
+      <span>
+        {{ 'ORDER.CHANGE_NUMBER_SWAP_WARNING' | translate:{
+          other: swapConflictOrder.name,
+          a: selectedOrder?.name,
+          b: previewName
+        } }}
+      </span>
+    </div>
+    }
+
+    <!-- 3. Onay -->
+    <mat-checkbox [formControl]="confirmControl" class="confirm-checkbox">
+      {{ (isSwap ? 'ORDER.CHANGE_NUMBER_SWAP_CONFIRM' : 'ORDER.CHANGE_NUMBER_CONFIRM') | translate }}
+    </mat-checkbox>
+    }
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button (click)="close()" [disabled]="isSaving">
+      {{ 'COMMON.CANCEL' | translate }}
+    </button>
+    <button mat-raised-button color="primary" (click)="save()" [disabled]="!canSave">
+      @if (isSaving) {
+      <mat-spinner diameter="18" class="btn-spinner"></mat-spinner>
+      }
+      {{ (isSwap ? 'ORDER.CHANGE_NUMBER_SWAP_SAVE' : 'COMMON.SAVE') | translate }}
+    </button>
+  </mat-dialog-actions>
+</div>

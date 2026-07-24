@@ -15,6 +15,19 @@
         <h1 class="hero-title">{{ 'MENU.ORDER_MANAGEMENT' | translate }}</h1>
         <p class="hero-subtitle">{{ 'ORDER.SUBTITLE' | translate }}</p>
       </div>
+      <div class="header-actions">
+        <button mat-raised-button color="primary" [matMenuTriggerFor]="actionsMenu" class="actions-btn">
+          <mat-icon>settings</mat-icon>{{ 'MENU.OPERATIONS' | translate }}
+          <mat-icon class="dropdown-icon">arrow_drop_down</mat-icon>
+        </button>
+        <mat-menu #actionsMenu="matMenu" class="actions-menu">
+          <button mat-menu-item (click)="openChangeOrderNumberDialog()"
+            [appDisableAuth]="['orders.change_order_number']">
+            <mat-icon>edit_note</mat-icon>
+            <span>{{ 'ORDER.CHANGE_NUMBER_TITLE' | translate }}</span>
+          </button>
+        </mat-menu>
+      </div>
     </div>
   </div>
 
