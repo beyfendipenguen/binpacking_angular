@@ -262,6 +262,8 @@
       "FIELD_REMOVED": "Alan kaldırıldı",
       "INVALID_NUMBER": "Geçersiz sayı formatı",
       "SHOW_LOGO": "Palet Etiketinde Logo Göster",
+      "ORDER_PREFIX": "Sipariş Öneki",
+      "ORDER_PREFIX_HINT": "Boş bırakılırsa ilk siparişte otomatik atanır. Değiştirilirse eski siparişler de yeni öneke taşınır.",
       "HAS_CONSOLE": "Mensol",
       "CORE_TYPE": "Çekirdek",
       "FUMIGATION_TYPE": "Fumigasyon Tipi",

@@ -945,6 +945,18 @@ $white: #ffffff;
 
   // Form Field Styling
   .mat-mdc-form-field {
+    // Hint/hata alanı normalde absolute konumlanır; uzun hint metni
+    // alttaki input'un üstüne biner. Statik yapınca içerik akışına
+    // girer ve alanlar birbirine girmez.
+    .mat-mdc-form-field-subscript-wrapper {
+      position: static;
+      margin-bottom: 4px;
+
+      .mat-mdc-form-field-hint {
+        line-height: 1.35;
+      }
+    }
+
     .mat-mdc-text-field-wrapper {
       .mdc-notched-outline {
 

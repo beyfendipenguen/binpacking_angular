@@ -262,6 +262,8 @@
       "FIELD_REMOVED": "Field removed",
       "INVALID_NUMBER": "Invalid number format",
       "SHOW_LOGO": "Show Logo on Pallet Label",
+      "ORDER_PREFIX": "Order Prefix",
+      "ORDER_PREFIX_HINT": "If left empty it is assigned automatically on the first order. Changing it also moves existing orders to the new prefix.",
       "HAS_CONSOLE": "Protective Bracket",
       "CORE_TYPE": "Core Type",
       "FUMIGATION_TYPE": "Fumigation Type",

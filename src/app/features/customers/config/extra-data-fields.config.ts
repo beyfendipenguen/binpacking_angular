@@ -20,6 +20,18 @@ export const EXTRA_DATA_FIELDS: ExtraDataFieldConfig[] = [
     icon: 'image'
   },
   {
+    // Sipariş adı öneki (PREFIX.NUMBER.RevN). Boş bırakılırsa ilk
+    // siparişte otomatik atanır (çakışanlar isimden uzatılır:
+    // TERM → TERMO → TERMOS). Backend boş değeri "atanmamış" sayar.
+    key: 'order_prefix',
+    label: 'CUSTOMER.EXTRA_DATA.ORDER_PREFIX',
+    type: 'string',
+    icon: 'tag',
+    placeholder: 'ABC',
+    hint: 'CUSTOMER.EXTRA_DATA.ORDER_PREFIX_HINT',
+    validators: [Validators.maxLength(20), Validators.pattern(/^[A-Za-zÇĞİÖŞÜçğıöşü0-9]*$/)]
+  },
+  {
     key: 'max_pallet_height',
     label: 'CUSTOMER.MAX_PALLET_HEIGHT',
     type: 'number',
