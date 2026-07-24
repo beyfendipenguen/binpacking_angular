@@ -85,7 +85,15 @@
                 <mat-icon>business</mat-icon>
               </div>
               }
-              <span class="company-name">{{ row.target_company.company_name }}</span>
+
+              <!-- İsim alanı güncellendi -->
+              <span class="company-name" [matTooltip]="row.target_company.company_name"
+                [matTooltipDisabled]="row.target_company.company_name?.length <= 40">
+                {{ row.target_company.company_name?.length > 20
+                ? (row.target_company.company_name | slice:0:20) + '...'
+                : row.target_company.company_name }}
+              </span>
+
             </div>
           </td>
         </ng-container>
