@@ -957,7 +957,9 @@ export class PalletControlComponent
   }
 
   packagePriority(_package:any):void{
-    _package.priority = _package.priority === 3 ? null : (_package.priority ? _package.priority + 1 : 1)
+    // Döngü: 0 ("-") → 1 → 2 → 3 → 0. Backend'de priority null olamaz;
+    // "önceliksiz" durumun karşılığı 0 (model default'u da 0, UI'da "-" görünür).
+    _package.priority = _package.priority === 3 ? 0 : (_package.priority ? _package.priority + 1 : 1)
     this.store.dispatch(StepperPackageActions.setPackagePriority({ pkgId:_package.id,priority: _package.priority }))
   }
 
