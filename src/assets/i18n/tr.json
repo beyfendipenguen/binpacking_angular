@@ -715,7 +715,10 @@
     "COPY_LINK": "Müşteri Linki Kopyala",
     "COPIED": "Kopyalandı!",
     "MULTI_SHIPMENT": "Çoklu Sevkiyat",
-    "MULTI_SHIPMENT_TIP": "Birden fazla TIR'a yerleştirme modunu etkinleştirir"
+    "MULTI_SHIPMENT_TIP": "Birden fazla TIR'a yerleştirme modunu etkinleştirir",
+    "SPLIT_SHIPMENTS_CHECKBOX": "Sevkiyatları ayrı siparişlere böl",
+    "SPLIT_SHIPMENTS_SUCCESS": "Sipariş {{count}} parçaya bölündü: {{names}}",
+    "SPLIT_SHIPMENTS_ERROR": "Sipariş bölme işlemi başarısız oldu."
   },
   "TRUCK": {
     "TITLE": "Sevkiyat Aracı Yönetimi",

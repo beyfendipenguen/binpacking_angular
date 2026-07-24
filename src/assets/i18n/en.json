@@ -715,7 +715,10 @@
     "COPY_LINK": "Customer Copy Link",
     "COPIED": "Copied!",
     "MULTI_SHIPMENT": "Multi Shipment",
-    "MULTI_SHIPMENT_TIP": "Enables placement mode for multiple trucks"
+    "MULTI_SHIPMENT_TIP": "Enables placement mode for multiple trucks",
+    "SPLIT_SHIPMENTS_CHECKBOX": "Split shipments into separate orders",
+    "SPLIT_SHIPMENTS_SUCCESS": "Order split into {{count}} parts: {{names}}",
+    "SPLIT_SHIPMENTS_ERROR": "Failed to split the order's shipments."
   },
   "TRUCK": {
     "TITLE": "Vehicle Management",

@@ -16,6 +16,20 @@
           {{ isMultiShipmentSignal() ? 'ON' : 'OFF' }}
         </span>
       </button>
+
+      <!-- Çoklu sevkiyatı ayrı siparişlere bölme — yetkisi olmayan hiç görmez -->
+      @if (isMultiShipmentSignal()) {
+      <button class="multi-shipment-btn split-shipments-btn" [class.active]="splitShipmentsChecked"
+        (click)="splitShipmentsChecked = !splitShipmentsChecked"
+        [title]="'RESULT_STEP.SPLIT_SHIPMENTS_CHECKBOX' | translate" type="button"
+        *appHasPermission="'orders.split_shipments'">
+        <mat-icon>call_split</mat-icon>
+        <span>{{ 'RESULT_STEP.SPLIT_SHIPMENTS_CHECKBOX' | translate }}</span>
+        <span class="toggle-indicator" [class.on]="splitShipmentsChecked">
+          {{ splitShipmentsChecked ? 'ON' : 'OFF' }}
+        </span>
+      </button>
+      }
     </div>
 
     <!-- Enhanced View Controls -->

@@ -25,6 +25,8 @@ import { OrderService } from '@app/features/services/order.service';
 import { AuthService } from '@app/core/auth/services/auth.service';
 import { PackagePosition } from '@app/features/interfaces/order-result.interface';
 import { calculatePackageTotalWeight } from '@app/features/utils/package-weight.util';
+import { ToastService } from '@core/services/toast.service';
+import { TranslateService } from '@ngx-translate/core';
 
 @Injectable()
 export class StepperResultEffects {
@@ -33,6 +35,8 @@ export class StepperResultEffects {
   private repositoryService = inject(RepositoryService);
   private orderService = inject(OrderService);
   private authService = inject(AuthService);
+  private toastService = inject(ToastService);
+  private translate = inject(TranslateService);
 
   // Result Step Submit
   // orderResult artık { shipments: [{shipment, result}, ...] } formatında —
@@ -172,5 +176,68 @@ export class StepperResultEffects {
         });
       })
     )
+  );
+
+  /**
+   * Çoklu sevkiyatı ayrı siparişlere bölme.
+   *
+   * Kullanıcı "Bitir" derken checkbox işaretliyse result-step bu action'ı
+   * dispatch eder ve HEMEN ana sayfaya yönlendirilir (mevcut resetStepper
+   * davranışı). Bu effect component'ten bağımsız (store seviyesinde) çalışır,
+   * bu yüzden navigasyondan sonra da işlemeye devam eder:
+   *
+   * 1. POST split-shipments → 202, Celery'de bölme başlar
+   * 2. Status endpoint'i poll edilir (ready=true olana kadar)
+   * 3. Sonuç toast ile bildirilir
+   */
+  splitShipments$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(StepperResultActions.splitShipments),
+      switchMap(({ orderId }) =>
+        this.repositoryService.splitShipments(orderId).pipe(
+          switchMap(() => this.repositoryService.pollSplitShipmentsStatus(orderId)),
+          map(status => {
+            if (status.state !== 'done' || !status.new_orders) {
+              throw new Error(
+                status.error || this.translate.instant('RESULT_STEP.SPLIT_SHIPMENTS_ERROR')
+              );
+            }
+            return StepperResultActions.splitShipmentsSuccess({
+              newOrders: status.new_orders,
+              originalOrderName: status.original_order_name || ''
+            });
+          }),
+          catchError(error => of(StepperResultActions.splitShipmentsError({
+            error: error?.message || this.translate.instant('RESULT_STEP.SPLIT_SHIPMENTS_ERROR')
+          })))
+        )
+      )
+    )
+  );
+
+  splitShipmentsSuccess$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(StepperResultActions.splitShipmentsSuccess),
+      tap(({ newOrders, originalOrderName }) => {
+        const names = [originalOrderName, ...newOrders.map(o => o.name)].filter(Boolean).join(', ');
+        this.toastService.success(
+          this.translate.instant('RESULT_STEP.SPLIT_SHIPMENTS_SUCCESS', {
+            count: newOrders.length + 1,
+            names
+          })
+        );
+      })
+    ),
+    { dispatch: false }
+  );
+
+  splitShipmentsError$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(StepperResultActions.splitShipmentsError),
+      tap(({ error }) => {
+        this.toastService.error(error);
+      })
+    ),
+    { dispatch: false }
   );
 }

@@ -60,5 +60,15 @@ export const StepperResultActions = createActionGroup({
       deletedPackages: PackagePosition[];
       removedPkgIds: string[];   // kamyondan (orderResult + shipments) çıkarılacaklar
     }>(),
+
+    // Çoklu sevkiyatı ayrı siparişlere bölme — "Bitir" sırasında checkbox
+    // işaretliyse tetiklenir. Kullanıcı bu noktada zaten ana sayfaya
+    // yönlendirilmiş olur; işlem arka planda (Celery) tamamlanır.
+    'Split Shipments': props<{ orderId: string }>(),
+    'Split Shipments Success': props<{
+      newOrders: { id: string; name: string }[];
+      originalOrderName: string;
+    }>(),
+    'Split Shipments Error': props<{ error: string }>(),
   }
 });

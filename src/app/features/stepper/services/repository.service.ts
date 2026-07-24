@@ -34,6 +34,15 @@ export interface CalculationStatus {
   error?: string;
 }
 
+export interface SplitShipmentsStatus {
+  state: 'queued' | 'done' | 'error';
+  ready: boolean;
+  new_orders?: { id: string; name: string }[];
+  original_order_id?: string;
+  original_order_name?: string;
+  error?: string;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -230,6 +239,41 @@ export class RepositoryService {
     return this.http.get<any>(
       `${this.api.getApiUrl()}/logistics/create-truck-placement-report/${order_id}/`
     )
+  }
+
+  /**
+   * Çoklu sevkiyatlı siparişi tır başına ayrı order'lara böler.
+   * Backend 202 + task_id döner; sonuç için pollSplitShipmentsStatus ile beklenmeli.
+   * Yetki: orders.split_shipments (backend tarafında kontrol edilir).
+   */
+  splitShipments(order_id: string = this.getOrderId()) {
+    return this.http.post<{ status: string; task_id: string; order_id: string }>(
+      `${this.api.getApiUrl()}/orders/orders/${order_id}/split-shipments/`,
+      {}
+    );
+  }
+
+  getSplitShipmentsStatus(order_id: string = this.getOrderId()): Observable<SplitShipmentsStatus> {
+    return this.http.get<SplitShipmentsStatus>(
+      `${this.api.getApiUrl()}/orders/orders/${order_id}/split-shipments-status/`
+    );
+  }
+
+  /**
+   * ready=true olana kadar split-shipments-status endpoint'ini poll eder.
+   * Backend'in soft_time_limit'i 30 dk — 31 dk'da timeout ile vazgeçilir.
+   */
+  pollSplitShipmentsStatus(
+    order_id: string = this.getOrderId(),
+    intervalMs: number = 3000,
+    timeoutMs: number = 31 * 60 * 1000
+  ): Observable<SplitShipmentsStatus> {
+    return timer(0, intervalMs).pipe(
+      switchMap(() => this.getSplitShipmentsStatus(order_id)),
+      filter(status => status.ready),
+      take(1),
+      timeout(timeoutMs)
+    );
   }
 
   partialUpdateOrderResult(

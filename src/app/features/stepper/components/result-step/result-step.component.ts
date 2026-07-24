@@ -32,9 +32,8 @@ import { StepperResultActions } from '@app/store/stepper/actions/stepper-result.
 import { ReportFile, ResultStepService } from './result-step.service';
 import { PackagePosition } from '@app/features/interfaces/order-result.interface';
 import { DisableAuthDirective } from '@app/core/auth/directives/disable-auth.directive';
+import { HasPermissionDirective } from '@app/core/auth/directives/has-permission.directive';
 import { getApiErrorMessage } from '@app/core/utils/api-error.util';
-import { MatCheckboxModule } from '@angular/material/checkbox';
-import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-result-step',
@@ -44,7 +43,7 @@ import { FormsModule } from '@angular/forms';
     MatIconModule,
     ThreeJSTruckVisualizationComponent,
     TranslateModule,
-    DisableAuthDirective, MatCheckboxModule, FormsModule
+    DisableAuthDirective, HasPermissionDirective
   ],
   templateUrl: './result-step.component.html',
   styleUrl: './result-step.component.scss',
@@ -81,6 +80,10 @@ export class ResultStepComponent implements OnInit, OnDestroy {
 
   // Signal ekle
   readonly isMultiShipmentSignal = signal(false);
+
+  // Çoklu sevkiyatı ayrı siparişlere bölme onayı (yetki + multi-shipment
+  // gerekli — bkz. result-step.component.html, orders.split_shipments)
+  splitShipmentsChecked = false;
 
   // Computed
   readonly canCompleteShipment = computed(() =>
@@ -368,11 +371,21 @@ export class ResultStepComponent implements OnInit, OnDestroy {
    * Submit order result to store
    */
   private submitOrderResult(orderResult: { shipments: any[] }, resetStepper: boolean): void {
+    // orderId'yi burada yakala — resultStepSubmit dispatch edilir edilmez
+    // (resetStepper true ise) stepper state'i senkron sıfırlanabiliyor.
+    const orderId = this.orderIdSignal();
+
     this.store.dispatch(StepperResultActions.resultStepSubmit({
-      orderId: this.orderIdSignal(),
+      orderId,
       orderResult,
       resetStepper
     }));
+
+    // Çoklu sevkiyatı ayrı siparişlere bölme — sadece gerçek "Bitir" anında
+    // (resetStepper true), çoklu sevkiyat açıkken ve checkbox işaretliyse.
+    if (resetStepper && this.isMultiShipmentSignal() && this.splitShipmentsChecked) {
+      this.store.dispatch(StepperResultActions.splitShipments({ orderId }));
+    }
 
     if (resetStepper) {
       this.piecesData = [];
