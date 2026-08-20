@@ -95,7 +95,7 @@
     <!-- ENHANCED: ThreeJS Truck Visualization Component with NEW dataChanged event -->
 
     @if (hasResultsSignal() && !hasThreeJSError) {
-    <app-threejs-truck-visualization id="threejs-view" #threeJSComponent (error)="onThreeJSError($event)">
+    <app-threejs-truck-visualization [isActive]="currentStep() === 2" id="threejs-view" #threeJSComponent (error)="onThreeJSError($event)">
     </app-threejs-truck-visualization>
     }
 

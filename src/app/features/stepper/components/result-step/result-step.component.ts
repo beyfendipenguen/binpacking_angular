@@ -26,7 +26,7 @@ import { ToastService } from '@core/services/toast.service';
 import { CancelConfirmationDialogComponent } from '@shared/cancel-confirmation-dialog/cancel-confirmation-dialog.component';
 import { ThreeJSTruckVisualizationComponent } from '@shared/threejs-truck-visualization/threejs-truck-visualization.component';
 
-import { AppState, selectRemainingProducts, selectStep3IsDirty, selectOrderId, selectIsEditMode, selectHasRevisedOrder, selectOrderResult, selectOrderResultId, selectStep3CurrentViewType, selectStep3ReportFiles, selectActiveShipmentIndex, selectIsMultiShipment, selectShipments } from '@app/store';
+import { AppState, selectRemainingProducts, selectStep3IsDirty, selectOrderId, selectIsEditMode, selectHasRevisedOrder, selectOrderResult, selectOrderResultId, selectStep3CurrentViewType, selectStep3ReportFiles, selectActiveShipmentIndex, selectIsMultiShipment, selectShipments, selectCurrentStep } from '@app/store';
 import { StepperUiActions } from '@app/store/stepper/actions/stepper-ui.actions';
 import { StepperResultActions } from '@app/store/stepper/actions/stepper-result.actions';
 import { ReportFile, ResultStepService } from './result-step.service';
@@ -54,7 +54,7 @@ export class ResultStepComponent implements OnInit, OnDestroy {
   private translate = inject(TranslateService);
   @ViewChild('threeJSComponent') threeJSComponent!: ThreeJSTruckVisualizationComponent;
   @Output() shipmentCompleted = new EventEmitter<void>();
-
+  
   // Services
   private readonly destroy$ = new Subject<void>();
   private readonly store = inject(Store<AppState>);
@@ -77,7 +77,7 @@ export class ResultStepComponent implements OnInit, OnDestroy {
   readonly reportFilesSignal = this.store.selectSignal(selectStep3ReportFiles);
   readonly orderResultIdSignal = this.store.selectSignal(selectOrderResultId);
   readonly currentViewTypeSignal = this.store.selectSignal(selectStep3CurrentViewType);
-
+  readonly currentStep = this.store.selectSignal(selectCurrentStep);
   // Signal ekle
   readonly isMultiShipmentSignal = signal(false);
 

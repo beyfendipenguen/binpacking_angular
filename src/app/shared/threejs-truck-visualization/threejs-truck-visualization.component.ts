@@ -15,7 +15,8 @@ import {
   signal,
   computed,
   effect,
-  untracked
+  untracked,
+  Input
 } from '@angular/core';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { CommonModule } from '@angular/common';
@@ -49,7 +50,8 @@ import { MatIconModule } from '@angular/material/icon';
 })
 export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit, OnChanges, OnDestroy {
   @ViewChild('threeContainer', { static: true }) threeContainer!: ElementRef;
-
+  @Input() isActive = false;
+  
   showHelp: boolean = true;
   isFullscreen = false;
   showWeightDisplay: boolean = true;
@@ -2285,8 +2287,8 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
 
   @HostListener('document:keydown', ['$event'])
   handleKeyboardShortcuts(event: KeyboardEvent): void {
-    if (this.isDragging) return;
-
+    if (!this.isActive || this.isDragging) return;
+    
     switch (event.key) {
       case 'f':
       case 'F':
