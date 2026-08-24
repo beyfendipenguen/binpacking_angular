@@ -1,13 +1,12 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatSelectModule } from '@angular/material/select';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -17,12 +16,18 @@ import { ErpCredential } from '@app/features/interfaces/erp-integration.interfac
 
 /**
  * Backend'de kayıtlı connector'lar (bkz. ERPConnectorFactory._registry).
- * Yeni bir connector eklendiğinde (bkz. documents_md/erp_new_connector_checklist.md)
- * buraya da bir satır eklenmeli, aksi halde kullanıcı seçemez.
+ * Burada seçilemez — SADECE erp_type'ı kullanıcıya görüntülerken (dostça
+ * bir etiket göstermek için) kullanılıyor. Hangi connector'ın atandığına
+ * admin panelinden karar verilir (bkz. ERPCredentialWriteSerializer
+ * docstring'i — tenant kendi başına connector tipi seçemez/değiştiremez).
+ * Yeni bir connector eklendiğinde (bkz.
+ * documents_md/erp_new_connector_checklist.md) buraya da bir satır
+ * eklenmeli, aksi halde etiket yerine ham erp_type değeri gösterilir.
  */
-const ERP_TYPE_OPTIONS: { value: string; label: string }[] = [
-  { value: 'mock', label: 'Mock ERP (Test)' },
-];
+const ERP_TYPE_LABELS: Record<string, string> = {
+  mock: 'Mock ERP (Test)',
+  sanica: 'Sanica (Uyum ERP)',
+};
 
 @Component({
   selector: 'app-erp-credential-dialog',
@@ -36,7 +41,6 @@ const ERP_TYPE_OPTIONS: { value: string; label: string }[] = [
     MatButtonModule,
     MatIconModule,
     MatProgressSpinnerModule,
-    MatSelectModule,
     MatSlideToggleModule,
     MatTooltipModule,
     TranslateModule,
@@ -50,8 +54,6 @@ export class ErpCredentialDialogComponent implements OnInit {
   private toastService = inject(ToastService);
   private translate = inject(TranslateService);
 
-  erpTypeOptions = ERP_TYPE_OPTIONS;
-
   isLoading = signal(false);
   isSaving = signal(false);
   credential: ErpCredential | null = null;
@@ -62,7 +64,6 @@ export class ErpCredentialDialogComponent implements OnInit {
 
   ngOnInit(): void {
     this.form = this.fb.group({
-      erp_type: ['mock', Validators.required],
       is_active: [true],
       settings_json: ['{}'],
       secret_username: [''],
@@ -77,11 +78,12 @@ export class ErpCredentialDialogComponent implements OnInit {
     this.erpService.getMyCredential().subscribe({
       next: (credential) => {
         this.credential = credential;
-        this.form.patchValue({
-          erp_type: credential.erp_type || 'mock',
-          is_active: credential.is_configured ? credential.is_active : true,
-          settings_json: JSON.stringify(credential.settings || {}, null, 2),
-        });
+        if (credential.is_configured) {
+          this.form.patchValue({
+            is_active: credential.is_active,
+            settings_json: JSON.stringify(credential.settings || {}, null, 2),
+          });
+        }
         this.isLoading.set(false);
       },
       error: () => {
@@ -96,7 +98,21 @@ export class ErpCredentialDialogComponent implements OnInit {
     return !!this.credential?.secrets_configured?.[key];
   }
 
+  /** Admin'in atadığı erp_type için dostça etiket — yoksa ham değeri gösterir. */
+  erpTypeLabel(): string {
+    const type = this.credential?.erp_type;
+    if (!type) return '';
+    return ERP_TYPE_LABELS[type] || type;
+  }
+
   onSave(): void {
+    if (!this.credential?.is_configured) {
+      // erp_type admin tarafından atanmadan secret/settings girilecek bir
+      // bağlam yok — kaydet butonu zaten template'te devre dışı, bu ek bir
+      // güvenlik önlemi.
+      return;
+    }
+
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
@@ -112,11 +128,10 @@ export class ErpCredentialDialogComponent implements OnInit {
 
     this.isSaving.set(true);
 
-    const { erp_type, is_active, secret_username, secret_password, secret_api_key } = this.form.value;
+    const { is_active, secret_username, secret_password, secret_api_key } = this.form.value;
 
     this.erpService
       .updateMyCredential({
-        erp_type,
         is_active,
         settings,
         secret_username,

@@ -20,9 +20,12 @@ export interface ErpCredential {
   created_at?: string;
 }
 
-/** PATCH organizations/erp-credential/update-mine/ gövdesi. */
+/**
+ * PATCH organizations/erp-credential/update-mine/ gövdesi.
+ * erp_type BİLEREK yok — backend'de ERPCredentialWriteSerializer'da da yok,
+ * hangi connector'ın kullanılacağına admin panelinden karar verilir.
+ */
 export interface ErpCredentialUpdatePayload {
-  erp_type?: string;
   settings?: Record<string, any>;
   is_active?: boolean;
   // Boş bırakılırsa mevcut şifreli değer korunur — backend tarafında
@@ -46,6 +49,14 @@ export interface ErpOrderSummary {
    * bir sipariş tekrar aktarılabilir gibi görünmesin diye.
    */
   already_imported?: boolean;
+  /**
+   * En son aktarım denemesi BAŞARISIZ olduysa hata mesajı, hiç denenmediyse
+   * veya en son deneme başarılıysa null/undefined. Sayfa yenilenip
+   * "Siparişleri Çek" tekrar çalıştırıldığında (component'in bellekteki
+   * rowStates'i sıfırlandığında) satırın "başarısız" durumunu DB'den
+   * geri yükleyebilmek için — bkz. integration.component.ts fetchOrders().
+   */
+  last_import_error?: string | null;
 }
 
 /** Frontend'de bir satırın anlık aktarım durumu (yerel state). */

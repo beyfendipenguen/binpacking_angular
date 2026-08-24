@@ -1,6 +1,7 @@
-import { Component, OnDestroy, OnInit, inject } from '@angular/core';
+import { AfterViewInit, Component, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
+import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
@@ -23,6 +24,7 @@ import { ErpCredentialDialogComponent } from './dialogs/erp-credential-dialog/er
   imports: [
     CommonModule,
     MatTableModule,
+    MatPaginatorModule,
     MatButtonModule,
     MatIconModule,
     MatMenuModule,
@@ -37,7 +39,7 @@ import { ErpCredentialDialogComponent } from './dialogs/erp-credential-dialog/er
   templateUrl: './integration.component.html',
   styleUrl: './integration.component.scss',
 })
-export class IntegrationComponent implements OnInit, OnDestroy {
+export class IntegrationComponent implements OnInit, AfterViewInit, OnDestroy {
   private erpService = inject(ErpIntegrationService);
   private dialog = inject(MatDialog);
   private toastService = inject(ToastService);
@@ -45,10 +47,13 @@ export class IntegrationComponent implements OnInit, OnDestroy {
 
   private destroy$ = new Subject<void>();
 
+  @ViewChild(MatPaginator) paginator!: MatPaginator;
+
   credential: ErpCredential | null = null;
   isCredentialLoading = false;
 
   dataSource = new MatTableDataSource<ErpOrderSummary>([]);
+  pageSizeOptions = [10, 25, 50];
   displayedColumns: string[] = [
     'order_number',
     'customer_name',
@@ -74,6 +79,10 @@ export class IntegrationComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.loadCredentialStatus();
+  }
+
+  ngAfterViewInit(): void {
+    this.dataSource.paginator = this.paginator;
   }
 
   ngOnDestroy(): void {
@@ -129,14 +138,24 @@ export class IntegrationComponent implements OnInit, OnDestroy {
               }
               const orders = status.orders || [];
               this.dataSource.data = orders;
+              if (this.paginator) {
+                this.paginator.firstPage();
+              }
 
               // Satır durumlarını sıfırla, backend'in işaretlediği
-              // already_imported=true olanları 'imported' ile başlat.
+              // already_imported=true olanları 'imported' ile, en son
+              // denemesi başarısız olanları (last_import_error) 'failed'
+              // ile başlat — aksi halde sayfa yenilenip tekrar "Siparişleri
+              // Çek" yapıldığında DB'de FAILED kaydı olsa bile buton sanki
+              // hiç denenmemiş gibi "İçeri Aktar" gösteriyordu.
               this.rowStates.clear();
               this.rowErrors.clear();
               orders.forEach((order) => {
                 if (order.already_imported) {
                   this.rowStates.set(order.order_number, 'imported');
+                } else if (order.last_import_error) {
+                  this.rowStates.set(order.order_number, 'failed');
+                  this.rowErrors.set(order.order_number, order.last_import_error);
                 }
               });
 
