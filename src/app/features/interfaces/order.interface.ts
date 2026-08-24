@@ -11,6 +11,11 @@ export interface Order extends Base {
   truck: Truck | null;
   max_pallet_height: number;
   truck_weight_limit: number;
+  // Siparişe özel meta veri (örn. ERP'den gelen preference/order_no) —
+  // company_relation.extra_data ile KARIŞTIRILMAMALI, bkz. backend
+  // Order.extra_data model docstring'i. generic-table'da 'name' kolonunun
+  // tooltip'inde gösteriliyor (bkz. orders.component.ts columnDefinitions).
+  extra_data?: Record<string, any> | null;
 }
 
 export interface PublicOrderViewData {

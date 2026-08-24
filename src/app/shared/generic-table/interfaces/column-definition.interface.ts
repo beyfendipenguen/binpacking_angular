@@ -31,4 +31,13 @@ export interface ColumnDefinition {
   minLength?: number;
   maxLength?: number;
   pattern?: string | RegExp;
+
+  /**
+   * true ise, bu kolonun hücresinde satırın (row) extra_data alanındaki
+   * key/value çiftleri tooltip olarak gösterilir (extra_data boş/tanımsızsa
+   * hiç tooltip gösterilmez). Generic table'ı kullanan herhangi bir sayfa,
+   * herhangi bir kolonda bunu true yapabilir — bkz. orders.component.ts
+   * 'name' kolonu.
+   */
+  showRowExtraData?: boolean;
 }

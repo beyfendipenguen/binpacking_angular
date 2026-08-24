@@ -108,6 +108,13 @@ export class GenericTableComponent<T extends { id: any }> implements OnInit, Aft
   @Input() notSortableColumns: string[] = [];
   @Input() columnDefinitions: ColumnDefinition[] = [];
 
+  /**
+   * Düz metin hücrelerinde bu karakter sayısından sonra "…" ile kırpma
+   * yapılır (piksel genişliği değil, karakter sayısı — bkz.
+   * getTruncatedValue()). Tam metin matTooltip ile üzerine gelince görünür.
+   */
+  @Input() cellTextLimit: number = 20;
+
   @Input() parentId: string | undefined = undefined; // Bağlı olduğu üst nesne ID'si
   @Input() useParentId: boolean = false; // Üst nesne ID kullanılacak mı belirteci
   @Input() parentIdFieldName: string = 'order_id'; // API'ye gönderilecek parametre adı
@@ -578,6 +585,16 @@ export class GenericTableComponent<T extends { id: any }> implements OnInit, Aft
     this.rowClick.emit(row);
   }
 
+  /**
+   * (rowClick) dinleyen sayfalarda satırlar tıklanabilir olduğu için el
+   * imleci + hover efekti göstermeli; dinlemeyen sayfalarda (rowClick hiç
+   * bind edilmemişse) satır tıklansa da bir şey olmayacağından yanıltıcı
+   * olmasın diye normal görünür — bkz. .clickable-row (scss).
+   */
+  get isRowClickable(): boolean {
+    return this.rowClick.observed;
+  }
+
   // openAddOrUpdateDialog metodunda columnDefinitions dizisinin doğru gönderildiğinden emin olalım
   openAddOrUpdateDialog(row?: T): void {
     if (this.displayedColumns.length === 0) return;
@@ -780,6 +797,48 @@ export class GenericTableComponent<T extends { id: any }> implements OnInit, Aft
     }
 
     return this.formatValue(value, path);
+  }
+
+  /**
+   * Hücrede GÖSTERİLECEK metni döner — cellTextLimit karakterden uzunsa
+   * "…" ile kırpar (piksel genişliği değil, karakter sayısı üzerinden;
+   * CSS text-overflow font'a/rakam-harf genişliğine göre tutarsız
+   * kırpıyordu). Tam metin getCellTooltip() ile tooltip'te görünür.
+   */
+  getTruncatedValue(row: any, column: string): string {
+    const value = this.getNestedPropertyValue(row, column);
+    const text = value === null || value === undefined ? '' : String(value);
+    if (text.length <= this.cellTextLimit) {
+      return text;
+    }
+    return text.slice(0, this.cellTextLimit).trimEnd() + '…';
+  }
+
+  /**
+   * Hücre için tooltip metni üretir. İki amaca hizmet eder:
+   * 1) Kolon `showRowExtraData: true` ile işaretlendiyse, satırın
+   *    extra_data alanındaki key/value çiftlerini gösterir (extra_data
+   *    boş/tanımsızsa hiç tooltip gösterilmez — boş string dönülür,
+   *    matTooltipDisabled bunu template'te devre dışı bırakır).
+   * 2) İşaretli değilse, hücrenin kendi (tam, kırpılmamış) değerini
+   *    gösterir — getTruncatedValue() ile kırpılan metnin üzerine gelince
+   *    tam metnin okunabilmesi için.
+   */
+  getCellTooltip(row: any, column: string): string {
+    const colDef = this.columnDefinitions.find(c => c.key === column);
+
+    if (colDef?.showRowExtraData) {
+      const extraData = row?.extra_data;
+      if (!extraData || typeof extraData !== 'object' || Object.keys(extraData).length === 0) {
+        return '';
+      }
+      return Object.entries(extraData)
+        .map(([key, value]) => `${key}: ${value}`)
+        .join('\n');
+    }
+
+    const value = this.getNestedPropertyValue(row, column);
+    return value === null || value === undefined ? '' : String(value);
   }
 
   /**

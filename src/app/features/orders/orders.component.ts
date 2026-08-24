@@ -79,7 +79,11 @@ export class OrdersComponent implements OnInit {
       key: 'name',
       label: 'ORDER.ORDER_NAME',
       type: 'text',
-      required: true
+      required: true,
+      // order.extra_data doluysa (örn. ERP'den gelen preference/order_no)
+      // üzerine gelince tooltip olarak gösterilsin — bkz.
+      // GenericTableComponent.getCellTooltip()
+      showRowExtraData: true
     },
     {
       key: 'date',

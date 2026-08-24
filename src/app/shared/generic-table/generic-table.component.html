@@ -117,7 +117,8 @@
           </div>
           }
           @else {
-          <span>{{ getNestedPropertyValue(row, column) }}</span>
+          <span class="truncatable-cell" [matTooltip]="getCellTooltip(row, column)"
+            [matTooltipDisabled]="!getCellTooltip(row, column)">{{ getTruncatedValue(row, column) }}</span>
           }
         </td>
       </ng-container>
@@ -145,7 +146,8 @@
       </ng-container>
 
       <tr mat-header-row *matHeaderRowDef="getDisplayColumnWithActions()"></tr>
-      <tr mat-row *matRowDef="let row; columns: getDisplayColumnWithActions()" (click)="onRowClick(row)"></tr>
+      <tr mat-row *matRowDef="let row; columns: getDisplayColumnWithActions()" (click)="onRowClick(row)"
+        [class.clickable-row]="isRowClickable"></tr>
     </table>
   </div>
 
@@ -163,7 +165,7 @@
     }
 
     @for (row of dataSource.data; track $any(row).id; let i = $index) {
-    <div class="mobile-card" (click)="onRowClick(row)">
+    <div class="mobile-card" (click)="onRowClick(row)" [class.clickable-row]="isRowClickable">
       <!-- Kart Başlığı: sıra numarası + işlem butonları -->
       <div class="mobile-card-header">
         <span class="mobile-card-number">{{ getRowNumber(i) }}</span>

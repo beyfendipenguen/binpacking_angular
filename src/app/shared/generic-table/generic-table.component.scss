@@ -143,7 +143,8 @@ $breakpoint-small: 480px;
   table {
     width: 100%;
 
-    th.mat-header-cell {
+    th.mat-header-cell,
+    th[mat-header-cell] {
       background: linear-gradient(
         135deg,
         rgba($primary-dark, 0.03) 0%,
@@ -193,11 +194,23 @@ $breakpoint-small: 480px;
       }
     }
 
-    td.mat-cell {
+    td.mat-cell,
+    td[mat-cell] {
       padding: 16px;
       color: #333;
       font-size: 14px;
       border-bottom: 1px solid rgba($primary-dark, 0.08);
+
+      // Uzun hücre içeriği (örn. uzun firma adları) karakter sayısına göre
+      // JS'te kırpılıyor (bkz. getTruncatedValue() — piksel genişliği değil,
+      // cellTextLimit karakter), tam metin matTooltip ile (bkz.
+      // getCellTooltip()) üzerine gelince görünür. Herhangi bir kolonda
+      // otomatik çalışır, sayfa bazında ekstra config gerekmez.
+      .truncatable-cell {
+        display: inline-block;
+        vertical-align: middle;
+        white-space: nowrap;
+      }
 
       &.row-number-cell {
         text-align: center;
@@ -259,31 +272,31 @@ $breakpoint-small: 480px;
       }
     }
 
-    tr.mat-row {
+    // NOT: hem "tr.mat-row" (legacy) hem "tr[mat-row]" (mat-row DIRECTIVE'i
+    // için attribute selector) hedefleniyor — Angular Material'ın MDC tabanlı
+    // sürümlerinde gerçek DOM'a sadece "mat-mdc-row" class'ı basılıyor, "mat-row"
+    // class'ı hiç eklenmiyor. "mat-row" HTML attribute'u (<tr mat-row>) ise her
+    // sürümde DOM'da kalıyor, bu yüzden tıklanabilir satır efekti için garantili
+    // hedef budur. bkz: clickable-row hover/cursor hiç görünmüyordu bugfix'i.
+    tr.mat-row,
+    tr[mat-row] {
       transition: all 0.3s ease;
-      cursor: pointer;
 
-      &:hover {
-        background: linear-gradient(
-          90deg,
-          rgba($primary-dark, 0.08) 0%,
-          rgba($accent-gold, 0.08) 100%
-        );
-        transform: translateX(4px);
-        box-shadow: -4px 0 0 0 $primary-dark;
+      // Sadece (rowClick) dinleyen sayfalarda (bkz. isRowClickable getter'ı)
+      // uygulanır — dinlemeyen sayfalarda satır tıklansa da bir şey
+      // olmayacağından el imleci/hover ile yanıltıcı olmasın diye normal
+      // kalır. cursor: pointer'ı Material'ın kendi varsayılanına karşı
+      // garantiye almak için !important kullanıldı.
+      &.clickable-row {
+        cursor: pointer !important;
 
-        .edit-hint-icon {
-          opacity: 1;
+        &:hover {
+          background: rgba(0, 0, 0, 0.045);
         }
-      }
 
-      &:active {
-        transform: translateX(2px);
-        background: linear-gradient(
-          90deg,
-          rgba($primary-dark, 0.12) 0%,
-          rgba($accent-gold, 0.12) 100%
-        );
+        &:active {
+          background: rgba(0, 0, 0, 0.08);
+        }
       }
     }
   }
@@ -305,6 +318,10 @@ $breakpoint-small: 480px;
     overflow: hidden;
     transition: all 0.2s ease;
     -webkit-tap-highlight-color: transparent;
+
+    &.clickable-row {
+      cursor: pointer !important;
+    }
 
     &:active {
       transform: scale(0.98);
@@ -891,7 +908,8 @@ $breakpoint-small: 480px;
 @media (hover: none) and (pointer: coarse) {
   .table-container {
     table {
-      tr.mat-row {
+      tr.mat-row,
+      tr[mat-row] {
         &:hover {
           transform: none;
           box-shadow: none;
