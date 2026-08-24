@@ -253,17 +253,44 @@ export class ThreeJSInitializationService {
     wheelModel: THREE.Group,
     truckDimensions: [number, number, number]
   ): void {
-    const box   = new THREE.Box3().setFromObject(wheelModel);
-    const size  = box.getSize(new THREE.Vector3());
-    const scale = Math.min(
-      truckDimensions[0] / size.x,
-      truckDimensions[2] / size.y,
-      truckDimensions[1] / size.z
-    );
+    const [tl, tw, th] = truckDimensions;
 
+    const box  = new THREE.Box3().setFromObject(wheelModel);
+    const size = box.getSize(new THREE.Vector3());
+
+    // Teker/şasi modelini SADECE tırın GENİŞLİĞİNE göre ölçekle. Model
+    // aslında tek bir teker değil, tırın tüm genişliğine yayılan bir
+    // dingil/şasi takımı (bkz. glTF kök node'u "Flatdeck") — yani gerçek
+    // hayatta olduğu gibi dingil genişliği hep platform genişliğiyle
+    // eşleşmeli, tırın uzunluğu ya da yüksekliğinden ETKİLENMEMELİ. Eskiden
+    // Math.min(uzunluk, yükseklik, genişlik oranları) kullanılıyordu; bu
+    // normalde genişlik oranını seçiyordu (doğru sonuç) ama çok kısa
+    // tırlarda uzunluk oranı daha küçük çıkıp devreye girince modeli
+    // orantısız şekilde küçültüyordu. (Not: yükseklik oranına göre
+    // ölçeklemek denendi ama model ~2.5 kat büyük çıktı — yükseklik ekseni
+    // bu model için doğru referans değil, genişlik doğru referans.)
+    const scale = tw / size.z;
     wheelModel.scale.setScalar(scale);
     wheelModel.rotation.y = Math.PI / 2;
-    wheelModel.position.set(truckDimensions[0] / 2, 0, truckDimensions[1] / 2);
+
+    // Ölçek + rotasyon uygulandıktan SONRA gerçek dünya boyutunu tekrar ölç
+    // ve pozisyonu buna göre hizala. Böylece model kendi (muhtemelen ortada
+    // olmayan) pivot noktasına göre değil, gerçek bounding box'ına göre
+    // platformun altına/ortasına oturur — farklı tır boyutlarında pozisyon
+    // kaymaz.
+    wheelModel.updateMatrixWorld(true);
+    const scaledBox    = new THREE.Box3().setFromObject(wheelModel);
+    const scaledCenter = scaledBox.getCenter(new THREE.Vector3());
+
+    // X ekseninde tırın TAM ORTASI (tl * 0.5) yerine arkaya yakın bir noktaya
+    // (tl * REAR_POSITION_RATIO) hizala — gerçek bir flatbed treylerde dingil
+    // takımı arka tarafta olur, ortada değil. 0 = ön/kabin tarafı, 1 = arka
+    // kapı tarafı. İnce ayar gerekirse sadece bu oranı değiştirmek yeterli.
+    const REAR_POSITION_RATIO = 0.82;
+
+    wheelModel.position.x += tl * REAR_POSITION_RATIO - scaledCenter.x;
+    wheelModel.position.z += tw / 2 - scaledCenter.z;
+    wheelModel.position.y += 0 - scaledBox.min.y;
 
     wheelModel.traverse(child => {
       if ((child as THREE.Mesh).isMesh) {
