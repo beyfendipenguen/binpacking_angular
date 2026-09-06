@@ -10,6 +10,12 @@ export interface ExtraDataFieldConfig {
   hint?: string;
   validators?: any[];
   isSpecial?: boolean;
+  // Birden fazla company relation seçiliyken (toplu düzenleme) bu alan
+  // formda hiç gösterilmez. order_prefix gibi her firma için BENZERSİZ
+  // olması gereken, tek tek ayarlanması gereken alanlar için kullanılır —
+  // backend de zaten birden fazla relation için bu tür alanları reddeder
+  // (bkz. CompanyRelationViewSet._prepare_order_prefix_update).
+  hideInBulk?: boolean;
 }
 
 export const EXTRA_DATA_FIELDS: ExtraDataFieldConfig[] = [
@@ -29,7 +35,8 @@ export const EXTRA_DATA_FIELDS: ExtraDataFieldConfig[] = [
     icon: 'tag',
     placeholder: 'ABC',
     hint: 'CUSTOMER.EXTRA_DATA.ORDER_PREFIX_HINT',
-    validators: [Validators.maxLength(20), Validators.pattern(/^[A-Za-zÇĞİÖŞÜçğıöşü0-9]*$/)]
+    validators: [Validators.maxLength(20), Validators.pattern(/^[A-Za-zÇĞİÖŞÜçğıöşü0-9]*$/)],
+    hideInBulk: true,
   },
   {
     key: 'max_pallet_height',

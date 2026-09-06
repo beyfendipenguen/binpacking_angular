@@ -245,10 +245,14 @@ export class ExtraDataDialogComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Get regular fields (non-special)
+   * Get regular fields (non-special). Birden fazla relation seçiliyken
+   * hideInBulk=true olan alanlar (örn. order_prefix — her firma için
+   * benzersiz olmalı, toplu ayarlanamaz) listeden çıkarılır.
    */
   get regularFields(): ExtraDataFieldConfig[] {
-    return this.extraDataFields.filter(f => !f.isSpecial);
+    return this.extraDataFields.filter(f =>
+      !f.isSpecial && !(f.hideInBulk && this.selectedRelationIds.length > 1)
+    );
   }
 
   /**
@@ -537,9 +541,14 @@ export class ExtraDataDialogComponent implements OnInit, OnDestroy {
     }
 
     const extraDataUpdates: any = {};
+    const isBulk = this.selectedRelationIds.length > 1;
 
     // DEĞİŞTİR - Tüm alanları gönder (null olsa bile)
+    // hideInBulk alanları (örn. order_prefix) toplu düzenlemede payload'a
+    // hiç eklenmez — key varlığı bile backend'in reddetmesine yol açar
+    // (bkz. CompanyRelationViewSet._prepare_order_prefix_update).
     this.extraDataFields.forEach(field => {
+      if (isBulk && field.hideInBulk) return;
       const value = this.updateForm.get(field.key)?.value;
       extraDataUpdates[field.key] = value;
     });

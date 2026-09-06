@@ -904,11 +904,16 @@ $white: #ffffff;
 
 // ==========================================
 // GLOBAL OVERRIDES
+// ÖNEMLİ: Bu blok eskiden ::ng-deep { ... } olarak component'in DIŞINDA,
+// hiçbir üst selector'e bağlı olmadan yazılıyordu — Angular'da ::ng-deep
+// bir :host/parent selector'a bağlı değilse üretilen CSS TAMAMEN
+// scope'suz kalır ve tüm uygulamadaki mat-form-field'ları etkiler (başka
+// sayfalardaki dialoglar/formlar dahil). Bu yüzden .extra-data-dialog
+// altına alınarak sadece bu dialog'a scope edildi.
 // ==========================================
-::ng-deep {
-
+.extra-data-dialog {
   // Paginator Styling
-  .mat-mdc-paginator {
+  ::ng-deep .mat-mdc-paginator {
     background: transparent;
     border-top: 2px solid $border-color;
     margin-top: 16px;
@@ -939,18 +944,41 @@ $white: #ffffff;
   }
 
   // Chip Styling
-  .mat-mdc-chip {
+  ::ng-deep .mat-mdc-chip {
     --mdc-chip-elevated-container-color: transparent;
   }
 
   // Form Field Styling
-  .mat-mdc-form-field {
-    // Hint/hata alanı normalde absolute konumlanır; uzun hint metni
-    // alttaki input'un üstüne biner. Statik yapınca içerik akışına
-    // girer ve alanlar birbirine girmez.
+  ::ng-deep .mat-mdc-form-field {
+    // ÖNEMLİ (devtools ile doğrulandı): Material'da gerçek yapı şöyle:
+    //   .mat-mdc-form-field-subscript-wrapper (position: relative — ÇAPA)
+    //     .mat-mdc-form-field-hint-wrapper (position: absolute; top:0; left:0)
+    //       mat-hint, .mat-mdc-form-field-hint-spacer
+    // hint-wrapper'ın absolute konumu subscript-wrapper'a (en yakın
+    // "relative" ata) göre hesaplanır. Önceki denemede subscript-wrapper'ı
+    // "static" yapmıştık — bu, hint-wrapper'ın çapasını ortadan kaldırdı ve
+    // absolute top:0/left:0 artık dialog'un/overlay pane'in en tepesine
+    // göre hesaplanmaya başladı (ekran görüntüsündeki "başlığın üstüne
+    // binme" hatası buydu). Doğru çözüm: DIŞ sarmalayıcıyı relative
+    // bırakıp (çapa yerinde kalsın), asıl absolute konumlanan İÇ elemanı
+    // (hint-wrapper) normal akışa çekmek — böylece hem kaçış biter hem de
+    // (orijinal sorun olan) uzun hint metninin alttaki input'un üstüne
+    // binmesi de düzelir, çünkü artık gerçekten akışta yer kaplıyor.
     .mat-mdc-form-field-subscript-wrapper {
-      position: static;
+      position: relative !important;
+      height: auto !important;
+      overflow: visible;
       margin-bottom: 4px;
+
+      .mat-mdc-form-field-hint-wrapper,
+      .mat-mdc-form-field-error-wrapper {
+        position: static !important;
+        top: auto !important;
+        left: auto !important;
+        width: 100%;
+        display: flex;
+        flex-wrap: wrap;
+      }
 
       .mat-mdc-form-field-hint {
         line-height: 1.35;
