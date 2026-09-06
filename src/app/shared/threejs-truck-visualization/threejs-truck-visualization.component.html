@@ -16,18 +16,18 @@
   <div class="tjs-toolbar">
     <div class="tjs-toolbar__group tjs-toolbar__group--left">
       <button class="tjs-icon-btn" (click)="undo()" [disabled]="!canUndo()"
-        [title]="'TRUCK_VISUALIZATION.UNDO' | translate" aria-label="Geri al">
+        [matTooltip]="'TRUCK_VISUALIZATION.UNDO' | translate" aria-label="Geri al">
         <mat-icon>undo</mat-icon>
       </button>
       <button class="tjs-icon-btn" (click)="redo()" [disabled]="!canRedo()"
-        [title]="'TRUCK_VISUALIZATION.REDO' | translate" aria-label="Yinele">
+        [matTooltip]="'TRUCK_VISUALIZATION.REDO' | translate" aria-label="Yinele">
         <mat-icon>redo</mat-icon>
       </button>
     </div>
 
     <div class="tjs-toolbar__group tjs-toolbar__group--center">
       <button class="tjs-action-btn" (click)="autoPlaceAll()"
-        [title]="'TRUCK_VISUALIZATION.AUTO_PLACE_ALL_TIP' | translate" [appDisableAuth]="['orders.change_orderresult']">
+        [matTooltip]="'TRUCK_VISUALIZATION.AUTO_PLACE_ALL_TIP' | translate" [appDisableAuth]="['orders.change_orderresult']">
         <mat-icon>auto_fix_high</mat-icon>
         <span>{{ 'TRUCK_VISUALIZATION.AUTO_PLACE_ALL' | translate }}</span>
       </button>
@@ -51,7 +51,7 @@
     </div>
 
     <div class="tjs-toolbar__group tjs-toolbar__group--right">
-      <div class="tjs-weight-pill" [class.tjs-weight-pill--over]="isFrontSectionOverLimit" [title]="getWeightTitle()">
+      <div class="tjs-weight-pill" [class.tjs-weight-pill--over]="isFrontSectionOverLimit" [matTooltip]="getWeightTitle()">
         <span class="tjs-weight-pill__label">{{ (weightCalculationDepth / 1000).toFixed(1) }} m</span>
         <span class="tjs-weight-pill__value">
           <mat-icon *ngIf="isFrontSectionOverLimit" class="tjs-weight-pill__warn">warning</mat-icon>
@@ -65,8 +65,13 @@
         <span class="tjs-weight-pill__value">{{ totalWeightDisplay }}</span>
       </div>
       <div class="tjs-divider"></div>
+      <button class="tjs-icon-btn" (click)="toggleAllPackageLabels()"
+        [class.tjs-icon-btn--active]="showAllPackageLabels"
+        [matTooltip]="(showAllPackageLabels ? 'TRUCK_VISUALIZATION.HIDE_ALL_LABELS' : 'TRUCK_VISUALIZATION.SHOW_ALL_LABELS') | translate">
+        <mat-icon>{{ showAllPackageLabels ? 'label_off' : 'label' }}</mat-icon>
+      </button>
       <button class="tjs-icon-btn" (click)="toggleFullscreen()"
-        [title]="(isFullscreen ? 'TRUCK_VISUALIZATION.EXIT_FULLSCREEN' : 'TRUCK_VISUALIZATION.FULLSCREEN') | translate">
+        [matTooltip]="(isFullscreen ? 'TRUCK_VISUALIZATION.EXIT_FULLSCREEN' : 'TRUCK_VISUALIZATION.FULLSCREEN') | translate">
         <mat-icon>{{ isFullscreen ? 'fullscreen_exit' : 'fullscreen' }}</mat-icon>
       </button>
     </div>

@@ -850,6 +850,8 @@
     "PLACING_PACKAGES": "Placing packages...",
     "FULLSCREEN": "Full Screen",
     "EXIT_FULLSCREEN": "Exit Full Screen",
+    "SHOW_ALL_LABELS": "Show Product Labels",
+    "HIDE_ALL_LABELS": "Hide Product Labels",
     "AUTO_PLACE_ALL": "Auto Place All",
     "AUTO_PLACE_ALL_TIP": "Automatically place all packages in the truck",
     "AUTO_PLACE_DELETED": "Auto Place",

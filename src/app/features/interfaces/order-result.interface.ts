@@ -32,6 +32,12 @@ export interface PackageData {
   pkgId: string;
   isForcePlaced?: boolean;
   forcePlaceBorder?: THREE.LineSegments;
+  // Paketin üst + 4 yan yüzeyine (dik/çapraz/yatay — hangisi sığıyorsa)
+  // çizilen ürün adı + adet etiketleri. Üst üste dizilen paketlerde üst
+  // yüzey görünmeyebileceği için yanlara da eklenir. Sadece mouse üzerine
+  // gelince görünür olur (bkz. ThreeJSTruckVisualizationComponent.
+  // updateHoverEffects()).
+  detailLabelMeshes?: THREE.Mesh[];
 }
 
 export interface PackageSnapshot {

@@ -177,6 +177,16 @@ $c-text-sub:  #64748b;
   &:active:not(:disabled) {
     transform: scale(0.92);
   }
+
+  &--active {
+    background: rgba($c-accent, 0.22);
+    color: $c-accent;
+
+    &:hover:not(:disabled) {
+      background: rgba($c-accent, 0.3);
+      color: $c-accent;
+    }
+  }
 }
 
 .tjs-action-btn {

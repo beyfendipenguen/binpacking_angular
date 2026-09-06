@@ -34,6 +34,7 @@ import { skip, distinctUntilChanged, takeUntil, Subject } from 'rxjs';
 import { ToastService } from '@app/core/services/toast.service';
 import { DisableAuthDirective } from '@app/core/auth/directives/disable-auth.directive';
 import { MatIconModule } from '@angular/material/icon';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 
 
@@ -42,7 +43,7 @@ import { MatIconModule } from '@angular/material/icon';
   standalone: true,
   imports: [CommonModule, FormsModule,
     TranslateModule,
-    DisableAuthDirective, MatIconModule
+    DisableAuthDirective, MatIconModule,MatTooltipModule
   ],
   templateUrl: './threejs-truck-visualization.component.html',
   styleUrl: './threejs-truck-visualization.component.scss',
@@ -54,6 +55,12 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
   
   showHelp: boolean = true;
   isFullscreen = false;
+  // Paket üst/yan yüzeylerindeki ürün detay etiketlerini her zaman (hover
+  // beklemeden) gösterme aç/kapa durumu — bkz. toggleAllPackageLabels().
+  // Tercih localStorage'da saklanır, sayfa yenilense/tekrar açılsa bile
+  // kullanıcının seçimi korunur.
+  private readonly SHOW_ALL_LABELS_STORAGE_KEY = 'tjs-show-all-package-labels';
+  showAllPackageLabels = this.loadShowAllPackageLabelsPreference();
   showWeightDisplay: boolean = true;
   weightCalculationDepth: number = 3000;
   private resizeObserver?: ResizeObserver;
@@ -729,9 +736,271 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     label.position.set(0, packageData.height / 2 + 100, 0);
     mesh.add(label);
 
+    // Ürün detay etiketleri — üst YÜZEY + 4 yan yüzey. Üst üste dizilen
+    // paketlerde üsttekinin alt yüzeyi bir altındakinin üst yüzeyini
+    // kapatabildiği için sadece üste eklemek yetmiyordu — yanlar her zaman
+    // (komşu paket tam bitişik olmadığı sürece) görünür kalıyor. Sadece
+    // mouse üzerine gelince görünür (bkz. updateHoverEffects()).
+    const detailLabels = this.createPackageDetailLabels(packageData, visualHeight);
+    if (detailLabels.length > 0) {
+      detailLabels.forEach(l => mesh.add(l));
+      packageData.detailLabelMeshes = detailLabels;
+    }
+
     this.packagesGroup.add(mesh);
 
   }
+
+  /**
+   * Paketin üst + 4 yan yüzeyi için ayrı ayrı ürün adı/adet etiketi (plane
+   * mesh) üretir; hepsi başlangıçta gizli döner (visible=false), sadece
+   * updateHoverEffects() üzerinden açılır. Ürün bilgisi bulunamazsa
+   * (state'te eşleşen paket/ürün yoksa) boş dizi döner.
+   */
+  private createPackageDetailLabels(
+    packageData: PackageData,
+    visualHeight: number
+  ): THREE.Mesh[] {
+    const lines = this.getPackageDetailLines(packageData);
+    if (lines.length === 0) return [];
+
+    const halfLength = packageData.length / 2;
+    const halfWidth = packageData.width / 2;
+    const halfHeight = visualHeight / 2;
+    const eps = 2; // z-fighting'i önlemek için yüzeyden ufak dışa offset
+
+    const labels: THREE.Mesh[] = [];
+
+    // Üst yüzey (length × width) — normal +Y
+    const top = this.createFaceLabelPlane(lines, packageData.length, packageData.width);
+    if (top) {
+      top.rotation.x = -Math.PI / 2;
+      top.position.set(0, halfHeight + eps, 0);
+      labels.push(top);
+    }
+
+    // Ön yüzey +Z (length × height) — normal +Z (varsayılan)
+    const front = this.createFaceLabelPlane(lines, packageData.length, visualHeight);
+    if (front) {
+      front.position.set(0, 0, halfWidth + eps);
+      labels.push(front);
+    }
+
+    // Arka yüzey -Z (length × height) — normal -Z
+    const back = this.createFaceLabelPlane(lines, packageData.length, visualHeight);
+    if (back) {
+      back.rotation.y = Math.PI;
+      back.position.set(0, 0, -halfWidth - eps);
+      labels.push(back);
+    }
+
+    // Sol yüzey -X (width × height) — normal -X
+    const left = this.createFaceLabelPlane(lines, packageData.width, visualHeight);
+    if (left) {
+      left.rotation.y = -Math.PI / 2;
+      left.position.set(-halfLength - eps, 0, 0);
+      labels.push(left);
+    }
+
+    // Sağ yüzey +X (width × height) — normal +X
+    const right = this.createFaceLabelPlane(lines, packageData.width, visualHeight);
+    if (right) {
+      right.rotation.y = Math.PI / 2;
+      right.position.set(halfLength + eps, 0, 0);
+      labels.push(right);
+    }
+
+    // Sayfa yenilendiğinde localStorage'dan "her zaman göster" tercihi
+    // açık geliyorsa etiketler ilk andan itibaren görünür olmalı — sadece
+    // hover'a bağlı kalırsa kullanıcı mouse hareket ettirene kadar hiçbiri
+    // görünmez kalırdı.
+    labels.forEach(l => (l.visible = this.showAllPackageLabels));
+    return labels;
+  }
+
+  /**
+   * faceW × faceH boyutunda (dünya birimi, mm) bir plane mesh döner; verilen
+   * satırlar yüzeye SIĞACAK şekilde (yatay / çapraz / dik — hangisi en büyük
+   * okunabilir font boyutunu veriyorsa o) otomatik döndürülüp çizilir.
+   * Konum/rotasyon caller tarafından ayarlanır (hangi yüz olduğuna göre
+   * değişir). Hiçbir açıda okunabilir boyutta sığmazsa null döner.
+   */
+  private createFaceLabelPlane(
+    lines: string[],
+    faceW: number,
+    faceH: number
+  ): THREE.Mesh | null {
+    // Canvas çözünürlüğü — gerçek yüzey oranını korur, en büyük kenar 1024'ü
+    // geçmesin (performans).
+    const maxRes = 1024;
+    const aspect = faceW / faceH;
+    const canvasWidth = aspect >= 1 ? maxRes : Math.round(maxRes * aspect);
+    const canvasHeight = aspect >= 1 ? Math.round(maxRes / aspect) : maxRes;
+
+    const canvas = document.createElement('canvas');
+    canvas.width = canvasWidth;
+    canvas.height = canvasHeight;
+    const ctx = canvas.getContext('2d')!;
+
+    const fit = this.fitTextBlock(ctx, lines, canvasWidth, canvasHeight);
+    if (!fit) return null; // hiçbir açıda okunabilir boyutta sığmadı
+
+    ctx.save();
+    ctx.translate(canvasWidth / 2, canvasHeight / 2);
+    ctx.rotate(fit.angle);
+
+    ctx.font = `bold ${fit.fontSize}px Arial, sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.lineWidth = Math.max(3, fit.fontSize * 0.08);
+    ctx.strokeStyle = 'rgba(0, 0, 0, 0.85)';
+    ctx.fillStyle = '#ffffff';
+
+    const lineHeight = fit.fontSize * fit.lineHeightRatio;
+    const startY = -((lines.length - 1) * lineHeight) / 2;
+    lines.forEach((line, i) => {
+      const y = startY + i * lineHeight;
+      ctx.strokeText(line, 0, y);
+      ctx.fillText(line, 0, y);
+    });
+    ctx.restore();
+
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.needsUpdate = true;
+    texture.anisotropy = 4;
+
+    const material = new THREE.MeshBasicMaterial({
+      map: texture,
+      transparent: true,
+      depthTest: true,
+      depthWrite: false,
+      polygonOffset: true,
+      polygonOffsetFactor: -4,
+      polygonOffsetUnits: -4,
+      side: THREE.DoubleSide,
+    });
+
+    const plane = new THREE.Mesh(new THREE.PlaneGeometry(faceW, faceH), material);
+    plane.renderOrder = 998;
+    // ÖNEMLİ: Bu plane'ler kutu yüzeyinin tam dışında duruyor (front/back/
+    // left/right yüzeyler kutunun gerçek dış sınırında). Three.js raycaster
+    // invisible objeleri otomatik atlamaz ve bu plane'lerde userData yok —
+    // filtrelenmezse tıklama/sürükleme/hover ray'i kutu yerine bu etiketlere
+    // çarpıp null dönebilir (seçim ve sürükleme tamamen bozulur). Bu yüzden
+    // raycast'i no-op yapıp bu mesh'leri tamamen "tıklanamaz" hale getiriyoruz;
+    // tüm etkileşim mantığı hep asıl kutu mesh'ine (userData.packageData
+    // olan) düşer.
+    plane.raycast = () => {};
+    return plane;
+  }
+
+  /**
+   * Verilen satırları canvas'a yatay (0°), çapraz (yüzeyin köşegen açısı)
+   * ve dik (90°) olarak sığdırmayı dener; uygun adaylar için padding
+   * içinde kalacak EN BÜYÜK font boyutunu hesaplar ve en büyüğünü (en
+   * okunabilir olanı) döndürür. Hiçbiri asgari okunabilir boyuta (12px)
+   * ulaşamazsa null döner (etiket hiç eklenmez — karmaşaya yol açmasın).
+   *
+   * Çapraz yazım SADECE tek satırlık (tek ürünlü) etiketlerde denenir —
+   * birden fazla satır çapraz dizildiğinde satırlar birbirine paralel
+   * kaymış gibi görünüp okunması zorlaşıyor. Çok ürünlü paketlerde satırlar
+   * her zaman yatay ya da (sığmazsa) dik "alt alta" dizilir, hiçbir zaman
+   * çapraz olmaz.
+   */
+  private fitTextBlock(
+    ctx: CanvasRenderingContext2D,
+    lines: string[],
+    canvasWidth: number,
+    canvasHeight: number
+  ): { angle: number; fontSize: number; lineHeightRatio: number } | null {
+    const padding = Math.min(canvasWidth, canvasHeight) * 0.08;
+    const diagonal = Math.sqrt(canvasWidth ** 2 + canvasHeight ** 2);
+    const diagonalAngle = Math.atan2(canvasHeight, canvasWidth);
+
+    const candidates: { angle: number; availableWidth: number; availableHeight: number }[] = [
+      { angle: 0, availableWidth: canvasWidth - padding * 2, availableHeight: canvasHeight - padding * 2 },
+      { angle: -Math.PI / 2, availableWidth: canvasHeight - padding * 2, availableHeight: canvasWidth - padding * 2 },
+    ];
+
+    if (lines.length === 1) {
+      candidates.push({
+        angle: -diagonalAngle,
+        availableWidth: diagonal - padding * 2,
+        availableHeight: Math.min(canvasWidth, canvasHeight) - padding,
+      });
+    }
+
+    // Çok satırlı (5-7+ ürünlü) paketlerde satırlar daha sıkışık dizilir
+    // (dar satır aralığı) ve daha küçük asgari font boyutuna izin verilir —
+    // aksi halde uzun ürün listeleri hiçbir açıda sığmayıp etiket tamamen
+    // iptal edilirdi (bkz. getPackageDetailLines'daki "+N ürün daha" kırpma
+    // ile birlikte çalışır).
+    const lineHeightRatio = lines.length >= 6 ? 1.05 : lines.length >= 4 ? 1.15 : 1.25;
+    const MIN_FONT = lines.length >= 6 ? 8 : lines.length >= 4 ? 10 : 12;
+    const MAX_FONT = Math.min(canvasWidth, canvasHeight) * 0.22;
+
+    let best: { angle: number; fontSize: number } | null = null;
+
+    for (const candidate of candidates) {
+      let fontSize = MAX_FONT;
+
+      while (fontSize >= MIN_FONT) {
+        ctx.font = `bold ${fontSize}px Arial, sans-serif`;
+        const maxLineWidth = Math.max(...lines.map(l => ctx.measureText(l).width));
+        const totalHeight = lines.length * fontSize * lineHeightRatio;
+
+        if (maxLineWidth <= candidate.availableWidth && totalHeight <= candidate.availableHeight) {
+          break;
+        }
+        fontSize -= 1;
+      }
+
+      if (fontSize >= MIN_FONT && (!best || fontSize > best.fontSize)) {
+        best = { angle: candidate.angle, fontSize };
+      }
+    }
+
+    return best ? { ...best, lineHeightRatio } : null;
+  }
+
+  /**
+   * pkgId ile state'teki gerçek Package kaydını (product bilgisi dahil)
+   * eşleştirir — bkz. selectedPackageProducts getter'ındaki AYNI eşleştirme
+   * (pkg.id === pkgId). Birden fazla ürün varsa her biri ayrı satır olur.
+   * Bir palette 5-7+ ürün olabildiği için satır sayısı MAX_LINES ile
+   * sınırlanır; aşan kısım "+N ürün daha" özet satırına indirgenir (aksi
+   * halde fitTextBlock hiçbir açıda sığdıramayıp etiketi tamamen iptal
+   * edebilirdi).
+   */
+  private getPackageDetailLines(packageData: PackageData): string[] {
+    const packages = this.packagesSignal();
+    const matchedPackage = Object.values(packages).find(
+      (pkg: any) => pkg.id === packageData.pkgId
+    ) as any;
+
+    const details = matchedPackage?.package_details;
+    if (!details || !details.length) return [];
+
+    const named = details.filter((d: any) => d?.product?.name);
+    if (!named.length) return [];
+
+    // İsimden son noktayı ve sonrasını silen yardımcı fonksiyon
+    const formatName = (name: string) => {
+      const lastDotIndex = name.lastIndexOf('.');
+      // Eğer nokta bulunursa son noktaya kadar olan kısmı al, yoksa ismin tamamını döndür
+      return lastDotIndex > -1 ? name.substring(0, lastDotIndex) : name;
+    };
+
+    const MAX_LINES = 8;
+    if (named.length <= MAX_LINES) {
+      return named.map((d: any) => `${formatName(d.product.name)} × ${d.count}`);
+    }
+
+    const shown = named.slice(0, MAX_LINES - 1).map((d: any) => `${formatName(d.product.name)} × ${d.count}`);
+    const remaining = named.length - (MAX_LINES - 1);
+    shown.push(`+${remaining} ürün daha`);
+    return shown;
+}
 
   private createPackageLabel(packageData: PackageData): THREE.Sprite {
     const canvas = document.createElement('canvas');
@@ -1822,6 +2091,12 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
         material.wireframe = this.wireframeMode;
         pkg.mesh.scale.setScalar(1.0);
       }
+      // Toggle açıksa (showAllPackageLabels) etiketler seçim/highlight
+      // temizlensin diye gizlenmez — sadece hover moduna dönüldüğünde
+      // (toggle kapalıyken) gizlenir.
+      if (!this.showAllPackageLabels) {
+        pkg.detailLabelMeshes?.forEach(label => (label.visible = false));
+      }
     });
   }
 
@@ -1847,8 +2122,48 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
         }
         pkg.mesh.scale.setScalar(1.0);
       }
+      // Ürün detay etiketleri (üst + 4 yan yüzey) — toggle açıksa (bkz.
+      // toggleAllPackageLabels()) her paket için her zaman görünür, kapalıysa
+      // sadece üzerine gelinen pakette görünür.
+      pkg.detailLabelMeshes?.forEach(
+        label => (label.visible = this.showAllPackageLabels || pkg === hoveredPackage)
+      );
     });
     this.renderManager.requestRender();
+  }
+
+  /**
+   * Ürün detay etiketlerini her zaman (hover beklemeden) gösterme/gizleme
+   * aç/kapa anahtarı — toolbar'daki butona bağlıdır. Açıldığında tüm
+   * paketlerin etiketleri anında görünür olur; kapatıldığında hover
+   * davranışına geri döner (bir sonraki mouse hareketinde updateHoverEffects
+   * sadece üzerine gelinen paketi gösterir).
+   */
+  toggleAllPackageLabels(): void {
+    this.showAllPackageLabels = !this.showAllPackageLabels;
+    this.processedPackagesSignal().forEach(pkg => {
+      pkg.detailLabelMeshes?.forEach(label => (label.visible = this.showAllPackageLabels));
+    });
+    this.renderManager.requestRender();
+    this.saveShowAllPackageLabelsPreference(this.showAllPackageLabels);
+  }
+
+  /** localStorage'da saklanan "etiketleri her zaman göster" tercihini okur. */
+  private loadShowAllPackageLabelsPreference(): boolean {
+    try {
+      return localStorage.getItem(this.SHOW_ALL_LABELS_STORAGE_KEY) === 'true';
+    } catch {
+      return false; // localStorage kullanılamıyorsa (gizli sekme vb.) sessizce varsayılana düş
+    }
+  }
+
+  /** "Etiketleri her zaman göster" tercihini localStorage'a yazar. */
+  private saveShowAllPackageLabelsPreference(value: boolean): void {
+    try {
+      localStorage.setItem(this.SHOW_ALL_LABELS_STORAGE_KEY, String(value));
+    } catch {
+      // localStorage kullanılamıyorsa sessizce yut — kritik bir işlev değil
+    }
   }
 
   private isNearOtherPackages(pkg: PackageData, threshold: number): boolean {

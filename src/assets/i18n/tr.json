@@ -850,6 +850,8 @@
     "PLACING_PACKAGES": "Paketler yerleştiriliyor...",
     "FULLSCREEN": "Tam Ekran",
     "EXIT_FULLSCREEN": "Tam Ekrandan Çık",
+    "SHOW_ALL_LABELS": "Ürün Etiketlerini Göster",
+    "HIDE_ALL_LABELS": "Ürün Etiketlerini Gizle",
     "AUTO_PLACE_ALL": "Tümünü Otomatik Yerleştir",
     "AUTO_PLACE_ALL_TIP": "Tüm paketleri otomatik olarak tıra yerleştir",
     "AUTO_PLACE_DELETED": "Otomatik Yerleştir",
