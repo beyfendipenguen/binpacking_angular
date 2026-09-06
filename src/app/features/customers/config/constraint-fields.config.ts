@@ -3,7 +3,7 @@ import { Validators } from '@angular/forms';
 export interface ConstraintFieldConfig {
   key: string;
   label: string; // translation key
-  type: 'number' | 'string' | 'boolean' | 'select' | 'multi-product' | 'disabled-placeholder'| 'zone-limits';
+  type: 'number' | 'string' | 'boolean' | 'select' | 'multi-product' | 'disabled-placeholder'| 'zone-limits' | 'orientation-lock';
   icon: string;
   group: string; // grup başlığı (translation key)
   placeholder?: string;
@@ -198,6 +198,17 @@ export const CONSTRAINT_FIELDS: ConstraintFieldConfig[] = [
     group: 'CONSTRAINT.GROUP_WEIGHT',
     hint: 'CONSTRAINT.ZONE_WEIGHT_LIMITS_HINT',
     detailedInfo: 'CONSTRAINT.ZONE_WEIGHT_LIMITS_DETAIL',
+  },
+
+  // ─── Grup 6.5: Büyük Paket Yönelimi ───
+  {
+    key: 'orientation_lock',
+    label: 'CONSTRAINT.ORIENTATION_LOCK',
+    type: 'orientation-lock',  // özel tip — form component'te ayrı render edilecek
+    icon: 'sync_disabled',
+    group: 'CONSTRAINT.GROUP_ORIENTATION',
+    hint: 'CONSTRAINT.ORIENTATION_LOCK_HINT',
+    detailedInfo: 'CONSTRAINT.ORIENTATION_LOCK_DETAIL',
   },
 
   // ─── Grup 7: Gelecek Özellikler (disabled) ───

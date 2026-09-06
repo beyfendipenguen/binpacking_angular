@@ -1253,7 +1253,15 @@
     "ZONE_WEIGHT_LIMITS_HINT": "Belirli mesafeye kadar maksimum yük ağırlığı",
     "ZONE_WEIGHT_LIMITS_DETAIL": "Örn: İlk 3000mm'ye max 5000kg yüklenebilir.",
     "ZONE_X_LIMIT": "Mesafe Sınırı",
-    "ZONE_MAX_KG": "Maksimum Ağırlık"
+    "ZONE_MAX_KG": "Maksimum Ağırlık",
+    "GROUP_ORIENTATION": "Büyük Paket Yönelimi",
+    "ORIENTATION_LOCK": "Yönelim Kısıtı (Büyük Paketler)",
+    "ORIENTATION_LOCK_HINT": "Belirli boyuttan büyük paketlerde döndürmeyi tek yöne sabitler",
+    "ORIENTATION_LOCK_DETAIL": "Büyük kenarı eşik değeri ve üzerinde olan paketlerde algoritma artık iki yönelimi de denemez, sadece seçtiğiniz eksene uygun <strong>TEK</strong> yönelimi kullanır. <strong>Tırın Enine Paralel</strong>: büyük kenar tırın enine paralel olacak şekilde sabitlenir (örn. arkadan forklift ile hep aynı yönde yükleme yapan firmalar için). <strong>Tırın Boyuna Paralel</strong>: tam tersi, büyük kenar tırın uzunluğuna paralel sabitlenir. Eşik boş/0 bırakılırsa kısıt uygulanmaz, döndürme mevcut davranışla tamamen serbest kalır.",
+    "ORIENTATION_LOCK_THRESHOLD": "Eşik Değeri",
+    "ORIENTATION_LOCK_ALIGN_TO": "Yönelim Ekseni",
+    "ORIENTATION_LOCK_ALIGN_WIDTH": "Tırın Enine Paralel",
+    "ORIENTATION_LOCK_ALIGN_LENGTH": "Tırın Boyuna Paralel"
   },
   "REPORT_PROFILE": {
     "TITLE": "Rapor Profili",

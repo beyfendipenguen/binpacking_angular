@@ -4,6 +4,7 @@ import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule } from '@angul
 import { MAT_DIALOG_DATA, MatDialogRef, MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatIconModule } from '@angular/material/icon';
@@ -36,6 +37,7 @@ export interface AlgorithmParamsDialogData {
     MatDialogModule,
     MatFormFieldModule,
     MatInputModule,
+    MatSelectModule,
     MatButtonModule,
     MatSlideToggleModule,
     MatIconModule,
@@ -67,6 +69,10 @@ export class AlgorithmParamsDialogComponent implements OnInit, OnDestroy {
   isSearchingProducts = false;
   selectedSideProducts: Product[] = [];
   singleZoneLimit = { x_limit_mm: 0, max_kg: 0 };
+  singleOrientationLock: { threshold_mm: number; align_to: 'width' | 'length' } = {
+    threshold_mm: 0,
+    align_to: 'width',
+  };
   // Info popover
   currentInfoField: ConstraintFieldConfig | null = null;
 
@@ -133,6 +139,14 @@ export class AlgorithmParamsDialogComponent implements OnInit, OnDestroy {
     });
   }
 
+  onOrientationLockChange(): void {
+    // threshold_mm girilmemişse (0/boş) kısıt tanımsız — null gönder.
+    const hasValue = this.singleOrientationLock.threshold_mm > 0;
+    this.form.patchValue({
+      orientation_lock: hasValue ? { ...this.singleOrientationLock } : null
+    });
+  }
+
   onSave(): void {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
@@ -166,6 +180,8 @@ export class AlgorithmParamsDialogComponent implements OnInit, OnDestroy {
       if (field.disabled) return;
       if (field.type === 'multi-product' || field.type === 'zone-limits') {
         formConfig[field.key] = [(defaults as any)[field.key] ?? []];
+      } else if (field.type === 'orientation-lock') {
+        formConfig[field.key] = [(defaults as any)[field.key] ?? null];
       } else {
         formConfig[field.key] = [(defaults as any)[field.key], field.validators ?? []];
       }
@@ -210,6 +226,9 @@ export class AlgorithmParamsDialogComponent implements OnInit, OnDestroy {
     this.singleZoneLimit = zones.length > 0
       ? { ...zones[0] }
       : { x_limit_mm: 0, max_kg: 0 };
+    this.singleOrientationLock = profile.orientation_lock
+      ? { ...profile.orientation_lock }
+      : { threshold_mm: 0, align_to: 'width' };
     this.loadSelectedSideProducts(profile.side_product_ids ?? []);
   }
 

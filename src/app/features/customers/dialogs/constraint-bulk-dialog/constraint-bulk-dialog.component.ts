@@ -92,6 +92,10 @@ export class ConstraintBulkDialogComponent implements OnInit, OnDestroy {
   isSearchingProducts = false;
   selectedSideProducts: Product[] = [];
   singleZoneLimit = { x_limit_mm: 0, max_kg: 0 };
+  singleOrientationLock: { threshold_mm: number; align_to: 'width' | 'length' } = {
+    threshold_mm: 0,
+    align_to: 'width',
+  };
 
   ngOnInit(): void {
     this.initForm();
@@ -129,7 +133,7 @@ export class ConstraintBulkDialogComponent implements OnInit, OnDestroy {
     this.constraintFields.forEach(field => {
       if (field.disabled) return;
 
-      if (field.type === 'multi-product' || field.type === 'zone-limits') {   // ← zone-limits eklendi
+      if (field.type === 'multi-product' || field.type === 'zone-limits' || field.type === 'orientation-lock') {
         formConfig[field.key] = [null];
       } else if (field.type === 'boolean') {
         formConfig[field.key] = [(constraintDefaults as any)[field.key]];
@@ -140,6 +144,7 @@ export class ConstraintBulkDialogComponent implements OnInit, OnDestroy {
 
     formConfig['side_product_search'] = [''];
     this.singleZoneLimit = { x_limit_mm: 0, max_kg: 0 };
+    this.singleOrientationLock = { threshold_mm: 0, align_to: 'width' };
     this.updateForm = this.fb.group(formConfig);
   }
 
@@ -298,6 +303,9 @@ export class ConstraintBulkDialogComponent implements OnInit, OnDestroy {
     this.singleZoneLimit = zones.length > 0
       ? { ...zones[0] }
       : { x_limit_mm: 0, max_kg: 0 };
+    this.singleOrientationLock = profile.orientation_lock
+      ? { ...profile.orientation_lock }
+      : { threshold_mm: 0, align_to: 'width' };
   }
 
   private loadSelectedSideProductsForBulk(productIds: string[]): void {
@@ -370,6 +378,14 @@ export class ConstraintBulkDialogComponent implements OnInit, OnDestroy {
       // BULK SEMANTİĞİ: boş = "dokunma" → null (payload'a girmez).
       // [] gönderilirse seçili TÜM şirketlerin zone limiti silinir!
       zone_weight_limits: hasValue ? [{ ...this.singleZoneLimit }] : null
+    });
+  }
+
+  onOrientationLockChange(): void {
+    // BULK SEMANTİĞİ: threshold_mm boş/0 = "dokunma" → null (payload'a girmez).
+    const hasValue = this.singleOrientationLock.threshold_mm > 0;
+    this.updateForm.patchValue({
+      orientation_lock: hasValue ? { ...this.singleOrientationLock } : null
     });
   }
 

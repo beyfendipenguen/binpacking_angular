@@ -1253,7 +1253,15 @@
     "ZONE_WEIGHT_LIMITS_HINT": "Maximum load weight up to a certain distance",
     "ZONE_WEIGHT_LIMITS_DETAIL": "E.g: Max 5000kg within the first 3000mm.",
     "ZONE_X_LIMIT": "Distance Limit",
-    "ZONE_MAX_KG": "Maximum Weight"
+    "ZONE_MAX_KG": "Maximum Weight",
+    "GROUP_ORIENTATION": "Large Package Orientation",
+    "ORIENTATION_LOCK": "Orientation Lock (Large Packages)",
+    "ORIENTATION_LOCK_HINT": "Locks rotation to a single direction for packages above a certain size",
+    "ORIENTATION_LOCK_DETAIL": "For packages whose long side is at or above the threshold, the algorithm no longer tries both orientations — it only uses the SINGLE orientation matching the axis you choose. <strong>Parallel to Truck Width</strong>: the long side is fixed parallel to the truck's width (e.g. for companies that always load from the rear with a forklift in a fixed direction). <strong>Parallel to Truck Length</strong>: the opposite — the long side is fixed parallel to the truck's length. If the threshold is left empty/0, no constraint is applied and rotation stays fully free as before.",
+    "ORIENTATION_LOCK_THRESHOLD": "Threshold",
+    "ORIENTATION_LOCK_ALIGN_TO": "Alignment Axis",
+    "ORIENTATION_LOCK_ALIGN_WIDTH": "Parallel to Truck Width",
+    "ORIENTATION_LOCK_ALIGN_LENGTH": "Parallel to Truck Length"
   },
   "REPORT_PROFILE": {
     "TITLE": "Report Profile",

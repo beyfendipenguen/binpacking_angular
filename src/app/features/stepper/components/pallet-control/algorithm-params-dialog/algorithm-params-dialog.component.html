@@ -176,6 +176,46 @@
             </div>
           </div>
           }
+
+          <!-- Orientation Lock -->
+          @if (field.type === 'orientation-lock') {
+          <div class="zone-limits-field">
+            <div class="zone-limits-header">
+              <div class="label-with-icon">
+                <mat-icon>{{ field.icon }}</mat-icon>
+                <span>{{ field.label | translate }}</span>
+              </div>
+              @if (field.detailedInfo) {
+              <button mat-icon-button class="info-btn" [matMenuTriggerFor]="infoMenu" type="button"
+                (click)="showFieldInfo(field); $event.stopPropagation()">
+                <mat-icon>info_outline</mat-icon>
+              </button>
+              }
+            </div>
+
+            @if (field.hint) {
+            <p class="field-hint">{{ field.hint | translate }}</p>
+            }
+
+            <div class="zone-row">
+              <mat-form-field appearance="outline" class="zone-input">
+                <mat-label>{{ 'CONSTRAINT.ORIENTATION_LOCK_THRESHOLD' | translate }}</mat-label>
+                <input matInput type="number" [(ngModel)]="singleOrientationLock.threshold_mm"
+                  [ngModelOptions]="{standalone: true}" (change)="onOrientationLockChange()" min="0" />
+                <span matSuffix>mm</span>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="zone-input">
+                <mat-label>{{ 'CONSTRAINT.ORIENTATION_LOCK_ALIGN_TO' | translate }}</mat-label>
+                <mat-select [(ngModel)]="singleOrientationLock.align_to" [ngModelOptions]="{standalone: true}"
+                  (selectionChange)="onOrientationLockChange()">
+                  <mat-option value="width">{{ 'CONSTRAINT.ORIENTATION_LOCK_ALIGN_WIDTH' | translate }}</mat-option>
+                  <mat-option value="length">{{ 'CONSTRAINT.ORIENTATION_LOCK_ALIGN_LENGTH' | translate }}</mat-option>
+                </mat-select>
+              </mat-form-field>
+            </div>
+          </div>
+          }
           }
         </div>
       </div>

@@ -38,6 +38,12 @@ export interface ConstraintProfile  {
   force_bottom_product_ids: string[];
   load_order_priorities: Record<string, number>; // {uuid: priority}
   zone_weight_limits: Array<{ x_limit_mm: number; max_kg: number }>;
+
+  // ─── Büyük paket yönelim kısıtı ───
+  // threshold_mm ve üzeri büyük kenara sahip paketlerde döndürmeyi TEK
+  // yönelime sabitler: "width" büyük kenarı tırın enine, "length" tırın
+  // boyuna paralel yapar. null = kısıt yok, döndürme tamamen serbest.
+  orientation_lock: { threshold_mm: number; align_to: 'width' | 'length' } | null;
 }
 
 /**
@@ -68,5 +74,6 @@ export function createDefaultConstraintProfile(): ConstraintProfile {
     force_bottom_product_ids: [],
     load_order_priorities: {},
     zone_weight_limits: [],
+    orientation_lock: null,
   };
 }
