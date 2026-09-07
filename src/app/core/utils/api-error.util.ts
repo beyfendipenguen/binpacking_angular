@@ -62,14 +62,18 @@ export function getApiErrorMessage(err: unknown, fallback = ''): string {
   if (typeof body === 'string' && body.trim()) return body;
 
   if (body && typeof body === 'object') {
-    // 1. Merkezi şekil
-    if (typeof body.message === 'string' && body.message) return body.message;
-    // 2. Eski şekil / alias
-    if (typeof body.error === 'string' && body.error) return body.error;
-    // 3. Merkezi errors[] listesi
+    // 1. Merkezi errors[] listesi — ÖNCE bakılır, çünkü merkezi handler
+    // validasyon hatalarında body.message'ı hep aynı jenerik metne
+    // ("Veri doğrulama hatası." gibi) sabitliyor; asıl bilgi errors[]
+    // içindeki alan bazlı mesajda. Jenerik metni öncelikli döndürmek
+    // kullanıcıya hiçbir şey söylemiyordu.
     if (Array.isArray(body.errors) && body.errors.length && body.errors[0]?.message) {
       return String(body.errors[0].message);
     }
+    // 2. Merkezi şekil (errors[] yoksa/boşsa jenerik/tekil mesaj)
+    if (typeof body.message === 'string' && body.message) return body.message;
+    // 3. Eski şekil / alias
+    if (typeof body.error === 'string' && body.error) return body.error;
     // 4. DRF detail
     if (typeof body.detail === 'string' && body.detail) return body.detail;
     // 5. DRF field hataları: ilk alanın ilk mesajı

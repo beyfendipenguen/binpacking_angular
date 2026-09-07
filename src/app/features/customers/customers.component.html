@@ -36,6 +36,16 @@
             <mat-icon>tune</mat-icon>
             <span>{{ 'REPORT_PROFILE.MENU_TITLE' | translate }}</span>
           </button>
+          <button mat-menu-item (click)="openLoadingConstraintDialog()"
+            [appDisableAuth]="['logistics.add_loadingconstraint']">
+            <mat-icon>add_circle_outline</mat-icon>
+            <span>{{ 'LOADING_CONSTRAINT.CREATE_TITLE' | translate }}</span>
+          </button>
+          <button mat-menu-item (click)="openLoadingConstraintBulkDialog()"
+            [appDisableAuth]="['logistics.add_loadingconstraint']">
+            <mat-icon>layers</mat-icon>
+            <span>{{ 'LOADING_CONSTRAINT.BULK_TITLE' | translate }}</span>
+          </button>
         </mat-menu>
       </div>
 

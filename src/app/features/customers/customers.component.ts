@@ -25,6 +25,8 @@ import { debounceTime, distinctUntilChanged, Subject } from 'rxjs';
 import { FormsModule } from '@angular/forms';
 import { ConstraintBulkDialogComponent } from './dialogs/constraint-bulk-dialog/constraint-bulk-dialog.component';
 import { ReportProfileDialogComponent } from './dialogs/report-profile-dialog/report-profile-dialog.component';
+import { LoadingConstraintDialogComponent } from './dialogs/loading-constraint-dialog/loading-constraint-dialog.component';
+import { LoadingConstraintBulkDialogComponent } from './dialogs/loading-constraint-bulk-dialog/loading-constraint-bulk-dialog.component';
 
 @Component({
   selector: 'app-customers',
@@ -230,6 +232,28 @@ export class CustomersComponent implements OnInit, OnDestroy {
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
         this.toastService.success(this.translate.instant('REPORT_PROFILE.SAVED'));
+      }
+    });
+  }
+
+  openLoadingConstraintDialog(): void {
+    const dialogRef = this.dialog.open(LoadingConstraintDialogComponent, {
+      width: '600px',
+      maxWidth: '95vw',
+      disableClose: true,
+    });
+  }
+
+  openLoadingConstraintBulkDialog(): void {
+    const dialogRef = this.dialog.open(LoadingConstraintBulkDialogComponent, {
+      width: '900px',
+      maxWidth: '95vw',
+      disableClose: false,
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.loadData();
       }
     });
   }

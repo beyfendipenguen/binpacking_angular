@@ -1,0 +1,164 @@
+<div class="loading-constraint-dialog">
+  <div class="dialog-header">
+    <div class="header-left">
+      <mat-icon class="header-icon">layers</mat-icon>
+      <h2 mat-dialog-title>{{ 'LOADING_CONSTRAINT.CREATE_TITLE' | translate }}</h2>
+    </div>
+    <button mat-icon-button (click)="onCancel()" class="close-btn">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <mat-dialog-content class="dialog-content">
+    <p class="section-hint">{{ 'LOADING_CONSTRAINT.CREATE_HINT' | translate }}</p>
+
+    <!-- Type seçimi -->
+    <div class="field-row">
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>{{ 'LOADING_CONSTRAINT.TYPE' | translate }}</mat-label>
+        <input type="text" matInput [formControl]="typeSearchControl" [matAutocomplete]="typeAuto"
+          [placeholder]="'LOADING_CONSTRAINT.TYPE_PLACEHOLDER' | translate" />
+        <mat-icon matPrefix>category</mat-icon>
+        @if (isSearchingTypes) {
+        <mat-spinner matSuffix diameter="20"></mat-spinner>
+        }
+
+        <mat-autocomplete #typeAuto="matAutocomplete" [displayWith]="displayTypeFn"
+          (optionSelected)="onTypeSelected($event.option.value)">
+          @for (row of filteredTypes; track row.id) {
+          <mat-option [value]="row">{{ row.type }}</mat-option>
+          }
+          @if (filteredTypes.length === 0 && typeSearchControl.value && !isSearchingTypes) {
+          <mat-option disabled>{{ 'COMMON.NO_RESULTS' | translate }}</mat-option>
+          }
+        </mat-autocomplete>
+      </mat-form-field>
+
+      @if (selectedType) {
+      <button mat-icon-button (click)="clearType()" [matTooltip]="'COMMON.CLEAR' | translate">
+        <mat-icon>close</mat-icon>
+      </button>
+      }
+    </div>
+
+    @if (selectedType) {
+    <div class="selected-chip">
+      <mat-icon>check_circle</mat-icon>
+      {{ 'LOADING_CONSTRAINT.TYPE_SELECTED' | translate: { type: selectedType.type } }}
+    </div>
+    }
+
+    <!-- Code seçimi (opsiyonel, cascade) -->
+    <div class="field-row">
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>{{ 'LOADING_CONSTRAINT.CODE' | translate }}</mat-label>
+        <input type="text" matInput [formControl]="codeSearchControl" [matAutocomplete]="codeAuto"
+          [placeholder]="(selectedType ? 'LOADING_CONSTRAINT.CODE_PLACEHOLDER' : 'LOADING_CONSTRAINT.CODE_PLACEHOLDER_DISABLED') | translate" />
+        <mat-icon matPrefix>tag</mat-icon>
+        @if (isSearchingCodes) {
+        <mat-spinner matSuffix diameter="20"></mat-spinner>
+        }
+
+        <mat-autocomplete #codeAuto="matAutocomplete" [displayWith]="displayCodeFn"
+          (optionSelected)="onCodeSelected($event.option.value)">
+          @for (row of filteredCodes; track row.id) {
+          <mat-option [value]="row">{{ row.code }}</mat-option>
+          }
+          @if (filteredCodes.length === 0 && !isSearchingCodes) {
+          <mat-option disabled>{{ 'COMMON.NO_RESULTS' | translate }}</mat-option>
+          }
+        </mat-autocomplete>
+        <mat-hint>{{ 'LOADING_CONSTRAINT.CODE_HINT' | translate }}</mat-hint>
+      </mat-form-field>
+
+      @if (selectedCode) {
+      <button mat-icon-button (click)="clearCode()" [matTooltip]="'COMMON.CLEAR' | translate">
+        <mat-icon>close</mat-icon>
+      </button>
+      }
+    </div>
+
+    @if (selectedCode) {
+    <div class="selected-chip">
+      <mat-icon>check_circle</mat-icon>
+      {{ 'LOADING_CONSTRAINT.CODE_SELECTED' | translate: { code: selectedCode.code } }}
+    </div>
+    }
+
+    <!-- Kat sayıları -->
+    <form [formGroup]="form" class="layer-form">
+      <mat-form-field appearance="outline">
+        <mat-label>{{ 'LOADING_CONSTRAINT.FIRST_LAYER_COUNT' | translate }}</mat-label>
+        <input matInput type="number" formControlName="first_layer_count" min="1" />
+        <mat-icon matPrefix>filter_1</mat-icon>
+        @if (form.get('first_layer_count')?.hasError('required') && form.get('first_layer_count')?.touched) {
+        <mat-error>{{ 'COMMON.REQUIRED_FIELD' | translate }}</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>{{ 'LOADING_CONSTRAINT.SECOND_LAYER_COUNT' | translate }}</mat-label>
+        <input matInput type="number" formControlName="second_layer_count" min="1" />
+        <mat-icon matPrefix>filter_2</mat-icon>
+        <mat-hint>{{ 'LOADING_CONSTRAINT.SECOND_LAYER_COUNT_HINT' | translate }}</mat-hint>
+      </mat-form-field>
+    </form>
+
+    @if (editingId) {
+    <div class="editing-banner">
+      <mat-icon>edit</mat-icon>
+      <span>{{ 'LOADING_CONSTRAINT.EDITING_NOTICE' | translate }}</span>
+      <button mat-button (click)="cancelEdit()">{{ 'LOADING_CONSTRAINT.CANCEL_EDIT' | translate }}</button>
+    </div>
+    }
+
+    <!-- Mevcut kurallar listesi -->
+    <div class="existing-rules-section">
+      <h3 class="existing-rules-title">{{ 'LOADING_CONSTRAINT.EXISTING_RULES' | translate }}</h3>
+
+      @if (isLoadingList()) {
+      <div class="loading-container">
+        <mat-spinner diameter="30"></mat-spinner>
+      </div>
+      }
+
+      @if (!isLoadingList()) {
+      <div class="constraints-list">
+        @for (constraint of constraints; track constraint.id) {
+        <div class="constraint-item" [class.editing]="editingId === constraint.id">
+          <div class="constraint-label">{{ constraintLabel(constraint) }}</div>
+          <div class="constraint-actions">
+            <button mat-icon-button (click)="startEdit(constraint)" [matTooltip]="'COMMON.EDIT' | translate">
+              <mat-icon>edit</mat-icon>
+            </button>
+            <button mat-icon-button color="warn" (click)="deleteConstraint(constraint)"
+              [matTooltip]="'COMMON.DELETE' | translate">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </div>
+        </div>
+        }
+
+        @if (constraints.length === 0) {
+        <div class="no-data">
+          <mat-icon>inbox</mat-icon>
+          <p>{{ 'LOADING_CONSTRAINT.NO_RULES' | translate }}</p>
+        </div>
+        }
+      </div>
+      }
+    </div>
+  </mat-dialog-content>
+
+  <mat-dialog-actions class="dialog-actions">
+    <button mat-button (click)="onCancel()" [disabled]="isSaving()">
+      {{ 'COMMON.CLOSE' | translate }}
+    </button>
+    <button mat-raised-button color="primary" (click)="onSave()" [disabled]="isSaving()">
+      @if (isSaving()) {
+      <mat-spinner diameter="20" class="button-spinner"></mat-spinner>
+      }
+      {{ (editingId ? 'COMMON.UPDATE' : 'COMMON.SAVE') | translate }}
+    </button>
+  </mat-dialog-actions>
+</div>
