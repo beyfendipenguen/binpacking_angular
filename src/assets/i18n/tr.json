@@ -1300,7 +1300,7 @@
     "CREATED": "Yükleme kuralı oluşturuldu",
     "BULK_TITLE": "Yükleme Kurallarını Uygula",
     "SELECT_RULES": "Kuralları Seç",
-    "BULK_INFO": "Seçtiğiniz kurallar {{count}} company relation için aktive edilecek.",
+    "BULK_INFO": "Seçtiğiniz kurallar {{count}} müşteri için aktive edilecek.",
     "NO_RULES": "Henüz tanımlı bir yükleme kuralı yok",
     "SELECT_AT_LEAST_ONE_RULE": "En az bir kural seçmelisiniz",
     "APPLY_SUCCESS": "Kurallar başarıyla uygulandı",
@@ -1310,7 +1310,8 @@
     "EDITING_NOTICE": "Bir kural düzenliyorsunuz",
     "CANCEL_EDIT": "Düzenlemeyi İptal Et",
     "DELETE_CONFIRM": "kuralını silmek istediğinize emin misiniz?",
-    "DELETED": "Yükleme kuralı silindi"
+    "DELETED": "Yükleme kuralı silindi",
+    "CONFLICTING_RULE_DISABLED": "Aynı ürün tipi/koduna sahip başka bir kural zaten seçili — aynı anda ikisi birden uygulanamaz"
   },
   "INTEGRATION": {
     "TITLE": "Entegrasyon Yönetimi",

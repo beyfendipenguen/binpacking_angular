@@ -1300,7 +1300,7 @@
     "CREATED": "Loading rule created",
     "BULK_TITLE": "Apply Loading Rules",
     "SELECT_RULES": "Select Rules",
-    "BULK_INFO": "Selected rules will be activated for {{count}} company relations.",
+    "BULK_INFO": "Selected rules will be activated for {{count}} customers",
     "NO_RULES": "No loading rules defined yet",
     "SELECT_AT_LEAST_ONE_RULE": "Select at least one rule",
     "APPLY_SUCCESS": "Rules applied successfully",
@@ -1310,7 +1310,8 @@
     "EDITING_NOTICE": "You are editing a rule",
     "CANCEL_EDIT": "Cancel Edit",
     "DELETE_CONFIRM": "Are you sure you want to delete this rule?",
-    "DELETED": "Loading rule deleted"
+    "DELETED": "Loading rule deleted",
+    "CONFLICTING_RULE_DISABLED": "Another rule with the same product type/code is already selected — both cannot be applied at once"
   },
   "INTEGRATION": {
     "TITLE": "Integration Management",
