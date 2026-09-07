@@ -342,6 +342,16 @@ $white: #ffffff;
         background-color: rgba(0, 106, 106, 0.08);
       }
 
+      &.disabled {
+        cursor: not-allowed;
+        opacity: 0.45;
+
+        &:hover {
+          border-color: $border-color;
+          background-color: transparent;
+        }
+      }
+
       .constraint-label {
         font-size: 0.9rem;
         color: $text-dark;

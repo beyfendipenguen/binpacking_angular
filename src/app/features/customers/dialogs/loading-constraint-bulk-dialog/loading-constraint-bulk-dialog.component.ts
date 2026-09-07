@@ -218,6 +218,14 @@ export class LoadingConstraintBulkDialogComponent implements OnInit {
   }
 
   toggleConstraint(constraintId: string): void {
+    const constraint = this.allConstraints.find(c => c.id === constraintId);
+    if (constraint && this.isConstraintDisabled(constraint)) {
+      // Aynı hedefe (type_id + code_id) sahip başka bir kural zaten seçili —
+      // tek bir kaydetme işleminde aynı relation'lara çakışan iki kural
+      // aynı anda uygulanamaz (bkz. targetKey/isConstraintDisabled).
+      this.toastService.warning(this.translate.instant('LOADING_CONSTRAINT.CONFLICTING_RULE_DISABLED'));
+      return;
+    }
     const index = this.selectedConstraintIds.indexOf(constraintId);
     if (index > -1) this.selectedConstraintIds.splice(index, 1);
     else this.selectedConstraintIds.push(constraintId);
@@ -225,6 +233,24 @@ export class LoadingConstraintBulkDialogComponent implements OnInit {
 
   isConstraintSelected(constraintId: string): boolean {
     return this.selectedConstraintIds.includes(constraintId);
+  }
+
+  /**
+   * İki kural aynı "hedefe" sahipse (type_id + code_id birebir aynıysa,
+   * code_id boşsa sadece type_id aynıysa) aynı anda seçilemezler — aynı
+   * relation'da aynı hedef için sadece tek bir kural aktif olabilir.
+   */
+  private targetKey(c: LoadingConstraint): string {
+    return `${c.type_id}::${c.code_id ?? ''}`;
+  }
+
+  isConstraintDisabled(constraint: LoadingConstraint): boolean {
+    if (this.isConstraintSelected(constraint.id!)) return false;
+    const key = this.targetKey(constraint);
+    return this.selectedConstraintIds.some(id => {
+      const other = this.allConstraints.find(c => c.id === id);
+      return !!other && this.targetKey(other) === key;
+    });
   }
 
   constraintLabel(constraint: LoadingConstraint): string {

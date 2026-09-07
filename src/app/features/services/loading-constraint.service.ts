@@ -26,19 +26,4 @@ export class LoadingConstraintService extends GenericCrudService<LoadingConstrai
 
     return this.http.post<LoadingConstraint>(url, body);
   }
-
-  /**
-   * Kuralı bir veya birden fazla company relation'dan deaktive eder.
-   * Backend Action: remove-relations (POST)
-   */
-  removeRelations(constraintId: string, companyRelationIds: string[]): Observable<LoadingConstraint> {
-    this.ensureApiUrl();
-    const url = `${this.apiUrl}${constraintId}/remove-relations/`;
-
-    const body = {
-      company_relation_ids: companyRelationIds
-    };
-
-    return this.http.post<LoadingConstraint>(url, body);
-  }
 }

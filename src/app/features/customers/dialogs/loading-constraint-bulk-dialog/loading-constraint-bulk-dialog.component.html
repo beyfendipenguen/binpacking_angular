@@ -140,9 +140,12 @@
       <div class="constraints-list">
         @for (constraint of allConstraints; track constraint.id) {
         <div class="constraint-item" (click)="toggleConstraint(constraint.id!)"
-          [class.selected]="isConstraintSelected(constraint.id!)">
-          <mat-checkbox [checked]="isConstraintSelected(constraint.id!)" (click)="$event.stopPropagation()"
-            (change)="toggleConstraint(constraint.id!)"></mat-checkbox>
+          [class.selected]="isConstraintSelected(constraint.id!)"
+          [class.disabled]="isConstraintDisabled(constraint)"
+          [matTooltip]="isConstraintDisabled(constraint) ? ('LOADING_CONSTRAINT.CONFLICTING_RULE_DISABLED' | translate) : ''"
+          matTooltipPosition="right">
+          <mat-checkbox [checked]="isConstraintSelected(constraint.id!)" [disabled]="isConstraintDisabled(constraint)"
+            (click)="$event.stopPropagation()" (change)="toggleConstraint(constraint.id!)"></mat-checkbox>
           <div class="constraint-label">{{ constraintLabel(constraint) }}</div>
         </div>
         }

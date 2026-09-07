@@ -241,8 +241,15 @@ export class LoadingConstraintDialogComponent implements OnInit, OnDestroy {
         this.constraints = page.results;
         this.isLoadingList.set(false);
       },
-      error: () => {
+      error: (error) => {
+        // NOT: Önceden burada hata sessizce yutuluyordu (toast yok) —
+        // liste boş görünüyor ama kullanıcı sebebini hiç göremiyordu
+        // (örn. backend'de view_loadingconstraint yetkisi eksikse 403
+        // döner, hiçbir şey görünmez). Artık gerçek hata mesajı gösteriliyor.
+        this.constraints = [];
         this.isLoadingList.set(false);
+        const errorMsg = getApiErrorMessage(error, this.translate.instant('COMMON.DATA_LOAD_ERROR'));
+        this.toastService.error(errorMsg);
       },
     });
   }
