@@ -1,5 +1,6 @@
 import { AfterViewInit, Component, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatButtonModule } from '@angular/material/button';
@@ -44,6 +45,7 @@ export class IntegrationComponent implements OnInit, AfterViewInit, OnDestroy {
   private dialog = inject(MatDialog);
   private toastService = inject(ToastService);
   private translate = inject(TranslateService);
+  private router = inject(Router);
 
   private destroy$ = new Subject<void>();
 
@@ -96,6 +98,14 @@ export class IntegrationComponent implements OnInit, AfterViewInit, OnDestroy {
       next: (credential) => {
         this.credential = credential;
         this.isCredentialLoading = false;
+
+        // Credential zaten yapılandırılmışsa siparişleri kullanıcı "Siparişleri
+        // Çek" butonuna basmadan OTOMATİK çek — buton yine de duruyor (manuel
+        // yenileme için), ama sayfa ilk açıldığında veri görmek için tıklamaya
+        // gerek yok.
+        if (credential?.is_configured) {
+          this.fetchOrders();
+        }
       },
       error: () => {
         this.isCredentialLoading = false;
@@ -229,6 +239,22 @@ export class IntegrationComponent implements OnInit, AfterViewInit, OnDestroy {
         const message = err?.error?.errors?.[0]?.message ?? this.translate.instant('INTEGRATION.IMPORT_ERROR');
         this.rowErrors.set(row.order_number, message);
         this.toastService.error(message);
+      },
+    });
+  }
+
+  /**
+   * Zaten aktarılmış bir siparişi, ana sayfada edit modunda açar — bkz.
+   * orders.component.ts'teki editOrder() ile AYNI navigasyon deseni
+   * (queryParams: orderId + mode=edit).
+   */
+  goToOrder(orderId: string | null | undefined): void {
+    if (!orderId) return;
+
+    this.router.navigate(['/'], {
+      queryParams: {
+        orderId: orderId,
+        mode: 'edit',
       },
     });
   }

@@ -1347,7 +1347,8 @@
     "ORDER_IMPORTED": "{{order_name}} imported",
     "ORDER_NUMBER": "Order No",
     "CUSTOMER_NAME": "Customer",
-    "CUSTOMER_CODE": "Customer Code"
+    "CUSTOMER_CODE": "Customer Code",
+    "GO_TO_ORDER": "Go to Order"
   },
   "PUBLIC_ORDER_VIEW": {
     "LOADING": "Loading...",

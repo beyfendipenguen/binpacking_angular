@@ -1347,7 +1347,8 @@
     "ORDER_IMPORTED": "{{order_name}} içeri aktarıldı",
     "ORDER_NUMBER": "Sipariş No",
     "CUSTOMER_NAME": "Müşteri",
-    "CUSTOMER_CODE": "Müşteri Kodu"
+    "CUSTOMER_CODE": "Müşteri Kodu",
+    "GO_TO_ORDER": "Siparişe Git"
   },
   "PUBLIC_ORDER_VIEW": {
     "LOADING": "Yükleniyor...",

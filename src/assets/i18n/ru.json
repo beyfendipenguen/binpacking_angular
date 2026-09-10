@@ -1347,7 +1347,8 @@
     "ORDER_IMPORTED": "{{order_name}} импортирован",
     "ORDER_NUMBER": "Номер заказа",
     "CUSTOMER_NAME": "Клиент",
-    "CUSTOMER_CODE": "Код клиента"
+    "CUSTOMER_CODE": "Код клиента",
+    "GO_TO_ORDER": "Перейти к заказу"
   },
   "PUBLIC_ORDER_VIEW": {
     "LOADING": "Загрузка...",

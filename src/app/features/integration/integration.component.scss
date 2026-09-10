@@ -198,6 +198,12 @@ $white: #ffffff;
               opacity: 0.85;
             }
           }
+
+          .imported-actions {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+          }
         }
 
         .no-data-row {

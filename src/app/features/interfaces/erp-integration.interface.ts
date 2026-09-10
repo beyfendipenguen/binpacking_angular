@@ -57,6 +57,11 @@ export interface ErpOrderSummary {
    * geri yükleyebilmek için — bkz. integration.component.ts fetchOrders().
    */
   last_import_error?: string | null;
+  /**
+   * already_imported=true ise ve o siparişi oluşturan Order kaydı hâlâ
+   * mevcutsa (silinmediyse) dolu gelir — "Siparişe Git" butonu bunu kullanır.
+   */
+  order_id?: string | null;
 }
 
 /** Frontend'de bir satırın anlık aktarım durumu (yerel state). */
