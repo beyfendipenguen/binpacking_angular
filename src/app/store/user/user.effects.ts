@@ -9,6 +9,7 @@ import { Router } from '@angular/router';
 import { AuthService } from '@app/core/auth/services/auth.service';
 import { ContractWarningDialogComponent } from '@app/shared/contract-warning-dialog/contract-warning-dialog.component';
 import { MatDialog } from '@angular/material/dialog';
+import { LoginRedirectRules } from '@app/core/auth/config/login-redirect-rules';
 
 @Injectable()
 export class UserEffects {
@@ -64,7 +65,15 @@ export class UserEffects {
         ofType(UserActions.loadUserSuccess),
         tap(({ user, redirectUrl }) => {
           if (redirectUrl) {
-            this.router.navigate([redirectUrl]);
+            // redirectUrl '/' ise (yani kullanıcı korumalı bir sayfadan login'e
+            // düşmemiş, normal giriş yapmışsa) şirkete veya kullanıcıya özel bir
+            // yönlendirme kuralı tanımlıysa onu kullan; deep-link redirect'leri
+            // (redirectUrl '/' değilse) her zaman önceliklidir ve bu kuralla ezilmez.
+            const ruleOverride =
+              redirectUrl === '/'
+                ? LoginRedirectRules.resolve(user?.company?.id, user?.id)
+                : null;
+            this.router.navigate([ruleOverride || redirectUrl]);
           }
           this.authService.checkAndStartTour(user);
 
