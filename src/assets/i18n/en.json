@@ -1311,7 +1311,8 @@
     "CANCEL_EDIT": "Cancel Edit",
     "DELETE_CONFIRM": "Are you sure you want to delete this rule?",
     "DELETED": "Loading rule deleted",
-    "CONFLICTING_RULE_DISABLED": "Another rule with the same product type/code is already selected — both cannot be applied at once"
+    "CONFLICTING_RULE_DISABLED": "Another rule with the same product type/code is already selected — both cannot be applied at once",
+    "ASSIGNED_RULE_TOOLTIP": "Loading rule currently assigned to this customer"
   },
   "INTEGRATION": {
     "TITLE": "Integration Management",

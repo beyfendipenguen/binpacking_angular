@@ -1311,7 +1311,8 @@
     "CANCEL_EDIT": "Düzenlemeyi İptal Et",
     "DELETE_CONFIRM": "kuralını silmek istediğinize emin misiniz?",
     "DELETED": "Yükleme kuralı silindi",
-    "CONFLICTING_RULE_DISABLED": "Aynı ürün tipi/koduna sahip başka bir kural zaten seçili — aynı anda ikisi birden uygulanamaz"
+    "CONFLICTING_RULE_DISABLED": "Aynı ürün tipi/koduna sahip başka bir kural zaten seçili — aynı anda ikisi birden uygulanamaz",
+    "ASSIGNED_RULE_TOOLTIP": "Bu müşteriye şu an atanmış yükleme kuralı"
   },
   "INTEGRATION": {
     "TITLE": "Entegrasyon Yönetimi",

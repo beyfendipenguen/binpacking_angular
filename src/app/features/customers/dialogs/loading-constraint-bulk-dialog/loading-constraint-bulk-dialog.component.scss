@@ -276,6 +276,17 @@ $white: #ffffff;
               background-color: rgba(0, 0, 0, 0.08);
               color: $text-light;
             }
+
+            // Bu relation'a şu an atanmış bir kural varsa (bkz.
+            // getAssignedConstraint) "Aktif" yerine bu chip gösterilir —
+            // altın/accent renk, aktif/pasif chip'lerinden bilinçli olarak
+            // farklı (bir durum değil, atanmış somut bir kural gösteriyor).
+            &.status-rule-assigned {
+              background-color: rgba($light-accent, 0.25);
+              color: $accent-color;
+              font-family: monospace;
+              font-weight: 600;
+            }
           }
         }
       }

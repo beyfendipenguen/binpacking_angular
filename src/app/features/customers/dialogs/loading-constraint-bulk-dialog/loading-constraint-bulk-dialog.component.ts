@@ -77,6 +77,29 @@ export class LoadingConstraintBulkDialogComponent implements OnInit {
   ngOnInit(): void {
     this.setupSearchDebounce();
     this.loadRelations();
+    // Step 1'deki liste, her relation için ATANMIŞ (varsa) kuralı "Aktif"
+    // yerine göstermek istediğinden (bkz. getAssignedConstraint), kurallar
+    // artık sadece Step 2'ye geçilince değil, dialog açılır açılmaz da
+    // (sessizce, isLoading'i paylaşmadan) yükleniyor — aksi halde iki ayrı
+    // yükleme aynı `isLoading` bayrağını yarışarak değiştirip Step 1
+    // içeriğinin relations gelmeden önce kısa süreliğine "boş" görünmesine
+    // yol açabilirdi.
+    this.preloadConstraints();
+  }
+
+  /**
+   * loadConstraints() ile AYNI veriyi çeker ama isLoading'e dokunmaz ve
+   * hata durumunda sessizce geçer — Step 1'in "atanmış kural" gösterimi
+   * için bir best-effort ön yükleme. Step 2'ye geçildiğinde loadConstraints()
+   * zaten tekrar (isLoading + hata toast'ı ile) çağrılıyor.
+   */
+  private preloadConstraints(): void {
+    this.loadingConstraintService.getAll({ limit: 200 }).subscribe({
+      next: (page) => {
+        this.allConstraints = page.results;
+      },
+      error: () => { /* Step 2'de loadConstraints() zaten tekrar deneyecek */ }
+    });
   }
 
   // ─── Step 1: Relation seçimi (constraint-bulk-dialog ile birebir) ───
@@ -170,6 +193,21 @@ export class LoadingConstraintBulkDialogComponent implements OnInit {
   clearSelection(): void {
     this.selectedRelationIds = [];
     this.toastService.info(this.translate.instant('CUSTOMER.EXTRA_DATA.SELECTION_CLEARED'));
+  }
+
+  /**
+   * Bu relation'a şu an ATANMIŞ (aktif) bir yükleme kuralı varsa onu döner —
+   * Step 1 listesinde "Aktif" yazısı yerine hangi kuralın uygulandığını
+   * göstermek için (bkz. HTML: relation-meta chip). company_relations
+   * içinde bu relation'ın id'sini taşıyan İLK kural döner (bir relation'a
+   * aynı anda birden fazla FARKLI kural atanamaz, bkz. add_relations
+   * override mantığı — LoadingConstraint modeli/backend), yoksa undefined.
+   */
+  getAssignedConstraint(relation: CompanyRelation): LoadingConstraint | undefined {
+    if (!relation.id) return undefined;
+    return this.allConstraints.find(c =>
+      c.company_relations?.some(r => r.id === relation.id)
+    );
   }
 
   get selectedCount(): number {

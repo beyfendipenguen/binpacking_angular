@@ -96,9 +96,15 @@
               <mat-chip class="relation-type-chip">
                 {{ 'COMPANY_RELATION.TYPE.' + relation.relation_type.toUpperCase() | translate }}
               </mat-chip>
+              @if (getAssignedConstraint(relation); as assignedConstraint) {
+              <mat-chip class="status-rule-assigned" [matTooltip]="'LOADING_CONSTRAINT.ASSIGNED_RULE_TOOLTIP' | translate">
+                {{ constraintLabel(assignedConstraint) }}
+              </mat-chip>
+              } @else {
               <mat-chip [class]="relation.is_active ? 'status-active' : 'status-inactive'">
                 {{ (relation.is_active ? 'COMMON.ACTIVE' : 'COMMON.PASSIVE') | translate }}
               </mat-chip>
+              }
             </div>
           </div>
         </div>
