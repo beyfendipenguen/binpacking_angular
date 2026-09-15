@@ -172,7 +172,7 @@ export class CustomerDialogComponent implements OnInit, OnDestroy {
    */
   private loadPalletGroups(): void {
     this.isLoadingPalletGroups = true;
-    this.palletGroupService.getAll({ limit: 1000 }).subscribe({
+    this.palletGroupService.getAll({ limit: 1000  }).subscribe({
       next: (page) => {
         this.palletGroups = page.results;
         this.isLoadingPalletGroups = false;
@@ -222,7 +222,8 @@ export class CustomerDialogComponent implements OnInit, OnDestroy {
 
         return this.companyRelationService.getAll({
           search: searchTerm.trim(),
-          limit: 5
+          limit: 5,
+          _skipLoading: true
         }).pipe(
           map(response => {
             this.isSearchingCompanies = false;

@@ -118,6 +118,7 @@ export class LoadingConstraintBulkDialogComponent implements OnInit {
     const params: any = {
       offset: this.currentPage * this.pageSize,
       limit: this.pageSize,
+      _skipLoading: true
     };
     const searchTerm = this.searchControl.value?.trim();
     if (searchTerm) params.search = searchTerm;

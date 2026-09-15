@@ -188,7 +188,7 @@ export class LoadingConstraintDialogComponent implements OnInit, OnDestroy {
   private loadCodesForType(search: string) {
     if (!this.selectedType) return of(null);
     const trimmed = typeof search === 'string' ? search.trim() : '';
-    const params: any = { type_exact: this.selectedType.type, limit: 5 };
+    const params: any = { type_exact: this.selectedType.type, limit: 5,_skipLoading: true };
     if (trimmed) params.code = trimmed;
 
     return this.productTypeService.getAll(params).pipe(
