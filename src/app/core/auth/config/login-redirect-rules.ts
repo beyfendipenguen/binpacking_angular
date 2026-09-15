@@ -27,8 +27,6 @@ export interface LoginRedirectRule {
 
 export class LoginRedirectRules {
   private static readonly RULES: LoginRedirectRule[] = [
-    // Örnekler:
-    // { companyId: '11111111-1111-1111-1111-111111111111', redirectUrl: '/integration' },
     // { userId: '22222222-2222-2222-2222-222222222222', redirectUrl: '/integration' },
     { companyId: '3b54034c-44f0-41f3-82a0-f43845a2f43f', redirectUrl: '/integration' },
   ];

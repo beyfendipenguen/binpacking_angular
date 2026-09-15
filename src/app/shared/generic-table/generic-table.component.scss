@@ -219,11 +219,6 @@ $breakpoint-small: 480px;
         width: 60px;
       }
 
-      &.numeric-cell {
-        text-align: right;
-        font-variant-numeric: tabular-nums;
-      }
-
       // Button Cell
       &.button-cell {
         text-align: center;
@@ -260,7 +255,10 @@ $breakpoint-small: 480px;
       .action-buttons {
         display: flex;
         gap: 8px;
-        justify-content: flex-end;
+        // Eskiden flex-end (sağa yaslı) idi, ama "İşlemler" başlığı sola
+        // yaslıydı — tabloyu tek tip (hepsi sola hizalı) okunaklı hale
+        // getirmek için bunu da diğer kolonlarla aynı yöne (sola) aldık.
+        justify-content: flex-start;
 
         button {
           transition: all 0.3s ease;
