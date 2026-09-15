@@ -12,7 +12,7 @@
   </div>
   }
 
-  @if (!isLoadingModels && !isLoadingData && piecesDataSignal().length > 0) {
+  @if (!isLoadingModels && !isLoadingData) {
   <div class="tjs-toolbar">
     <div class="tjs-toolbar__group tjs-toolbar__group--left">
       <button class="tjs-icon-btn" (click)="undo()" [disabled]="!canUndo()"

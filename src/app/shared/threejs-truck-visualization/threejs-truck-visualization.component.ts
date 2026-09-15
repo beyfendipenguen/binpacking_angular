@@ -263,20 +263,32 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
   onPrevShipment(): void {
     const idx = this.activeShipmentIndexSignal();
     if (idx > 0) {
-      this.isLocalOperation = true;
       this.store.dispatch(StepperResultActions.setActiveShipment({ index: idx - 1 }));
       this.reset();
+      // ÖNEMLİ: isLocalOperation'ı safeProcessData()'dan SONRA true yapıyoruz.
+      // safeProcessData() senkron çalışır (içinde await yok) ve İLK satırında
+      // isLocalOperation'ı false'a çeker. Bayrağı çağrıdan ÖNCE true yaparsak
+      // o an hiçbir işe yaramadan hemen false'a dönüyor; piecesData$
+      // aboneliği (yukarıdaki dispatch'in tetiklediği) ise Angular signal
+      // effect'leri asenkron/mikrotask ile çalıştığı için bu satırlardan
+      // SONRA tetikleniyor — bayrağı false bulup "dışarıdan geldi" sanıp
+      // safeProcessData() + applyGravityToAllPackages()'ı bir KEZ DAHA,
+      // gereksiz yere çalıştırıyordu. Sonuç: her sevkiyat geçişinde TÜM
+      // sahne iki kez kuruluyordu — geçişlerin yavaş hissetmesinin asıl
+      // nedenlerinden biri buydu.
       this.safeProcessData();
+      this.isLocalOperation = true;
     }
   }
 
   onNextShipment(): void {
     const idx = this.activeShipmentIndexSignal();
     if (idx < this.shipmentsSignal().length - 1) {
-      this.isLocalOperation = true;
       this.store.dispatch(StepperResultActions.setActiveShipment({ index: idx + 1 }));
       this.reset();
+      // bkz. onPrevShipment() — aynı çifte-kurulum düzeltmesi.
       this.safeProcessData();
+      this.isLocalOperation = true;
     }
   }
 
@@ -312,21 +324,49 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
   }
 
   /**
+   * Bir Object3D'nin TÜM alt ağacını (kendisi dahil) dolaşıp geometry,
+   * material (ve varsa üzerindeki texture/map) kaynaklarını serbest
+   * bırakır. Bir paket mesh'i tek bir kutu değil — kenar çizgileri
+   * (EdgesGeometry+LineBasicMaterial), palet alt-grubu (birden çok
+   * tahta/blok mesh'i), etiket (CanvasTexture'lı plane/sprite), ürün
+   * detay etiketleri ve force-place border'ı gibi ONLARCA alt nesneden
+   * oluşan bir hiyerarşi (bkz. createPackageMesh). Sadece üstteki tek
+   * mesh'i (veya hiçbirini, `.clear()` gibi) dispose etmek, bu alt
+   * nesnelerin GPU/CPU kaynaklarını (özellikle CanvasTexture'lar) sızdırır
+   * — sevkiyatlar arası geçişte (her geçişte TÜM sahne yeniden kuruluyor)
+   * bu sızıntı hızla birikip fark edilir bir "kasma"ya yol açıyordu.
+   */
+  private disposeObjectTree(root: THREE.Object3D): void {
+    root.traverse((obj) => {
+      const mesh = obj as THREE.Mesh;
+      mesh.geometry?.dispose();
+
+      const material = (obj as THREE.Mesh).material as THREE.Material | THREE.Material[] | undefined;
+      if (material) {
+        const materials = Array.isArray(material) ? material : [material];
+        materials.forEach((mat) => {
+          const map = (mat as THREE.MeshBasicMaterial).map;
+          map?.dispose();
+          mat.dispose();
+        });
+      }
+    });
+  }
+
+  /**
  * Package mesh'ini temizler
  */
   private cleanupMesh(pkg: PackageData): void {
 
     if (pkg.mesh) {
       this.packagesGroup.remove(pkg.mesh);
-
-      pkg.mesh.geometry.dispose();
-      (pkg.mesh.material as THREE.Material).dispose();
+      this.disposeObjectTree(pkg.mesh);
       pkg.mesh = undefined;
-
-
-    }
-
-    if (pkg.forcePlaceBorder) {
+      // forcePlaceBorder mesh'in bir ÇOCUĞUYDU (bkz. addForcePlaceBorder) —
+      // yukarıdaki disposeObjectTree zaten onu da kapsadı, referansı
+      // temizlemek yeterli.
+      pkg.forcePlaceBorder = undefined;
+    } else if (pkg.forcePlaceBorder) {
       pkg.forcePlaceBorder.geometry.dispose();
       (pkg.forcePlaceBorder.material as THREE.Material).dispose();
       pkg.forcePlaceBorder = undefined;
@@ -668,6 +708,12 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
   private createPackageVisualization(): void {
     if (!this.packagesGroup) return;
 
+    // Önceki sahne ağacını tamamen dispose et (geometry/material/texture),
+    // sonra grubu boşalt. .clear() tek başına yalnızca çocukları sahneden
+    // koparır, kaynaklarını serbest bırakmaz — bu satır, sevkiyatlar arası
+    // geçişte biriken GPU/CPU sızıntısının (ve buna bağlı kasmanın) kök
+    // nedeniydi.
+    this.disposeObjectTree(this.packagesGroup);
     this.packagesGroup.clear();
 
     this.processedPackagesSignal().forEach((packageData) => {
@@ -939,20 +985,50 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     const MIN_FONT = lines.length >= 6 ? 8 : lines.length >= 4 ? 10 : 12;
     const MAX_FONT = Math.min(canvasWidth, canvasHeight) * 0.22;
 
+    // "Sığar mı" testi bir fontSize'da: küçük font her zaman daha kolay sığar
+    // (monoton azalan bir fonksiyon) — bu sayede en büyük sığan tam sayı
+    // boyutunu 1px'lik adımlarla TEK TEK denemek yerine ikili arama ile
+    // ~log2(MAX_FONT-MIN_FONT) adımda bulabiliyoruz (öncesinde 200+ adıma
+    // kadar çıkabiliyordu). Bu fonksiyon her paket için 5 yüze (üst/ön/arka/
+    // sol/sağ) kadar, her yüz için 2-3 açı adayına kadar çağrılıyor ve HER
+    // sevkiyat geçişinde (tam sahne yeniden kurulumunda) TÜM paketler için
+    // tekrar çalışıyor — linear tarama, gerçek darboğazlardan biriydi.
+    const fitsAt = (
+      candidate: { availableWidth: number; availableHeight: number },
+      fontSize: number
+    ): boolean => {
+      ctx.font = `bold ${fontSize}px Arial, sans-serif`;
+      const maxLineWidth = Math.max(...lines.map(l => ctx.measureText(l).width));
+      const totalHeight = lines.length * fontSize * lineHeightRatio;
+      return maxLineWidth <= candidate.availableWidth && totalHeight <= candidate.availableHeight;
+    };
+
     let best: { angle: number; fontSize: number } | null = null;
 
+    const maxInt = Math.floor(MAX_FONT);
+    const minInt = Math.ceil(MIN_FONT);
+
     for (const candidate of candidates) {
-      let fontSize = MAX_FONT;
+      let fontSize = minInt - 1; // sentinel: hiçbir boyutta sığmadı
 
-      while (fontSize >= MIN_FONT) {
-        ctx.font = `bold ${fontSize}px Arial, sans-serif`;
-        const maxLineWidth = Math.max(...lines.map(l => ctx.measureText(l).width));
-        const totalHeight = lines.length * fontSize * lineHeightRatio;
-
-        if (maxLineWidth <= candidate.availableWidth && totalHeight <= candidate.availableHeight) {
-          break;
+      if (maxInt >= minInt) {
+        if (fitsAt(candidate, maxInt)) {
+          fontSize = maxInt; // en büyük boyut zaten sığıyor
+        } else if (fitsAt(candidate, minInt)) {
+          // en büyük sığan tam sayı boyutunu ikili arama ile bul
+          let lo = minInt;
+          let hi = maxInt;
+          while (hi - lo > 1) {
+            const mid = Math.floor((lo + hi) / 2);
+            if (fitsAt(candidate, mid)) {
+              lo = mid;
+            } else {
+              hi = mid;
+            }
+          }
+          fontSize = lo;
         }
-        fontSize -= 1;
+        // ne maxInt ne minInt sığıyorsa bu aday hiçbir boyutta sığmıyor demektir
       }
 
       if (fontSize >= MIN_FONT && (!best || fontSize > best.fontSize)) {
@@ -2749,20 +2825,20 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
   }
 
   private applySnapshot(snapshot: PackageSnapshot[]): void {
-    // Mevcut mesh'leri temizle
-    this.packagesGroup.clear();
+    // Mevcut mesh'leri temizle — önce TÜM alt hiyerarşiyi (kenarlar, palet
+    // grubu, etiketler, forcePlaceBorder) dispose et, sonra grubu boşalt.
+    // Not: dispose işlemi mesh referansı üzerinden yapılır, packagesGroup'un
+    // çocuğu olmasına bağlı değildir; bu yüzden clear()'dan önce veya sonra
+    // çağrılması fark etmez, ama disposeObjectTree'nin torunlara da inmesi
+    // (eski koddaki gibi sadece üst mesh'i değil) asıl düzeltme budur.
     this.processedPackagesSignal().forEach(p => {
       if (p.mesh) {
-        p.mesh.geometry.dispose();
-        (p.mesh.material as THREE.Material).dispose();
+        this.disposeObjectTree(p.mesh);
         p.mesh = undefined;
       }
-      if (p.forcePlaceBorder) {
-        p.forcePlaceBorder.geometry.dispose();
-        (p.forcePlaceBorder.material as THREE.Material).dispose();
-        p.forcePlaceBorder = undefined;
-      }
+      p.forcePlaceBorder = undefined;
     });
+    this.packagesGroup.clear();
 
     this.packagesStateService.clearProcessedPackages();
     this.packagesStateService.clearDeletedPackages();
@@ -2925,22 +3001,12 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
       this.initService.cleanup(this.threeComponents);
     }
 
-    // Dispose packages
+    // Dispose packages — üst mesh'in yanı sıra kenarlar/palet grubu/etiketler
+    // gibi TÜM alt hiyerarşiyi de kapsar (eski kod sadece üst mesh'i, üstelik
+    // aynı işi iki kez yapıyordu).
     this.processedPackagesSignal().forEach(pkg => {
       if (pkg.mesh) {
-        pkg.mesh.geometry.dispose();
-        (pkg.mesh.material as THREE.Material).dispose();
-      }
-    });
-
-    this.processedPackagesSignal().forEach(pkg => {
-      if (pkg.forcePlaceBorder) {
-        pkg.forcePlaceBorder.geometry.dispose();
-        (pkg.forcePlaceBorder.material as THREE.Material).dispose();
-      }
-      if (pkg.mesh) {
-        pkg.mesh.geometry.dispose();
-        (pkg.mesh.material as THREE.Material).dispose();
+        this.disposeObjectTree(pkg.mesh);
       }
     });
 
@@ -2981,7 +3047,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     if (this.packagesGroup) {
       this.processedPackagesSignal().forEach(pkg => {
         if (pkg.mesh) {
-          this.packagesGroup.remove(pkg.mesh);
+          this.disposeObjectTree(pkg.mesh);
           pkg.mesh = undefined;
         }
       });
@@ -3085,6 +3151,17 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     this.saveSnapshot();
 
     allPackages.sort((a, b) => (b.length * b.width) - (a.length * a.width));
+
+    // allPackages yukarıda mesh:undefined ile kopyalandı — asıl mesh
+    // referansları hâlâ processed/deleted state'teki orijinal objelerde.
+    // Grubu boşaltmadan önce onları dispose etmezsek (kenarlar, palet
+    // grubu, etiketler dahil) her "Tümünü Otomatik Yerleştir" çağrısında
+    // sızıntı birikir.
+    allPackagesFromSignal.forEach(p => {
+      if (p.mesh) {
+        this.disposeObjectTree(p.mesh);
+      }
+    });
 
     if (this.packagesGroup) {
       this.packagesGroup.clear();

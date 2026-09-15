@@ -133,8 +133,14 @@ export class ResultStepService {
     //  her değişiklikte shipments[activeIndex]'e yazılıyordu, ama garantiye alalım)
     const finalShipments = shipments.map((s, i) => i === activeIndex ? currentOrderResult : s);
 
+    // Boşalmış (tüm paketleri silinmiş) sevkiyatları kayıttan tamamen çıkar,
+    // kalanları 1'den başlayarak ARADA BOŞLUK BIRAKMADAN yeniden numaralandır.
+    // Örn: 6 sevkiyattan 3.'sü boşaldıysa 1,2,4,5,6 değil 1,2,3,4,5 olarak
+    // kaydedilir.
+    const nonEmptyShipments = finalShipments.filter(result => result.length > 0);
+
     return {
-      shipments: finalShipments.map((result, i) => ({
+      shipments: nonEmptyShipments.map((result, i) => ({
         shipment: i + 1,
         result: result.map(mapToName)
       }))

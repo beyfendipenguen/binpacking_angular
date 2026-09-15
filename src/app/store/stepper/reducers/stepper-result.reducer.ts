@@ -172,6 +172,10 @@ export const stepperResultHandlers = [
   // Reset Step3 State
   on(StepperResultActions.resetStep3State, (state: StepperState) => ({
     ...state,
+    // orderResultId de sıfırlanmalı — aksi halde hasResultsSignal (result-step
+    // component'inde artık orderResultId'ye bakıyor) reset sonrasında hâlâ
+    // "sonuç var" sanıp yanlış UI durumu gösterebilir.
+    orderResultId: "",
     step3State: {
       orderResult: [],
       deletedPackages: [],

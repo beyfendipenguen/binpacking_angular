@@ -67,8 +67,22 @@ export class ResultStepComponent implements OnInit, OnDestroy {
 
   public orderIdSignal = this.store.selectSignal(selectOrderId);
   readonly isLoadingSignal = signal(false);
+  // ÖNEMLİ: Bu, "aktif sevkiyatın şu an paketi var mı" değil, "bu sipariş
+  // için bir hesaplama sonucu var mı" sorusuna cevap vermeli. Önceden
+  // orderResultSignal()?.length > 0'a (yani SADECE aktif sevkiyatın paket
+  // sayısına) bakıyordu — bu yüzden kullanıcı aktif sevkiyattaki TÜM
+  // paketleri silince (deletedPackages'a taşınınca) bu signal false oluyor,
+  // result-step.component.html'deki
+  // `@if (hasResultsSignal() && !hasThreeJSError)` şartı düşüyor ve TÜM
+  // <app-threejs-truck-visualization> component'i (canvas, sahne, kamera,
+  // her şey) DESTROY ediliyordu — kullanıcının "threejs destroy oluyor,
+  // uçuyor" dediği tam olarak buydu: paket geri eklenince component'in
+  // SIFIRDAN yeniden oluşturulması. orderResultId bir hesaplama tamamlanınca
+  // set edilir ve sadece resetStep3State'te (tamamen yeni baştan başlarken)
+  // temizlenir — aktif sevkiyattaki paket sayısından bağımsızdır, bu yüzden
+  // doğru sinyal budur.
   readonly hasResultsSignal = computed(() =>
-    this.orderResultSignal()?.length > 0
+    !!this.orderResultIdSignal()
   );
   readonly isDirtySignal = this.store.selectSignal(selectStep3IsDirty);
   readonly remainingProducts = this.store.selectSignal(selectRemainingProducts);
