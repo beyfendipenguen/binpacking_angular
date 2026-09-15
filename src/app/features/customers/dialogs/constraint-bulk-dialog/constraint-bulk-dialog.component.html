@@ -20,7 +20,11 @@
   </div>
 
   <mat-dialog-content class="dialog-content">
-    @if (isLoading) {
+    <!-- Step 2'ye geçiş anındaki (henüz veri gelmemişken) tam-ekran yükleme
+         göstergesi — Step 1'in KENDİ yükleme göstergesi artık aşağıda
+         relations-list İÇİNDE (arama kutusunu yok etmeyen bir overlay
+         olarak) gösteriliyor. -->
+    @if (isLoading && currentStep === 2) {
     <div class="loading-container">
       <mat-spinner diameter="40"></mat-spinner>
       <p>{{ 'COMMON.LOADING' | translate }}</p>
@@ -28,7 +32,7 @@
     }
 
     <!-- STEP 1: Relation Selection (extra-data dialog ile birebir) -->
-    @if (!isLoading && currentStep === 1) {
+    @if (currentStep === 1) {
     <div class="step-content">
 
       <div class="search-bar">
@@ -71,6 +75,18 @@
       </div>
 
       <div class="relations-list">
+        <!-- Arama/sayfalama sırasında (ör. yazarken debounce ile) yeniden
+             yüklenirken, ESKİDEN bütün step-content (arama kutusu dahil)
+             @if (!isLoading) ile TAMAMEN kaldırılıp yeniden oluşturuluyordu
+             — bu da input'un focus'unu kaybetmesine (kullanıcının her
+             harften sonra kutuya tekrar tıklamak zorunda kalmasına) yol
+             açıyordu. Artık search-bar hep DOM'da kalıyor, sadece bu liste
+             üzerine hafif bir overlay biniyor. -->
+        @if (isLoading) {
+        <div class="relations-list-loading-overlay">
+          <mat-spinner diameter="32"></mat-spinner>
+        </div>
+        }
         @for (relation of allRelations; track relation.id) {
         <div class="relation-item" (click)="toggleRelation(relation.id!)"
           [class.selected]="isRelationSelected(relation.id!)">
@@ -104,14 +120,14 @@
         </div>
         }
 
-        @if (allRelations.length === 0 && !searchControl.value) {
+        @if (!isLoading && allRelations.length === 0 && !searchControl.value) {
         <div class="no-data">
           <mat-icon>inbox</mat-icon>
           <p>{{ 'CUSTOMER.EXTRA_DATA.NO_RELATIONS' | translate }}</p>
         </div>
         }
 
-        @if (allRelations.length === 0 && searchControl.value) {
+        @if (!isLoading && allRelations.length === 0 && searchControl.value) {
         <div class="no-data">
           <mat-icon>search_off</mat-icon>
           <p>{{ 'COMMON.NO_RESULTS' | translate }}</p>

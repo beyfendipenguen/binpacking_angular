@@ -181,10 +181,24 @@ $white: #ffffff;
   }
 
   .relations-list {
+    position: relative; // .relations-list-loading-overlay için
     display: flex;
     flex-direction: column;
     gap: 8px;
     margin-bottom: 16px;
+
+    // Arama kutusunu DOM'dan hiç kaldırmadan (bkz. HTML notu) sadece bu
+    // liste üzerinde gösterilen hafif yükleme overlay'i.
+    .relations-list-loading-overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255, 255, 255, 0.7);
+      z-index: 2;
+      border-radius: 4px;
+    }
 
     .relation-item {
       display: flex;
