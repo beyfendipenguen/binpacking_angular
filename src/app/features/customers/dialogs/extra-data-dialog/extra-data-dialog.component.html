@@ -273,6 +273,56 @@
           </div>
           }
 
+          @if (field.key === 'weight_category_id') {
+          <div class="form-row">
+            <mat-form-field appearance="outline">
+              <mat-label>{{ field.label | translate }}</mat-label>
+              <mat-select [formControlName]="field.key" [placeholder]="'CUSTOMER.EXTRA_DATA.SELECT_WEIGHT_CATEGORY' | translate">
+                <mat-option [value]="null">
+                  <span class="empty-option">{{ 'CUSTOMER.EXTRA_DATA.NO_WEIGHT_CATEGORY' | translate }}</span>
+                </mat-option>
+                @for (category of weightCategories; track category.id) {
+                <mat-option [value]="category.id">
+                  {{ category.label }}
+                </mat-option>
+                }
+              </mat-select>
+              <mat-icon matPrefix>{{ field.icon }}</mat-icon>
+              @if (isLoadingWeightCategories) {
+              <mat-spinner matSuffix diameter="20"></mat-spinner>
+              }
+              @if (field.hint) {
+              <mat-hint>{{ field.hint | translate }}</mat-hint>
+              }
+            </mat-form-field>
+          </div>
+          }
+
+          @if (field.key === 'truck_id') {
+          <div class="form-row">
+            <mat-form-field appearance="outline">
+              <mat-label>{{ field.label | translate }}</mat-label>
+              <mat-select [formControlName]="field.key" [placeholder]="'CUSTOMER.EXTRA_DATA.SELECT_TRUCK' | translate">
+                <mat-option [value]="null">
+                  <span class="empty-option">{{ 'CUSTOMER.EXTRA_DATA.NO_TRUCK' | translate }}</span>
+                </mat-option>
+                @for (truck of trucks; track truck.id) {
+                <mat-option [value]="truck.id">
+                  {{ truck.name }}
+                </mat-option>
+                }
+              </mat-select>
+              <mat-icon matPrefix>{{ field.icon }}</mat-icon>
+              @if (isLoadingTrucks) {
+              <mat-spinner matSuffix diameter="20"></mat-spinner>
+              }
+              @if (field.hint) {
+              <mat-hint>{{ field.hint | translate }}</mat-hint>
+              }
+            </mat-form-field>
+          </div>
+          }
+
           }
         </div>
         <!-- Dinamik Rapor Alanları -->

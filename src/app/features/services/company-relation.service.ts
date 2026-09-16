@@ -11,6 +11,7 @@ export interface CompanyRelationSettings {
   max_pallets_per_package: number;
   default_pallet_group_id: string | null;
   weight_category_id: string | null;  // weight_type string → id
+  truck_id: string | null;
   show_logo: boolean;
 }
 

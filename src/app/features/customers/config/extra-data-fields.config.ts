@@ -64,5 +64,32 @@ export const EXTRA_DATA_FIELDS: ExtraDataFieldConfig[] = [
     hint: 'CUSTOMER.PALLET_HINT',
     isSpecial: true,
     validators: [Validators.required]
+  },
+  {
+    // NOT: key ismi "weight_category_id" — yeni bir isim DEĞİL, mevcut
+    // /company-relations/<id>/settings/ endpoint'inin ve
+    // invoice-upload.component.ts'nin (sipariş oluşturma formu) zaten
+    // okuduğu key ile aynı. Burada eklenen tek şey bu değeri
+    // AYARLAYABİLECEĞİMİZ bir form alanı — okuma/otomatik atama tarafı
+    // zaten çalışıyordu.
+    key: 'weight_category_id',
+    label: 'CUSTOMER.EXTRA_DATA.DEFAULT_WEIGHT_CATEGORY',
+    type: 'select',
+    icon: 'scale',
+    hint: 'CUSTOMER.EXTRA_DATA.DEFAULT_WEIGHT_CATEGORY_HINT',
+    isSpecial: true,
+    // Opsiyonel: default_pallet_group_id'nin aksine required değil —
+    // boş bırakılırsa sipariş formunda otomatik weight category seçilmez.
+  },
+  {
+    // Truck için weight_category_id ile birebir aynı pattern (yeni
+    // eklenen bir çift): sipariş oluşturma formunda firma seçilince bu
+    // tır otomatik atanır (bkz. invoice-upload.component.ts).
+    key: 'truck_id',
+    label: 'CUSTOMER.EXTRA_DATA.DEFAULT_TRUCK',
+    type: 'select',
+    icon: 'local_shipping',
+    hint: 'CUSTOMER.EXTRA_DATA.DEFAULT_TRUCK_HINT',
+    isSpecial: true,
   }
 ];

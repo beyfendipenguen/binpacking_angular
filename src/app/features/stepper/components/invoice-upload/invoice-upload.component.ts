@@ -230,8 +230,12 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
       next: (categories) => this.availableWeightCategories.set(categories),
       error: () => this.availableWeightCategories.set([])
     });
-    // Trucks'ı ilk yüklemede limit ile çek
-    this.dataLoaderService.loadTrucksLimited(10).subscribe({
+    // Trucks'ı ilk yüklemede çek — limit önceden 10'du, bu da
+    // company_relation.extra_data.truck_id ile otomatik eşleştirme
+    // yapılırken (bkz. loadCompanyRelationSettings) 10'dan fazla tır
+    // tipi olan firmalarda varsayılan tırın listede bulunamayıp
+    // eşleşmenin sessizce başarısız olmasına yol açabilirdi.
+    this.dataLoaderService.loadTrucksLimited(200).subscribe({
       next: (trucks) => {
         this.referenceData.trucks = trucks;
       },
@@ -397,12 +401,20 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
             ? this.availableWeightCategories().find(c => c.id === settings.weight_category_id) ?? null
             : null;
 
+          // settings'ten gelen truck_id ile mevcut tırlardan eşleştir —
+          // weight_category_id ile birebir aynı pattern (bkz.
+          // CompanyRelation.extra_data.truck_id, CUSTOMER.EXTRA_DATA.DEFAULT_TRUCK).
+          const matchedTruck = settings.truck_id
+            ? this.referenceData.trucks.find(t => t.id === settings.truck_id) ?? null
+            : null;
+
           // Order'ı settings ile güncelle
           const updatedOrder = structuredClone({
             ...currentOrder,
             truck_weight_limit: settings.truck_weight_limit,
             max_pallet_height: settings.max_pallet_height,
             weight_category: matchedCategory,
+            truck: matchedTruck,
             company_relation: selectedCompany
           });
 

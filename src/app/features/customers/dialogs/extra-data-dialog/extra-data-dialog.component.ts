@@ -20,9 +20,13 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle'; // ← EK
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { CompanyRelationService } from '../../../services/company-relation.service';
 import { PalletGroupService } from '../../../services/pallet-group.service';
+import { WeightCategoryService } from '@app/features/services/weight-category.service';
+import { RepositoryService } from '@app/features/stepper/services/repository.service';
 import { ToastService } from '@app/core/services/toast.service';
 import { CompanyRelation, ExtraData } from '../../../interfaces/company-relation.interface';
 import { PalletGroup } from '../../../interfaces/pallet-group.interface';
+import { WeightCategory } from '@app/features/interfaces/weight-category.interface';
+import { Truck } from '@app/features/interfaces/truck.interface';
 import { PalletGroupDialogComponent } from '@app/features/pallets/pallet-group-dialog/pallet-group-dialog.component';
 import { DisableAuthDirective } from "@app/core/auth/directives/disable-auth.directive";
 import { Subject } from 'rxjs';
@@ -68,6 +72,8 @@ export class ExtraDataDialogComponent implements OnInit, OnDestroy {
   private fb = inject(FormBuilder);
   private companyRelationService = inject(CompanyRelationService);
   private palletGroupService = inject(PalletGroupService);
+  private weightCategoryService = inject(WeightCategoryService);
+  private repositoryService = inject(RepositoryService);
   private toastService = inject(ToastService);
   private translate = inject(TranslateService);
   private dialogRef = inject(MatDialogRef<ExtraDataDialogComponent>);
@@ -99,6 +105,14 @@ export class ExtraDataDialogComponent implements OnInit, OnDestroy {
   palletGroups: PalletGroup[] = [];
   isLoadingPalletGroups = false;
 
+  // Weight Categories (weight_category_id özel alanı için)
+  weightCategories: WeightCategory[] = [];
+  isLoadingWeightCategories = false;
+
+  // Trucks (truck_id özel alanı için)
+  trucks: Truck[] = [];
+  isLoadingTrucks = false;
+
   // Forms
   updateForm!: FormGroup;
   dynamicFieldForm!: FormGroup;
@@ -119,6 +133,8 @@ export class ExtraDataDialogComponent implements OnInit, OnDestroy {
     this.setupSearchDebounce();
     this.loadRelations();
     this.loadPalletGroups();
+    this.loadWeightCategories();
+    this.loadTrucks();
     this.loadReportProfile();
   }
 
@@ -282,6 +298,40 @@ export class ExtraDataDialogComponent implements OnInit, OnDestroy {
       error: (error) => {
         this.toastService.error(this.translate.instant('CUSTOMER_MESSAGES.OPERATION_ERROR'));
         this.isLoadingPalletGroups = false;
+      }
+    });
+  }
+
+  /**
+   * Load available weight categories (weight_category_id özel alanı için)
+   */
+  private loadWeightCategories(): void {
+    this.isLoadingWeightCategories = true;
+    this.weightCategoryService.getCategories().subscribe({
+      next: (categories) => {
+        this.weightCategories = categories;
+        this.isLoadingWeightCategories = false;
+      },
+      error: () => {
+        this.weightCategories = [];
+        this.isLoadingWeightCategories = false;
+      }
+    });
+  }
+
+  /**
+   * Load available trucks (truck_id özel alanı için)
+   */
+  private loadTrucks(): void {
+    this.isLoadingTrucks = true;
+    this.repositoryService.getTrucks({ limit: '1000' }).subscribe({
+      next: (page) => {
+        this.trucks = page.results;
+        this.isLoadingTrucks = false;
+      },
+      error: () => {
+        this.trucks = [];
+        this.isLoadingTrucks = false;
       }
     });
   }

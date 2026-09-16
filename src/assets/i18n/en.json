@@ -271,7 +271,15 @@
       "IS_MADE_IN_TURKEY": "Made in Turkey Label",
       "LABEL_NAME": "Label Name",
       "REPORT_FIELDS": "Customer Report Fields",
-      "REPORT_FIELDS_HINT": "These are company-specific fields that will appear in the order template"
+      "REPORT_FIELDS_HINT": "These are company-specific fields that will appear in the order template",
+      "DEFAULT_WEIGHT_CATEGORY": "Default Weight Type",
+      "DEFAULT_WEIGHT_CATEGORY_HINT": "Automatically assigned when this company is selected while creating an order",
+      "SELECT_WEIGHT_CATEGORY": "Select weight type",
+      "NO_WEIGHT_CATEGORY": "No weight type selected",
+      "DEFAULT_TRUCK": "Default Truck",
+      "DEFAULT_TRUCK_HINT": "Automatically assigned when this company is selected while creating an order",
+      "SELECT_TRUCK": "Select truck",
+      "NO_TRUCK": "No truck selected"
     }
   },
   "CUSTOMER_MESSAGES": {

@@ -271,7 +271,15 @@
       "IS_MADE_IN_TURKEY": "Türkiye'de Üretildi Etiketi",
       "LABEL_NAME": "Etiket İsmi",
       "REPORT_FIELDS": "Müşteri Rapor Alanları",
-      "REPORT_FIELDS_HINT": "Bu alanlar sipariş şablonunda görünecek şirkete özel bilgilerdir"
+      "REPORT_FIELDS_HINT": "Bu alanlar sipariş şablonunda görünecek şirkete özel bilgilerdir",
+      "DEFAULT_WEIGHT_CATEGORY": "Varsayılan Ağırlık Tipi",
+      "DEFAULT_WEIGHT_CATEGORY_HINT": "Sipariş oluşturulurken bu firma seçildiğinde otomatik atanır",
+      "SELECT_WEIGHT_CATEGORY": "Ağırlık tipi seçin",
+      "NO_WEIGHT_CATEGORY": "Ağırlık tipi seçilmedi",
+      "DEFAULT_TRUCK": "Varsayılan Tır",
+      "DEFAULT_TRUCK_HINT": "Sipariş oluşturulurken bu firma seçildiğinde otomatik atanır",
+      "SELECT_TRUCK": "Tır seçin",
+      "NO_TRUCK": "Tır seçilmedi"
     }
   },
   "CUSTOMER_MESSAGES": {
