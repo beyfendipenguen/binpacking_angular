@@ -194,20 +194,36 @@ export const stepperResultHandlers = [
     orderResultId: orderResultId
   })),
 
-  on(StepperResultActions.applyBackendSync, (state: StepperState, { deletedPackages, removedPkgIds }) => {
+  on(StepperResultActions.applyBackendSync, (state: StepperState, { deletedPackages, removedPkgIds, nameByPkgId }) => {
     const removedSet = new Set(removedPkgIds);
 
+    // Truck'ta KALAN (silinmeyen/taşınmayan) satırların da görünen numarası
+    // (name, index 6) bayatlamış olabilir — backend paket ekleme/silme
+    // sonrası TÜM paketleri yeniden numaralandırabiliyor (bkz.
+    // _reindex_packages). nameByPkgId'de karşılığı olan ve numarası
+    // GERÇEKTEN değişen satırlar burada yerinde güncelleniyor.
+    let namesChanged = false;
+    const patchName = (row: PackagePosition): PackagePosition => {
+      const freshName = nameByPkgId?.[row[8]];
+      if (freshName === undefined || row[6] === freshName) return row;
+      namesChanged = true;
+      const patched = [...row] as PackagePosition;
+      patched[6] = freshName;
+      return patched;
+    };
+
     const shipments = state.step3State.shipments.map(s =>
-      s.filter(row => !removedSet.has(row[8]))
+      s.filter(row => !removedSet.has(row[8])).map(patchName)
     );
 
     const idx = state.step3State.activeShipmentIndex;
     const orderResult = state.step3State.isMultiShipment
       ? (shipments[idx] ?? [])
-      : state.step3State.orderResult.filter(row => !removedSet.has(row[8]));
+      : state.step3State.orderResult.filter(row => !removedSet.has(row[8])).map(patchName);
 
     const changed =
       removedSet.size > 0 ||
+      namesChanged ||
       deletedPackages.length !== state.step3State.deletedPackages.length;
 
     return {

@@ -59,6 +59,13 @@ export const StepperResultActions = createActionGroup({
     'Apply Backend Sync': props<{
       deletedPackages: PackagePosition[];
       removedPkgIds: string[];   // kamyondan (orderResult + shipments) çıkarılacaklar
+      // Paket ekleme/silme sonrası backend TÜM paketleri yeniden numaralandırabilir
+      // (bkz. bulk_create_package_detail_view.py _reindex_packages). Truck'ta
+      // kalan (silinmeyen/taşınmayan) paketlerin de görünen numarası (name,
+      // PackagePosition[6]) bu yüzden bayatlayabiliyordu — sadece deletedPackages
+      // havuzuna girenler değil. pkgId → güncel name eşlemesi; reducer bunu
+      // orderResult/shipments'taki HER satıra da uygular.
+      nameByPkgId: Record<string, number>;
     }>(),
 
     // Çoklu sevkiyatı ayrı siparişlere bölme — "Bitir" sırasında checkbox

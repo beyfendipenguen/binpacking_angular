@@ -37,6 +37,13 @@ const consolidatePackageDetails = (packageDetails: PackageDetailReadDto[]): Pack
   return Array.from(consolidatedMap.values());
 };
 
+// NOT: Step3'ün (Result Step) orderResult/shipments/deletedPackages'ındaki
+// height/weight'i Pallet Control kaydından sonra güncel tutma işi burada
+// DEĞİL — stepper-result.effects.ts'teki syncBackendPackages$ effect'inde
+// (→ StepperResultActions.applyBackendSync) yapılıyor. O effect zaten
+// upsertManySuccess'i dinleyip modified/added/deleted package'ları
+// deletedPackages havuzuyla senkronluyor ve step3State'i baştan yazıyor;
+// burada ayrıca bir senkron denemek gereksiz tekrar olurdu.
 const applyBackendPackages = (state: StepperState, { packages }: { packages: PackageReadDto[] }) => {
   const sortedPackages = [...packages].sort((a, b) => a.name - b.name);
   const emptyPackageNo = toInteger(sortedPackages.at(-1)?.name) + 1;

@@ -60,14 +60,19 @@ export interface PackageSnapshot {
   isDeleted: boolean;
 }
 
+// NOT: aşağıdaki yorumlar önceden index4/5'i (height/depth) YANLIŞ
+// sırayla belgeliyordu. Gerçek konvansiyon — hem backend'in ürettiği
+// JSON'da (calculate_bin_packing_service_v3.py sonucu) hem de bu tuple'ı
+// elle kuran her yerde (bkz. threejs-truck-visualization.component.ts
+// addDeletedPackage çağrısı) TUTARLI şekilde — şu şekilde:
 export type PackagePosition = [
   number,  // x
   number,  // y
   number,  // z
-  number,  // width
+  number,  // width (x-ekseni boyu)
+  number,  // depth (y-ekseni boyu)
   number,  // height
-  number,  // depth
-  number,  // id
+  number,  // name (paket sıra no)
   number,  // weight
   string   // pkgId
 ];

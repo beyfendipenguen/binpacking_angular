@@ -9,6 +9,10 @@ export interface PackageReadDto extends Base {
   is_remaining: boolean;
   alignment: string;
   height: number;
+  // Backend'de hesaplanıp geliyor (Package modelinde kalıcı alan değil) —
+  // bkz. PackageReadSerializer.get_weight(). Result Step'in orderResult/
+  // deletedPackages state'indeki height/weight senkronizasyonu bunu okur.
+  weight: number;
   priority: number | null;
   package_details: PackageDetailReadDto[];
 }

@@ -134,7 +134,7 @@ export class StepperResultEffects {
           -1, -1, -1,
           Number(pkg.pallet?.dimension?.depth || 0),
           Number(pkg.pallet?.dimension?.width || 0),
-          Number(pkg.pallet?.dimension?.height || 0),
+          Number(pkg.height || 0),
           Number(pkg.name),
           calculatePackageTotalWeight(pkg, order),   // ← 0 yerine
           pkg.id
@@ -164,15 +164,47 @@ export class StepperResultEffects {
             && !deletedPkgIds.has(p.id))
           .map(makeRow);
 
-        // Kamyondan çıkarılacaklar: backend'de silinenler + modified olanlar
+        // GÜVENLİK AĞI: yukarıdaki 3 grup teorik olarak birbirini dışlıyor
+        // (deletedPkgIds/truckPkgIds anlık snapshot'lara göre hesaplanıyor),
+        // ama restore edilmiş bir paket hemen ardından tekrar düzenlenirse
+        // (silin → truck'a geri koy → tekrar düzenle → kaydet) bazı
+        // durumlarda paket hem "movedRows"tan düşüp truck'ta stale kalıyor
+        // hem de deletedPackages'a taze bir kopyası ekleniyordu — aynı
+        // pkgId iki yerde birden (biri eski height'lı truck'ta, biri yeni
+        // height'lı havuzda) görünüyordu. Burada pkgId'ye göre TEKİLLEŞTİRİP
+        // (en taze satır kazanır) deletedPackages'a giren HER pkgId'yi
+        // removedPkgIds'e de ekleyerek truck'ta ikinci bir kopya kalmasını
+        // kesin olarak engelliyoruz.
+        const combinedDeleted = new Map<string, PackagePosition>();
+        [...updatedDeletedRows, ...newRows, ...movedRows].forEach(row => {
+          combinedDeleted.set(row[8], row);
+        });
+        const finalDeletedPackages = Array.from(combinedDeleted.values());
+
+        // Kamyondan çıkarılacaklar: backend'de silinenler + deletedPackages'a
+        // giren HER paket (movedRows'a değil, nihai listeye göre — yukarıdaki
+        // güvenlik ağıyla tutarlı olması için).
         const removedPkgIds = [
           ...changes.deletedIds,
-          ...movedRows.map(r => r[8] as string)
+          ...finalDeletedPackages.map(row => row[8] as string)
         ];
 
+        // _reindex_packages (backend) paket ekleme/silme sonrası TÜM
+        // paketleri yeniden numaralandırabilir — sadece silinen/taşınan
+        // değil, truck'ta hiç dokunulmadan duran paketlerin de görünen
+        // numarası (name) değişmiş olabilir. originalPackages bu save'in
+        // TAZE (reindex sonrası) halini taşıyor; her pkgId için güncel
+        // name'i reducer'a taşıyoruz ki orderResult/shipments'taki HER
+        // satır (sadece deletedPackages'a girenler değil) güncellensin.
+        const nameByPkgId: Record<string, number> = {};
+        originalPackages.forEach(p => {
+          nameByPkgId[p.id] = Number(p.name);
+        });
+
         return StepperResultActions.applyBackendSync({
-          deletedPackages: [...updatedDeletedRows, ...newRows, ...movedRows],
-          removedPkgIds
+          deletedPackages: finalDeletedPackages,
+          removedPkgIds,
+          nameByPkgId
         });
       })
     )
