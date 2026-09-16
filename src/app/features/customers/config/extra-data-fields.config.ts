@@ -45,7 +45,7 @@ export const EXTRA_DATA_FIELDS: ExtraDataFieldConfig[] = [
     icon: 'height',
     placeholder: '2400',
     suffix: 'DIMENSIONS.MM',
-    validators: [Validators.required, Validators.min(1)]
+    validators: [Validators.min(1)]
   },
   {
     key: 'truck_weight_limit',
@@ -54,7 +54,7 @@ export const EXTRA_DATA_FIELDS: ExtraDataFieldConfig[] = [
     icon: 'local_shipping',
     placeholder: '25000',
     suffix: 'DIMENSIONS.KG',
-    validators: [Validators.required, Validators.min(1)]
+    validators: [Validators.min(1)]
   },
   {
     key: 'default_pallet_group_id',
@@ -63,7 +63,7 @@ export const EXTRA_DATA_FIELDS: ExtraDataFieldConfig[] = [
     icon: 'inventory_2',
     hint: 'CUSTOMER.PALLET_HINT',
     isSpecial: true,
-    validators: [Validators.required]
+    validators: []
   },
   {
     // NOT: key ismi "weight_category_id" — yeni bir isim DEĞİL, mevcut
