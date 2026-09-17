@@ -189,7 +189,18 @@ export class ExtraDataDialogComponent implements OnInit, OnDestroy {
     if (!this.updateForm) {
       // İlk kurulum — burada gerçekten oluştur
       const formConfig: any = {
-        merge_mode: ['replace']
+        // NOT: UI'da mod seçim radio'su şu an kapalı (bkz. HTML — yorum
+        // satırına alınmış), yani kullanıcının bunu değiştirebileceği bir
+        // yol yok. 'replace' varsayılanı, tek bir alanı toplu düzenlerken
+        // dokunulmamış TÜM diğer alanların (show_logo, default_pallet_
+        // group_id, hatta extraDataFields'te hiç tanımlı olmayan
+        // _schema_version gibi anahtarların) tamamen SİLİNMESİNE yol
+        // açıyordu — relation.extra_data = extra_data_updates satırı
+        // mevcut veriyi düşünmeden komple değiştiriyor. 'merge' ile
+        // relation.extra_data.update(...) SADECE gönderilen key'lere
+        // dokunur, geri kalanı olduğu gibi korunur — asıl istenen (PATCH)
+        // davranış bu.
+        merge_mode: ['merge']
       };
       this.extraDataFields.forEach(field => {
         const validators = field.validators || [];
@@ -198,7 +209,7 @@ export class ExtraDataDialogComponent implements OnInit, OnDestroy {
       this.updateForm = this.fb.group(formConfig);
     } else {
       // Sonraki çağrılarda — mevcut formu resetle, instance'ı koru
-      const resetValues: Record<string, any> = { merge_mode: 'replace' };
+      const resetValues: Record<string, any> = { merge_mode: 'merge' };
       this.extraDataFields.forEach(field => {
         resetValues[field.key] = null;
       });
@@ -593,14 +604,31 @@ export class ExtraDataDialogComponent implements OnInit, OnDestroy {
     const extraDataUpdates: any = {};
     const isBulk = this.selectedRelationIds.length > 1;
 
-    // DEĞİŞTİR - Tüm alanları gönder (null olsa bile)
+    // NOT: ESKİDEN burada "tüm alanları gönder (null olsa bile)" deniyordu
+    // — yani kullanıcı hiç dokunmasa da her field.key payload'a giriyordu.
+    // Bunun İKİ sorunu vardı: (1) merge_mode yanlışlıkla 'replace' olunca
+    // (bkz. initForms) dokunulmamış TÜM diğer alanlar silinmiş oluyordu;
+    // (2) bazı input tiplerinde (örn. [type]="'number'" gibi DİNAMİK type
+    // binding'i olan sayısal alanlarda) Angular'ın NumberValueAccessor'ı
+    // hiç devreye girmiyor, DefaultValueAccessor null'ı DOM'da "" olarak
+    // gösterip bazı durumlarda formun value'sunu da null yerine boş string
+    // olarak bırakabiliyor — bu da 'merge' modunda bile dokunulmamış bir
+    // alanı ("max_pallet_height": "2400" gibi) sessizce "" ile eziyordu.
+    // Artık SADECE bu oturumda kullanıcının GERÇEKTEN değiştirdiği (dirty)
+    // alanlar payload'a giriyor — dokunulmamış bir alanın değeri ne olursa
+    // olsun (null, "", vs.) hiç gönderilmiyor, dolayısıyla merge modunda
+    // mevcut veriyi asla etkilemiyor. Kullanıcı bir alanı BİLEREK
+    // temizlerse (input'u boşaltırsa) o alan dirty olur ve "" olarak
+    // gönderilir — bu İSTENEN davranış (örn. order_prefix'i temizlemek).
+    //
     // hideInBulk alanları (örn. order_prefix) toplu düzenlemede payload'a
     // hiç eklenmez — key varlığı bile backend'in reddetmesine yol açar
     // (bkz. CompanyRelationViewSet._prepare_order_prefix_update).
     this.extraDataFields.forEach(field => {
       if (isBulk && field.hideInBulk) return;
-      const value = this.updateForm.get(field.key)?.value;
-      extraDataUpdates[field.key] = value;
+      const control = this.updateForm.get(field.key);
+      if (!control?.dirty) return;
+      extraDataUpdates[field.key] = control.value;
     });
 
     this.dynamicReportFields.forEach(field => {
@@ -615,10 +643,11 @@ export class ExtraDataDialogComponent implements OnInit, OnDestroy {
       extraDataUpdates[field.key] = field.value;
     });
 
-    // En az bir alan dolu mu kontrol et - ← EKLE
-    const hasAnyValue = Object.values(extraDataUpdates).some(val =>
-      val !== null && val !== undefined && val !== ''
-    );
+    // En az bir alan değişti mi kontrol et — standart alanlar artık sadece
+    // dirty ise payload'a girdiği için (bkz. yukarı), burada "değer dolu
+    // mu" yerine "hiç key eklendi mi" bakmak yeterli VE daha doğru: bir
+    // alanı BİLEREK boşaltmak (dirty + value='') da geçerli bir değişikliktir.
+    const hasAnyValue = Object.keys(extraDataUpdates).length > 0;
 
     if (!hasAnyValue) {
       this.toastService.warning(this.translate.instant('CUSTOMER.EXTRA_DATA.NO_CHANGES'));
@@ -627,7 +656,7 @@ export class ExtraDataDialogComponent implements OnInit, OnDestroy {
 
     this.isSaving = true;
 
-    const mergeMode = this.updateForm.get('merge_mode')?.value || 'replace';
+    const mergeMode = this.updateForm.get('merge_mode')?.value || 'merge';
 
     this.companyRelationService.bulkUpdateExtraData(
       this.selectedRelationIds,
