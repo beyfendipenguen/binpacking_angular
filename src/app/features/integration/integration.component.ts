@@ -221,6 +221,18 @@ export class IntegrationComponent implements OnInit, AfterViewInit, OnDestroy {
                 return;
               }
               this.rowStates.set(row.order_number, 'imported');
+              // NOT: row, dataSource.data içindeki asıl satır nesnesine
+              // referans — sayfa yenilenmeden "Siparişe Git" butonunun
+              // görünmesi için order_id'yi buraya, backend'in import
+              // sonucunda döndürdüğü yeni sipariş id'siyle DOĞRUDAN
+              // yazıyoruz. Eskiden sadece rowStates güncelleniyordu; HTML
+              // ise butonu row.order_id'ye göre gösterdiği için (bkz.
+              // template `@if (row.order_id)`) sadece "Siparişleri Çek"
+              // ile yeniden fetch edilince (backend already_imported+order_id
+              // döndürünce) görünüyordu.
+              if (status.order_id) {
+                row.order_id = status.order_id;
+              }
               this.toastService.success(
                 this.translate.instant('INTEGRATION.ORDER_IMPORTED', { order_name: status.order_name })
               );
