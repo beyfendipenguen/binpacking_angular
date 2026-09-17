@@ -46,6 +46,16 @@
             <mat-icon>layers</mat-icon>
             <span>{{ 'LOADING_CONSTRAINT.BULK_TITLE' | translate }}</span>
           </button>
+          <button mat-menu-item (click)="openPalletSelectionRuleDialog()"
+            [appDisableAuth]="['logistics.add_palletselectionrule']">
+            <mat-icon>rule</mat-icon>
+            <span>{{ 'PALLET_SELECTION_RULE.CREATE_TITLE' | translate }}</span>
+          </button>
+          <button mat-menu-item (click)="openPalletSelectionRuleBulkDialog()"
+            [appDisableAuth]="['logistics.add_palletselectionrule']">
+            <mat-icon>layers</mat-icon>
+            <span>{{ 'PALLET_SELECTION_RULE.BULK_TITLE' | translate }}</span>
+          </button>
         </mat-menu>
       </div>
 

@@ -27,6 +27,8 @@ import { ConstraintBulkDialogComponent } from './dialogs/constraint-bulk-dialog/
 import { ReportProfileDialogComponent } from './dialogs/report-profile-dialog/report-profile-dialog.component';
 import { LoadingConstraintDialogComponent } from './dialogs/loading-constraint-dialog/loading-constraint-dialog.component';
 import { LoadingConstraintBulkDialogComponent } from './dialogs/loading-constraint-bulk-dialog/loading-constraint-bulk-dialog.component';
+import { PalletSelectionRuleDialogComponent } from './dialogs/pallet-selection-rule-dialog/pallet-selection-rule-dialog.component';
+import { PalletSelectionRuleBulkDialogComponent } from './dialogs/pallet-selection-rule-bulk-dialog/pallet-selection-rule-bulk-dialog.component';
 
 @Component({
   selector: 'app-customers',
@@ -246,6 +248,28 @@ export class CustomersComponent implements OnInit, OnDestroy {
 
   openLoadingConstraintBulkDialog(): void {
     const dialogRef = this.dialog.open(LoadingConstraintBulkDialogComponent, {
+      width: '900px',
+      maxWidth: '95vw',
+      disableClose: false,
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.loadData();
+      }
+    });
+  }
+
+  openPalletSelectionRuleDialog(): void {
+    const dialogRef = this.dialog.open(PalletSelectionRuleDialogComponent, {
+      width: '600px',
+      maxWidth: '95vw',
+      disableClose: true,
+    });
+  }
+
+  openPalletSelectionRuleBulkDialog(): void {
+    const dialogRef = this.dialog.open(PalletSelectionRuleBulkDialogComponent, {
       width: '900px',
       maxWidth: '95vw',
       disableClose: false,

@@ -1,0 +1,194 @@
+<div class="pallet-selection-rule-bulk-dialog">
+  <div class="dialog-header">
+    <h2 mat-dialog-title>{{ 'PALLET_SELECTION_RULE.BULK_TITLE' | translate }}</h2>
+    <button mat-icon-button (click)="onCancel()" class="close-btn">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <!-- Step Indicator -->
+  <div class="step-indicator">
+    <div class="step" [class.active]="currentStep === 1" [class.completed]="currentStep > 1">
+      <div class="step-number">1</div>
+      <div class="step-label">{{ 'CUSTOMER.EXTRA_DATA.SELECT_RELATIONS' | translate }}</div>
+    </div>
+    <div class="step-divider"></div>
+    <div class="step" [class.active]="currentStep === 2">
+      <div class="step-number">2</div>
+      <div class="step-label">{{ 'PALLET_SELECTION_RULE.SELECT_RULES' | translate }}</div>
+    </div>
+  </div>
+
+  <mat-dialog-content class="dialog-content">
+    @if (isLoading && currentStep === 2) {
+    <div class="loading-container">
+      <mat-spinner diameter="40"></mat-spinner>
+      <p>{{ 'COMMON.LOADING' | translate }}</p>
+    </div>
+    }
+
+    <!-- STEP 1: Relation Selection -->
+    @if (currentStep === 1) {
+    <div class="step-content">
+
+      <div class="search-bar">
+        <mat-form-field appearance="outline" class="search-field">
+          <mat-label>{{ 'COMMON.SEARCH' | translate }}</mat-label>
+          <input matInput [formControl]="searchControl" [placeholder]="'CUSTOMER.SEARCH_PLACEHOLDER' | translate" />
+          <mat-icon matPrefix>search</mat-icon>
+          @if (searchControl.value) {
+          <button mat-icon-button matSuffix (click)="clearSearch()">
+            <mat-icon>clear</mat-icon>
+          </button>
+          }
+        </mat-form-field>
+      </div>
+
+      <div class="selection-header">
+        <div class="selection-controls">
+          <mat-checkbox [checked]="isAllSelected" [indeterminate]="isIndeterminate" (change)="selectAll()">
+            {{ 'CUSTOMER.EXTRA_DATA.SELECT_ALL_PAGE' | translate }}
+          </mat-checkbox>
+
+          <div class="select-all-actions">
+            <button mat-button color="primary" (click)="selectAllMode = 'all'; selectAll()" [disabled]="isLoading">
+              <mat-icon>done_all</mat-icon>
+              {{ 'CUSTOMER.EXTRA_DATA.SELECT_ALL_DATABASE' | translate }}
+            </button>
+
+            @if (selectedRelationIds.length > 0) {
+            <button mat-button color="warn" (click)="clearSelection()">
+              <mat-icon>clear_all</mat-icon>
+              {{ 'CUSTOMER.EXTRA_DATA.CLEAR_SELECTION' | translate }}
+            </button>
+            }
+          </div>
+        </div>
+
+        <span class="selection-count">
+          {{ 'CUSTOMER.EXTRA_DATA.SELECTED_COUNT' | translate: { count: selectedCount, total: totalItems } }}
+        </span>
+      </div>
+
+      <div class="relations-list">
+        @if (isLoading) {
+        <div class="relations-list-loading-overlay">
+          <mat-spinner diameter="32"></mat-spinner>
+        </div>
+        }
+        @for (relation of allRelations; track relation.id) {
+        <div class="relation-item" (click)="toggleRelation(relation.id!)"
+          [class.selected]="isRelationSelected(relation.id!)">
+          <mat-checkbox [checked]="isRelationSelected(relation.id!)" (click)="$event.stopPropagation()"
+            (change)="toggleRelation(relation.id!)"></mat-checkbox>
+
+          <div class="relation-info">
+            <div class="relation-main">
+              @if (relation.target_company.logo) {
+              <img [src]="relation.target_company.logo" alt="Logo" class="company-logo" />
+              } @else {
+              <div class="company-logo-placeholder">
+                <mat-icon>business</mat-icon>
+              </div>
+              }
+              <div class="company-details">
+                <span class="company-name">{{ relation.target_company.company_name }}</span>
+                <span class="company-country">{{ relation.target_company.country }}</span>
+              </div>
+            </div>
+
+            <div class="relation-meta">
+              <mat-chip class="relation-type-chip">
+                {{ 'COMPANY_RELATION.TYPE.' + relation.relation_type.toUpperCase() | translate }}
+              </mat-chip>
+              @if (getAssignedRules(relation).length > 0) {
+              <mat-chip class="status-rule-assigned" [matTooltip]="assignedRulesTooltip(relation)"
+                matTooltipClass="pallet-selection-rule-tooltip">
+                {{ 'PALLET_SELECTION_RULE.ASSIGNED_RULES_COUNT' | translate: { count: getAssignedRules(relation).length } }}
+              </mat-chip>
+              } @else {
+              <mat-chip [class]="relation.is_active ? 'status-active' : 'status-inactive'">
+                {{ (relation.is_active ? 'COMMON.ACTIVE' : 'COMMON.PASSIVE') | translate }}
+              </mat-chip>
+              }
+            </div>
+          </div>
+        </div>
+        }
+
+        @if (!isLoading && allRelations.length === 0 && !searchControl.value) {
+        <div class="no-data">
+          <mat-icon>inbox</mat-icon>
+          <p>{{ 'CUSTOMER.EXTRA_DATA.NO_RELATIONS' | translate }}</p>
+        </div>
+        }
+
+        @if (!isLoading && allRelations.length === 0 && searchControl.value) {
+        <div class="no-data">
+          <mat-icon>search_off</mat-icon>
+          <p>{{ 'COMMON.NO_RESULTS' | translate }}</p>
+          <button mat-button color="primary" (click)="clearSearch()">
+            {{ 'COMMON.CLEAR_SEARCH' | translate }}
+          </button>
+        </div>
+        }
+      </div>
+
+      <mat-paginator [length]="totalItems" [pageSize]="pageSize" [pageSizeOptions]="[5, 10, 25, 50, 100]"
+        (page)="onPageChange($event)" showFirstLastButtons>
+      </mat-paginator>
+    </div>
+    }
+
+    <!-- STEP 2: Kural seçimi (serbest çoklu seçim) -->
+    @if (!isLoading && currentStep === 2) {
+    <div class="step-content">
+
+      <div class="bulk-info-banner">
+        <mat-icon>info</mat-icon>
+        <span>{{ 'PALLET_SELECTION_RULE.BULK_INFO' | translate: { count: selectedCount } }}</span>
+      </div>
+
+      <div class="rules-list">
+        @for (rule of allRules; track rule.id) {
+        <div class="rule-item" (click)="toggleRule(rule.id!)" [class.selected]="isRuleSelected(rule.id!)">
+          <mat-checkbox [checked]="isRuleSelected(rule.id!)" (click)="$event.stopPropagation()"
+            (change)="toggleRule(rule.id!)"></mat-checkbox>
+          <div class="rule-label">{{ ruleLabel(rule) }}</div>
+        </div>
+        }
+
+        @if (allRules.length === 0) {
+        <div class="no-data">
+          <mat-icon>inbox</mat-icon>
+          <p>{{ 'PALLET_SELECTION_RULE.NO_RULES' | translate }}</p>
+        </div>
+        }
+      </div>
+    </div>
+    }
+  </mat-dialog-content>
+
+  <mat-dialog-actions class="dialog-actions">
+    @if (currentStep === 1) {
+    <button mat-button (click)="onCancel()">{{ 'COMMON.CANCEL' | translate }}</button>
+    <button mat-raised-button color="primary" (click)="nextStep()" [disabled]="selectedCount === 0">
+      {{ 'COMMON.NEXT' | translate }}
+      <mat-icon>arrow_forward</mat-icon>
+    </button>
+    }
+
+    @if (currentStep === 2) {
+    <button mat-button (click)="previousStep()">
+      <mat-icon>arrow_back</mat-icon>
+      {{ 'COMMON.BACK' | translate }}
+    </button>
+    <button mat-raised-button color="primary" (click)="onSave()" [disabled]="isSaving || selectedRuleIds.length === 0">
+      @if (isSaving) {
+      <mat-spinner diameter="20" class="button-spinner"></mat-spinner>
+      }
+      {{ 'COMMON.SAVE' | translate }}
+    </button>
+    }
+  </mat-dialog-actions>
+</div>

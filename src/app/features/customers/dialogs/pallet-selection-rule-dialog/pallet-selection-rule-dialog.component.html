@@ -1,0 +1,139 @@
+<div class="pallet-selection-rule-dialog">
+  <div class="dialog-header">
+    <div class="header-left">
+      <mat-icon class="header-icon">rule</mat-icon>
+      <h2 mat-dialog-title>{{ 'PALLET_SELECTION_RULE.CREATE_TITLE' | translate }}</h2>
+    </div>
+    <button mat-icon-button (click)="onCancel()" class="close-btn">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <mat-dialog-content class="dialog-content">
+    <p class="section-hint">{{ 'PALLET_SELECTION_RULE.CREATE_HINT' | translate }}</p>
+
+    <form [formGroup]="form" class="range-form">
+      <div class="range-row">
+        <mat-form-field appearance="outline">
+          <mat-label>{{ 'PALLET_SELECTION_RULE.WIDTH_MIN' | translate }}</mat-label>
+          <input matInput type="number" formControlName="width_min" />
+          <span matSuffix>{{ 'DIMENSIONS.MM' | translate }}</span>
+          @if (form.get('width_min')?.hasError('required') && form.get('width_min')?.touched) {
+          <mat-error>{{ 'COMMON.REQUIRED_FIELD' | translate }}</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>{{ 'PALLET_SELECTION_RULE.WIDTH_MAX' | translate }}</mat-label>
+          <input matInput type="number" formControlName="width_max" />
+          <span matSuffix>{{ 'DIMENSIONS.MM' | translate }}</span>
+          @if (form.get('width_max')?.hasError('required') && form.get('width_max')?.touched) {
+          <mat-error>{{ 'COMMON.REQUIRED_FIELD' | translate }}</mat-error>
+          }
+        </mat-form-field>
+      </div>
+
+      <div class="range-row">
+        <mat-form-field appearance="outline">
+          <mat-label>{{ 'PALLET_SELECTION_RULE.DEPTH_MIN' | translate }}</mat-label>
+          <input matInput type="number" formControlName="depth_min" />
+          <span matSuffix>{{ 'DIMENSIONS.MM' | translate }}</span>
+          @if (form.get('depth_min')?.hasError('required') && form.get('depth_min')?.touched) {
+          <mat-error>{{ 'COMMON.REQUIRED_FIELD' | translate }}</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>{{ 'PALLET_SELECTION_RULE.DEPTH_MAX' | translate }}</mat-label>
+          <input matInput type="number" formControlName="depth_max" />
+          <span matSuffix>{{ 'DIMENSIONS.MM' | translate }}</span>
+          @if (form.get('depth_max')?.hasError('required') && form.get('depth_max')?.touched) {
+          <mat-error>{{ 'COMMON.REQUIRED_FIELD' | translate }}</mat-error>
+          }
+        </mat-form-field>
+      </div>
+
+      <mat-hint class="range-hint">{{ 'PALLET_SELECTION_RULE.RANGE_HINT' | translate }}</mat-hint>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>{{ 'PALLET_SELECTION_RULE.PALLET_GROUP' | translate }}</mat-label>
+        <mat-select formControlName="pallet_group">
+          @for (group of palletGroups; track group.id) {
+          <mat-option [value]="group.id">{{ group.name }}</mat-option>
+          }
+        </mat-select>
+        <mat-icon matPrefix>inventory_2</mat-icon>
+        @if (isLoadingGroups()) {
+        <mat-spinner matSuffix diameter="20"></mat-spinner>
+        }
+        @if (form.get('pallet_group')?.hasError('required') && form.get('pallet_group')?.touched) {
+        <mat-error>{{ 'COMMON.REQUIRED_FIELD' | translate }}</mat-error>
+        }
+      </mat-form-field>
+    </form>
+
+    @if (overlappingRules.length > 0) {
+    <div class="overlap-warning">
+      <mat-icon>info</mat-icon>
+      <span>{{ 'PALLET_SELECTION_RULE.OVERLAP_WARNING' | translate: { count: overlappingRules.length } }}</span>
+    </div>
+    }
+
+    @if (editingId) {
+    <div class="editing-banner">
+      <mat-icon>edit</mat-icon>
+      <span>{{ 'PALLET_SELECTION_RULE.EDITING_NOTICE' | translate }}</span>
+      <button mat-button (click)="cancelEdit()">{{ 'PALLET_SELECTION_RULE.CANCEL_EDIT' | translate }}</button>
+    </div>
+    }
+
+    <!-- Mevcut kurallar listesi -->
+    <div class="existing-rules-section">
+      <h3 class="existing-rules-title">{{ 'PALLET_SELECTION_RULE.EXISTING_RULES' | translate }}</h3>
+
+      @if (isLoadingList()) {
+      <div class="loading-container">
+        <mat-spinner diameter="30"></mat-spinner>
+      </div>
+      }
+
+      @if (!isLoadingList()) {
+      <div class="rules-list">
+        @for (rule of rules; track rule.id) {
+        <div class="rule-item" [class.editing]="editingId === rule.id">
+          <div class="rule-label">{{ ruleLabel(rule) }}</div>
+          <div class="rule-actions">
+            <button mat-icon-button (click)="startEdit(rule)" [matTooltip]="'COMMON.EDIT' | translate">
+              <mat-icon>edit</mat-icon>
+            </button>
+            <button mat-icon-button color="warn" (click)="deleteRule(rule)"
+              [matTooltip]="'COMMON.DELETE' | translate">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </div>
+        </div>
+        }
+
+        @if (rules.length === 0) {
+        <div class="no-data">
+          <mat-icon>inbox</mat-icon>
+          <p>{{ 'PALLET_SELECTION_RULE.NO_RULES' | translate }}</p>
+        </div>
+        }
+      </div>
+      }
+    </div>
+  </mat-dialog-content>
+
+  <mat-dialog-actions class="dialog-actions">
+    <button mat-button (click)="onCancel()" [disabled]="isSaving()">
+      {{ 'COMMON.CLOSE' | translate }}
+    </button>
+    <button mat-raised-button color="primary" (click)="onSave()" [disabled]="isSaving()">
+      @if (isSaving()) {
+      <mat-spinner diameter="20" class="button-spinner"></mat-spinner>
+      }
+      {{ (editingId ? 'COMMON.UPDATE' : 'COMMON.SAVE') | translate }}
+    </button>
+  </mat-dialog-actions>
+</div>
