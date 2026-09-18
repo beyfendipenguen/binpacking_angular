@@ -92,7 +92,7 @@
         <input matInput type="number" formControlName="first_layer_count" min="1" />
         <mat-icon matPrefix>filter_1</mat-icon>
         @if (form.get('first_layer_count')?.hasError('required') && form.get('first_layer_count')?.touched) {
-        <mat-error>{{ 'COMMON.REQUIRED_FIELD' | translate }}</mat-error>
+        <mat-error>{{ 'COMMON.FIELD_REQUIRED' | translate }}</mat-error>
         }
       </mat-form-field>
 

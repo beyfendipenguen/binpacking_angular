@@ -19,7 +19,7 @@
           <input matInput type="number" formControlName="width_min" />
           <span matSuffix>{{ 'DIMENSIONS.MM' | translate }}</span>
           @if (form.get('width_min')?.hasError('required') && form.get('width_min')?.touched) {
-          <mat-error>{{ 'COMMON.REQUIRED_FIELD' | translate }}</mat-error>
+          <mat-error>{{ 'COMMON.FIELD_REQUIRED' | translate }}</mat-error>
           }
         </mat-form-field>
 
@@ -28,7 +28,7 @@
           <input matInput type="number" formControlName="width_max" />
           <span matSuffix>{{ 'DIMENSIONS.MM' | translate }}</span>
           @if (form.get('width_max')?.hasError('required') && form.get('width_max')?.touched) {
-          <mat-error>{{ 'COMMON.REQUIRED_FIELD' | translate }}</mat-error>
+          <mat-error>{{ 'COMMON.FIELD_REQUIRED' | translate }}</mat-error>
           }
         </mat-form-field>
       </div>
@@ -39,7 +39,7 @@
           <input matInput type="number" formControlName="depth_min" />
           <span matSuffix>{{ 'DIMENSIONS.MM' | translate }}</span>
           @if (form.get('depth_min')?.hasError('required') && form.get('depth_min')?.touched) {
-          <mat-error>{{ 'COMMON.REQUIRED_FIELD' | translate }}</mat-error>
+          <mat-error>{{ 'COMMON.FIELD_REQUIRED' | translate }}</mat-error>
           }
         </mat-form-field>
 
@@ -48,7 +48,7 @@
           <input matInput type="number" formControlName="depth_max" />
           <span matSuffix>{{ 'DIMENSIONS.MM' | translate }}</span>
           @if (form.get('depth_max')?.hasError('required') && form.get('depth_max')?.touched) {
-          <mat-error>{{ 'COMMON.REQUIRED_FIELD' | translate }}</mat-error>
+          <mat-error>{{ 'COMMON.FIELD_REQUIRED' | translate }}</mat-error>
           }
         </mat-form-field>
       </div>
@@ -67,7 +67,7 @@
         <mat-spinner matSuffix diameter="20"></mat-spinner>
         }
         @if (form.get('pallet_group')?.hasError('required') && form.get('pallet_group')?.touched) {
-        <mat-error>{{ 'COMMON.REQUIRED_FIELD' | translate }}</mat-error>
+        <mat-error>{{ 'COMMON.FIELD_REQUIRED' | translate }}</mat-error>
         }
       </mat-form-field>
     </form>
