@@ -1376,6 +1376,8 @@
     "ORDERS_FETCHED": "{{count}} sipariş alındı",
     "FETCH_HINT": "Siparişleri görmek için \"Siparişleri Çek\" butonuna basın",
     "NO_ORDERS": "ERP'de gösterilecek sipariş bulunamadı",
+    "SEARCH_PLACEHOLDER": "Sipariş No veya Müşteri Adı ile ara",
+    "NO_SEARCH_RESULTS": "Aramayla eşleşen sipariş bulunamadı",
     "IMPORT_ORDER": "İçeri Aktar",
     "ALREADY_IMPORTED": "İçeri Aktarıldı",
     "RETRY_IMPORT": "Tekrar Dene",

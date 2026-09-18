@@ -1376,6 +1376,8 @@
     "ORDERS_FETCHED": "{{count}} orders received",
     "FETCH_HINT": "Press \"Fetch Orders\" to see orders",
     "NO_ORDERS": "No orders found in the ERP",
+    "SEARCH_PLACEHOLDER": "Search by order no or customer name",
+    "NO_SEARCH_RESULTS": "No orders match your search",
     "IMPORT_ORDER": "Import",
     "ALREADY_IMPORTED": "Imported",
     "RETRY_IMPORT": "Retry",

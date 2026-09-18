@@ -1,22 +1,25 @@
-import { AfterViewInit, Component, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
-import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
+import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatChipsModule } from '@angular/material/chips';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { Subject, takeUntil } from 'rxjs';
+import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
 import { HasPermissionDirective } from '@app/core/auth/directives/has-permission.directive';
 import { DisableAuthDirective } from '@app/core/auth/directives/disable-auth.directive';
 import { ToastService } from '@app/core/services/toast.service';
 import { ErpIntegrationService } from '@app/features/services/erp-integration.service';
-import { ErpCredential, ErpOrderSummary, ErpRowImportState } from '@app/features/interfaces/erp-integration.interface';
+import { ErpCredential, ErpListPageInfo, ErpOrderSummary, ErpRowImportState } from '@app/features/interfaces/erp-integration.interface';
 import { ErpCredentialDialogComponent } from './dialogs/erp-credential-dialog/erp-credential-dialog.component';
 
 @Component({
@@ -24,12 +27,15 @@ import { ErpCredentialDialogComponent } from './dialogs/erp-credential-dialog/er
   standalone: true,
   imports: [
     CommonModule,
+    ReactiveFormsModule,
     MatTableModule,
     MatPaginatorModule,
     MatButtonModule,
     MatIconModule,
     MatMenuModule,
     MatDialogModule,
+    MatFormFieldModule,
+    MatInputModule,
     MatProgressSpinnerModule,
     MatTooltipModule,
     MatChipsModule,
@@ -40,7 +46,7 @@ import { ErpCredentialDialogComponent } from './dialogs/erp-credential-dialog/er
   templateUrl: './integration.component.html',
   styleUrl: './integration.component.scss',
 })
-export class IntegrationComponent implements OnInit, AfterViewInit, OnDestroy {
+export class IntegrationComponent implements OnInit, OnDestroy {
   private erpService = inject(ErpIntegrationService);
   private dialog = inject(MatDialog);
   private toastService = inject(ToastService);
@@ -49,13 +55,23 @@ export class IntegrationComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private destroy$ = new Subject<void>();
 
-  @ViewChild(MatPaginator) paginator!: MatPaginator;
-
   credential: ErpCredential | null = null;
   isCredentialLoading = false;
 
   dataSource = new MatTableDataSource<ErpOrderSummary>([]);
   pageSizeOptions = [10, 25, 50];
+
+  /**
+   * Server-side sayfalama — bkz. SanicaConnector.list_orders
+   * (GetDataTableWithPagingSQL). dataSource her zaman SADECE o an istenen
+   * sayfanın satırlarını taşır, mat-paginator'a artık dataSource.paginator
+   * ile BAĞLANMIYOR (client-side'a düşmesin diye); (page) event'i doğrudan
+   * yeni bir backend isteği tetikler (bkz. onPageChange).
+   */
+  currentPage = 0; // mat-paginator pageIndex, 0 tabanlı
+  pageSize = 10;
+  totalItems = 0;
+
   displayedColumns: string[] = [
     'order_number',
     'customer_name',
@@ -79,12 +95,58 @@ export class IntegrationComponent implements OnInit, AfterViewInit, OnDestroy {
   private rowStates = new Map<string, ErpRowImportState>();
   private rowErrors = new Map<string, string>();
 
-  ngOnInit(): void {
-    this.loadCredentialStatus();
+  /**
+   * ERP tarafında (SanicaConnector._build_list_sql'deki search parametresi)
+   * docNo, cari ismi ve cari no üzerinden aranır — bkz. servis katmanındaki
+   * filters.search. Debounce'lu, kullanıcı yazmayı bıraktıktan sonra otomatik
+   * fetchOrders() tetiklenir (ayrı bir "Ara" butonuna gerek yok).
+   */
+  searchControl = new FormControl('');
+
+  get isSearchActive(): boolean {
+    return !!this.searchControl.value?.trim();
   }
 
-  ngAfterViewInit(): void {
-    this.dataSource.paginator = this.paginator;
+  ngOnInit(): void {
+    this.loadCredentialStatus();
+    this.setupSearchDebounce();
+  }
+
+  private setupSearchDebounce(): void {
+    this.searchControl.valueChanges
+      .pipe(
+        debounceTime(500),
+        distinctUntilChanged(),
+        takeUntil(this.destroy$)
+      )
+      .subscribe(() => {
+        // Sadece credential yapılandırılmışsa arama tetiklensin — aksi halde
+        // fetchOrders zaten erp/list-orders'a hiç gitmeden başarısız olur.
+        if (this.credential?.is_configured) {
+          this.refreshOrders();
+        }
+      });
+  }
+
+  clearSearch(): void {
+    this.searchControl.setValue('');
+  }
+
+  /**
+   * Yeni bir sonuç kümesi başlatan tetikleyiciler (manuel "Siparişleri Çek",
+   * arama değişimi) için — ilk sayfaya döner. mat-paginator'ın kendisinden
+   * gelen (page) event'i (onPageChange) bunu ÇAĞIRMAZ, aksi halde ileri/geri
+   * tıklaması kendi kendini sıfırlardı.
+   */
+  refreshOrders(): void {
+    this.currentPage = 0;
+    this.fetchOrders();
+  }
+
+  onPageChange(event: PageEvent): void {
+    this.currentPage = event.pageIndex;
+    this.pageSize = event.pageSize;
+    this.fetchOrders();
   }
 
   ngOnDestroy(): void {
@@ -104,7 +166,7 @@ export class IntegrationComponent implements OnInit, AfterViewInit, OnDestroy {
         // yenileme için), ama sayfa ilk açıldığında veri görmek için tıklamaya
         // gerek yok.
         if (credential?.is_configured) {
-          this.fetchOrders();
+          this.refreshOrders();
         }
       },
       error: () => {
@@ -132,7 +194,22 @@ export class IntegrationComponent implements OnInit, AfterViewInit, OnDestroy {
     if (this.isFetchingOrders) return;
     this.isFetchingOrders = true;
 
-    this.erpService.requestOrderList().subscribe({
+    // page 1 tabanlı (backend sözleşmesi — bkz. SanicaConnector.list_orders),
+    // mat-paginator'ın 0 tabanlı currentPage'inden +1 ile çevriliyor. Arama
+    // kutusu doluysa filters.search da eklenir — connector (bkz.
+    // SanicaConnector.list_orders/_build_list_sql) bunu docNo/cari ismi/cari
+    // no üzerinde arar; tarih aralığı kısıtı yok, sayfalama tüm geçmiş
+    // üzerinde çalışır.
+    const search = (this.searchControl.value || '').trim();
+    const filters: Record<string, any> = {
+      page: this.currentPage + 1,
+      page_size: this.pageSize,
+    };
+    if (search) {
+      filters['search'] = search;
+    }
+
+    this.erpService.requestOrderList(filters).subscribe({
       next: () => {
         this.erpService
           .pollOrderList()
@@ -148,9 +225,7 @@ export class IntegrationComponent implements OnInit, AfterViewInit, OnDestroy {
               }
               const orders = status.orders || [];
               this.dataSource.data = orders;
-              if (this.paginator) {
-                this.paginator.firstPage();
-              }
+              this.updateTotalItems(orders.length, status.page_info);
 
               // Satır durumlarını sıfırla, backend'in işaretlediği
               // already_imported=true olanları 'imported' ile, en son
@@ -184,6 +259,22 @@ export class IntegrationComponent implements OnInit, AfterViewInit, OnDestroy {
         this.toastService.error(err?.error?.errors?.[0]?.message ?? this.translate.instant('INTEGRATION.FETCH_ERROR'));
       },
     });
+  }
+
+  /**
+   * mat-paginator'ın [length] input'unu besler. page_info.total_count doluysa
+   * (sayfalama YAPABİLEN bir connector — bkz. ErpListPageInfo) OLDUĞU GİBİ
+   * kullanılır. Yoksa (connector desteklemiyorsa) toplam BİLİNMEDEN, sadece
+   * "bu sayfa tam doluysa muhtemelen sonraki sayfa da vardır" mantığıyla
+   * "İleri" butonunu aktif tutacak tahmini bir uzunluk hesaplanır.
+   */
+  private updateTotalItems(receivedCount: number, pageInfo?: ErpListPageInfo | null): void {
+    if (pageInfo?.total_count != null) {
+      this.totalItems = pageInfo.total_count;
+      return;
+    }
+    const seenSoFar = this.currentPage * this.pageSize + receivedCount;
+    this.totalItems = receivedCount === this.pageSize ? seenSoFar + this.pageSize : seenSoFar;
   }
 
   /** Satırın anlık durumu — template'te buton etiketi/ikonu bunu okur. */

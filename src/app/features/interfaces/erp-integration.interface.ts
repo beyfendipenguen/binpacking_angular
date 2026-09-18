@@ -73,11 +73,27 @@ export interface ErpAsyncQueuedResponse {
   task_id: string;
 }
 
+/**
+ * Sayfalama YAPABİLEN bir connector'dan gelir (bkz. backend
+ * base_connector.py :: last_list_page_info, SanicaConnector.list_orders —
+ * GetDataTableWithPagingSQL). total_count/total_pages null/undefined ise
+ * (connector sayfalamayı desteklemiyor demektir) integration.component.ts
+ * toplamı bilmeden, sadece dönen satır sayısına bakarak ("bu sayfa doluysa
+ * muhtemelen sonraki sayfa da var") tahmini bir uzunlukla ilerler.
+ */
+export interface ErpListPageInfo {
+  page: number;
+  page_size: number;
+  total_count: number | null;
+  total_pages: number | null;
+}
+
 /** GET logistics/erp/list-orders-status/ cevabı. */
 export interface ErpListOrdersStatus {
   state: 'queued' | 'done' | 'error';
   ready: boolean;
   orders?: ErpOrderSummary[];
+  page_info?: ErpListPageInfo | null;
   error?: string;
 }
 

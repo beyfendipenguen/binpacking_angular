@@ -34,7 +34,7 @@
     }
 
     <div class="action-bar">
-      <button mat-raised-button color="primary" (click)="fetchOrders()" [disabled]="isFetchingOrders"
+      <button mat-raised-button color="primary" (click)="refreshOrders()" [disabled]="isFetchingOrders"
         [appDisableAuth]="['orders.add_order']">
         @if (isFetchingOrders) {
         <mat-spinner diameter="18" class="button-spinner"></mat-spinner>
@@ -43,6 +43,18 @@
         }
         {{ 'INTEGRATION.FETCH_ORDERS' | translate }}
       </button>
+
+      <mat-form-field appearance="outline" class="search-field" subscriptSizing="dynamic">
+        <mat-label>{{ 'COMMON.SEARCH' | translate }}</mat-label>
+        <input matInput [formControl]="searchControl"
+          [placeholder]="'INTEGRATION.SEARCH_PLACEHOLDER' | translate" />
+        <mat-icon matPrefix>search</mat-icon>
+        @if (searchControl.value) {
+        <button mat-icon-button matSuffix type="button" (click)="clearSearch()">
+          <mat-icon>clear</mat-icon>
+        </button>
+        }
+      </mat-form-field>
     </div>
 
     <div class="table-container">
@@ -125,13 +137,14 @@
           <td class="mat-cell" [attr.colspan]="displayedColumns.length">
             <div class="no-data">
               <mat-icon>inbox</mat-icon>
-              <p>{{ (hasFetchedOnce ? 'INTEGRATION.NO_ORDERS' : 'INTEGRATION.FETCH_HINT') | translate }}</p>
+              <p>{{ (hasFetchedOnce ? (isSearchActive ? 'INTEGRATION.NO_SEARCH_RESULTS' : 'INTEGRATION.NO_ORDERS') : 'INTEGRATION.FETCH_HINT') | translate }}</p>
             </div>
           </td>
         </tr>
       </table>
 
-      <mat-paginator [pageSizeOptions]="pageSizeOptions" [pageSize]="10" showFirstLastButtons>
+      <mat-paginator [length]="totalItems" [pageSizeOptions]="pageSizeOptions" [pageSize]="pageSize"
+        [pageIndex]="currentPage" (page)="onPageChange($event)" showFirstLastButtons>
       </mat-paginator>
     </div>
   </div>
