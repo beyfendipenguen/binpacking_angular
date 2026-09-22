@@ -3,7 +3,7 @@ import { Validators } from '@angular/forms';
 export interface ConstraintFieldConfig {
   key: string;
   label: string; // translation key
-  type: 'number' | 'string' | 'boolean' | 'select' | 'multi-product' | 'disabled-placeholder'| 'zone-limits' | 'orientation-lock';
+  type: 'number' | 'string' | 'boolean' | 'select' | 'multi-product' | 'disabled-placeholder'| 'zone-limits' | 'orientation-lock' | 'pair-list';
   icon: string;
   group: string; // grup başlığı (translation key)
   placeholder?: string;
@@ -200,6 +200,17 @@ export const CONSTRAINT_FIELDS: ConstraintFieldConfig[] = [
     detailedInfo: 'CONSTRAINT.ZONE_WEIGHT_LIMITS_DETAIL',
   },
 
+  // ─── Grup 6.6: Yasaklı Ürün Çiftleri ───
+  {
+    key: 'forbidden_pairs',
+    label: 'CONSTRAINT.FORBIDDEN_PAIRS',
+    type: 'pair-list',
+    icon: 'block',
+    group: 'CONSTRAINT.GROUP_FORBIDDEN_PAIRS',
+    hint: 'CONSTRAINT.FORBIDDEN_PAIRS_HINT',
+    detailedInfo: 'CONSTRAINT.FORBIDDEN_PAIRS_DETAIL',
+  },
+
   // ─── Grup 6.5: Büyük Paket Yönelimi ───
   {
     key: 'orientation_lock',
@@ -212,16 +223,6 @@ export const CONSTRAINT_FIELDS: ConstraintFieldConfig[] = [
   },
 
   // ─── Grup 7: Gelecek Özellikler (disabled) ───
-  {
-    key: 'forbidden_pairs',
-    label: 'CONSTRAINT.FORBIDDEN_PAIRS',
-    type: 'disabled-placeholder',
-    icon: 'block',
-    group: 'CONSTRAINT.GROUP_FUTURE',
-    disabled: true,
-    helpText: 'CONSTRAINT.FORBIDDEN_PAIRS_COMING_SOON',
-    detailedInfo: 'CONSTRAINT.FORBIDDEN_PAIRS_COMING_SOON_DETAIL',
-  },
   {
     key: 'required_pairs',
     label: 'CONSTRAINT.REQUIRED_PAIRS',

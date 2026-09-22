@@ -68,6 +68,16 @@ export class AlgorithmParamsDialogComponent implements OnInit, OnDestroy {
   filteredProducts: Product[] = [];
   isSearchingProducts = false;
   selectedSideProducts: Product[] = [];
+
+  // Forbidden pairs editor
+  forbiddenPairs: Array<{ a: Product; b: Product }> = [];
+  forbiddenPairProductA: Product | null = null;
+  forbiddenPairProductB: Product | null = null;
+  filteredProductsA: Product[] = [];
+  filteredProductsB: Product[] = [];
+  isSearchingProductsA = false;
+  isSearchingProductsB = false;
+
   singleZoneLimit = { x_limit_mm: 0, max_kg: 0 };
   singleOrientationLock: { threshold_mm: number; align_to: 'width' | 'length' } = {
     threshold_mm: 0,
@@ -95,6 +105,7 @@ export class AlgorithmParamsDialogComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.initForm();
     this.setupSideProductAutocomplete();
+    this.setupForbiddenPairAutocomplete();
 
     if (this.data?.constraintProfile) {
       this.populateForm(this.data.constraintProfile);
@@ -129,7 +140,48 @@ export class AlgorithmParamsDialogComponent implements OnInit, OnDestroy {
     this.form.patchValue({ side_product_ids: this.selectedSideProducts.map(p => p.id) });
   }
 
+  // ─── Forbidden pairs ────────────────────────────────────────────────────
 
+  onForbiddenPairProductASelected(product: Product): void {
+    this.forbiddenPairProductA = product;
+    this.form.patchValue({ forbidden_pair_search_a: '' }, { emitEvent: false });
+    this.filteredProductsA = [];
+  }
+
+  onForbiddenPairProductBSelected(product: Product): void {
+    this.forbiddenPairProductB = product;
+    this.form.patchValue({ forbidden_pair_search_b: '' }, { emitEvent: false });
+    this.filteredProductsB = [];
+  }
+
+  addForbiddenPair(): void {
+    const a = this.forbiddenPairProductA;
+    const b = this.forbiddenPairProductB;
+    if (!a || !b || a.id === b.id) return;
+
+    const alreadyExists = this.forbiddenPairs.some(
+      p => (p.a.id === a.id && p.b.id === b.id) || (p.a.id === b.id && p.b.id === a.id),
+    );
+    if (alreadyExists) {
+      this.forbiddenPairProductA = null;
+      this.forbiddenPairProductB = null;
+      return;
+    }
+
+    this.forbiddenPairs = [...this.forbiddenPairs, { a, b }];
+    this.form.patchValue({
+      forbidden_pairs: this.forbiddenPairs.map(p => [p.a.id, p.b.id]),
+    });
+    this.forbiddenPairProductA = null;
+    this.forbiddenPairProductB = null;
+  }
+
+  removeForbiddenPair(index: number): void {
+    this.forbiddenPairs = this.forbiddenPairs.filter((_, i) => i !== index);
+    this.form.patchValue({
+      forbidden_pairs: this.forbiddenPairs.map(p => [p.a.id, p.b.id]),
+    });
+  }
 
   onZoneLimitChange(): void {
     // Sadece dolu ise gönder (ikisi de 0 ise boş array)
@@ -178,7 +230,7 @@ export class AlgorithmParamsDialogComponent implements OnInit, OnDestroy {
 
     this.constraintFields.forEach(field => {
       if (field.disabled) return;
-      if (field.type === 'multi-product' || field.type === 'zone-limits') {
+      if (field.type === 'multi-product' || field.type === 'zone-limits' || field.type === 'pair-list') {
         formConfig[field.key] = [(defaults as any)[field.key] ?? []];
       } else if (field.type === 'orientation-lock') {
         formConfig[field.key] = [(defaults as any)[field.key] ?? null];
@@ -188,7 +240,47 @@ export class AlgorithmParamsDialogComponent implements OnInit, OnDestroy {
     });
 
     formConfig['side_product_search'] = [''];
+    formConfig['forbidden_pair_search_a'] = [''];
+    formConfig['forbidden_pair_search_b'] = [''];
     this.form = this.fb.group(formConfig);
+  }
+
+  private setupForbiddenPairAutocomplete(): void {
+    this.form.get('forbidden_pair_search_a')!.valueChanges
+      .pipe(
+        debounceTime(400),
+        distinctUntilChanged(),
+        switchMap(value => {
+          if (typeof value !== 'string' || value.trim().length < 3) return of([]);
+          this.isSearchingProductsA = true;
+          return this.productService.searchProducts(value.trim(), 10).pipe(
+            catchError(() => of([])),
+            finalize(() => (this.isSearchingProductsA = false)),
+          );
+        }),
+        takeUntil(this.destroy$),
+      )
+      .subscribe((products: Product[]) => {
+        this.filteredProductsA = products;
+      });
+
+    this.form.get('forbidden_pair_search_b')!.valueChanges
+      .pipe(
+        debounceTime(400),
+        distinctUntilChanged(),
+        switchMap(value => {
+          if (typeof value !== 'string' || value.trim().length < 3) return of([]);
+          this.isSearchingProductsB = true;
+          return this.productService.searchProducts(value.trim(), 10).pipe(
+            catchError(() => of([])),
+            finalize(() => (this.isSearchingProductsB = false)),
+          );
+        }),
+        takeUntil(this.destroy$),
+      )
+      .subscribe((products: Product[]) => {
+        this.filteredProductsB = products;
+      });
   }
 
   private setupSideProductAutocomplete(): void {
@@ -230,6 +322,7 @@ export class AlgorithmParamsDialogComponent implements OnInit, OnDestroy {
       ? { ...profile.orientation_lock }
       : { threshold_mm: 0, align_to: 'width' };
     this.loadSelectedSideProducts(profile.side_product_ids ?? []);
+    this.loadForbiddenPairs(profile.forbidden_pairs ?? []);
   }
 
   private loadSelectedSideProducts(productIds: string[]): void {
@@ -241,6 +334,33 @@ export class AlgorithmParamsDialogComponent implements OnInit, OnDestroy {
       next: products => (this.selectedSideProducts = products),
       error: () => {
         this.selectedSideProducts = productIds.map(id => ({ id, name: id } as Product));
+      },
+    });
+  }
+
+  private loadForbiddenPairs(pairs: string[][]): void {
+    if (!pairs.length) {
+      this.forbiddenPairs = [];
+      return;
+    }
+    const uniqueIds = Array.from(new Set(pairs.flat()));
+    this.productService.getByIds(uniqueIds).subscribe({
+      next: products => {
+        const byId = new Map(products.map(p => [p.id, p]));
+        this.forbiddenPairs = pairs
+          .filter(pair => pair.length === 2)
+          .map(([idA, idB]) => ({
+            a: byId.get(idA) ?? ({ id: idA, name: idA } as Product),
+            b: byId.get(idB) ?? ({ id: idB, name: idB } as Product),
+          }));
+      },
+      error: () => {
+        this.forbiddenPairs = pairs
+          .filter(pair => pair.length === 2)
+          .map(([idA, idB]) => ({
+            a: { id: idA, name: idA } as Product,
+            b: { id: idB, name: idB } as Product,
+          }));
       },
     });
   }

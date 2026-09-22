@@ -177,6 +177,82 @@
           </div>
           }
 
+          <!-- Forbidden Pairs -->
+          @if (field.type === 'pair-list') {
+          <div class="multi-product-field">
+            <div class="zone-limits-header">
+              <div class="label-with-icon">
+                <mat-icon>{{ field.icon }}</mat-icon>
+                <span>{{ field.label | translate }}</span>
+              </div>
+              @if (field.detailedInfo) {
+              <button mat-icon-button class="info-btn" [matMenuTriggerFor]="infoMenu" type="button"
+                (click)="showFieldInfo(field); $event.stopPropagation()">
+                <mat-icon>info_outline</mat-icon>
+              </button>
+              }
+            </div>
+
+            @if (field.hint) {
+            <p class="field-hint">{{ field.hint | translate }}</p>
+            }
+
+            <div class="zone-row">
+              <mat-form-field appearance="outline" class="zone-input">
+                <mat-label>{{ 'CONSTRAINT.FORBIDDEN_PAIR_SEARCH_A_PLACEHOLDER' | translate }}</mat-label>
+                <input type="text" matInput formControlName="forbidden_pair_search_a"
+                  [matAutocomplete]="pairProductAAuto"
+                  [placeholder]="'CONSTRAINT.FORBIDDEN_PAIR_SEARCH_A_PLACEHOLDER' | translate" />
+                @if (isSearchingProductsA) {
+                <mat-spinner matSuffix diameter="20"></mat-spinner>
+                }
+                <mat-autocomplete #pairProductAAuto="matAutocomplete" [displayWith]="displayProductFn"
+                  (optionSelected)="onForbiddenPairProductASelected($event.option.value)">
+                  @for (product of filteredProductsA; track product.id) {
+                  <mat-option [value]="product">{{ product.name }}</mat-option>
+                  }
+                </mat-autocomplete>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="zone-input">
+                <mat-label>{{ 'CONSTRAINT.FORBIDDEN_PAIR_SEARCH_B_PLACEHOLDER' | translate }}</mat-label>
+                <input type="text" matInput formControlName="forbidden_pair_search_b"
+                  [matAutocomplete]="pairProductBAuto"
+                  [placeholder]="'CONSTRAINT.FORBIDDEN_PAIR_SEARCH_B_PLACEHOLDER' | translate" />
+                @if (isSearchingProductsB) {
+                <mat-spinner matSuffix diameter="20"></mat-spinner>
+                }
+                <mat-autocomplete #pairProductBAuto="matAutocomplete" [displayWith]="displayProductFn"
+                  (optionSelected)="onForbiddenPairProductBSelected($event.option.value)">
+                  @for (product of filteredProductsB; track product.id) {
+                  <mat-option [value]="product">{{ product.name }}</mat-option>
+                  }
+                </mat-autocomplete>
+              </mat-form-field>
+
+              <button mat-stroked-button type="button" color="primary"
+                [disabled]="!forbiddenPairProductA || !forbiddenPairProductB"
+                (click)="addForbiddenPair()">
+                <mat-icon>add</mat-icon>
+                {{ 'CONSTRAINT.ADD_PAIR' | translate }}
+              </button>
+            </div>
+
+            @if (forbiddenPairs.length > 0) {
+            <mat-chip-set class="chips">
+              @for (pair of forbiddenPairs; track pair.a.id + pair.b.id; let i = $index) {
+              <mat-chip (removed)="removeForbiddenPair(i)">
+                {{ pair.a.name }} ↔ {{ pair.b.name }}
+                <button matChipRemove aria-label="remove"><mat-icon>cancel</mat-icon></button>
+              </mat-chip>
+              }
+            </mat-chip-set>
+            } @else {
+            <p class="field-hint">{{ 'CONSTRAINT.FORBIDDEN_PAIRS_EMPTY' | translate }}</p>
+            }
+          </div>
+          }
+
           <!-- Orientation Lock -->
           @if (field.type === 'orientation-lock') {
           <div class="zone-limits-field">
