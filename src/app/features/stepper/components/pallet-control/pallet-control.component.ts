@@ -103,6 +103,7 @@ import { AlgorithmParamsDialogComponent, AlgorithmParamsDialogData } from './alg
 import { ConstraintProfileService } from '@app/features/services/constraint-profile.service';
 import { ConstraintProfile } from '@app/features/interfaces/constraint-profile.interface';
 import { calculatePackageTotalWeight } from '@app/features/utils/package-weight.util';
+import { NavigationEnd, Router } from '@angular/router';
 
 @Component({
   selector: 'app-pallet-control',
@@ -219,15 +220,26 @@ export class PalletControlComponent
   }
 
   // Pallet weight analytics
-  constructor(private _formBuilder: FormBuilder) {
+  constructor(private _formBuilder: FormBuilder, private router: Router,) {
     this.secondFormGroup = this._formBuilder.group({
       secondCtrl: ['', Validators.required],
     });
+
+    this.router.events.subscribe((event) => {
+      if (event instanceof NavigationEnd) {
+        const currentPath = event.urlAfterRedirects.split('?')[0];
+        if (currentPath !== '/') {
+          this.clearWeightWarningToast();
+        }
+      }
+    });
+
     effect(() => {
       const exceeded = this.isWeightExceeded();
+      const currentPath = this.router.url.split('?')[0];
+      const isAllowedRoute = currentPath === '/';
 
-      if (exceeded) {
-        // Limit aşıldı - toast göster (eğer zaten gösterilmiyorsa)
+      if (exceeded && isAllowedRoute) {
         if (!this.weightWarningToast) {
           this.weightWarningToast = this.toastService.stickyError(
             this.translate.instant('PALLET_CONTROL.WEIGHT_LIMIT_EXCEEDED'),
@@ -235,14 +247,9 @@ export class PalletControlComponent
           );
         }
       } else {
-        // Limit aşılmadı - toast'ı kapat
-        if (this.weightWarningToast) {
-          this.toastService.clear(this.weightWarningToast.toastId);
-          this.weightWarningToast = null;
-        }
+        this.clearWeightWarningToast();
       }
     });
-
   }
 
   ngOnInit(): void {
@@ -255,8 +262,16 @@ export class PalletControlComponent
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+    this.clearWeightWarningToast();
     if (this.autoSaveTimeout) {
       clearTimeout(this.autoSaveTimeout);
+    }
+  }
+
+  private clearWeightWarningToast() {
+    if (this.weightWarningToast) {
+      this.toastService.clear(this.weightWarningToast.toastId);
+      this.weightWarningToast = null;
     }
   }
 
@@ -956,11 +971,11 @@ export class PalletControlComponent
     this.store.dispatch(StepperPackageActions.setVerticalSortInPackage({ pkgId: _package.id, alignment: _package.alignment }))
   }
 
-  packagePriority(_package:any):void{
+  packagePriority(_package: any): void {
     // Döngü: 0 ("-") → 1 → 2 → 3 → 0. Backend'de priority null olamaz;
     // "önceliksiz" durumun karşılığı 0 (model default'u da 0, UI'da "-" görünür).
     _package.priority = _package.priority === 3 ? 0 : (_package.priority ? _package.priority + 1 : 1)
-    this.store.dispatch(StepperPackageActions.setPackagePriority({ pkgId:_package.id,priority: _package.priority }))
+    this.store.dispatch(StepperPackageActions.setPackagePriority({ pkgId: _package.id, priority: _package.priority }))
   }
 
   addPackageDetail(packageDetailId: string) {
