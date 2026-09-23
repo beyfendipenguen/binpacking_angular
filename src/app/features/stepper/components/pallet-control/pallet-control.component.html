@@ -79,8 +79,7 @@
         <div class="search-input-wrapper">
           <mat-icon class="search-icon">search</mat-icon>
           <input matInput class="search-input" type="text" [placeholder]="'PALLET_CONTROL.SEARCH_PRODUCT' | translate"
-            [formControl]="searchControl" [matAutocomplete]="auto" id="searchControl" name="searchControl"
-            [appDisableAuth]="['products.add_product']" />
+            [formControl]="searchControl" [matAutocomplete]="auto" id="searchControl" name="searchControl"/>
 
           @if(searchControl.value) {
           <button mat-icon-button class="clear-search" (click)="clearSearch()"
@@ -412,7 +411,7 @@
           <mat-icon class="search-icon">search</mat-icon>
           <input matInput class="search-input" type="text" [placeholder]="'PALLET_CONTROL.SEARCH_PALLET' | translate"
             [formControl]="palletSearchControl" [matAutocomplete]="palletAuto" id="palletSearchControl"
-            name="palletSearchControl" [appDisableAuth]="['logistics.add_pallet']" />
+            name="palletSearchControl"/>
 
           @if(palletSearchControl.value) {
           <button mat-icon-button class="clear-search" (click)="clearPalletSearch()"
