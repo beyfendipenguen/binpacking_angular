@@ -58,7 +58,7 @@ export class LayoutComponent implements OnDestroy {
     ).subscribe(() => {
       // Sadece mobil/tablet görünümündeyse (menü ekranın üstündeyse) kapat
       if (this.sidenavConfig.mode === 'over') {
-        this.sidenav.close(); // SidenavComponent'in kapanma metodunu çağırır
+        this.sidenav?.close(); // SidenavComponent'in kapanma metodunu çağırır
         this.sidenavConfig.isSidenavOpen = false;
       }
     });
