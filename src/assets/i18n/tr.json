@@ -343,6 +343,7 @@
     "SUBTITLE": "Aktif siparişleri görüntüleyin ve detaylı bilgilere erişin",
     "ORDERS": "Sevkiyat Emirleri",
     "ORDER_NAME": "Sipariş Adı",
+    "GO_TO_INTEGRATION": "Entegrasyona Git",
     "CHANGE_NUMBER_TITLE": "Sipariş No Değiştir",
     "CHANGE_NUMBER_SELECT_ORDER": "Sipariş ara ve seç",
     "CHANGE_NUMBER_PREFIX": "Önek",
@@ -1391,7 +1392,8 @@
     "ORDER_NUMBER": "Sipariş No",
     "CUSTOMER_NAME": "Müşteri",
     "CUSTOMER_CODE": "Müşteri Kodu",
-    "GO_TO_ORDER": "Siparişe Git"
+    "GO_TO_ORDER": "Siparişe Git",
+    "GO_TO_ORDERS_LIST": "Siparişlere Git"
   },
   "PUBLIC_ORDER_VIEW": {
     "LOADING": "Yükleniyor...",

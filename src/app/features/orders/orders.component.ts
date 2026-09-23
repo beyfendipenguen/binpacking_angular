@@ -2,10 +2,14 @@ import { Component, inject, OnInit, ViewChild } from '@angular/core';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
 import { OrderDetailsDialogComponent } from './dialogs/order-details-dialog/order-details-dialog.component';
 import { PackageDialogComponent } from './dialogs/package-dialog/package-dialog.component';
 import { FilesDialogComponent } from './dialogs/files-dialog/files-dialog.component';
@@ -18,15 +22,20 @@ import { DisableAuthDirective } from '@app/core/auth/directives/disable-auth.dir
 import { ColumnDefinition } from '@app/shared/generic-table/interfaces/column-definition.interface';
 import { OrderHistoryDialogComponent } from './dialogs/order-history-dialog/order-history-dialog.component';
 import { ChangeOrderNumberDialogComponent } from './dialogs/change-order-number-dialog/change-order-number-dialog.component';
+import { ErpIntegrationService } from '@app/features/services/erp-integration.service';
 
 @Component({
   selector: 'app-orders',
   standalone: true,
   imports: [CommonModule,
+    ReactiveFormsModule,
     MatButtonModule,
     MatIconModule,
     MatDialogModule,
     MatMenuModule,
+    MatTooltipModule,
+    MatFormFieldModule,
+    MatInputModule,
     GenericTableComponent,
     HasPermissionDirective,
     DisableAuthDirective,
@@ -43,7 +52,18 @@ export class OrdersComponent implements OnInit {
   fileService = inject(FileService);
   dialog = inject(MatDialog);
   router = inject(Router);
+  private erpService = inject(ErpIntegrationService);
   copiedOrderId: string | null = null;
+
+  // "Entegrasyona Git" butonu — sadece company'nin bir ERP credential
+  // kaydı varsa gösterilir (bkz. integration.component.ts'teki aynı
+  // is_configured kontrolü — organizations/erp-credential/mine/ credential
+  // satırı yoksa is_configured=false döner).
+  hasErpCredential = false;
+
+  // Header'daki arama inputu — şimdilik sadece yer tutucu (boş), henüz
+  // hiçbir filtreleme mantığına bağlı değil.
+  searchControl = new FormControl('');
 
   @ViewChild(GenericTableComponent) genericTable!: GenericTableComponent<any>;
 
@@ -52,7 +72,6 @@ export class OrdersComponent implements OnInit {
     'name',
     'date',
     'company_relation.target_company.company_name',
-    'company_relation.target_company.country',
     'order_details',
     'package',
     'files',
@@ -94,12 +113,6 @@ export class OrdersComponent implements OnInit {
     {
       key: 'company_relation.target_company.company_name',
       label: 'ORDER.COMPANY_NAME',
-      type: 'text',
-      required: false
-    },
-    {
-      key: 'company_relation.target_company.country',
-      label: 'COMMON.COUNTRY',
       type: 'text',
       required: false
     },
@@ -173,7 +186,6 @@ export class OrdersComponent implements OnInit {
 
   nestedDisplayColumns: { [key: string]: string } = {
     'company_relation.target_company.company_name': 'ORDER.COMPANY_NAME',
-    'company_relation.target_company.country': 'COMMON.COUNTRY',
     'order_details': 'ORDER_DETAILS.TITLE',
     'package': 'PALLET.PALLETS',
     'files': 'ORDER.FILES',
@@ -187,12 +199,23 @@ export class OrdersComponent implements OnInit {
   };
 
   filterableColumns: string[] = [
-    'name',
-    'created_at'
+    'name'
   ];
 
   ngOnInit(): void {
-    // Component initialization
+    this.erpService.getMyCredential().subscribe({
+      next: (credential) => (this.hasErpCredential = !!credential?.is_configured),
+      error: () => (this.hasErpCredential = false),
+    });
+  }
+
+  /**
+   * Entegrasyon sayfasına genel geçiş — integration.component.ts'teki
+   * goToOrdersList() ile ayna, kullanıcı iki sayfa arasında hızlıca geçiş
+   * yapabilsin diye.
+   */
+  goToIntegration(): void {
+    this.router.navigate(['/integration']);
   }
 
   /**

@@ -127,6 +127,13 @@ $white: #ffffff;
       border-bottom: 2px solid $border-color;
       background: rgba(0, 106, 106, 0.03);
 
+      .action-buttons {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 12px;
+      }
+
       button {
         display: flex;
         align-items: center;

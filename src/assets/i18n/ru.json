@@ -340,6 +340,7 @@
     "SUBTITLE": "Просмотр активных заказов и доступ к детальной информации",
     "ORDERS": "Заказы на отгрузку",
     "ORDER_NAME": "Название заказа",
+    "GO_TO_INTEGRATION": "Перейти к интеграции",
     "CHANGE_NUMBER_TITLE": "Изменить номер заказа",
     "CHANGE_NUMBER_SELECT_ORDER": "Найдите и выберите заказ",
     "CHANGE_NUMBER_PREFIX": "Префикс",
@@ -1391,7 +1392,8 @@
     "ORDER_NUMBER": "Номер заказа",
     "CUSTOMER_NAME": "Клиент",
     "CUSTOMER_CODE": "Код клиента",
-    "GO_TO_ORDER": "Перейти к заказу"
+    "GO_TO_ORDER": "Перейти к заказу",
+    "GO_TO_ORDERS_LIST": "Перейти к заказам"
   },
   "PUBLIC_ORDER_VIEW": {
     "LOADING": "Загрузка...",

@@ -142,6 +142,56 @@ $accent-gold-light: #E8D5A8;
     z-index: 2;
     margin-top: -30px;
 
+    .table-toolbar {
+      display: flex;
+      justify-content: flex-start;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 14px;
+      padding: 14px 20px;
+      background: linear-gradient(
+        135deg,
+        rgba($primary-dark, 0.05) 0%,
+        rgba($accent-gold, 0.05) 100%
+      );
+      border: 1px solid rgba($primary-dark, 0.1);
+      border-radius: 14px;
+
+      .search-field {
+        width: 300px;
+        max-width: 100%;
+
+        // Material'ın varsayılan mavi outline/focus rengi yerine sayfa
+        // temasıyla (primary-dark/accent-gold) uyumlu renkler.
+        --mdc-outlined-text-field-outline-color: #{rgba($primary-dark, 0.3)};
+        --mdc-outlined-text-field-hover-outline-color: #{rgba($primary-dark, 0.5)};
+        --mdc-outlined-text-field-focus-outline-color: #{$primary-dark};
+        --mdc-outlined-text-field-label-text-color: #{rgba($primary-dark, 0.7)};
+        --mdc-outlined-text-field-focus-label-text-color: #{$primary-dark};
+        --mdc-outlined-text-field-container-shape: 10px;
+        --mat-form-field-container-height: 48px;
+
+        ::ng-deep .mat-mdc-text-field-wrapper {
+          background: white;
+        }
+
+        ::ng-deep .mat-mdc-form-field-icon-prefix mat-icon {
+          color: rgba($primary-dark, 0.6);
+          margin-right: 4px;
+        }
+      }
+
+      button {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: white;
+        border-color: rgba($primary-dark, 0.3) !important;
+        color: $primary-dark;
+      }
+    }
+
     app-generic-table {
       display: block;
       animation: slideInFromTop 0.6s ease-out;

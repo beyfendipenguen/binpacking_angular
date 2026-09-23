@@ -343,6 +343,7 @@
     "SUBTITLE": "View active orders and access detailed information",
     "ORDERS": "Shipment Orders",
     "ORDER_NAME": "Order Name",
+    "GO_TO_INTEGRATION": "Go to Integration",
     "CHANGE_NUMBER_TITLE": "Change Order Number",
     "CHANGE_NUMBER_SELECT_ORDER": "Search and select an order",
     "CHANGE_NUMBER_PREFIX": "Prefix",
@@ -1391,7 +1392,8 @@
     "ORDER_NUMBER": "Order No",
     "CUSTOMER_NAME": "Customer",
     "CUSTOMER_CODE": "Customer Code",
-    "GO_TO_ORDER": "Go to Order"
+    "GO_TO_ORDER": "Go to Order",
+    "GO_TO_ORDERS_LIST": "Go to Orders"
   },
   "PUBLIC_ORDER_VIEW": {
     "LOADING": "Loading...",

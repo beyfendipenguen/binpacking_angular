@@ -362,6 +362,15 @@ export class IntegrationComponent implements OnInit, OnDestroy {
     });
   }
 
+  /**
+   * Sipariş Yönetimi (Orders) sayfasına genel geçiş — orders.component.ts'teki
+   * "Entegrasyona Git" butonunun ayna görevi, kullanıcı iki sayfa arasında
+   * hızlıca geçiş yapabilsin diye.
+   */
+  goToOrdersList(): void {
+    this.router.navigate(['/orders']);
+  }
+
   getColumnName(column: string): string {
     const names: { [key: string]: string } = {
       order_number: this.translate.instant('INTEGRATION.ORDER_NUMBER'),

@@ -34,15 +34,22 @@
     }
 
     <div class="action-bar">
-      <button mat-raised-button color="primary" (click)="refreshOrders()" [disabled]="isFetchingOrders"
-        [appDisableAuth]="['orders.add_order']">
-        @if (isFetchingOrders) {
-        <mat-spinner diameter="18" class="button-spinner"></mat-spinner>
-        } @else {
-        <mat-icon>cloud_download</mat-icon>
-        }
-        {{ 'INTEGRATION.FETCH_ORDERS' | translate }}
-      </button>
+      <div class="action-buttons">
+        <button mat-raised-button color="primary" (click)="refreshOrders()" [disabled]="isFetchingOrders"
+          [appDisableAuth]="['orders.add_order']">
+          @if (isFetchingOrders) {
+          <mat-spinner diameter="18" class="button-spinner"></mat-spinner>
+          } @else {
+          <mat-icon>cloud_download</mat-icon>
+          }
+          {{ 'INTEGRATION.FETCH_ORDERS' | translate }}
+        </button>
+        <button mat-stroked-button color="primary" (click)="goToOrdersList()"
+          [matTooltip]="'INTEGRATION.GO_TO_ORDERS_LIST' | translate">
+          <mat-icon>assignment</mat-icon>
+          {{ 'INTEGRATION.GO_TO_ORDERS_LIST' | translate }}
+        </button>
+      </div>
 
       <mat-form-field appearance="outline" class="search-field" subscriptSizing="dynamic">
         <mat-label>{{ 'COMMON.SEARCH' | translate }}</mat-label>

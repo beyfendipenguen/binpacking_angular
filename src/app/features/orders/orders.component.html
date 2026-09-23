@@ -33,6 +33,22 @@
 
   <!-- Generic Table -->
   <div class="table-wrapper">
+    <div class="table-toolbar">
+      <mat-form-field appearance="outline" class="search-field" subscriptSizing="dynamic">
+        <mat-label>{{ 'COMMON.SEARCH' | translate }}</mat-label>
+        <input matInput [formControl]="searchControl" />
+        <mat-icon matPrefix>search</mat-icon>
+      </mat-form-field>
+      <ng-container *appHasPermission="'organizations.view_erpcredential'">
+        @if (hasErpCredential) {
+        <button mat-stroked-button color="primary" (click)="goToIntegration()"
+          [matTooltip]="'ORDER.GO_TO_INTEGRATION' | translate">
+          <mat-icon>sync_alt</mat-icon>
+          {{ 'ORDER.GO_TO_INTEGRATION' | translate }}
+        </button>
+        }
+      </ng-container>
+    </div>
     <app-generic-table *appHasPermission="'orders.view_order'" [service]="orderService"
       [displayedColumns]="displayedColumns" [columnTypes]="columnTypes"
       [notSortableColumns]="[]" [columnDefinitions]="columnDefinitions"
