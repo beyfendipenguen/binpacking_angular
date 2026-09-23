@@ -666,7 +666,7 @@
 
 .dashboard-panel {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
   gap: 16px;
   margin-bottom: 24px;
 }
@@ -1193,18 +1193,19 @@
 }
 
 /* Desktop - 1024px ve üzeri */
-@media (min-width: 1024px) {
-  .dashboard-panel {
-    grid-template-columns: repeat(3, 1fr);
+@media (min-width: 768px) {
+    .dashboard-panel {grid-template-columns: repeat(2, 1fr);}
   }
-}
 
-/* Geniş Ekran - 1200px ve üzeri */
-@media (min-width: 1200px) {
-  .dashboard-panel {
-    grid-template-columns: repeat(5, 1fr);
+  /* Masaüstü ve üstü: 3 veya 4 sütun */
+  @media (min-width: 1024px) {
+    
+    .dashboard-panel {grid-template-columns: repeat(3, 1fr);}
   }
-}
+
+  @media (min-width: 1440px) {
+    .dashboard-panel {grid-template-columns: repeat(6, 1fr);}
+  }
 
 /* Mobil - 480px ve altı için özel düzenlemeler */
 @media (max-width: 480px) {
