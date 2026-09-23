@@ -15,6 +15,18 @@ body {
   overflow-y: auto;
 }
 
+/* Tüm projedeki sayı inputlarının oklarını gizler */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none !important;
+  margin: 0 !important;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield !important;
+  appearance: textfield !important;
+}
+
 // App root container - router-outlet için
 app-root {
   display: block;

@@ -190,20 +190,10 @@
     padding: 2px;
   }
 
-  .unit-button {
-    min-width: 32px;
-    width: 32px;
-    height: 32px;
-  }
 }
 @media (hover: none) and (pointer: coarse) {
   .action-button {
     min-height: 48px;
-  }
-
-  .unit-button {
-    min-width: 44px;
-    min-height: 44px;
   }
 
   .template-info-floating {
@@ -480,6 +470,18 @@
       flex-shrink: 0;
     }
 
+    input[type="number"]::-webkit-outer-spin-button,
+    input[type="number"]::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+
+    /* Firefox */
+    input[type="number"] {
+      -moz-appearance: textfield;
+      appearance: textfield;
+    }
+    
     input {
       flex: 1;
       min-width: 0;
@@ -860,47 +862,6 @@
   }
 }
 
-.unit-button {
-  min-width: 40px;
-  width: 40px;
-  height: 40px;
-  background-color: #006A6A;
-  color: #ffffff;
-  border-radius: 6px;
-  transition: all 0.3s ease;
-  flex-shrink: 0;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-
-  mat-icon {
-    font-size: 20px;
-    width: 20px;
-    height: 20px;
-    color: #ffffff;
-    margin: 0 !important;
-  }
-
-  &:hover:not([disabled]) {
-    background-color: #004A4A;
-    transform: scale(1.05);
-  }
-
-  &:disabled {
-    opacity: 0.4;
-    background-color: rgba(0, 106, 106, 0.3);
-    color: rgba(255, 255, 255, 0.6);
-    cursor: not-allowed;
-
-    mat-icon {
-      color: rgba(255, 255, 255, 0.6);
-    }
-  }
-
-  &:active {
-    transform: scale(0.95);
-  }
-}
 
 /* =====================
    FORM FİELD STİLLERİ - RESPONSIVE
@@ -1229,17 +1190,6 @@
     }
   }
 
-  .unit-button {
-    min-width: 36px;
-    width: 36px;
-    height: 36px;
-
-    mat-icon {
-      font-size: 20px;
-      width: 20px;
-      height: 20px;
-    }
-  }
 }
 
 /* Desktop - 1024px ve üzeri */
@@ -1378,17 +1328,6 @@
     }
   }
 
-  .unit-button {
-    min-width: 28px;
-    width: 28px;
-    height: 28px;
-
-    mat-icon {
-      font-size: 16px;
-      width: 16px;
-      height: 16px;
-    }
-  }
 }
 
 /* Çok küçük ekranlar - 360px ve altı */
@@ -1451,17 +1390,6 @@
     }
   }
 
-  .unit-button {
-    min-width: 32px;
-    width: 32px;
-    height: 32px;
-
-    mat-icon {
-      font-size: 16px;
-      width: 16px;
-      height: 16px;
-    }
-  }
 }
 
 /* =====================

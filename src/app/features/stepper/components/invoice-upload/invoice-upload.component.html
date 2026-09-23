@@ -186,24 +186,14 @@
           <span class="dashboard-label">{{ 'CUSTOMER.MAX_PALLET_HEIGHT' | translate }}</span>
           <div class="dashboard-value-container">
             <div class="units-input-container">
-              <!-- Azaltma butonu -->
-              <button mat-icon-button (click)="onUnitsDecrease()" [disabled]="isMinimumUnits()" type="button"
-                class="unit-button" [appDisableAuth]="['orders.add_order']">
-                <mat-icon>remove</mat-icon>
-              </button>
-
               <!-- Input alanı - FormControl'e bağlı -->
               <mat-form-field class="units-field" appearance="outline">
-                <input matInput type="number" [formControl]="unitsControl" min="100" step="100"
+                <input matInput type="number" [formControl]="unitsControl"
+                  max="5000"
                   (change)="onUnitsManualChange($any($event.target).value)"
+                  (wheel)="$event.preventDefault()"
                   [placeholder]="'INVOICE_UPLOAD.MAX_PALLET_HEIGHT' | translate" [appDisableAuth]="['orders.add_order']" />
               </mat-form-field>
-
-              <!-- Artırma butonu -->
-              <button mat-icon-button (click)="onUnitsIncrease()" type="button" class="unit-button"
-                [appDisableAuth]="['orders.add_order']">
-                <mat-icon>add</mat-icon>
-              </button>
             </div>
           </div>
         </div>
@@ -220,7 +210,9 @@
             <mat-form-field class="edit-field" appearance="outline">
               <input matInput type="number" [value]="orderSignal()?.truck_weight_limit"
                 (input)="onTruckWeightLimitChange($any($event.target).value)"
-                [placeholder]="'INVOICE_UPLOAD.WEIGHT_LIMIT' | translate" min="0" step="1"
+                (wheel)="$event.preventDefault()"
+                (change)="onUnitsManualChange($any($event.target).value)"
+                [placeholder]="'INVOICE_UPLOAD.WEIGHT_LIMIT' | translate" min="0"  max="100000"step="1"
                 [readonly]="!hasOrderAddPerm()" [appDisableAuth]="['orders.add_order']" />
               @if(!orderSignal()?.truck_weight_limit){
               <mat-error>{{ 'INVOICE_UPLOAD.WEIGHT_LIMIT_REQUIRED' | translate }}</mat-error>}

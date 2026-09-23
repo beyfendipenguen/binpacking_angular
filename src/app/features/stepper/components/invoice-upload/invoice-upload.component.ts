@@ -479,28 +479,11 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
     return this.unitsControl.value || 1;
   });
 
-  // Minimum units kontrolü
-  isMinimumUnits = computed(() => (this.unitsControl.value ?? 0) <= 100);
-
-  // + butonu için
-  onUnitsIncrease(): void {
-    const newValue = Math.round(Number(this.unitsControl.value) || 0) + 100;
-    this.unitsControl.setValue(newValue);
-    this.onMaxPalletHeightChange(newValue);
-  }
-
-  // - butonu için
-  onUnitsDecrease(): void {
-    const current = Math.round(Number(this.unitsControl.value) || 0);
-    if (current > 100) {
-      const newValue = current - 100;
-      this.unitsControl.setValue(newValue);
-      this.onMaxPalletHeightChange(newValue);
-    }
-  }
-
   onUnitsManualChange(value: string): void {
-    const rounded = Math.round(Number(value) || 100);
+    let rounded = Math.round(Number(value) || 100);
+    if (rounded > 5000) {
+      rounded = 5000;
+    }
     this.unitsControl.setValue(rounded, { emitEvent: false });
     this.onMaxPalletHeightChange(rounded);
   }
@@ -515,6 +498,9 @@ export class InvoiceUploadComponent implements OnInit, OnDestroy {
   }
 
   onTruckWeightLimitChange(value: number): void {
+    if (value > 150000) {
+      value = 150000;
+    }
     let currentOrder = this.orderSignal();
     if (currentOrder) {
       const updatedOrder = { ...currentOrder, truck_weight_limit: value };
