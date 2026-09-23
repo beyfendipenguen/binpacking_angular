@@ -143,8 +143,8 @@
             <mat-label>{{ 'PERMISSIONS.GROUP_NAME' | translate }}</mat-label>
             <input matInput formControlName="name" id="group-name" name="group-name"
               [placeholder]="'PERMISSIONS.GROUP_NAME_PLACEHOLDER' | translate"
-              [appDisableAuth]="['auth.add_group', 'auth.change_group']"
-              [readonly]="!selectedGroup()?.is_editable">
+              [appDisableAuth]="[ 'auth.change_group','auth.add_group']"
+              [readonly]="selectedGroup() && !selectedGroup()?.is_editable">
             <mat-error *ngIf="groupForm.get('name')?.hasError('required')">
               {{ 'PERMISSIONS.GROUP_NAME_REQUIRED' | translate }}
             </mat-error>
