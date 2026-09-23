@@ -109,6 +109,16 @@ export class GenericTableComponent<T extends { id: any }> implements OnInit, Aft
   @Input() columnDefinitions: ColumnDefinition[] = [];
 
   /**
+   * Backend'e her zaman gönderilecek ek query parametreleri (örn. serbest
+   * metin arama: { search: 'foo' }). filterValues'tan BİLEREK ayrı —
+   * filterValues sadece filterableColumns'taki gerçek kolon filtrelerini
+   * temsil eder ve hasActiveFilters()/aktif-filtre çipleri bu varsayıma
+   * göre render edilir. extraParams buraya karışırsa "boş" bir aktif
+   * filtre çubuğu görünür (chip'i olmayan bir filtre anahtarı).
+   */
+  @Input() extraParams: { [key: string]: any } = {};
+
+  /**
    * Düz metin hücrelerinde bu karakter sayısından sonra "…" ile kırpma
    * yapılır (piksel genişliği değil, karakter sayısı — bkz.
    * getTruncatedValue()). Tam metin matTooltip ile üzerine gelince görünür.
@@ -516,6 +526,15 @@ export class GenericTableComponent<T extends { id: any }> implements OnInit, Aft
     // Filtre değerlerini ekle
     Object.keys(this.filterValues).forEach((key) => {
       const value = this.filterValues[key];
+      if (value !== undefined && value !== null && value !== '') {
+        params[key] = value;
+      }
+    });
+
+    // Ek parametreleri ekle (örn. serbest metin arama) — filterValues'a
+    // KARIŞMAZ, bkz. extraParams @Input() docstring'i.
+    Object.keys(this.extraParams).forEach((key) => {
+      const value = this.extraParams[key];
       if (value !== undefined && value !== null && value !== '') {
         params[key] = value;
       }

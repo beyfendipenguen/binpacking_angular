@@ -36,8 +36,13 @@
     <div class="table-toolbar">
       <mat-form-field appearance="outline" class="search-field" subscriptSizing="dynamic">
         <mat-label>{{ 'COMMON.SEARCH' | translate }}</mat-label>
-        <input matInput [formControl]="searchControl" />
+        <input matInput [formControl]="searchControl" [placeholder]="'ORDER.SEARCH_PLACEHOLDER' | translate" />
         <mat-icon matPrefix>search</mat-icon>
+        @if (searchControl.value) {
+        <button mat-icon-button matSuffix type="button" (click)="clearSearch()" style="margin-right: 6px;">
+          <mat-icon>clear</mat-icon>
+        </button>
+        }
       </mat-form-field>
       <ng-container *appHasPermission="'organizations.view_erpcredential'">
         @if (hasErpCredential) {

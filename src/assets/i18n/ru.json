@@ -341,6 +341,7 @@
     "ORDERS": "Заказы на отгрузку",
     "ORDER_NAME": "Название заказа",
     "GO_TO_INTEGRATION": "Перейти к интеграции",
+    "SEARCH_PLACEHOLDER": "Поиск по названию заказа, компании или доп. данным...",
     "CHANGE_NUMBER_TITLE": "Изменить номер заказа",
     "CHANGE_NUMBER_SELECT_ORDER": "Найдите и выберите заказ",
     "CHANGE_NUMBER_PREFIX": "Префикс",

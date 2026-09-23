@@ -1,8 +1,9 @@
-import { Component, inject, OnInit, ViewChild } from '@angular/core';
+import { Component, inject, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -44,7 +45,7 @@ import { ErpIntegrationService } from '@app/features/services/erp-integration.se
   templateUrl: './orders.component.html',
   styleUrl: './orders.component.scss'
 })
-export class OrdersComponent implements OnInit {
+export class OrdersComponent implements OnInit, OnDestroy {
 
   private translate = inject(TranslateService);
   // Services
@@ -61,9 +62,12 @@ export class OrdersComponent implements OnInit {
   // satırı yoksa is_configured=false döner).
   hasErpCredential = false;
 
-  // Header'daki arama inputu — şimdilik sadece yer tutucu (boş), henüz
-  // hiçbir filtreleme mantığına bağlı değil.
+  // Tablonun üstündeki arama inputu — order.name, company_relation.
+  // target_company.company_name ve order.extra_data (JSON, doluysa) içinde
+  // arar. Debounce'lu; backend'e ?search= parametresiyle gidiyor (bkz.
+  // OrderViewSet.get_queryset()).
   searchControl = new FormControl('');
+  private destroy$ = new Subject<void>();
 
   @ViewChild(GenericTableComponent) genericTable!: GenericTableComponent<any>;
 
@@ -207,6 +211,32 @@ export class OrdersComponent implements OnInit {
       next: (credential) => (this.hasErpCredential = !!credential?.is_configured),
       error: () => (this.hasErpCredential = false),
     });
+
+    this.searchControl.valueChanges
+      .pipe(
+        debounceTime(400),
+        distinctUntilChanged(),
+        takeUntil(this.destroy$),
+      )
+      .subscribe((value) => this.applySearch(value ?? ''));
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  private applySearch(value: string): void {
+    if (!this.genericTable) return;
+
+    const trimmed = value.trim();
+    this.genericTable.extraParams = trimmed ? { search: trimmed } : {};
+
+    this.genericTable.currentPage = 0;
+    if (this.genericTable.paginator) {
+      this.genericTable.paginator.firstPage();
+    }
+    this.genericTable.loadData();
   }
 
   /**
@@ -216,6 +246,10 @@ export class OrdersComponent implements OnInit {
    */
   goToIntegration(): void {
     this.router.navigate(['/integration']);
+  }
+
+  clearSearch(): void {
+    this.searchControl.setValue('');
   }
 
   /**

@@ -344,6 +344,7 @@
     "ORDERS": "Sevkiyat Emirleri",
     "ORDER_NAME": "Sipariş Adı",
     "GO_TO_INTEGRATION": "Entegrasyona Git",
+    "SEARCH_PLACEHOLDER": "Sipariş adı, firma adı veya ekstra veri ile ara...",
     "CHANGE_NUMBER_TITLE": "Sipariş No Değiştir",
     "CHANGE_NUMBER_SELECT_ORDER": "Sipariş ara ve seç",
     "CHANGE_NUMBER_PREFIX": "Önek",
