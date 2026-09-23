@@ -1,12 +1,12 @@
 import { Component, OnDestroy, ViewChild } from '@angular/core';
-import { takeUntil } from 'rxjs';
+import { filter, takeUntil } from 'rxjs';
 import { Subject } from 'rxjs';
 import { Breakpoints, BreakpointObserver } from '@angular/cdk/layout';
 import { SidenavComponent } from './sidenav/sidenav.component';
 import { HeaderComponent } from './header/header.component';
 import { MatGridListModule } from '@angular/material/grid-list';
 import { MatDividerModule } from '@angular/material/divider';
-import { RouterOutlet } from '@angular/router';
+import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { ISidenavConfig } from './sidenav/isidenav-config';
 // https://material.angular.io/cdk/layout/overview
 
@@ -31,13 +31,6 @@ export class LayoutComponent implements OnDestroy {
 
   destroyed = new Subject<any>();
 
-  tiles: Tile[] = [
-    { text: 'One', cols: 4, rows: 1, color: 'lightblue' },
-    { text: 'Two', cols: 1, rows: 2, color: 'lightgreen' },
-    { text: 'Three', cols: 1, rows: 1, color: 'lightpink' },
-    { text: 'Four', cols: 2, rows: 1, color: '#DDBDF1' },
-  ];
-
   sidenavConfig: ISidenavConfig = {
     mode: 'side',
     isSidenavOpen: true,
@@ -52,8 +45,23 @@ export class LayoutComponent implements OnDestroy {
     [Breakpoints.XLarge, 'XLarge'],
   ])
 
-  constructor(private breakpointObserver: BreakpointObserver) {
+  constructor(
+    private breakpointObserver: BreakpointObserver,
+    private router: Router // 1. Router'ı constructor'a ekledik
+  ) {
     this.checkBreakpoints();
+
+    // 2. Rota değişimini dinleyen kod bloğu
+    this.router.events.pipe(
+      filter(event => event instanceof NavigationEnd),
+      takeUntil(this.destroyed)
+    ).subscribe(() => {
+      // Sadece mobil/tablet görünümündeyse (menü ekranın üstündeyse) kapat
+      if (this.sidenavConfig.mode === 'over') {
+        this.sidenav.close(); // SidenavComponent'in kapanma metodunu çağırır
+        this.sidenavConfig.isSidenavOpen = false;
+      }
+    });
   }
 
   sidenavOpen() {

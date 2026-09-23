@@ -118,6 +118,10 @@ export class SidenavComponent {
     this.sidenav.open();
   }
 
+  close() {
+    this.sidenav.close();
+  }
+
   isActive(node: INavListItem): boolean {
     if (!node.routerLink) return false;
     const routePath = '/' + node.routerLink.join('/');
