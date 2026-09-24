@@ -372,7 +372,19 @@
     "CUSTOMER_VIEW": "Müşteri Linki",
     "COPY_CUSTOMER_LINK": "Müşteri linkini kopyala",
     "LINK_COPIED": "Link kopyalandı!",
-    "VIEW_HISTORY": "Sipariş geçmişini görüntüle"
+    "VIEW_HISTORY": "Sipariş geçmişini görüntüle",
+    "MERGE_TITLE": "Siparişleri Birleştir",
+    "MERGE_SEARCH_ORDERS": "Sipariş ara",
+    "MERGE_SEARCH_PLACEHOLDER": "Sipariş adı ile arayın...",
+    "MERGE_SELECTED_ORDERS": "Seçilen siparişler ({{count}})",
+    "MERGE_NO_ORDERS_SELECTED": "Henüz sipariş seçilmedi. Yukarıdan arayıp ekleyin.",
+    "MERGE_SELECT_CUSTOMER": "Hedef müşteri",
+    "MERGE_SELECT_CUSTOMER_PLACEHOLDER": "Müşteri ara ve seç...",
+    "MERGE_WARNING": "{{count}} sipariş tek bir siparişte birleştirilecek. Ürün adetleri toplanacak, eski siparişlerin paket/palet ve sonuç verileri ile dosyaları silinecek. Bu işlem geri alınamaz.",
+    "MERGE_CONFIRM": "Seçilen siparişlerin birleştirileceğini, eski paket/palet verilerinin ve dosyaların silineceğini anlıyorum",
+    "MERGE_SAVE": "Birleştir",
+    "MERGE_SUCCESS": "Siparişler başarıyla birleştirildi.",
+    "MERGE_ERROR": "Siparişler birleştirilemedi."
   },
   "ORDER_DETAILS": {
     "TITLE": "Ürün Detayları",

@@ -68,4 +68,25 @@ export class OrderService extends GenericCrudService<Order> {
       swap,
     });
   }
+
+  /**
+   * Birden fazla siparişi tek bir siparişte birleştirir.
+   * OrderDetail'ler ürün bazında toplanır, extra_data'lar liste olarak
+   * birleştirilir, kaynak siparişler soft-delete edilir.
+   * Yetki: orders.merge_orders
+   */
+  mergeOrders(orderIds: string[], companyRelationId: string) {
+    this.ensureApiUrl();
+    return this.http.post<{
+      status: string;
+      message: string;
+      new_order_id: string;
+      new_order_name: string;
+      merged_order_names: string[];
+      order: Order;
+    }>(`${this.apiUrl}merge-orders/`, {
+      order_ids: orderIds,
+      company_relation_id: companyRelationId,
+    });
+  }
 }

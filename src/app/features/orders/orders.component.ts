@@ -23,6 +23,7 @@ import { DisableAuthDirective } from '@app/core/auth/directives/disable-auth.dir
 import { ColumnDefinition } from '@app/shared/generic-table/interfaces/column-definition.interface';
 import { OrderHistoryDialogComponent } from './dialogs/order-history-dialog/order-history-dialog.component';
 import { ChangeOrderNumberDialogComponent } from './dialogs/change-order-number-dialog/change-order-number-dialog.component';
+import { MergeOrdersDialogComponent } from './dialogs/merge-orders-dialog/merge-orders-dialog.component';
 import { ErpIntegrationService } from '@app/features/services/erp-integration.service';
 
 @Component({
@@ -291,6 +292,25 @@ export class OrdersComponent implements OnInit, OnDestroy {
     dialogRef.afterClosed().subscribe((changed) => {
       if (changed) {
         // Tabloyu tazele — yeni sipariş adı görünsün
+        this.genericTable?.loadData();
+      }
+    });
+  }
+
+  /**
+   * Siparişleri birleştirme dialog'u.
+   * Yetki: orders.merge_orders (menü öğesi appDisableAuth ile korunuyor)
+   */
+  openMergeOrdersDialog(): void {
+    const dialogRef = this.dialog.open(MergeOrdersDialogComponent, {
+      width: '640px',
+      maxWidth: '95vw',
+      autoFocus: false,
+    });
+
+    dialogRef.afterClosed().subscribe((merged) => {
+      if (merged) {
+        // Tabloyu tazele — yeni birleşik sipariş görünsün, kaynak siparişler kalksın
         this.genericTable?.loadData();
       }
     });

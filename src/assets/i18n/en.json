@@ -372,7 +372,19 @@
     "CUSTOMER_VIEW": "Customer Link",
     "COPY_CUSTOMER_LINK": "Copy customer link",
     "LINK_COPIED": "Link copied!",
-    "VIEW_HISTORY": "View order history"
+    "VIEW_HISTORY": "View order history",
+    "MERGE_TITLE": "Merge Orders",
+    "MERGE_SEARCH_ORDERS": "Search orders",
+    "MERGE_SEARCH_PLACEHOLDER": "Search by order name...",
+    "MERGE_SELECTED_ORDERS": "Selected orders ({{count}})",
+    "MERGE_NO_ORDERS_SELECTED": "No orders selected yet. Search above and add them.",
+    "MERGE_SELECT_CUSTOMER": "Target customer",
+    "MERGE_SELECT_CUSTOMER_PLACEHOLDER": "Search and select a customer...",
+    "MERGE_WARNING": "{{count}} orders will be merged into one. Product quantities will be summed, and the source orders' packages/pallets, results, and files will be deleted. This action cannot be undone.",
+    "MERGE_CONFIRM": "I understand the selected orders will be merged, and their package/pallet data and files will be deleted",
+    "MERGE_SAVE": "Merge",
+    "MERGE_SUCCESS": "Orders were merged successfully.",
+    "MERGE_ERROR": "Orders could not be merged."
   },
   "ORDER_DETAILS": {
     "TITLE": "Product Details",

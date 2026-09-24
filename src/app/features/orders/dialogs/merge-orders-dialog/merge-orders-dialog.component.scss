@@ -1,0 +1,200 @@
+.merge-orders-dialog {
+
+  h2[mat-dialog-title] {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 0;
+    padding: 20px 24px 16px;
+    font-size: 20px;
+    font-weight: 600;
+    color: #006A6A;
+    border-bottom: 1px solid rgba(0, 106, 106, 0.12);
+
+    mat-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
+      font-size: 24px;
+      border-radius: 10px;
+      color: #006A6A;
+      background-color: rgba(0, 106, 106, 0.1);
+    }
+  }
+
+  mat-dialog-content {
+    max-height: 70vh !important;
+    overflow-y: auto !important;
+    padding: 20px 24px 8px !important;
+  }
+
+  .full-width {
+    width: 100%;
+    margin-top: 8px;
+  }
+
+  .order-option-name {
+    font-weight: 500;
+  }
+
+  .order-option-company {
+    margin-left: 8px;
+    font-size: 12px;
+    color: #888888;
+  }
+
+  .order-results {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin: -4px 0 14px;
+    padding: 6px;
+    border-radius: 10px;
+    border: 1px solid rgba(0, 106, 106, 0.15);
+    background-color: rgba(0, 106, 106, 0.02);
+    max-height: 220px;
+    overflow-y: auto;
+
+    .order-result-item {
+      display: flex;
+      align-items: center;
+      width: 100%;
+      padding: 8px 10px;
+      border: none;
+      border-radius: 8px;
+      background: transparent;
+      cursor: pointer;
+      text-align: left;
+      font: inherit;
+      color: inherit;
+      transition: background-color 0.15s ease;
+
+      &:hover {
+        background-color: rgba(0, 106, 106, 0.08);
+      }
+
+      .add-icon {
+        margin-left: auto;
+        color: #006A6A;
+        flex-shrink: 0;
+      }
+    }
+  }
+
+  .selected-section {
+    margin-bottom: 14px;
+
+    .section-label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      color: #888888;
+      margin-bottom: 8px;
+    }
+
+    .empty-hint {
+      padding: 12px;
+      border-radius: 10px;
+      border: 1px dashed rgba(0, 0, 0, 0.15);
+      color: #999999;
+      font-size: 13px;
+      text-align: center;
+    }
+
+    .selected-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+
+      .order-chip {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        padding: 4px 6px 4px 12px;
+        border-radius: 20px;
+        background-color: rgba(214, 187, 134, 0.2);
+        border: 1px solid rgba(214, 187, 134, 0.5);
+
+        .order-option-name {
+          font-size: 13px;
+          color: #6b5732;
+        }
+
+        // generic-table.component.scss'teki .chip-remove ile aynı, kanıtlanmış
+        // desen — mat-icon-button'ın kendi state-layer/touch-target
+        // boyutlarıyla uğraşmak yerine width/height/padding'i doğrudan
+        // sıfırlayıp flex ile ortalıyor.
+        .chip-remove {
+          width: 24px;
+          height: 24px;
+          min-width: 24px;
+          padding: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+
+          mat-icon {
+            font-size: 16px;
+            width: 16px;
+            height: 16px;
+            line-height: 16px;
+          }
+        }
+      }
+    }
+  }
+
+  .warning-box {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px;
+    margin: 4px 0 4px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 152, 0, 0.4);
+    background-color: rgba(255, 152, 0, 0.08);
+    color: #a15c00;
+    font-size: 13px;
+    line-height: 1.45;
+
+    mat-icon {
+      flex-shrink: 0;
+      color: #ef6c00;
+    }
+  }
+
+  .confirm-checkbox {
+    display: block;
+    margin: 12px 0 4px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background-color: rgba(0, 0, 0, 0.03);
+    font-size: 13px;
+
+    ::ng-deep .mdc-form-field label {
+      line-height: 1.45;
+    }
+  }
+
+  mat-dialog-actions {
+    padding: 12px 24px 20px;
+    gap: 8px;
+
+    button[color="primary"] {
+      min-width: 140px;
+      height: 42px;
+      border-radius: 21px;
+      background-color: #006A6A;
+    }
+  }
+
+  .btn-spinner {
+    display: inline-block;
+    margin-right: 8px;
+  }
+}

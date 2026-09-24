@@ -26,6 +26,11 @@
             <mat-icon>edit_note</mat-icon>
             <span>{{ 'ORDER.CHANGE_NUMBER_TITLE' | translate }}</span>
           </button>
+          <button mat-menu-item (click)="openMergeOrdersDialog()"
+            [appDisableAuth]="['orders.merge_orders']">
+            <mat-icon>call_merge</mat-icon>
+            <span>{{ 'ORDER.MERGE_TITLE' | translate }}</span>
+          </button>
         </mat-menu>
       </div>
     </div>
