@@ -8,13 +8,14 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatDividerModule } from '@angular/material/divider';
 import { Store } from '@ngrx/store';
 import { MatDialog } from '@angular/material/dialog';
-import { filter } from 'rxjs';
-import { TranslateModule } from '@ngx-translate/core'; // ✅ Comment'i kaldır
+import { filter, take } from 'rxjs';
+import { TranslateModule } from '@ngx-translate/core'; 
 import { AuthService } from '@app/core/auth/services/auth.service';
 import { OrderService } from '@app/features/services/order.service';
 import { CancelConfirmationDialogComponent } from '@app/shared/cancel-confirmation-dialog/cancel-confirmation-dialog.component';
+import { SwitchCompanyDialogComponent } from './switch-company-dialog/switch-company-dialog.component';
 import { AppState, selectOrderId, selectUser, StepperUiActions } from '@app/store';
-import { LanguageService, Language } from '@app/core/services/language.service'; // ✅ Comment'i kaldır
+import { LanguageService, Language } from '@app/core/services/language.service';
 import { DisableAuthDirective } from '@app/core/auth/directives/disable-auth.directive';
 
 @Component({
@@ -51,6 +52,7 @@ export class HeaderComponent implements OnInit {
 
   orderId = this.store.selectSignal(selectOrderId);
   user$ = this.store.select(selectUser);
+  actingCompany$ = this.authService.actingCompany$;
 
   languages = this.languageService.LANGUAGES;
   currentLanguage$ = this.languageService.currentLanguage$;
@@ -100,6 +102,29 @@ export class HeaderComponent implements OnInit {
   onExitClick(): void {
     this.authService.clearLocalAndStore();
     this.store.dispatch(StepperUiActions.disableEditMode())
+  }
+
+  // Superuser için logo tıklaması "şirket değiştir" dialogunu açar; normal
+  // kullanıcı için eski davranış (exit / ana sayfaya dön) aynen kalır.
+  onLogoClick(): void {
+    this.user$.pipe(take(1)).subscribe((user) => {
+      if (user?.is_superuser) {
+        this.openSwitchCompanyDialog();
+      } else {
+        this.onExitClick();
+      }
+    });
+  }
+
+  openSwitchCompanyDialog(): void {
+    this.dialog.open(SwitchCompanyDialogComponent, {
+      width: '480px',
+      maxWidth: '95vw',
+    });
+  }
+
+  returnToOwnAccount(): void {
+    this.authService.switchCompany(null).subscribe();
   }
 
   onCancelClick(): void {

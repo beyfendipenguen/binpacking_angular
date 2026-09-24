@@ -1,0 +1,111 @@
+.switch-company-dialog {
+
+  h2[mat-dialog-title] {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 0;
+    padding: 20px 24px 16px;
+    font-size: 20px;
+    font-weight: 600;
+    color: #006A6A;
+    border-bottom: 1px solid rgba(0, 106, 106, 0.12);
+
+    mat-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
+      font-size: 24px;
+      border-radius: 10px;
+      color: #006A6A;
+      background-color: rgba(0, 106, 106, 0.1);
+    }
+  }
+
+  mat-dialog-content {
+    max-height: 70vh !important;
+    overflow-y: auto !important;
+    padding: 20px 24px 8px !important;
+  }
+
+  .full-width {
+    width: 100%;
+    margin-top: 8px;
+  }
+
+  .empty-hint {
+    padding: 12px;
+    border-radius: 10px;
+    border: 1px dashed rgba(0, 0, 0, 0.15);
+    color: #999999;
+    font-size: 13px;
+    text-align: center;
+    margin-top: 8px;
+  }
+
+  .company-results {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin: 8px 0 4px;
+    padding: 6px;
+    border-radius: 10px;
+    border: 1px solid rgba(0, 106, 106, 0.15);
+    background-color: rgba(0, 106, 106, 0.02);
+    max-height: 320px;
+    overflow-y: auto;
+
+    .company-result-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      padding: 8px 10px;
+      border: none;
+      border-radius: 8px;
+      background: transparent;
+      cursor: pointer;
+      text-align: left;
+      font: inherit;
+      color: inherit;
+      transition: background-color 0.15s ease;
+
+      &:hover:not(:disabled) {
+        background-color: rgba(0, 106, 106, 0.08);
+      }
+
+      &:disabled {
+        cursor: default;
+        opacity: 0.7;
+      }
+
+      .company-logo {
+        width: 28px;
+        height: 28px;
+        object-fit: contain;
+        border-radius: 6px;
+        flex-shrink: 0;
+      }
+
+      .company-name {
+        font-weight: 500;
+        flex: 1;
+      }
+
+      .switch-icon {
+        color: #006A6A;
+        flex-shrink: 0;
+      }
+
+      .item-spinner {
+        flex-shrink: 0;
+      }
+    }
+  }
+
+  mat-dialog-actions {
+    padding: 12px 24px 20px;
+  }
+}

@@ -94,7 +94,15 @@
     "PROFILE": "Profil",
     "LOGOUT": "Çıkış Yap",
     "LANGUAGE": "Dil",
-    "EXIT": "Çıkış"
+    "EXIT": "Çıkış",
+    "SWITCH_COMPANY_TITLE": "Şirket Değiştir",
+    "SWITCH_COMPANY_SEARCH": "Şirket Ara",
+    "SWITCH_COMPANY_SEARCH_PLACEHOLDER": "Şirket adı yazın...",
+    "SWITCH_COMPANY_NO_RESULTS": "Şirket bulunamadı.",
+    "SWITCH_COMPANY_SUCCESS": "{{company}} şirketi olarak görüntüleniyorsunuz.",
+    "SWITCH_COMPANY_ERROR": "Şirket değiştirilemedi.",
+    "ACTING_AS": "{{company}} şirketi olarak görüntüleniyorsunuz",
+    "RETURN_TO_OWN_ACCOUNT": "Kendi hesabına dön"
   },
   "DIALOG": {
     "CANCEL_OPERATION": "İşlemi İptal Et",

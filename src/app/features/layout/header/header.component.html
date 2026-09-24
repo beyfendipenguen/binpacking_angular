@@ -6,8 +6,19 @@
 
     <!-- Logo kısmı -->
     <div class="logo-container">
-      <img [src]="companyLogo" class="logo" (click)="onExitClick()"/>
+      <img [src]="companyLogo" class="logo" (click)="onLogoClick()"/>
     </div>
+
+    <!-- Superuser "başka şirket olarak görüntüleniyor" banner'ı -->
+    @if (actingCompany$ | async; as actingCompany) {
+    <div class="acting-as-banner">
+      <mat-icon>visibility</mat-icon>
+      <span>{{ 'HEADER.ACTING_AS' | translate:{company: actingCompany.company_name} }}</span>
+      <button mat-button (click)="returnToOwnAccount()" class="return-button">
+        {{ 'HEADER.RETURN_TO_OWN_ACCOUNT' | translate }}
+      </button>
+    </div>
+    }
 
     <mat-divider></mat-divider>
     <span class="spacer"></span>

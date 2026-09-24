@@ -1,0 +1,42 @@
+<div class="switch-company-dialog">
+  <h2 mat-dialog-title>
+    <mat-icon>swap_horiz</mat-icon>
+    {{ 'HEADER.SWITCH_COMPANY_TITLE' | translate }}
+  </h2>
+
+  <mat-dialog-content>
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>{{ 'HEADER.SWITCH_COMPANY_SEARCH' | translate }}</mat-label>
+      <input matInput [formControl]="searchControl"
+        [placeholder]="'HEADER.SWITCH_COMPANY_SEARCH_PLACEHOLDER' | translate" />
+      <mat-icon matPrefix>search</mat-icon>
+    </mat-form-field>
+
+    @if (searchResults.length) {
+    <div class="company-results">
+      @for (company of searchResults; track company.id) {
+      <button type="button" class="company-result-item" (click)="selectCompany(company)"
+        [disabled]="!!switchingCompanyId">
+        @if (company.logo) {
+        <img [src]="company.logo" class="company-logo" alt="" />
+        }
+        <span class="company-name">{{ company.company_name }}</span>
+        @if (switchingCompanyId === company.id) {
+        <mat-spinner diameter="18" class="item-spinner"></mat-spinner>
+        } @else {
+        <mat-icon class="switch-icon">chevron_right</mat-icon>
+        }
+      </button>
+      }
+    </div>
+    } @else {
+    <div class="empty-hint">{{ 'HEADER.SWITCH_COMPANY_NO_RESULTS' | translate }}</div>
+    }
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button (click)="close()">
+      {{ 'COMMON.CANCEL' | translate }}
+    </button>
+  </mat-dialog-actions>
+</div>

@@ -91,7 +91,15 @@
     "PROFILE": "Профиль",
     "LOGOUT": "Выход",
     "LANGUAGE": "Язык",
-    "EXIT": "Выход"
+    "EXIT": "Выход",
+    "SWITCH_COMPANY_TITLE": "Сменить компанию",
+    "SWITCH_COMPANY_SEARCH": "Поиск компании",
+    "SWITCH_COMPANY_SEARCH_PLACEHOLDER": "Введите название компании...",
+    "SWITCH_COMPANY_NO_RESULTS": "Компании не найдены.",
+    "SWITCH_COMPANY_SUCCESS": "Вы просматриваете как {{company}}.",
+    "SWITCH_COMPANY_ERROR": "Не удалось сменить компанию.",
+    "ACTING_AS": "Просмотр от имени {{company}}",
+    "RETURN_TO_OWN_ACCOUNT": "Вернуться в свою учётную запись"
   },
   "DIALOG": {
     "CANCEL_OPERATION": "Отменить операцию",

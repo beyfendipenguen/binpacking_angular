@@ -4,13 +4,14 @@ import {
   HttpHeaders,
 } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { catchError, Observable, Subject, throwError } from 'rxjs';
+import { BehaviorSubject, catchError, Observable, Subject, tap, throwError } from 'rxjs';
 import { Router } from '@angular/router';
 import { ApiService } from '@core/services/api.service';
 import { ToastService } from '@core/services/toast.service';
 import { Store } from '@ngrx/store';
 import { AppState, loadUser, StepperUiActions } from '../../../store';
 import { User } from '@app/core/interfaces/user.interface';
+import { Company } from '@app/features/interfaces/company.interface';
 import { TranslateService } from '@ngx-translate/core';
 import { TourService } from '@app/features/services/tour.service';
 
@@ -33,6 +34,14 @@ export class AuthService {
   private toastService = inject(ToastService);
   private store = inject(Store<AppState>);
   private translate = inject(TranslateService);
+
+  // Superuser "şirket olarak görüntüle" (act-as) durumu. Backend token'a
+  // gömdüğü 'acting_company_id' claim'ini bize geri döndürmüyor (profil
+  // endpoint'i sadece o şirketin verisini döner, "bu bir act-as" bilgisini
+  // değil) — bu yüzden hangi şirket olarak görüntülendiğimizi kendimiz
+  // localStorage'da tutuyoruz; sadece header'daki banner için kullanılıyor,
+  // yetkilendirme/kapsamlama tamamen backend'deki JWT claim'ine dayanıyor.
+  actingCompany$ = new BehaviorSubject<Company | null>(this.getStoredActingCompany());
 
   constructor(
     private http: HttpClient,
@@ -133,6 +142,50 @@ export class AuthService {
     return localStorage.getItem('access_token');
   }
 
+  /**
+   * Superuser'ın başka bir şirket olarak görüntüleme (act-as) isteği.
+   * companyId=null verilirse kendi hesabına döner.
+   *
+   * Backend yeni bir access/refresh çifti döner (company seçiliyse içine
+   * 'acting_company_id' claim'i gömülü) — bunları normal login'deki gibi
+   * localStorage'a yazıp loadUser({forceRefresh:true}) ile store'daki
+   * kullanıcıyı (ve dolayısıyla nested company'yi) tazeliyoruz.
+   */
+  switchCompany(companyId: string | null): Observable<{ access: string; refresh: string; company: Company | null }> {
+    return this.http
+      .post<{ access: string; refresh: string; company: Company | null }>(
+        `${this.apiService.getApiUrl()}/profile/switch-company/`,
+        { company_id: companyId }
+      )
+      .pipe(
+        tap((res) => {
+          localStorage.setItem('access_token', res.access);
+          localStorage.setItem('refresh_token', res.refresh);
+          this.setStoredActingCompany(res.company);
+          this.store.dispatch(loadUser({ forceRefresh: true }));
+        })
+      );
+  }
+
+  private getStoredActingCompany(): Company | null {
+    const raw = localStorage.getItem('acting_company');
+    if (!raw) return null;
+    try {
+      return JSON.parse(raw) as Company;
+    } catch {
+      return null;
+    }
+  }
+
+  private setStoredActingCompany(company: Company | null): void {
+    if (company) {
+      localStorage.setItem('acting_company', JSON.stringify(company));
+    } else {
+      localStorage.removeItem('acting_company');
+    }
+    this.actingCompany$.next(company);
+  }
+
   doLogout(): void {
     localStorage.removeItem('access_token');
     localStorage.removeItem('refresh_token');
@@ -140,7 +193,9 @@ export class AuthService {
     localStorage.removeItem('invoice_reference_data');
     localStorage.removeItem('enhanced_stepper_draft_data');
     localStorage.removeItem('user');
+    localStorage.removeItem('acting_company');
     localStorage.removeItem('pending_tour_check'); // 👈 YENİ: Logout'ta temizle
+    this.actingCompany$.next(null);
     this.store.dispatch(StepperUiActions.resetStepper());
     this.router.navigate(['/auth/login']);
   }

@@ -94,7 +94,15 @@
     "PROFILE": "Profile",
     "LOGOUT": "Logout",
     "LANGUAGE": "Language",
-    "EXIT": "Exit"
+    "EXIT": "Exit",
+    "SWITCH_COMPANY_TITLE": "Switch Company",
+    "SWITCH_COMPANY_SEARCH": "Search Company",
+    "SWITCH_COMPANY_SEARCH_PLACEHOLDER": "Type a company name...",
+    "SWITCH_COMPANY_NO_RESULTS": "No companies found.",
+    "SWITCH_COMPANY_SUCCESS": "You are now viewing as {{company}}.",
+    "SWITCH_COMPANY_ERROR": "Could not switch company.",
+    "ACTING_AS": "Viewing as {{company}}",
+    "RETURN_TO_OWN_ACCOUNT": "Return to your account"
   },
   "DIALOG": {
     "CANCEL_OPERATION": "Cancel Operation",
