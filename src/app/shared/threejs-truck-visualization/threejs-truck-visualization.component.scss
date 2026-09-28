@@ -280,6 +280,48 @@ $c-text-sub:  #64748b;
   }
 }
 
+// Her zaman görünür kısayol şeridi — toolbar'ın hemen altında, ortalanmış
+.tjs-shortcuts-bar {
+  position: absolute;
+  top: calc(0.75rem + 2.6rem + 6px); // toolbar yüksekliği + boşluk
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.3rem 0.6rem;
+  max-width: 92vw;
+  padding: 0.35rem 0.6rem;
+  background: rgba($c-primary-d, 0.78);
+  backdrop-filter: blur(8px);
+  border-radius: var(--radius-md);
+  border: 1px solid rgba($c-white, 0.08);
+
+  &__item {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.68rem;
+    color: rgba($c-white, 0.85);
+    white-space: nowrap;
+
+    kbd {
+      flex-shrink: 0;
+      min-width: 1.3rem;
+      text-align: center;
+      padding: 0.05rem 0.3rem;
+      background: rgba($c-white, 0.14);
+      border: 1px solid rgba($c-white, 0.2);
+      border-radius: 4px;
+      font-family: 'Courier New', monospace;
+      font-size: 0.64rem;
+      font-weight: 700;
+      color: $c-white;
+    }
+  }
+}
+
 .tjs-weight-pill {
   display: flex;
   flex-direction: column;
@@ -560,6 +602,115 @@ $c-text-sub:  #64748b;
     color: $c-danger;
     border-color: rgba($c-danger, 0.25);
     &:hover:not(:disabled) { background: rgba($c-danger, 0.05); border-color: $c-danger; }
+  }
+}
+
+// ========================================
+// ACTION RING — seçili paketin üstünde onu takip eden hızlı aksiyon menüsü
+// (bkz. updateActionRingPosition — konumu her frame doğrudan style ile
+// güncellenir, transform: translate(x,y) translate(-50%,-100%))
+// ========================================
+.tjs-action-ring {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 15;
+  display: none; // ilk frame'den önce görünmesin
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.3rem;
+  background: rgba($c-primary-d, 0.92);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba($c-white, 0.15);
+  border-radius: 999px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  pointer-events: auto;
+  will-change: transform;
+  animation: tjsRingPop 0.15s ease-out;
+}
+
+@keyframes tjsRingPop {
+  from { opacity: 0; transform: scale(0.8); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.tjs-ring-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  background: rgba($c-white, 0.12);
+  color: $c-white;
+  transition: var(--t);
+
+  mat-icon { font-size: 1.05rem; width: 1.05rem; height: 1.05rem; }
+
+  &:hover:not(:disabled) { transform: scale(1.1); }
+  &:disabled { opacity: 0.35; cursor: not-allowed; }
+
+  &--neutral:hover:not(:disabled) { background: rgba($c-white, 0.22); }
+
+  &--warn {
+    color: $c-warn;
+    &:hover:not(:disabled) { background: rgba($c-warn, 0.22); }
+  }
+
+  &--success {
+    color: $c-success;
+    &:hover:not(:disabled) { background: rgba($c-success, 0.22); }
+  }
+
+  &--danger {
+    color: $c-danger;
+    &:hover:not(:disabled) { background: rgba($c-danger, 0.22); }
+  }
+}
+
+.tjs-plate-auto-place-btn {
+  position: absolute;
+  bottom: 1.1rem;
+  right: 1.1rem;
+  z-index: 8;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.5rem 0.85rem;
+  border: 1px solid rgba($c-white, 0.14);
+  border-radius: var(--radius-md);
+  background: rgba($c-primary-d, 0.82);
+  backdrop-filter: blur(8px);
+  color: $c-white;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
+  transition: var(--t);
+
+  mat-icon { font-size: 1.1rem; width: 1.1rem; height: 1.1rem; }
+
+  &:hover:not(:disabled) {
+    background: rgba($c-accent, 0.85);
+    transform: translateY(-1px);
+  }
+
+  &:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  &__count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.15rem;
+    height: 1.15rem;
+    padding: 0 0.3rem;
+    border-radius: 999px;
+    background: rgba($c-white, 0.22);
+    font-size: 0.65rem;
+    font-weight: 700;
+    line-height: 1;
   }
 }
 

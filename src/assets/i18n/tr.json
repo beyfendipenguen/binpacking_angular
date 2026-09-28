@@ -897,7 +897,17 @@
     "AUTO_PLACE_PARTIAL": "Bazı paketler için uygun alan bulunamadı, zorla yerleştirildi",
     "AUTO_PLACE_NO_SPACE": "Paket için uygun pozisyon bulunamadı",
     "UNDO": "Geri Al (Ctrl+Z)",
-    "REDO": "İleri Al (Ctrl+Y)"
+    "REDO": "İleri Al (Ctrl+Y)",
+    "SHORTCUTS_TITLE": "Klavye Kısayolları",
+    "SHORTCUTS_ROTATE": "Paketi döndür",
+    "SHORTCUTS_DELETE": "Paketi sil",
+    "SHORTCUTS_FULLSCREEN": "Tam ekran",
+    "SHORTCUTS_DESELECT": "Seçimi kaldır",
+    "SHORTCUTS_UNDO": "Geri al",
+    "SHORTCUTS_REDO": "İleri al",
+    "STAGING_AREA": "Bekleme Alanı",
+    "STAGING_AREA_HINT": "Yerleşmeyen paketleri buraya sürükleyin",
+    "STAGING_DELETE_TIP": "Yakında"
   },
   "STEPPER": {
     "ERROR": "Hatası",

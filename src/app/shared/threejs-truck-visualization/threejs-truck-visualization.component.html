@@ -76,6 +76,28 @@
       </button>
     </div>
   </div>
+
+  <!-- Kısayollar — her zaman görünür, toolbar'ın hemen altında -->
+  <div class="tjs-shortcuts-bar">
+    <div class="tjs-shortcuts-bar__item">
+      <kbd>R</kbd><span>{{ 'TRUCK_VISUALIZATION.SHORTCUTS_ROTATE' | translate }}</span>
+    </div>
+    <div class="tjs-shortcuts-bar__item">
+      <kbd>Delete</kbd><span>{{ 'TRUCK_VISUALIZATION.SHORTCUTS_DELETE' | translate }}</span>
+    </div>
+    <div class="tjs-shortcuts-bar__item">
+      <kbd>F</kbd><span>{{ 'TRUCK_VISUALIZATION.SHORTCUTS_FULLSCREEN' | translate }}</span>
+    </div>
+    <div class="tjs-shortcuts-bar__item">
+      <kbd>Esc</kbd><span>{{ 'TRUCK_VISUALIZATION.SHORTCUTS_DESELECT' | translate }}</span>
+    </div>
+    <div class="tjs-shortcuts-bar__item">
+      <kbd>Ctrl+Z</kbd><span>{{ 'TRUCK_VISUALIZATION.SHORTCUTS_UNDO' | translate }}</span>
+    </div>
+    <div class="tjs-shortcuts-bar__item">
+      <kbd>Ctrl+Y</kbd><span>{{ 'TRUCK_VISUALIZATION.SHORTCUTS_REDO' | translate }}</span>
+    </div>
+  </div>
   }
 
   @if (selectedPackageSignal(); as selected) {
@@ -128,63 +150,76 @@
       </div>
     </div>
     }
-
-    <div class="tjs-panel__actions">
-      @if (!selected.isForcePlaced) {
-      <button class="tjs-panel-btn tjs-panel-btn--warn" (click)="forcePlacePackage()"
-        [disabled]="!selectedPackageSignal()" [appDisableAuth]="['orders.change_orderresult']">
-        <mat-icon>push_pin</mat-icon>{{ 'TRUCK_VISUALIZATION.FORCE_PLACE' | translate }}
-      </button>
-      } @else {
-      <button class="tjs-panel-btn tjs-panel-btn--success" (click)="unforcePlacePackage()"
-        [disabled]="!selectedPackageSignal()" [appDisableAuth]="['orders.change_orderresult']">
-        <mat-icon>undo</mat-icon>{{ 'TRUCK_VISUALIZATION.NORMALIZE' | translate }}
-      </button>
-      }
-      <button class="tjs-panel-btn tjs-panel-btn--neutral" (click)="rotateSelectedPackage()"
-        [disabled]="!selectedPackageSignal()" [appDisableAuth]="['orders.change_orderresult']">
-        <mat-icon>rotate_right</mat-icon>{{ 'TRUCK_VISUALIZATION.ROTATE' | translate }}
-      </button>
-      <button class="tjs-panel-btn tjs-panel-btn--danger" (click)="deleteSelectedPackage()"
-        [disabled]="!selectedPackageSignal()" [appDisableAuth]="['orders.change_orderresult']">
-        <mat-icon>delete_outline</mat-icon>{{ 'COMMON.DELETE' | translate }}
-      </button>
-    </div>
   </div>
   }
   }
 
+  <!-- Paketin üstünde onu takip eden hızlı aksiyon halkası (bkz.
+       updateActionRingPosition). Konteyner @if'e bağlı DEĞİL — seçim
+       olsun/olmasın DOM'da SABİT kalır (görünürlük sadece style.display ile
+       yönetilir), aksi halde her seçim değişiminde div yeniden yaratılıp
+       #actionRing ViewChild referansı geçersiz olur ve halka bir sonraki
+       change-detection'a kadar eski (varsayılan/sol-üst köşe) transform
+       değeriyle kısaca "flaşlar". -->
+  @if (!isLoadingModels && !isLoadingData) {
+  <div #actionRing class="tjs-action-ring">
+    @if (selectedPackageSignal(); as selected) {
+    @if (!selected.isForcePlaced) {
+    <button class="tjs-ring-btn tjs-ring-btn--warn" (click)="forcePlacePackage()"
+      [appDisableAuth]="['orders.change_orderresult']"
+      [matTooltip]="'TRUCK_VISUALIZATION.FORCE_PLACE_TIP' | translate">
+      <mat-icon>push_pin</mat-icon>
+    </button>
+    } @else {
+    <button class="tjs-ring-btn tjs-ring-btn--success" (click)="unforcePlacePackage()"
+      [appDisableAuth]="['orders.change_orderresult']"
+      [matTooltip]="'TRUCK_VISUALIZATION.NORMALIZE_TIP' | translate">
+      <mat-icon>undo</mat-icon>
+    </button>
+    }
+    <button class="tjs-ring-btn tjs-ring-btn--neutral" (click)="rotateSelectedPackage()"
+      [appDisableAuth]="['orders.change_orderresult']" [matTooltip]="'TRUCK_VISUALIZATION.ROTATE_TIP' | translate">
+      <mat-icon>rotate_right</mat-icon>
+    </button>
+    <button class="tjs-ring-btn tjs-ring-btn--danger" (click)="deleteSelectedPackage()"
+      [appDisableAuth]="['orders.change_orderresult']"
+      [matTooltip]="'TRUCK_VISUALIZATION.DELETE_PACKAGE' | translate">
+      <mat-icon>delete_outline</mat-icon>
+    </button>
+    }
+  </div>
+  }
+
+  <!-- Plate'te (bekleme alanı) seçili paket için sade halka: sadece döndür
+       + (şimdilik pasif) sil. Tır halkasından bilerek ayrı — bkz.
+       selectedPlatePackageSignal. Aynı sebeple (bkz. yukarıdaki not) dış
+       konteyner @if'e bağlı değil, hep DOM'da. -->
+  @if (!isLoadingModels && !isLoadingData) {
+  <div #plateActionRing class="tjs-action-ring tjs-action-ring--plate">
+    @if (selectedPlatePackageSignal(); as platePkg) {
+    <button class="tjs-ring-btn tjs-ring-btn--neutral" (click)="rotatePlatePackage()"
+      [appDisableAuth]="['orders.change_orderresult']" [matTooltip]="'TRUCK_VISUALIZATION.ROTATE_TIP' | translate">
+      <mat-icon>rotate_right</mat-icon>
+    </button>
+    <button class="tjs-ring-btn tjs-ring-btn--danger" (click)="deletePlatePackageNoop()"
+      [appDisableAuth]="['orders.change_orderresult']"
+      [matTooltip]="'TRUCK_VISUALIZATION.STAGING_DELETE_TIP' | translate">
+      <mat-icon>delete_outline</mat-icon>
+    </button>
+    }
+  </div>
+  }
+
+  <!-- Plate yakınında sabit duran, 3D konumu takip ETMEYEN "Otomatik
+       Yerleştir" butonu — sadece yerleşmeyen paket varsa görünür. -->
   @if (deletedPackagesSignal().length > 0 && !isLoadingModels && !isLoadingData) {
-  <div class="tjs-panel tjs-panel--deleted">
-    <div class="tjs-panel__header">
-      <span class="tjs-panel__title">
-        {{ 'TRUCK_VISUALIZATION.UNPLACED_PACKAGES' | translate }}
-      </span>
-      <span class="tjs-count-badge">{{ deletedPackagesSignal().length }}</span>
-    </div>
-
-    <div class="tjs-deleted-list">
-      @for (pkg of deletedPackagesSignal(); track trackDeletedPackage($index, pkg)) {
-      <div class="tjs-deleted-item">
-        <div class="tjs-deleted-item__info">
-          <span class="tjs-deleted-item__id">#{{ pkg.id }}</span>
-          <span class="tjs-deleted-item__dims tjs-mono">{{ pkg.dimensions }}</span>
-          <span class="tjs-deleted-item__weight tjs-mono">{{ pkg.weight }} kg</span>
-        </div>
-        <button class="tjs-restore-btn" (click)="restorePackage(pkg)">
-          <mat-icon>add</mat-icon>
-        </button>
-      </div>
-      }
-    </div>
-
-    <div class="tjs-panel__footer">
-      <button class="tjs-footer-btn tjs-footer-btn--primary" (click)="autoPlaceDeleted()">
-        <mat-icon>auto_fix_high</mat-icon>
-        {{ 'TRUCK_VISUALIZATION.AUTO_PLACE_DELETED' | translate }}
-      </button>
-    </div>
-  </div>
+  <button class="tjs-plate-auto-place-btn" (click)="autoPlaceDeleted()"
+    [appDisableAuth]="['orders.change_orderresult']"
+    [matTooltip]="'TRUCK_VISUALIZATION.AUTO_PLACE_DELETED_TIP' | translate">
+    <mat-icon>auto_fix_high</mat-icon>
+    <span>{{ 'TRUCK_VISUALIZATION.AUTO_PLACE_DELETED' | translate }}</span>
+    <span class="tjs-plate-auto-place-btn__count">{{ deletedPackagesSignal().length }}</span>
+  </button>
   }
 
   @if (isLoadingModels) {

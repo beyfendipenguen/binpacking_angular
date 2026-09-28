@@ -51,6 +51,17 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 })
 export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit, OnChanges, OnDestroy {
   @ViewChild('threeContainer', { static: true }) threeContainer!: ElementRef;
+  // Seçili paketin üstünde onu takip eden hızlı-aksiyon halkası (bkz.
+  // updateActionRingPosition). @if bloğuna bağlı olduğu için seçim yokken
+  // DOM'dan kalkar — ViewChild static:false, referans her değiştiğinde
+  // Angular tarafından güncellenir.
+  @ViewChild('actionRing') actionRingRef?: ElementRef<HTMLElement>;
+  // Plate'te seçili paket için ayrı, daha sade bir aksiyon halkası (sadece
+  // döndür + pasif sil — bkz. task: "Plate paket aksiyonları"). Tır seçimi
+  // (selectedPackageSignal, packagesStateService üzerinden) ile bilerek
+  // AYRI tutulur — mevcut tır akışlarına dokunmadan eklemek için.
+  @ViewChild('plateActionRing') plateActionRingRef?: ElementRef<HTMLElement>;
+  selectedPlatePackageSignal = signal<PackageData | null>(null);
   @Input() isActive = false;
   
   showHelp: boolean = true;
@@ -109,6 +120,18 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
   private camera!: THREE.PerspectiveCamera;
   private renderer!: THREE.WebGLRenderer;
   private packagesGroup!: THREE.Group;
+  // Plate (bekleme alanı) — tırın yanında (Z ekseni), yerleşmeyen paketlerin
+  // 3D olarak gösterildiği ayrı bir grup. Konum: packagesGroup ile aynı Y
+  // offset'i (truck bed yüksekliği), Z'de tır genişliğinin ötesinde başlar
+  // (bkz. positionPlateGroup). X/Z için packagesGroup'un aksine offset'i
+  // SIFIR DEĞİL — bu yüzden bir paket plate'ten sürüklenirken geçici olarak
+  // packagesGroup'a reparent edilir (bkz. initiateDragging).
+  private plateGroup!: THREE.Group;
+  private plateFloorMesh?: THREE.Mesh;
+  private readonly PLATE_GAP = 600; // tır ile plate arası boşluk (mm)
+  private readonly PLATE_ITEM_GAP = 150; // plate grid hücreleri arası boşluk (mm)
+  private readonly PLATE_MIN_DEPTH = 2200; // plate zemininin asgari derinliği (mm)
+  private plateDepthCurrent = 0; // en son hesaplanan plate derinliği — sürükleme sınırı için
 
   // Touch support
   private activeTouches: Map<number, Touch> = new Map();
@@ -141,6 +164,9 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
   // Drag system
   private isDragging = false;
   private draggedPackage: PackageData | null = null;
+  // Sürüklenen paket plate'ten mi geldi? (bkz. initiateDragging/completeDragging
+  // — tırdan plate'e / plate'ten tıra geçişleri buna göre finalize edilir)
+  private draggedFromPlate = false;
   private raycaster = new THREE.Raycaster();
   private mouse = new THREE.Vector2();
   private dragPlane = new THREE.Plane();
@@ -148,6 +174,12 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
   private dragSensitivity = 0.9;
   private lastDragPosition = new THREE.Vector3();
   private dragStartPosition: { x: number; y: number; z: number } | null = null;
+
+  // Action ring (seçili paketin üstünde takip eden hızlı aksiyon halkası)
+  // — her frame'de (RAF callback) çağrılır, Angular değişiklik algılamasına
+  // hiç girmeden doğrudan DOM style yazar (performans için, bkz.
+  // updateActionRingPosition).
+  private readonly ringProjectionVector = new THREE.Vector3();
 
   // Camera interaction
   private isRotatingCamera = false;
@@ -208,6 +240,20 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     if (!this.isViewReady) return;
     untracked(() => {
       this.syncDeletedPackagesCache(deletedRows);
+    });
+  });
+
+  // Plate (bekleme alanı) görselleştirmesini packagesStateService.deletedPackages
+  // her değiştiğinde OTOMATİK yeniden kurar — bu sayede sil/geri-ekle/otomatik
+  // yerleştir/undo-redo/sürükle-bırak gibi TÜM mutasyon noktalarına ayrı ayrı
+  // "plate'i güncelle" çağrısı eklemek gerekmiyor (hepsi zaten bu signal'ı
+  // güncelliyor).
+  private plateVisualizationSyncEffect = effect(() => {
+    const deleted = this.packagesStateService.deletedPackages();
+    void deleted; // sadece dependency tracking için okunuyor
+    if (!this.isViewReady) return;
+    untracked(() => {
+      this.createPlateVisualization();
     });
   });
 
@@ -484,6 +530,92 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     this.cdr.detectChanges();
   }
 
+  /**
+   * Seçili paketin üstünde onu takip eden hızlı-aksiyon halkasının (döndür/
+   * sil/zorla yerleştir) ekran konumunu günceller. Render loop'un HER
+   * frame'inde (bkz. startRenderLoop çağrısındaki onFrameCallback) NgZone
+   * DIŞINDA çağrılır — bu yüzden Angular sinyali/CD kullanmak yerine
+   * doğrudan DOM style yazıyoruz (aksi halde 60fps'te her karede change
+   * detection tetiklemek gereksiz maliyet olurdu; mevcut kodda da renderer
+   * cursor'ı aynı şekilde doğrudan style ile yönetiliyor).
+   */
+  private updateActionRingPosition(): void {
+    const ringEl = this.actionRingRef?.nativeElement;
+    if (!ringEl) return;
+
+    const selected = this.selectedPackageSignal();
+    if (!selected?.mesh || !this.camera || !this.threeContainer) {
+      ringEl.style.display = 'none';
+      return;
+    }
+
+    const container = this.threeContainer.nativeElement as HTMLElement;
+    const width = container.clientWidth;
+    const height = container.clientHeight;
+    if (!width || !height) {
+      ringEl.style.display = 'none';
+      return;
+    }
+
+    // Kutunun tam dünya konumu (packagesGroup'un kendi transformu dahil) +
+    // kutunun üstünden biraz yukarısı, ki halka paketin üstünde asılı dursun.
+    selected.mesh.getWorldPosition(this.ringProjectionVector);
+    this.ringProjectionVector.y += selected.height / 2 + 180;
+    this.ringProjectionVector.project(this.camera);
+
+    // z > 1 → nokta kameranın arkasında/uzağında, gösterme
+    if (this.ringProjectionVector.z > 1) {
+      ringEl.style.display = 'none';
+      return;
+    }
+
+    const x = (this.ringProjectionVector.x * 0.5 + 0.5) * width;
+    const y = (-this.ringProjectionVector.y * 0.5 + 0.5) * height;
+
+    ringEl.style.display = 'flex';
+    ringEl.style.transform = `translate(${x}px, ${y}px) translate(-50%, -100%)`;
+  }
+
+  /**
+   * updateActionRingPosition ile aynı mantık, plate'te seçili paket için
+   * (bkz. selectedPlatePackageSignal). İki halka aynı anda görünmez (biri
+   * seçilince diğeri temizlenir), ama kod tekrarını önlemek yerine ayrı
+   * tutuyoruz çünkü büyümesi/işlevi ilerde farklılaşabilir (ör. plate
+   * halkasında sadece 2 buton var).
+   */
+  private updatePlateActionRingPosition(): void {
+    const ringEl = this.plateActionRingRef?.nativeElement;
+    if (!ringEl) return;
+
+    const selected = this.selectedPlatePackageSignal();
+    if (!selected?.mesh || !this.camera || !this.threeContainer) {
+      ringEl.style.display = 'none';
+      return;
+    }
+
+    const container = this.threeContainer.nativeElement as HTMLElement;
+    const width = container.clientWidth;
+    const height = container.clientHeight;
+    if (!width || !height) {
+      ringEl.style.display = 'none';
+      return;
+    }
+
+    selected.mesh.getWorldPosition(this.ringProjectionVector);
+    this.ringProjectionVector.y += selected.height / 2 + 180;
+    this.ringProjectionVector.project(this.camera);
+
+    if (this.ringProjectionVector.z > 1) {
+      ringEl.style.display = 'none';
+      return;
+    }
+
+    const x = (this.ringProjectionVector.x * 0.5 + 0.5) * width;
+    const y = (-this.ringProjectionVector.y * 0.5 + 0.5) * height;
+
+    ringEl.style.display = 'flex';
+    ringEl.style.transform = `translate(${x}px, ${y}px) translate(-50%, -100%)`;
+  }
 
   // Border ekleme
   getWeightTitle(): string {
@@ -553,6 +685,13 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
       this.renderer.domElement.style.height = '100%';
       this.packagesGroup = this.threeComponents.packagesGroup;
 
+      // Plate (bekleme alanı) grubu — tırın yanında (Z ekseni), yerleşmeyen
+      // paketlerin 3D gösterileceği alan. packagesGroup ile aynı Y offset'i
+      // (truck bed yüksekliği), X=0, Z tır genişliğinin ötesinde.
+      this.plateGroup = new THREE.Group();
+      this.scene.add(this.plateGroup);
+      this.positionPlateGroup();
+
       // Setup camera target
       this.cameraTarget.set(
         truckDims[0] / 2,
@@ -573,7 +712,11 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
       this.renderManager.startRenderLoop(
         this.renderer,
         this.scene,
-        this.camera
+        this.camera,
+        () => {
+          this.updateActionRingPosition();
+          this.updatePlateActionRingPosition();
+        }
       );
 
       // Models loaded
@@ -726,6 +869,221 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
   }
 
   private createPackageMesh(packageData: PackageData): void {
+    const mesh = this.buildPackageMeshObject(packageData);
+    packageData.mesh = mesh;
+    this.packagesGroup.add(mesh);
+  }
+
+  // ========================================
+  // PLATE (BEKLEME ALANI)
+  // ========================================
+
+  /**
+   * plateGroup'un dünya konumunu ayarlar — tırın yanında (Z ekseninde),
+   * packagesGroup ile aynı Y offset'inde (truck bed yüksekliği). Truck
+   * boyutu değiştiğinde (ör. farklı sevkiyat/tır) yeniden çağrılabilir.
+   */
+  private positionPlateGroup(): void {
+    if (!this.plateGroup) return;
+    const truckDims = this.truckDimension();
+    this.plateGroup.position.set(
+      0,
+      this.packagesGroup?.position.y ?? 1100,
+      truckDims[1] + this.PLATE_GAP
+    );
+  }
+
+  /**
+   * Yerleşmeyen paketleri konumlandırır. Kullanıcı artık plate üzerinde
+   * paketleri istediği yere serbestçe sürükleyebildiği için (çakışma
+   * kontrolü YOK), burada zaten geçerli bir plate-local konumu olan
+   * paketlerin (pkg.x/pkg.y >= 0) yerini KORUYORUZ — sadece henüz hiç
+   * konum atanmamış (sentinel: x === -1, bkz. reset() / finalizeDragToPlate)
+   * paketler basit bir sol-sağ/satır grid'ine dizilir. Bu, gerçek
+   * bin-packing değil — bu alan bir "bekleme rafı", amaç paketleri gerçek
+   * 3D halleriyle görünür ve tıklanabilir/sürüklenebilir kılmak, optimum
+   * yerleşim değil. Satır genişliği plate'in X eksenindeki maxWidth'ini
+   * aşınca bir alt satıra geçilir.
+   */
+  private computePlateLayout(
+    packages: PackageData[],
+    maxWidth: number
+  ): { slots: Map<string, { x: number; z: number }>; usedDepth: number } {
+    const slots = new Map<string, { x: number; z: number }>();
+    let cursorX = this.PLATE_ITEM_GAP;
+    let cursorZ = this.PLATE_ITEM_GAP;
+    let rowDepth = 0;
+    let usedDepth = this.PLATE_ITEM_GAP;
+
+    // Önce mevcut (kullanıcının serbestçe yerleştirdiği) konumları koru —
+    // usedDepth hesaplamasına dahil et ki plate zemini/derinliği bu
+    // paketleri de kapsasın.
+    for (const pkg of packages) {
+      if (pkg.x >= 0 && pkg.y >= 0) {
+        slots.set(pkg.pkgId, { x: pkg.x, z: pkg.y });
+        usedDepth = Math.max(usedDepth, pkg.y + pkg.width + this.PLATE_ITEM_GAP);
+      }
+    }
+
+    // Henüz konumu olmayan (yeni silinmiş) paketleri grid'e diz.
+    for (const pkg of packages) {
+      if (pkg.x >= 0 && pkg.y >= 0) continue;
+
+      const footprintX = pkg.length;
+      const footprintZ = pkg.width;
+
+      if (cursorX > this.PLATE_ITEM_GAP && cursorX + footprintX + this.PLATE_ITEM_GAP > maxWidth) {
+        // Satır doldu → bir alt satıra geç
+        cursorX = this.PLATE_ITEM_GAP;
+        cursorZ += rowDepth + this.PLATE_ITEM_GAP;
+        rowDepth = 0;
+      }
+
+      slots.set(pkg.pkgId, { x: cursorX, z: cursorZ });
+
+      cursorX += footprintX + this.PLATE_ITEM_GAP;
+      rowDepth = Math.max(rowDepth, footprintZ);
+      usedDepth = Math.max(usedDepth, cursorZ + rowDepth + this.PLATE_ITEM_GAP);
+    }
+
+    return { slots, usedDepth };
+  }
+
+  /**
+   * Plate'in zemin/raf mesh'ini (görsel amaçlı, tırın platformuna benzer)
+   * oluşturur/günceller. plateGroup dispose+clear edildikten SONRA
+   * çağrılmalı (createPlateVisualization sırası).
+   */
+  private createOrUpdatePlateFloor(width: number, depth: number): void {
+    const floorHeight = 200;
+    const geometry = new THREE.BoxGeometry(width, floorHeight, depth);
+    const material = new THREE.MeshStandardMaterial({
+      color: 0x5c6b73,
+      metalness: 0.2,
+      roughness: 0.85
+    });
+
+    const floor = new THREE.Mesh(geometry, material);
+    floor.position.set(width / 2, -floorHeight / 2, depth / 2);
+    floor.receiveShadow = true;
+
+    this.plateFloorMesh = floor;
+    this.plateGroup.add(floor);
+  }
+
+  /**
+   * Plate görselleştirmesini komple yeniden kurar — packagesStateService.
+   * deletedPackages() her değiştiğinde (bkz. plateVisualizationSyncEffect)
+   * otomatik tetiklenir. createPackageVisualization ile aynı desen:
+   * önce eski ağacı tamamen dispose et, sonra sıfırdan kur.
+   */
+  private createPlateVisualization(): void {
+    if (!this.plateGroup) return;
+
+    this.disposeObjectTree(this.plateGroup);
+    this.plateGroup.clear();
+    this.plateFloorMesh = undefined;
+
+    this.positionPlateGroup();
+
+    const deleted = this.packagesStateService.deletedPackages();
+    const truckDims = this.truckDimension();
+    const plateWidth = Math.max(truckDims[0], 1000);
+
+    const { slots, usedDepth } = this.computePlateLayout(deleted, plateWidth);
+    this.plateDepthCurrent = Math.max(this.PLATE_MIN_DEPTH, usedDepth);
+
+    this.createOrUpdatePlateFloor(plateWidth, this.plateDepthCurrent);
+
+    deleted.forEach(pkg => {
+      const slot = slots.get(pkg.pkgId);
+      if (!slot) return;
+      // Slot'u pkg.x/y'ye kalıcı olarak yaz — böylece bir sonraki
+      // createPlateVisualization çağrısında (ör. başka bir paket
+      // silindiğinde/geri alındığında) bu paketin konumu computePlateLayout
+      // tarafından KORUNUR, yeniden grid'e dizilmez.
+      pkg.x = slot.x;
+      pkg.y = slot.z;
+      pkg.z = 0;
+      // Sürükleme sırasında geçici olarak packagesGroup'a alınmış olabilir
+      // (bkz. initiateDragging) — burada her zaman plateGroup'a, doğru
+      // slot'a göre YENİDEN kuruluyor, o yüzden eski parent önemli değil.
+      this.createPlatePackageMesh(pkg, slot);
+    });
+
+    this.renderManager.requestRender();
+  }
+
+  /**
+   * Plate (bekleme alanı) üzerindeki bir paket için mesh oluşturur — tırdaki
+   * paketlerle AYNI görsel detay (palet + etiketler), sadece konumu paketin
+   * gerçek x/y/z'si yerine plate grid'indeki slot'a göre hesaplanır ve mesh
+   * packagesGroup yerine plateGroup'a eklenir. userData.isPlatePackage
+   * flag'i ile tıklama/sürükleme mantığı bunun bir plate paketi olduğunu
+   * ayırt eder (bkz. getIntersectedAny).
+   */
+  private createPlatePackageMesh(packageData: PackageData, slot: { x: number; z: number }): void {
+    const mesh = this.buildPackageMeshObject(packageData, { x: slot.x, y: slot.z, z: 0 });
+    mesh.userData['isPlatePackage'] = true;
+    packageData.mesh = mesh;
+    this.plateGroup.add(mesh);
+  }
+
+  /**
+   * Plate'te TEK bir paketin mesh'ini (canvas tabanlı etiketleri dahil)
+   * yeniden kurar — diğer plate paketlerine HİÇ dokunmaz.
+   * createPlateVisualization() tüm plate'i (tüm CanvasTexture'li
+   * etiketler dahil) sıfırdan kurduğu için pahalıdır; sadece BU paket
+   * değiştiğinde (sürükleyip bırakma, döndürme, drag iptali) tam rebuild
+   * yerine bunu kullanıyoruz — aksi halde plate'te çok paket varken her
+   * tekil hareket TÜM etiketlerin yeniden çizilmesine (CPU canvas çizimi +
+   * GPU texture upload) yol açıyordu. Çağıran taraf pkg.x/pkg.y'yi
+   * ÇAĞIRMADAN ÖNCE doğru plate-local değerlere ayarlamış olmalı.
+   */
+  private refreshSinglePlatePackageMesh(pkg: PackageData): void {
+    if (!this.plateGroup) return;
+
+    // Eski mesh'i (hangi parent'ta olursa olsun — plateGroup ya da
+    // initiateDragging'in geçici olarak aldığı packagesGroup) temizle.
+    if (pkg.mesh) {
+      pkg.mesh.parent?.remove(pkg.mesh);
+      this.disposeObjectTree(pkg.mesh);
+      pkg.mesh = undefined;
+    }
+
+    this.createPlatePackageMesh(pkg, { x: pkg.x, z: pkg.y });
+
+    // Paket mevcut zeminin dışına taştıysa zemini büyüt — SADECE zemin
+    // mesh'ini yeniler (tek bir kutu geometrisi, ucuz), diğer paket
+    // mesh'lerine dokunmaz.
+    const neededDepth = pkg.y + pkg.width + this.PLATE_ITEM_GAP;
+    if (neededDepth > this.plateDepthCurrent) {
+      this.plateDepthCurrent = neededDepth;
+      const truckDims = this.truckDimension();
+      const plateWidth = Math.max(truckDims[0], 1000);
+      if (this.plateFloorMesh) {
+        this.plateGroup.remove(this.plateFloorMesh);
+        this.disposeObjectTree(this.plateFloorMesh);
+        this.plateFloorMesh = undefined;
+      }
+      this.createOrUpdatePlateFloor(plateWidth, this.plateDepthCurrent);
+    }
+
+    this.renderManager.requestRender();
+  }
+
+  /**
+   * createPackageMesh ve createPlatePackageMesh arasında PAYLAŞILAN mesh
+   * inşa mantığı (palet + kutu + kenar çizgileri + ID etiketi + ürün detay
+   * etiketleri). `positionOverride` verilmezse packageData.x/y/z kullanılır
+   * (tır paketleri); verilirse (plate paketleri) o konum kullanılır — grup
+   * ataması ve packageData.mesh ataması caller'a bırakılır.
+   */
+  private buildPackageMeshObject(
+    packageData: PackageData,
+    positionOverride?: { x: number; y: number; z: number }
+  ): THREE.Mesh {
+    const pos = positionOverride ?? packageData;
     const { group: palletGroup, palletHeight } = this.createPalletMesh(packageData.length, packageData.width);
 
     const visualHeight = packageData.height - palletHeight;
@@ -748,9 +1106,9 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     const mesh = new THREE.Mesh(geometry, material);
 
     mesh.position.set(
-      packageData.x + packageData.length / 2,
-      packageData.z + palletHeight + visualHeight / 2, // palet + kutunun yarısı
-      packageData.y + packageData.width / 2
+      pos.x + packageData.length / 2,
+      pos.z + palletHeight + visualHeight / 2, // palet + kutunun yarısı
+      pos.y + packageData.width / 2
     );
 
     mesh.castShadow = true;
@@ -770,8 +1128,6 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
       -packageData.width / 2
     );
     mesh.add(palletGroup);
-
-    packageData.mesh = mesh;
 
     if (packageData.isForcePlaced) {
       this.addForcePlaceBorder(packageData);
@@ -793,8 +1149,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
       packageData.detailLabelMeshes = detailLabels;
     }
 
-    this.packagesGroup.add(mesh);
-
+    return mesh;
   }
 
   /**
@@ -1255,10 +1610,10 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
       this.touchMoved = false;
       this.updateMouseFromTouch(touch);
 
-      const intersectedPackage = this.getIntersectedPackage();
-      if (intersectedPackage && this.dragModeEnabled && this.hasChangePerm()) {
+      const intersected = this.getIntersectedAny();
+      if (intersected && this.dragModeEnabled && this.hasChangePerm()) {
         this.isTouchDragging = true;
-        this.initiateDragging(intersectedPackage);
+        this.initiateDragging(intersected.pkg, intersected.isPlate);
       }
     } else if (touchCount === 2) {
       // İki parmak: kamera döndürme veya pinch zoom
@@ -1365,11 +1720,14 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
 
       // Tap = seçim (kısa dokunuş, hareket etmediyse)
       if (!this.touchMoved && clickDuration < 300 && !this.isTouchDragging) {
-        const intersectedPackage = this.getIntersectedPackage();
-        if (intersectedPackage) {
-          this.selectPackage(intersectedPackage.pkgId);
+        const intersected = this.getIntersectedAny();
+        if (intersected?.isPlate) {
+          this.selectPlatePackage(intersected.pkg.pkgId);
+        } else if (intersected) {
+          this.selectPackage(intersected.pkg.pkgId);
         } else {
           this.clearSelection();
+          this.clearPlateSelection();
         }
       }
 
@@ -1411,10 +1769,10 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     this.updateMouseCoordinates(event);
 
     if (event.button === 0) {
-      // Left click - package drag
-      const intersectedPackage = this.getIntersectedPackage();
-      if (intersectedPackage && this.dragModeEnabled && this.hasChangePerm()) {
-        this.initiateDragging(intersectedPackage);
+      // Left click - package drag (tır veya plate)
+      const intersected = this.getIntersectedAny();
+      if (intersected && this.dragModeEnabled && this.hasChangePerm()) {
+        this.initiateDragging(intersected.pkg, intersected.isPlate);
       }
     } else if (event.button === 1) {
       // Middle click - pan
@@ -1476,12 +1834,15 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     event.preventDefault();
     this.updateMouseCoordinates(event);
 
-    const intersectedPackage = this.getIntersectedPackage();
+    const intersected = this.getIntersectedAny();
 
-    if (intersectedPackage) {
-      this.selectPackage(intersectedPackage.pkgId);
+    if (intersected?.isPlate) {
+      this.selectPlatePackage(intersected.pkg.pkgId);
+    } else if (intersected) {
+      this.selectPackage(intersected.pkg.pkgId);
     } else {
       this.clearSelection();
+      this.clearPlateSelection();
     }
   }
 
@@ -1708,13 +2069,33 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
   // DRAG SYSTEM
   // ========================================
 
-  private initiateDragging(packageData: PackageData): void {
+  private initiateDragging(packageData: PackageData, fromPlate = false): void {
     this.isDragging = true;
     this.draggedPackage = packageData;
+    this.draggedFromPlate = fromPlate;
     packageData.isBeingDragged = true;
 
     // Başlangıç pozisyonunu kaydet
     this.dragStartPosition = { x: packageData.x, y: packageData.y, z: packageData.z };
+
+    // Plate'ten sürükleniyorsa mesh'i geçici olarak packagesGroup'a al.
+    // Sürükleme matematiği (bkz. updateDraggedPackageWithSnapping) X/Z için
+    // "local mesh.position ≈ world position" varsayımıyla çalışıyor — bu
+    // SADECE packagesGroup için doğru (X/Z offset'i sıfır, sadece Y'de
+    // 1100 offset var). plateGroup'un ise Z'de gerçek bir offset'i var
+    // (bkz. positionPlateGroup), o yüzden reparent etmeden sürüklersek
+    // paket yanlış konumdan "fırlar".
+    if (fromPlate && packageData.mesh && packageData.mesh.parent === this.plateGroup) {
+      const worldPos = new THREE.Vector3();
+      packageData.mesh.getWorldPosition(worldPos);
+      this.plateGroup.remove(packageData.mesh);
+      this.packagesGroup.add(packageData.mesh);
+      packageData.mesh.position.set(
+        worldPos.x,
+        worldPos.y - this.packagesGroup.position.y,
+        worldPos.z
+      );
+    }
 
     if (packageData.mesh) {
       this.raycaster.setFromCamera(this.mouse, this.camera);
@@ -1756,17 +2137,31 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
       const pkg = this.draggedPackage;
       const truckDims = this.truckDimension();
 
-      // Truck sınırları (mevcut)
+      // Plate (bekleme alanı) bölgesinin dünya-Z sınırı — tır genişliğinin
+      // ötesinde, en son hesaplanan plate derinliğine kadar. Paket bu
+      // bölgeye sürüklenebilsin diye Z ekseni artık SADECE tır sınırında
+      // değil, plate'in bittiği yerde clamp ediliyor.
+      const plateZEnd = truckDims[1] + this.PLATE_GAP + Math.max(this.plateDepthCurrent, this.PLATE_MIN_DEPTH);
+
+      // Truck sınırları (X hep tırla sınırlı — plate de aynı X aralığında)
       smoothPosition.x = Math.max(
         pkg.length / 2,
         Math.min(truckDims[0] - pkg.length / 2, smoothPosition.x)
       );
       smoothPosition.z = Math.max(
         pkg.width / 2,
-        Math.min(truckDims[1] - pkg.width / 2, smoothPosition.z)
+        Math.min(plateZEnd - pkg.width / 2, smoothPosition.z)
       );
 
-      const snappedPosition = this.snapToNearbyPackages(pkg, smoothPosition);
+      // world Z, tır genişliğini aştıysa artık plate bölgesindeyiz —
+      // burada tır paketleriyle çakışma/kayma (sliding) mantığı ANLAMSIZ,
+      // paket serbestçe taşınabilsin (plate zaten sadece bir bekleme rafı,
+      // bırakıldığında grid'e otomatik oturtuluyor — bkz. completeDragging).
+      const isOverPlate = smoothPosition.z > truckDims[1];
+
+      const snappedPosition = isOverPlate
+        ? smoothPosition
+        : this.snapToNearbyPackages(pkg, smoothPosition);
 
       if (this.lastDragPosition.distanceTo(snappedPosition) > 0.5) {
 
@@ -1782,7 +2177,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
 
         // ========================================
         // SLIDING COLLISION RESPONSE
-        // Her ekseni bağımsız kontrol et
+        // Her ekseni bağımsız kontrol et — plate bölgesindeyken ATLA
         // ========================================
 
         let finalX = desiredPos.x;
@@ -1790,29 +2185,31 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
         let finalZ = desiredPos.z;
         let isSliding = false;
 
-        // 1) Önce her iki eksende birden dene
-        const bothAxesOk = !this.checkCollisionPrecise(pkg, {
-          x: desiredPos.x, y: desiredPos.y, z: desiredPos.z
-        });
-
-        if (!bothAxesOk) {
-          // 2) Sadece X ekseninde hareket et (Y eski yerinde)
-          const xOnlyOk = !this.checkCollisionPrecise(pkg, {
-            x: desiredPos.x, y: currentDataPos.y, z: desiredPos.z
+        if (!isOverPlate) {
+          // 1) Önce her iki eksende birden dene
+          const bothAxesOk = !this.checkCollisionPrecise(pkg, {
+            x: desiredPos.x, y: desiredPos.y, z: desiredPos.z
           });
 
-          // 3) Sadece Y ekseninde hareket et (X eski yerinde)
-          const yOnlyOk = !this.checkCollisionPrecise(pkg, {
-            x: currentDataPos.x, y: desiredPos.y, z: desiredPos.z
-          });
+          if (!bothAxesOk) {
+            // 2) Sadece X ekseninde hareket et (Y eski yerinde)
+            const xOnlyOk = !this.checkCollisionPrecise(pkg, {
+              x: desiredPos.x, y: currentDataPos.y, z: desiredPos.z
+            });
 
-          finalX = xOnlyOk ? desiredPos.x : currentDataPos.x;
-          finalY = yOnlyOk ? desiredPos.y : currentDataPos.y;
-          isSliding = true;
+            // 3) Sadece Y ekseninde hareket et (X eski yerinde)
+            const yOnlyOk = !this.checkCollisionPrecise(pkg, {
+              x: currentDataPos.x, y: desiredPos.y, z: desiredPos.z
+            });
 
-          // 4) Tek eksen bile collision yapıyorsa → hiç kıpırdama
-          if (!xOnlyOk && !yOnlyOk) {
-            finalZ = currentDataPos.z;
+            finalX = xOnlyOk ? desiredPos.x : currentDataPos.x;
+            finalY = yOnlyOk ? desiredPos.y : currentDataPos.y;
+            isSliding = true;
+
+            // 4) Tek eksen bile collision yapıyorsa → hiç kıpırdama
+            if (!xOnlyOk && !yOnlyOk) {
+              finalZ = currentDataPos.z;
+            }
           }
         }
 
@@ -1857,9 +2254,15 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
 
     const pkg = this.draggedPackage;
     const startPos = this.dragStartPosition;
+    const wasFromPlate = this.draggedFromPlate;
+    const truckDims = this.truckDimension();
+    // pkg.y = (world Z) - width/2 (bkz. updateDraggedPackageWithSnapping) —
+    // bunu tekrar world Z'ye çevirip tır genişliğiyle kıyaslayarak paketin
+    // sürükleme sonunda plate bölgesinde mi kaldığını anlıyoruz.
+    const endsOverPlate = (pkg.y + pkg.width / 2) > truckDims[1];
 
     // Pozisyon gerçekten değişti mi?
-    const positionChanged = startPos && (
+    const positionChanged = !!startPos && (
       pkg.x !== startPos.x ||
       pkg.y !== startPos.y ||
       pkg.z !== startPos.z
@@ -1877,16 +2280,58 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     this.isDragging = false;
     this.draggedPackage = null;
     this.dragStartPosition = null;
+    this.draggedFromPlate = false;
     this.renderer.domElement.style.cursor = this.dragModeEnabled ? 'grab' : 'default';
     this.clearHighlights();
+    this.skipStoreSync = false;
 
+    if (wasFromPlate && (!positionChanged || endsOverPlate)) {
+      // Plate'te kaldı — ya hiç gerçek sürükleme olmadı (sadece tıklandı)
+      // ya da plate sınırları içinde taşındı. Sürükleme SIRASINDA çakışma
+      // kontrolü yapılmıyor (serbestçe gezinebilsin diye), ama BIRAKMA
+      // ANINDA tek seferlik bir kontrol yapıyoruz: bırakılan yer müsaitse
+      // orada kalır, değilse en yakın müsait boşluğa oturtulur. Sadece
+      // tıklandıysa (pozisyon değişmedi) pkg.x/y zaten doğru plate-local
+      // değerlerde, dokunmuyoruz.
+      if (positionChanged) {
+        const plateOffsetZ = truckDims[1] + this.PLATE_GAP;
+        const desiredX = pkg.x;
+        const desiredZ = pkg.y - plateOffsetZ;
+        const others = this.packagesStateService.deletedPackages()
+          .filter(p => p.pkgId !== pkg.pkgId && p.x >= 0 && p.y >= 0);
+        const spot = this.findNearestFreePlateSpot(pkg, desiredX, desiredZ, others);
+        pkg.x = spot.x;
+        pkg.y = spot.z;
+        pkg.z = 0;
+      }
+      // initiateDragging'in geçici olarak packagesGroup'a aldığı mesh'i
+      // temizleyip SADECE bu paketin mesh'ini (korunan konumla) yeniden
+      // kuruyoruz — plate'teki diğer paketlere dokunmadan (bkz.
+      // refreshSinglePlatePackageMesh, performans notu).
+      this.refreshSinglePlatePackageMesh(pkg);
+      this.renderManager.requestRender();
+      return;
+    }
+
+    if (wasFromPlate && !endsOverPlate) {
+      // Plate'ten tıra sürüklendi → yerleştirme akışı (bkz. finalizeDragFromPlate)
+      this.finalizeDragFromPlate(pkg);
+      this.renderManager.requestRender();
+      return;
+    }
+
+    if (!wasFromPlate && endsOverPlate) {
+      // Tırdan plate'e sürüklendi → sil akışı (bkz. finalizeDragToPlate)
+      this.finalizeDragToPlate(pkg);
+      this.renderManager.requestRender();
+      return;
+    }
+
+    // Tırda kaldı — mevcut davranış (değişmedi)
     if (this.selectedPackageSignal()) {
       this.highlightSelectedPackage();
     }
 
-    this.skipStoreSync = false;
-
-    // Sadece gerçekten pozisyon değiştiyse store güncelle
     if (positionChanged) {
       this.orderResultChange();
       this.applyGravityToAllPackages();
@@ -1895,12 +2340,111 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     this.renderManager.requestRender();
   }
 
+  /**
+   * Tırdan plate'e sürüklenerek bırakılan bir paketi kalıcı olarak
+   * "yerleşmeyen" listesine taşır — deleteSelectedPackage() ile AYNI store
+   * akışı, sadece seçili paket yerine sürüklenen paketi (pkg) hedefler.
+   */
+  private finalizeDragToPlate(pkg: PackageData): void {
+    this.isLocalOperation = true;
+
+    // Paket henüz packagesGroup'ta (world==local, X/Z offset 0) — mesh'i
+    // dispose etmeden ÖNCE bırakıldığı gerçek dünya konumunu plate-local'e
+    // çevirip, plate'teki diğer paketlerle SADECE bu anlık kontrolde
+    // çakışıp çakışmadığına bakıyoruz (sürükleme sırasında hiç kontrol
+    // yapılmıyordu — kullanıcı isteği: bırakınca hızlıca kontrol edip
+    // müsait en yakın boşluğa otursun).
+    const truckDims = this.truckDimension();
+    const plateOffsetZ = truckDims[1] + this.PLATE_GAP;
+    const desiredX = pkg.x;
+    const desiredZ = pkg.y - plateOffsetZ;
+    const others = this.packagesStateService.deletedPackages()
+      .filter(p => p.x >= 0 && p.y >= 0);
+    const spot = this.findNearestFreePlateSpot(pkg, desiredX, desiredZ, others);
+
+    // Eski tır mesh'ini temizle — plate rebuild'i (reaktif
+    // plateVisualizationSyncEffect) YENİ bir mesh oluşturacak; eskisini
+    // burada dispose etmezsek packagesGroup altında sızıntı + hayalet mesh
+    // olarak kalır.
+    if (pkg.mesh) {
+      this.packagesGroup.remove(pkg.mesh);
+      this.disposeObjectTree(pkg.mesh);
+      pkg.mesh = undefined;
+    }
+    pkg.forcePlaceBorder = undefined;
+
+    // Bırakıldığı (veya çakışıyorsa en yakın müsait) plate-local konumu
+    // kalıcı olarak yaz — computePlateLayout artık bunu (x/y >= 0 olduğu
+    // için) KORUYACAK, yeniden grid'e dizmeyecek.
+    pkg.x = spot.x;
+    pkg.y = spot.z;
+    pkg.z = 0;
+
+    if (this.selectedPackageSignal()?.pkgId === pkg.pkgId) {
+      this.packagesStateService.clearSelection();
+    }
+
+    this.packagesStateService.moveToDeleted(pkg.pkgId);
+    this.applyGravityToAllPackages();
+
+    this.store.dispatch(StepperResultActions.removePackageFromTruck({ pkgId: pkg.pkgId }));
+    const row: PackagePosition = [
+      -1, -1, -1,
+      pkg.length, pkg.width, pkg.height,
+      pkg.id, pkg.weight, pkg.pkgId
+    ];
+    this.store.dispatch(StepperResultActions.addDeletedPackage({ row }));
+
+    this.orderResultChange();
+  }
+
+  /**
+   * Plate'ten tıra sürüklenerek bırakılan bir paketi kalıcı olarak tıra
+   * yerleştirir — restorePackage() 'un tersine, findValidPosition ile
+   * otomatik yer ARAMAZ; kullanıcının sürükleyip bıraktığı GERÇEK konumu
+   * (pkg.x/y/z, sürükleme boyunca zaten collision-free tutuldu — bkz.
+   * updateDraggedPackageWithSnapping) kullanır. Mesh zaten initiateDragging
+   * sırasında packagesGroup'a reparent edilip doğru konuma taşınmıştı,
+   * burada yeniden oluşturmuyoruz.
+   */
+  private finalizeDragFromPlate(pkg: PackageData): void {
+    this.isLocalOperation = true;
+
+    this.packagesStateService.removeFromDeletedPackages(pkg.pkgId);
+    // addToProcessedPackages → onPackageAddedCallback zaten pkg.mesh mevcut
+    // olduğu için yeni bir mesh OLUŞTURMAYACAK (bkz. ngOnInit'teki callback),
+    // mevcut (doğru konumdaki) mesh'i korur.
+    this.packagesStateService.addToProcessedPackages(pkg);
+
+    const position: PackagePosition = [
+      pkg.x, pkg.y, pkg.z,
+      pkg.length, pkg.width, pkg.height,
+      pkg.id, pkg.weight, pkg.pkgId
+    ];
+    this.store.dispatch(StepperResultActions.addPackageToTruck({ position }));
+    this.store.dispatch(StepperResultActions.removeDeletedPackage({ pkgId: pkg.pkgId }));
+
+    this.orderResultChange();
+    this.applyGravityToAllPackages();
+  }
+
   private cancelDragging(): void {
-    if (this.draggedPackage) {
-      this.draggedPackage.isBeingDragged = false;
+    const pkg = this.draggedPackage;
+    if (pkg) {
+      pkg.isBeingDragged = false;
+
+      // Plate'ten alınmış bir paketin sürüklemesi iptal edildiyse (ör. 2.
+      // parmak devreye girdi) — initiateDragging'in geçici olarak
+      // packagesGroup'a aldığı mesh'i temizleyip SADECE bu paketin
+      // mesh'ini plate'e geri kur (aksi halde hayalet mesh sızar; diğer
+      // plate paketlerine dokunmadan — bkz. refreshSinglePlatePackageMesh).
+      if (this.draggedFromPlate) {
+        this.refreshSinglePlatePackageMesh(pkg);
+      }
     }
     this.isDragging = false;
     this.draggedPackage = null;
+    this.draggedFromPlate = false;
     this.renderer.domElement.style.cursor = this.dragModeEnabled ? 'grab' : 'default';
   }
 
@@ -1937,6 +2481,61 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
       }
     }
     return false;
+  }
+
+  /**
+   * Plate üzerinde bırakılan bir paket için, istenen (desired) konum
+   * müsaitse onu, DEĞİLSE (başka bir plate paketiyle çakışıyorsa) en
+   * yakın müsait boşluğu döner. Sürükleme SIRASINDA plate'te çakışma
+   * kontrolü yapılmıyor (serbestçe gezinebilsin diye) — kontrol SADECE
+   * bırakma anında, bir kerelik yapılır (bkz. completeDragging /
+   * finalizeDragToPlate). Arama merkezden dışa doğru genişleyen kare
+   * halkalar (ring search) şeklinde — bu yüzden bulunan boşluk her zaman
+   * bırakılan noktaya en yakın müsait yerdir.
+   */
+  private findNearestFreePlateSpot(
+    pkg: PackageData,
+    desiredX: number,
+    desiredZ: number,
+    others: PackageData[]
+  ): { x: number; z: number } {
+    const step = 80;
+    const maxRadius = 6000;
+    const truckDims = this.truckDimension();
+    const plateWidth = Math.max(truckDims[0], 1000);
+
+    const clampX = (x: number) => Math.max(0, Math.min(plateWidth - pkg.length, x));
+    const clampZ = (z: number) => Math.max(0, z);
+
+    const isFree = (x: number, z: number) =>
+      !this.checkCollisionPrecise(pkg, { x, y: z, z: 0 }, others);
+
+    const x0 = clampX(desiredX);
+    const z0 = clampZ(desiredZ);
+    if (isFree(x0, z0)) return { x: x0, z: z0 };
+
+    for (let r = step; r <= maxRadius; r += step) {
+      const candidates: Array<{ x: number; z: number }> = [];
+      for (let dx = -r; dx <= r; dx += step) {
+        candidates.push({ x: x0 + dx, z: z0 - r });
+        candidates.push({ x: x0 + dx, z: z0 + r });
+      }
+      for (let dz = -r + step; dz <= r - step; dz += step) {
+        candidates.push({ x: x0 - r, z: z0 + dz });
+        candidates.push({ x: x0 + r, z: z0 + dz });
+      }
+      candidates.sort((a, b) =>
+        (Math.abs(a.x - x0) + Math.abs(a.z - z0)) - (Math.abs(b.x - x0) + Math.abs(b.z - z0))
+      );
+      for (const c of candidates) {
+        const cx = clampX(c.x);
+        const cz = clampZ(c.z);
+        if (isFree(cx, cz)) return { x: cx, z: cz };
+      }
+    }
+
+    // Hiç boşluk bulunamadıysa (aşırı kalabalık) — en alta ekle.
+    return { x: 0, z: z0 + pkg.width + this.PLATE_ITEM_GAP };
   }
 
   private snapToNearbyPackages(pkg: PackageData, targetPos: THREE.Vector3): THREE.Vector3 {
@@ -2122,7 +2721,33 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     return null;
   }
 
+  /**
+   * getIntersectedPackage'ın plate (bekleme alanı) farkındalıklı hali —
+   * hem tır (packagesGroup) hem plate (plateGroup) mesh'lerini tarar ve
+   * hangi grupta bulunduğunu (isPlate) da döner. Sadece SEÇİM ve
+   * SÜRÜKLEME BAŞLATMA noktalarında kullanılır (handleMouseDown/
+   * handleMouseClick/handleTouchStart) — hover efektleri ve diğer TÜM
+   * mevcut tır-özel akışlar bilerek eski getIntersectedPackage()'ı
+   * kullanmaya devam ediyor (davranış değişikliği riskini sınırlamak için).
+   */
+  private getIntersectedAny(): { pkg: PackageData; isPlate: boolean } | null {
+    this.raycaster.setFromCamera(this.mouse, this.camera);
+    const targets = this.plateGroup
+      ? [...this.packagesGroup.children, ...this.plateGroup.children]
+      : this.packagesGroup.children;
+    const intersects = this.raycaster.intersectObjects(targets);
+
+    if (intersects.length > 0) {
+      const mesh = intersects[0].object as THREE.Mesh;
+      const pkg = mesh.userData['packageData'] as PackageData | undefined;
+      if (!pkg) return null;
+      return { pkg, isPlate: !!mesh.userData['isPlatePackage'] };
+    }
+    return null;
+  }
+
   private selectPackage(pkgId: string): void {
+    this.clearPlateSelection();
     this.clearHighlights();
     this.packagesStateService.selectPackage(pkgId)
     this.highlightSelectedPackage();
@@ -2132,7 +2757,81 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
   clearSelection(): void {
     this.packagesStateService.clearSelection();
     this.clearHighlights();
+    this.clearPlateSelection();
     this.renderManager.requestRender();
+  }
+
+  /**
+   * Plate'te (bekleme alanı) bir paketi seçer — tır seçiminden (bkz.
+   * selectPackage/packagesStateService.selectedPackage) BİLEREK ayrı bir
+   * signal üzerinden tutulur: plate paketlerinin "tır sonuna mesafe" gibi
+   * anlamsız istatistikleri yok, sadece döndür + (şimdilik pasif) sil
+   * aksiyonu var (bkz. plate action ring, HTML).
+   */
+  private selectPlatePackage(pkgId: string): void {
+    // İki seçim aynı anda anlamlı değil — tır seçimini temizle.
+    this.packagesStateService.clearSelection();
+    this.clearHighlights();
+
+    const pkg = this.packagesStateService.getDeletedPackageById(pkgId) ?? null;
+    this.selectedPlatePackageSignal.set(pkg);
+
+    if (pkg?.mesh) {
+      const material = pkg.mesh.material as THREE.MeshStandardMaterial;
+      material.emissive.setHex(0x666666);
+    }
+
+    this.renderManager.requestRender();
+    this.cdr.markForCheck();
+  }
+
+  clearPlateSelection(): void {
+    const pkg = this.selectedPlatePackageSignal();
+    if (pkg?.mesh) {
+      const material = pkg.mesh.material as THREE.MeshStandardMaterial;
+      material.emissive.setHex(0x000000);
+    }
+    this.selectedPlatePackageSignal.set(null);
+    this.renderManager.requestRender();
+  }
+
+  /**
+   * Plate'te seçili paketi döndürür (length/width swap) — collision kontrolü
+   * yok (plate zaten sadece bir bekleme rafı, gerçek yerleşim değil).
+   * SADECE bu paketin mesh'i yeniden kurulur, diğer plate paketlerine
+   * dokunulmaz (bkz. refreshSinglePlatePackageMesh, performans notu).
+   */
+  rotatePlatePackage(): void {
+    const selected = this.selectedPlatePackageSignal();
+    if (!selected) return;
+
+    if (!selected.originalLength) {
+      selected.originalLength = selected.length;
+      selected.originalWidth = selected.width;
+    }
+
+    const oldLength = selected.length;
+    selected.length = selected.width;
+    selected.width = oldLength;
+    selected.rotation = (selected.rotation || 0) + 90;
+    selected.dimensions = `${selected.length}×${selected.width}×${selected.height}mm`;
+
+    this.refreshSinglePlatePackageMesh(selected);
+    // refreshSinglePlatePackageMesh mesh'i yeniden oluşturduğu için seçili
+    // paketin emissive vurgusu sıfırlanır — geri uygula.
+    if (selected.mesh) {
+      (selected.mesh.material as THREE.MeshStandardMaterial).emissive.setHex(0x666666);
+    }
+    this.cdr.markForCheck();
+  }
+
+  /**
+   * Plate'teki sil butonu — kullanıcı isteği üzerine ŞİMDİLİK sadece
+   * bilgilendirme veriyor, gerçek bir silme işlemi yapmıyor (davranışı
+   * ayrıca netleştirilecek).
+   */
+  deletePlatePackageNoop(): void {
+    this.toastService.info(this.translate.instant('TRUCK_VISUALIZATION.STAGING_DELETE_TIP'));
   }
 
   private highlightSelectedPackage(): void {
@@ -2316,6 +3015,13 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
       .find(pkg => pkg.pkgId === selected.pkgId);
 
     if (deletedPackage) {
+      // Plate'e YENİ giren bir paket — henüz plate-local bir konumu yok,
+      // computePlateLayout bunu sentinel (-1) görüp otomatik grid'e dizsin
+      // (bkz. finalizeDragToPlate'teki aynı düzeltme).
+      deletedPackage.x = -1;
+      deletedPackage.y = -1;
+      deletedPackage.z = -1;
+
       this.packagesStateService.moveToDeleted(deletedPackage.pkgId);
       this.packagesStateService.clearSelection();
       this.applyGravityToAllPackages();
@@ -2562,6 +3268,22 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
   private handleFullscreenChange(): void {
     this.isFullscreen = !!document.fullscreenElement;
 
+    // CDK overlay container (mat-tooltip, mat-menu, vb.) her zaman
+    // document.body'ye eklenir. Native Fullscreen API'de SADECE
+    // fullscreen'e alınan elementin alt ağacı render edilir — body'nin
+    // geri kalanı (dolayısıyla overlay container) tamamen görünmez olur,
+    // bu yüzden tooltip'ler tam ekranda hiç görünmüyordu. Çözüm: overlay
+    // container'ı fullscreen'e girerken fullscreen elementinin İÇİNE taşı,
+    // çıkarken body'ye geri koy.
+    const overlayContainer = document.querySelector('.cdk-overlay-container');
+    if (overlayContainer) {
+      if (document.fullscreenElement) {
+        document.fullscreenElement.appendChild(overlayContainer);
+      } else if (overlayContainer.parentElement !== document.body) {
+        document.body.appendChild(overlayContainer);
+      }
+    }
+
     // Fullscreen değişince canvas'ı yeniden boyutlandır
     setTimeout(() => {
       this.onWindowResize();
@@ -2692,6 +3414,9 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
         if (this.selectedPackageSignal() && this.hasChangePerm()) {
           event.preventDefault();
           this.rotateSelectedPackage();
+        } else if (this.selectedPlatePackageSignal() && this.hasChangePerm()) {
+          event.preventDefault();
+          this.rotatePlatePackage();
         }
         break;
 
@@ -2702,11 +3427,14 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
         if (this.selectedPackageSignal() && this.hasChangePerm()) {
           event.preventDefault();
           this.deleteSelectedPackage();
+        } else if (this.selectedPlatePackageSignal() && this.hasChangePerm()) {
+          event.preventDefault();
+          this.deletePlatePackageNoop();
         }
         break;
 
       case 'Escape':
-        if (this.selectedPackageSignal()) {
+        if (this.selectedPackageSignal() || this.selectedPlatePackageSignal()) {
           event.preventDefault();
           this.clearSelection();
         }
@@ -2843,6 +3571,9 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     this.packagesStateService.clearProcessedPackages();
     this.packagesStateService.clearDeletedPackages();
     this.packagesStateService.clearSelection();
+    // Undo/redo tüm sahneyi sıfırdan kuruyor — eski plate seçimi artık
+    // geçersiz (disposed mesh) bir objeye işaret ediyor olabilir.
+    this.selectedPlatePackageSignal.set(null);
     this.usedColors.clear();
 
     const processed: PackageData[] = [];
@@ -2875,9 +3606,12 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     }
 
     this.packagesStateService.setProcessedPackages(processed);
-    if (deleted.length > 0) {
-      this.packagesStateService.setDeletedPackages(deleted);
-    }
+    // KOŞULSUZ çağır (deleted boş bile olsa) — aksi halde undo ile "hiç
+    // yerleşmeyen paket yok" durumuna dönüldüğünde deletedPackages signal'ı
+    // değişmez, plate (bekleme alanı) eski/stale paketleri göstermeye devam
+    // eder (bkz. plateVisualizationSyncEffect, sadece signal DEĞİŞİNCE
+    // tetiklenir).
+    this.packagesStateService.setDeletedPackages(deleted);
     this.renderManager.requestRender();
     this.cdr.markForCheck();
     this.isLocalOperation = true;
@@ -3010,6 +3744,13 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
       }
     });
 
+    // Plate (bekleme alanı) mesh'leri — zemin + paket mesh'leri, hepsi
+    // plateGroup'un altında olduğu için tek seferde dispose edilebiliyor.
+    if (this.plateGroup) {
+      this.disposeObjectTree(this.plateGroup);
+      this.plateFloorMesh = undefined;
+    }
+
     this.usedColors.clear();
 
   }
@@ -3043,6 +3784,11 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     this.isDataLoadingSignal.set(false);
     this.packagesStateService.clearProcessedPackages();
     this.packagesStateService.clearSelection();
+    // Plate seçimi de sıfırlanmalı — aksi halde sevkiyat değişince (farklı
+    // pkgId seti) selectedPlatePackageSignal eski/artık geçersiz bir
+    // PackageData objesine (disposed mesh) işaret etmeye devam eder ve
+    // action ring "havada asılı" görünebilir.
+    this.selectedPlatePackageSignal.set(null);
 
     if (this.packagesGroup) {
       this.processedPackagesSignal().forEach(pkg => {
@@ -3213,8 +3959,12 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     this.store.dispatch(StepperResultActions.setOrderResult({ orderResult }));
     this.store.dispatch(StepperResultActions.setDeletedPackages({ deletedPackages: deletedRows }));
 
+    // KOŞULSUZ çağır (bkz. applySnapshot'taki aynı düzeltme notu) — aksi
+    // halde "Tümünü Otomatik Yerleştir" tüm paketleri başarıyla yerleştirdiğinde
+    // (unplaced.length === 0) plate (bekleme alanı) önceki çalıştırmadan kalan
+    // paketleri göstermeye devam eder.
+    this.packagesStateService.setDeletedPackages(unplaced);
     if (unplaced.length > 0) {
-      this.packagesStateService.setDeletedPackages(unplaced);
       this.toastService.warning(this.translate.instant('TRUCK_VISUALIZATION.AUTO_PLACE_PARTIAL'));
     } else {
       this.toastService.success(this.translate.instant('TRUCK_VISUALIZATION.AUTO_PLACE_SUCCESS'));

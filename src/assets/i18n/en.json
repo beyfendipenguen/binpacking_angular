@@ -897,7 +897,17 @@
     "AUTO_PLACE_PARTIAL": "No suitable space found for some packages, forced placement applied",
     "AUTO_PLACE_NO_SPACE": "No suitable position found for the package",
     "UNDO": "Undo (Ctrl+Z)",
-    "REDO": "Redo (Ctrl+Y)"
+    "REDO": "Redo (Ctrl+Y)",
+    "SHORTCUTS_TITLE": "Keyboard Shortcuts",
+    "SHORTCUTS_ROTATE": "Rotate package",
+    "SHORTCUTS_DELETE": "Delete package",
+    "SHORTCUTS_FULLSCREEN": "Fullscreen",
+    "SHORTCUTS_DESELECT": "Clear selection",
+    "SHORTCUTS_UNDO": "Undo",
+    "SHORTCUTS_REDO": "Redo",
+    "STAGING_AREA": "Staging Area",
+    "STAGING_AREA_HINT": "Drag unplaced packages here",
+    "STAGING_DELETE_TIP": "Coming soon"
   },
   "STEPPER": {
     "ERROR": "Error",
