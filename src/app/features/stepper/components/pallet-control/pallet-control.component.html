@@ -118,7 +118,7 @@
       </div>
 
       <div cdkDropList #productsList="cdkDropList" id="productsList" [cdkDropListData]="remainingProducts()"
-        *appHasPermission="'products.view_product'" [cdkDropListConnectedTo]="palletDropListIds()"
+        [cdkDropListConnectedTo]="palletDropListIds()"
         class="inventory-list" (cdkDropListDropped)="dropPackageDetailToPackage($event)">
         @for(packageDetail of remainingProducts(); track packageDetail.id){
         <div class="product-item" cdkDrag (cdkDragStarted)="dragStarted($event)" (cdkDragEnded)="dragEnded()"
