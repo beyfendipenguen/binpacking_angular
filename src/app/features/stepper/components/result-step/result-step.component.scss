@@ -33,13 +33,22 @@ $white: #ffffff;
   // ========================================
   .controls-container {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
+    flex-direction: column;
+    gap: 14px;
     margin-bottom: 24px;
-    padding: 16px;
+    padding: 16px 20px;
     background: $white;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+
+    .controls-top-row {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
 
     .action-buttons {
       display: flex;
@@ -203,20 +212,21 @@ $white: #ffffff;
 
     .view-controls {
       display: flex;
-      gap: 8px;
+      gap: 6px;
+      flex-wrap: wrap;
 
       .view-button {
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 4px;
-        padding: 12px 16px;
+        gap: 3px;
+        padding: 8px 12px;
         border: 1px solid #e0e0e0;
         border-radius: 4px;
         background: $white;
         color: $neutral-gray;
-        transition: all 0.3s ease;
-        min-width: 80px;
+        transition: all 0.2s ease;
+        min-width: 60px;
 
         &:hover:not([disabled]) {
           border-color: $primary-color;
@@ -236,14 +246,249 @@ $white: #ffffff;
         }
 
         mat-icon {
+          font-size: 18px;
+          width: 18px;
+          height: 18px;
+        }
+
+        span {
+          font-size: 11px;
+          font-weight: 500;
+        }
+      }
+    }
+
+    // ========================================
+    // REPORT FILES ROW (controls-container içinde, TEK SATIR, yatay-scroll)
+    // ========================================
+    .controls-files-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-top: 1px solid rgba(0, 0, 0, 0.06);
+      padding-top: 12px;
+      min-width: 0;
+
+      .report-files-label {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex-shrink: 0;
+
+        mat-icon {
+          color: $primary-color;
           font-size: 20px;
           width: 20px;
           height: 20px;
         }
 
-        span {
-          font-size: 12px;
-          font-weight: 500;
+        > span {
+          font-size: 13px;
+          font-weight: 600;
+          color: $primary-color;
+          white-space: nowrap;
+        }
+
+        .file-count {
+          background: $primary-color;
+          color: $white;
+          font-size: 11px;
+          padding: 2px 7px;
+          border-radius: 10px;
+          font-weight: 600;
+        }
+      }
+
+      .unsaved-badge {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        background: linear-gradient(135deg, $warning-amber, color.adjust($warning-amber, $lightness: -10%));
+        color: $white;
+        padding: 4px 10px;
+        border-radius: 14px;
+        font-size: 11px;
+        font-weight: 600;
+        white-space: nowrap;
+        flex-shrink: 0;
+        animation: pulse-warning 2s infinite;
+
+        mat-icon {
+          font-size: 14px;
+          width: 14px;
+          height: 14px;
+          color: $white;
+        }
+      }
+
+      .report-files-chips {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        overflow-x: auto;
+        padding: 2px 2px 6px;
+        scrollbar-width: thin;
+        min-width: 0;
+        flex: 1;
+
+        &::-webkit-scrollbar {
+          height: 6px;
+        }
+
+        &::-webkit-scrollbar-thumb {
+          background: rgba($primary-color, 0.3);
+          border-radius: 3px;
+        }
+
+        .report-file-chip {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          padding: 6px 10px 6px 6px;
+          background: $light-bg;
+          border: 1px solid #e0e0e0;
+          border-radius: 20px;
+          text-decoration: none;
+          color: inherit;
+          cursor: pointer;
+          flex-shrink: 0;
+          transition: all 0.2s ease;
+          max-width: 220px;
+
+          &:hover {
+            background: rgba($primary-color, 0.1);
+            border-color: $primary-color;
+          }
+
+          &.has-changes {
+            border-color: rgba($warning-amber, 0.5);
+            background: rgba($warning-amber, 0.08);
+          }
+
+          &.saving {
+            cursor: wait;
+            opacity: 0.7;
+          }
+
+          .file-icon {
+            background: $primary-color;
+            color: $white;
+            border-radius: 50%;
+            width: 22px;
+            height: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+
+            mat-icon {
+              font-size: 14px;
+              width: 14px;
+              height: 14px;
+            }
+
+            &.file-type-picture_as_pdf {
+              background: #F44336;
+            }
+
+            &.file-type-image {
+              background: #4CAF50;
+            }
+
+            &.file-type-table_chart {
+              background: $secondary-color;
+            }
+
+            &.file-type-description {
+              background: $light-secondary;
+            }
+          }
+
+          .file-name {
+            font-size: 12px;
+            font-weight: 600;
+            color: #333333;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+          }
+
+          .download-icon {
+            color: $primary-color;
+            font-size: 15px;
+            width: 15px;
+            height: 15px;
+            flex-shrink: 0;
+          }
+
+          .save-icon {
+            color: $warning-amber;
+            font-size: 15px;
+            width: 15px;
+            height: 15px;
+            flex-shrink: 0;
+            animation: pulse 1s infinite;
+          }
+        }
+      }
+
+      .customer-view-actions {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex-shrink: 0;
+        margin-left: auto;
+
+        .customer-view-btn {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 28px;
+          height: 28px;
+          background: linear-gradient(135deg, $primary-color, $dark-primary);
+          color: $white;
+          border-radius: 6px;
+          text-decoration: none;
+          transition: all 0.2s ease;
+
+          mat-icon {
+            font-size: 15px;
+            width: 15px;
+            height: 15px;
+            color: $white;
+          }
+
+          &:hover {
+            transform: translateY(-1px);
+          }
+        }
+
+        .customer-copy-btn {
+          display: flex;
+          align-items: center;
+          gap: 5px;
+          padding: 5px 10px;
+          height: 28px;
+          background: rgba($primary-color, 0.08);
+          color: $primary-color;
+          border: 1px solid rgba($primary-color, 0.25);
+          border-radius: 6px;
+          font-size: 11px;
+          font-weight: 600;
+          cursor: pointer;
+          white-space: nowrap;
+          transition: all 0.2s ease;
+
+          mat-icon {
+            font-size: 14px;
+            width: 14px;
+            height: 14px;
+          }
+
+          &:hover {
+            background: rgba($primary-color, 0.15);
+            border-color: $primary-color;
+          }
         }
       }
     }
@@ -259,7 +504,8 @@ $white: #ffffff;
     overflow: hidden;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     margin-bottom: 24px;
-    min-height: 1000px; // ✅ ARTTIRILDI (600px → 900px)
+    // Ekran yüksekliğine göre ölçeklenir (bkz. app-threejs-truck-visualization .tjs-root)
+    min-height: clamp(420px, 68vh, 900px);
 
     .loading-overlay {
       position: absolute;
@@ -465,295 +711,6 @@ $white: #ffffff;
             color: $white !important;
           }
         }
-      }
-    }
-  }
-
-  // ========================================
-  // REPORT FILES CONTAINER
-  // ========================================
-  .report-files-container {
-    background: $white;
-    border-radius: 8px;
-    padding: 20px;
-    margin-bottom: 24px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-
-    .report-files-header {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 16px;
-      padding-bottom: 12px;
-      border-bottom: 1px solid #e0e0e0;
-      flex-wrap: wrap; // ✅ EKLE - Unsaved badge varsa wrap olsun
-
-      // ✅ Header icon style
-      mat-icon {
-        color: $primary-color;
-        font-size: 24px;
-        width: 24px;
-        height: 24px;
-      }
-
-      // ✅ Header text
-      span {
-        font-size: 16px;
-        font-weight: 600;
-        color: $primary-color;
-        flex: 1; // ✅ EKLE - Boşluğu kapla
-      }
-
-      // ✅ File count badge
-      .file-count {
-        background: $primary-color;
-        color: $white;
-        font-size: 12px;
-        padding: 4px 8px;
-        border-radius: 4px;
-        font-weight: 500;
-        // margin-left: auto; ← KALDIR (flex: 1 ile gereksiz)
-      }
-
-      // ✅ Unsaved changes badge
-      .unsaved-badge {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        background: linear-gradient(135deg, $warning-amber, color.adjust($warning-amber, $lightness: -10%));
-        color: $white;
-        padding: 6px 12px;
-        border-radius: 16px;
-        font-size: 12px;
-        font-weight: 600;
-        animation: pulse-warning 2s infinite;
-        margin-left: auto; // ✅ Sağa yasla
-
-        mat-icon {
-          font-size: 16px;
-          width: 16px;
-          height: 16px;
-          color: $white;
-        }
-      }
-
-      .customer-view-actions {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        margin-left: auto;
-
-        .customer-view-btn {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          width: 34px;
-          height: 34px;
-          background: linear-gradient(135deg, $primary-color, $dark-primary);
-          color: $white;
-          border-radius: 6px;
-          text-decoration: none;
-          transition: all 0.2s ease;
-          box-shadow: 0 2px 6px rgba($primary-color, 0.3);
-
-          mat-icon {
-            font-size: 18px;
-            width: 18px;
-            height: 18px;
-            color: $white;
-          }
-
-          &:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba($primary-color, 0.4);
-          }
-        }
-
-        .customer-copy-btn {
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          padding: 6px 12px;
-          height: 34px;
-          background: rgba($primary-color, 0.08);
-          color: $primary-color;
-          border: 1px solid rgba($primary-color, 0.25);
-          border-radius: 6px;
-          font-size: 12px;
-          font-weight: 600;
-          cursor: pointer;
-          transition: all 0.2s ease;
-
-          mat-icon {
-            font-size: 16px;
-            width: 16px;
-            height: 16px;
-          }
-
-          &:hover {
-            background: rgba($primary-color, 0.15);
-            border-color: $primary-color;
-          }
-        }
-      }
-    }
-
-    .report-files-list {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-
-      .report-file-item {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        padding: 12px;
-        background: $light-bg;
-        border-radius: 4px;
-        border: 1px solid #e0e0e0;
-        transition: all 0.3s ease;
-
-        &:hover {
-          background: rgba($primary-color, 0.1);
-          border-color: $primary-color;
-        }
-
-        // ✅ Unsaved changes indicator
-        &.has-changes {
-          border-left: 4px solid $warning-amber;
-          background: linear-gradient(135deg, rgba($warning-amber, 0.05), rgba($warning-amber, 0.1));
-
-          .file-link {
-            .save-icon {
-              color: $warning-amber;
-              animation: pulse 1s infinite;
-            }
-          }
-        }
-
-        .file-icon {
-          background: $primary-color;
-          color: $white;
-          border-radius: 4px;
-          padding: 8px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-
-          mat-icon {
-            font-size: 20px;
-            width: 20px;
-            height: 20px;
-          }
-
-          &.file-type-picture_as_pdf {
-            background: #F44336;
-          }
-
-          &.file-type-image {
-            background: #4CAF50;
-          }
-
-          &.file-type-table_chart {
-            background: $secondary-color;
-          }
-
-          &.file-type-description {
-            background: $light-secondary;
-          }
-        }
-
-        .file-info {
-          flex: 1;
-
-          .file-link {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            text-decoration: none;
-            color: inherit;
-            cursor: pointer; // ✅ EKLE
-
-            // ✅ Save icon (unsaved changes)
-            .save-icon {
-              color: $warning-amber;
-              font-size: 18px;
-              width: 18px;
-              height: 18px;
-            }
-
-            // ✅ Saving state
-            &.saving {
-              cursor: wait;
-              opacity: 0.7;
-            }
-
-            .file-name {
-              font-weight: 600;
-              color: #333333;
-              flex: 1;
-            }
-
-            .file-size {
-              font-size: 12px;
-              color: $neutral-gray;
-              background: $white;
-              padding: 4px 8px;
-              border-radius: 4px;
-            }
-
-            // ✅ Download icon (normal state)
-            .download-icon {
-              color: $primary-color;
-              font-size: 16px;
-              width: 16px;
-              height: 16px;
-            }
-
-            &:hover .file-name {
-              color: $primary-color;
-            }
-          }
-        }
-      }
-
-      .empty-files {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        padding: 32px;
-        text-align: center;
-        color: $neutral-gray;
-        font-style: italic;
-        justify-content: center;
-
-        mat-icon {
-          font-size: 24px;
-          width: 24px;
-          height: 24px;
-        }
-      }
-    }
-
-    // ✅ Auto-save info message
-    .auto-save-info {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 12px 16px;
-      margin-top: 12px;
-      background: linear-gradient(135deg, rgba($info-blue, 0.1), rgba($info-blue, 0.15));
-      border-radius: 8px;
-      border-left: 4px solid $info-blue;
-      font-size: 13px;
-      color: $dark-primary;
-      font-weight: 500;
-
-      mat-icon {
-        color: $info-blue;
-        font-size: 20px;
-        width: 20px;
-        height: 20px;
       }
     }
   }
@@ -1077,8 +1034,12 @@ $white: #ffffff;
     padding: 16px;
 
     .controls-container {
-      flex-direction: column;
       gap: 16px;
+
+      .controls-top-row {
+        flex-direction: column;
+        align-items: stretch;
+      }
 
       .action-buttons {
         width: 100%;
@@ -1133,39 +1094,11 @@ $white: #ffffff;
       }
     }
 
-    .visualization-container {
-      min-height: 600px; // Mobile'da daha küçük
-    }
+    .controls-files-row .report-file-chip {
+      max-width: 160px;
 
-    .report-files-container {
-      padding: 16px;
-
-      .report-files-list .report-file-item {
-        padding: 8px;
-
-        .file-icon {
-          padding: 6px;
-
-          mat-icon {
-            font-size: 18px;
-            width: 18px;
-            height: 18px;
-          }
-        }
-
-        .file-info .file-link {
-          flex-direction: column;
-          align-items: flex-start;
-          gap: 4px;
-
-          .file-name {
-            font-size: 14px;
-          }
-
-          .file-size {
-            font-size: 11px;
-          }
-        }
+      .file-name {
+        font-size: 11px;
       }
     }
   }
@@ -1210,21 +1143,19 @@ $white: #ffffff;
       }
     }
 
-    .visualization-container {
-      min-height: 500px;
-    }
+    .controls-files-row {
+      gap: 6px;
 
-    .report-files-container {
-      padding: 12px;
+      .report-files-label > span {
+        display: none; // dar ekranda sadece ikon + sayaç kalsın, tek satır bozulmasın
+      }
 
-      .report-files-header {
-        flex-direction: column;
-        gap: 8px;
-        text-align: center;
+      .customer-copy-btn span {
+        display: none; // dar ekranda sadece ikon kalsın
+      }
 
-        .file-count {
-          margin: 0;
-        }
+      .report-file-chip {
+        max-width: 140px;
       }
     }
   }

@@ -1,6 +1,7 @@
 <div class="logistics-result-screen">
   <!-- Enhanced Controls Container -->
   <div class="controls-container">
+    <div class="controls-top-row">
     <div class="action-buttons">
       <button id="optimize-button" mat-raised-button class="calculate-button" [disabled]="isLoading"
         (click)="calculateBinpacking()" [appDisableAuth]="['orders.change_orderresult']">
@@ -36,28 +37,77 @@
     @if (hasResultsSignal() ) {
     <div class="view-controls">
       <button class="view-button" [class.active]="currentViewTypeSignal() === 'front'" [disabled]="isLoading"
-        (click)="threeJSComponent.setView('front')">
+        (click)="threeJSComponent.setView('front')" [title]="'RESULT_STEP.FRONT' | translate">
         <mat-icon>view_agenda</mat-icon>
         <span>{{ 'RESULT_STEP.FRONT' | translate }}</span>
       </button>
 
       <button class="view-button" [class.active]="currentViewTypeSignal() === 'side'" [disabled]="isLoading"
-        (click)="threeJSComponent.setView('side')">
+        (click)="threeJSComponent.setView('side')" [title]="'RESULT_STEP.SIDE' | translate">
         <mat-icon>view_sidebar</mat-icon>
         <span>{{ 'RESULT_STEP.SIDE' | translate }}</span>
       </button>
 
       <button class="view-button" [class.active]="currentViewTypeSignal() === 'top'" [disabled]="isLoading"
-        (click)="threeJSComponent.setView('top')">
+        (click)="threeJSComponent.setView('top')" [title]="'RESULT_STEP.TOP' | translate">
         <mat-icon>view_comfy</mat-icon>
         <span>{{ 'RESULT_STEP.TOP' | translate }}</span>
       </button>
 
       <button class="view-button" [class.active]="currentViewTypeSignal() === 'isometric'" [disabled]="isLoading"
-        (click)="threeJSComponent.resetView()">
+        (click)="threeJSComponent.resetView()" title="3D">
         <mat-icon>view_in_ar</mat-icon>
         <span>3D</span>
       </button>
+    </div>
+    }
+    </div>
+
+    <!-- Enhanced Report Files Row (controls-container içinde, tek satır, scroll gerektirmez) -->
+    @if (reportFilesSignal() && reportFilesSignal().length > 0) {
+    <div id="report-files" class="controls-files-row">
+      <div class="report-files-label" [title]="'RESULT_STEP.REPORT_FILES' | translate">
+        <mat-icon>description</mat-icon>
+        <span>{{ 'RESULT_STEP.REPORT_FILES' | translate }}</span>
+        <div class="file-count">{{ reportFilesSignal().length }}</div>
+      </div>
+
+      @if (isDirtySignal()) {
+      <div class="unsaved-badge" [title]="'RESULT_STEP.AUTO_SAVE_MESSAGE' | translate">
+        <mat-icon>warning</mat-icon>
+        <span>{{ 'RESULT_STEP.CHANGES_NOT_SAVED' | translate }}</span>
+      </div>
+      }
+
+      <div class="report-files-chips">
+        @for (file of reportFilesSignal(); track trackByFileId($index, file)) {
+        <a class="report-file-chip" [class.has-changes]="isDirtySignal()" [class.saving]="isDirtySignal()"
+          (click)="onFileClick($event, file)" style="cursor: pointer;">
+          <div class="file-icon" [class]="'file-type-' + getFileIcon(file.type)">
+            <mat-icon>{{ getFileIcon(file.type) }}</mat-icon>
+          </div>
+          <span class="file-name">{{ file.name }}</span>
+          @if (!isDirtySignal()) {
+          <mat-icon class="download-icon">download</mat-icon>
+          }
+          @if (isDirtySignal()) {
+          <mat-icon class="save-icon">save</mat-icon>
+          }
+        </a>
+        }
+      </div>
+
+      <div class="customer-view-actions">
+        <a class="customer-view-btn" [href]="'/order-view/' + orderIdSignal()" target="_blank"
+          [title]="'RESULT_STEP.CUSTOMER_VIEW_OPEN' | translate">
+          <mat-icon>open_in_new</mat-icon>
+        </a>
+        <button class="customer-copy-btn" (click)="copyCustomerLink()"
+          [title]="'RESULT_STEP.COPY_LINK' | translate">
+          <mat-icon>{{ linkCopied ? 'check' : 'content_copy' }}</mat-icon>
+          <span>{{ (linkCopied ? 'RESULT_STEP.COPIED' : 'RESULT_STEP.COPY_LINK') | translate }}</span>
+        </button>
+      </div>
     </div>
     }
   </div>
@@ -115,77 +165,6 @@
     </div>
     }
   </div>
-
-  <!-- Enhanced Report Files Container -->
-  @if (reportFilesSignal() && reportFilesSignal().length > 0) {
-  <div id="report-files" class="report-files-container">
-    <div class="report-files-header">
-      <mat-icon>description</mat-icon>
-      <span>{{ 'RESULT_STEP.REPORT_FILES' | translate }}</span>
-
-      <div class="customer-view-actions">
-        <a class="customer-view-btn" [href]="'/order-view/' + orderIdSignal()" target="_blank"
-          [title]="'RESULT_STEP.CUSTOMER_VIEW_OPEN' | translate">
-          <mat-icon>open_in_new</mat-icon>
-        </a>
-        <button class="customer-copy-btn" (click)="copyCustomerLink()" [title]="'RESULT_STEP.COPY_LINK' | translate">
-          <mat-icon>{{ linkCopied ? 'check' : 'content_copy' }}</mat-icon>
-          <span>{{ (linkCopied ? 'RESULT_STEP.COPIED' : 'RESULT_STEP.COPY_LINK') | translate }}</span>
-        </button>
-      </div>
-
-      <div class="file-count">{{ reportFilesSignal().length }}</div>
-
-      <!-- ✅ NEW: Unsaved Changes Badge -->
-      @if (isDirtySignal()) {
-      <div class="unsaved-badge" [title]="'RESULT_STEP.UNSAVED_CHANGES' | translate">
-        <mat-icon>warning</mat-icon>
-        <span>{{ 'RESULT_STEP.CHANGES_NOT_SAVED' | translate }}</span>
-      </div>
-      }
-    </div>
-
-    <div class="report-files-list">
-      @for (file of reportFilesSignal(); track trackByFileId($index, file)) {
-      <div class="report-file-item" [class.has-changes]="isDirtySignal()">
-        <div class="file-icon" [class]="'file-type-' + getFileIcon(file.type)">
-          <mat-icon>{{ getFileIcon(file.type) }}</mat-icon>
-        </div>
-        <div class="file-info">
-          <!-- ✅ CHANGED: Click handler ekle, href kaldır -->
-          <a class="file-link" (click)="onFileClick($event, file)" [class.saving]="isDirtySignal()"
-            style="cursor: pointer;">
-            <span class="file-name">{{ file.name }}</span>
-
-            <!-- ✅ NEW: Icon değişimi -->
-            @if (!isDirtySignal()) {
-            <mat-icon class="download-icon">download</mat-icon>
-            }
-            @if (isDirtySignal()) {
-            <mat-icon class="save-icon">save</mat-icon>
-            }
-          </a>
-        </div>
-      </div>
-      }
-
-      @if (reportFilesSignal().length === 0) {
-      <div class="empty-files">
-        <mat-icon>folder_open</mat-icon>
-        <span>{{ 'RESULT_STEP.NO_REPORT_FILES' | translate }}</span>
-      </div>
-      }
-    </div>
-
-    <!-- ✅ NEW: Info Message -->
-    @if (isDirtySignal()) {
-    <div class="auto-save-info">
-      <mat-icon>info</mat-icon>
-      <span>{{ 'RESULT_STEP.AUTO_SAVE_MESSAGE' | translate }}</span>
-    </div>
-    }
-  </div>
-  }
 
   <button mat-button class="prev-button" (click)="goPreviousStep()">
     <mat-icon>arrow_back</mat-icon>
