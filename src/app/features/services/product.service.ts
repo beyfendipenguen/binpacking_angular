@@ -94,6 +94,14 @@ export class ProductService extends GenericCrudService<Product> {
           return true;
         }
 
+        // Barkod (stok numarası) ile eşleşme
+        if (
+          product.barcode &&
+          product.barcode.toLowerCase().includes(lowerQuery)
+        ) {
+          return true;
+        }
+
         // Product type code ile eşleşme
         if (
           product.product_type?.code &&

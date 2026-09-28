@@ -983,6 +983,42 @@ export const stepperPackageHandlers = [
     };
   }),
 
+  // Sipariş Ürünleri Bölümü — tıklanan sipariş satırından envantere 1 adet ekle.
+  // Aynı üründen zaten remainingProducts'ta varsa +1, yoksa count:1 ile yeni satır.
+  on(StepperPackageActions.addOrderProductToRemainingProducts, (state: StepperState, { orderDetailId }) => {
+    const orderDetail = state.step1State.orderDetails.find(od => od.id === orderDetailId);
+    if (!orderDetail) return state;
+
+    const existingIndex = state.step2State.remainingProducts.findIndex(
+      item => item.product.id === orderDetail.product.id
+    );
+
+    let updatedRemainingProducts: PackageDetailReadDto[];
+
+    if (existingIndex !== -1) {
+      updatedRemainingProducts = state.step2State.remainingProducts.map((p, i) =>
+        i === existingIndex ? { ...p, count: p.count + 1 } : p
+      );
+    } else {
+      const newPackageDetail: PackageDetailReadDto = {
+        id: Guid(),
+        package_id: '',
+        product: orderDetail.product,
+        count: 1,
+        priority: 0,
+      } as PackageDetailReadDto;
+      updatedRemainingProducts = [...state.step2State.remainingProducts, newPackageDetail];
+    }
+
+    return {
+      ...state,
+      step2State: {
+        ...state.step2State,
+        remainingProducts: updatedRemainingProducts
+      }
+    };
+  }),
+
   // Pallet Control Submit
   on(StepperPackageActions.palletControlSubmit, (state: StepperState) => {
     let mergeOrderDetails;

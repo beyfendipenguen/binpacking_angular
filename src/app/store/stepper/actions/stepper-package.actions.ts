@@ -72,5 +72,11 @@ export const StepperPackageActions = createActionGroup({
     // Ürün Adet Güncelleme (Popup vb.)
     'Upsert Package Detail Count': props<{ packageDetail: PackageDetailReadDto, count?: number }>(),
     'Calculate Order Detail Changes': emptyProps(),
+
+    // Sipariş Ürünleri Bölümü — pallet-control'deki "sipariş ürünleri" listesinden
+    // tek tıkla envantere (remainingProducts) 1 adet ekleme. upsertPackageDetailCount'tan
+    // farkı: o action yeni ürünlerde count'u hep 0'a zorluyor (arama akışının kendi
+    // davranışı), bu ise var olan satırı +1 arttırır, yoksa count:1 ile yeni satır açar.
+    'Add Order Product To Remaining Products': props<{ orderDetailId: string }>(),
   }
 });

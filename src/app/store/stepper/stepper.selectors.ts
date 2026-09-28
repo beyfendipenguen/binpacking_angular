@@ -164,6 +164,35 @@ export const selectValidPackages = createSelector(
 );
 
 /**
+ * Siparişin paketlerine ZATEN bağlanmış paletler — pallet-control ekranındaki
+ * "Sipariş Paletleri" bölümü için. Genel palet kataloğundan (selectUiPallets)
+ * farkı: burası sadece bu siparişte fiilen kullanılan paletleri listeler,
+ * kalabalık kataloğa gerek kalmadan hızlı tekrar-kullanım sağlar.
+ *
+ * @selector
+ * @returns {UiPallet[]} Paketlerdeki paletlerin listesi (boş paketler hariç).
+ */
+export const selectOrderPlacedPallets = createSelector(
+  selectUiPackages,
+  (packages) => {
+    const pallets = packages
+      .filter(pkg => pkg.pallet !== null && pkg.pallet !== undefined)
+      .map(pkg => pkg.pallet as UiPallet);
+
+    // Aynı dimensiona (width/depth/height) sahip paletler tek satırda
+    // gösterilir — kullanıcı kalabalık bir liste yerine her ölçüden bir
+    // örnek görüp oradan istediği kadar sürükleyip yeni pakete ekleyebilsin.
+    const seen = new Set<string>();
+    return pallets.filter(pallet => {
+      const key = `${pallet.dimension?.width}_${pallet.dimension?.depth}_${pallet.dimension?.height}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }
+);
+
+/**
  * Returns an array of UiPallet instances
  * mapped from the state.pallets array.
  */

@@ -50,6 +50,7 @@ import {
   palletDropListIds,
   remainingProductCount,
   selectOrder,
+  selectOrderPlacedPallets,
   uiPackageCount,
   selectRemainingArea,
   selectRemainingWeight,
@@ -171,6 +172,8 @@ export class PalletControlComponent
   private destroy$ = new Subject<void>();
 
   public availablePallets = this.store.selectSignal(selectUiPallets);
+  public orderPlacedPallets = this.store.selectSignal(selectOrderPlacedPallets);
+  public orderDetails = this.store.selectSignal(selectOrderDetails);
 
   public hasPackages = this.store.selectSignal(hasPackages);
   public uiPackageCount = this.store.selectSignal(uiPackageCount);
@@ -846,7 +849,6 @@ export class PalletControlComponent
             palletElement.classList.add('partial-drop');
             palletElement.classList.remove('can-drop', 'cannot-drop');
 
-            const fillPercentage = this.getPalletFillPercentage(pkg.pallet, pkg.package_details);
             palletElement.title = `${this.translate.instant('PALLET_CONTROL.ONLY')} ${fitResult.maxCount} ${this.translate.instant('PALLET_CONTROL.PIECES_FIT')}`;
 
           } else {
@@ -981,6 +983,12 @@ export class PalletControlComponent
   addPackageDetail(packageDetailId: string) {
     this.saveSnapshot();
     this.store.dispatch(StepperPackageActions.addPackageDetailToRemainingProducts({ packageDetailId }));
+  }
+
+  // Sipariş Ürünleri Bölümü — tıklanan sipariş satırından envantere 1 adet ekler.
+  addOrderProductToRemaining(orderDetailId: string): void {
+    this.saveSnapshot();
+    this.store.dispatch(StepperPackageActions.addOrderProductToRemainingProducts({ orderDetailId }));
   }
 
   reducePackageDetail(packageDetailId: string) {

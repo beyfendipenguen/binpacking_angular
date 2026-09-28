@@ -54,6 +54,7 @@
   <div class="logistics-container">
     <!-- ÜRÜNLER BÖLÜMÜ -->
     <div class="inventory-section">
+      <div class="inventory-section-top">
       <div class="section-header with-action">
         <div class="header-left">
           <mat-icon>category</mat-icon>
@@ -79,7 +80,8 @@
         <div class="search-input-wrapper">
           <mat-icon class="search-icon">search</mat-icon>
           <input matInput class="search-input" type="text" [placeholder]="'PALLET_CONTROL.SEARCH_PRODUCT' | translate"
-            [formControl]="searchControl" [matAutocomplete]="auto" id="searchControl" name="searchControl"/>
+            [formControl]="searchControl" [matAutocomplete]="auto"
+            id="searchControl" name="searchControl"/>
 
           @if(searchControl.value) {
           <button mat-icon-button class="clear-search" (click)="clearSearch()"
@@ -90,6 +92,14 @@
 
           <mat-autocomplete #auto="matAutocomplete" class="search-autocomplete"
             [displayWith]="displayProductFn.bind(this)">
+            @if(!searchControl.value) {
+            <mat-option disabled class="search-hint-option">
+              <div class="search-hint">
+                <mat-icon>info</mat-icon>
+                <span>{{ 'PALLET_CONTROL.SEARCH_PRODUCT_HINT' | translate }}</span>
+              </div>
+            </mat-option>
+            } @else {
             @if(isSearching) {
             <mat-option class="loading-indicator">
               <mat-spinner diameter="20"></mat-spinner>
@@ -98,7 +108,7 @@
             }
 
             @if(!isSearching) {
-            @if(filteredProducts().length === 0) {
+            @if(filteredProducts().length === 0 && searchControl.value.length > 2) {
             <mat-option disabled>
               <mat-icon>search_off</mat-icon>
               <span>{{ 'COMMON.NO_RESULTS' | translate }}</span>
@@ -111,6 +121,7 @@
                 <span>{{ product.name }}</span>
               </div>
             </mat-option>
+            }
             }
             }
           </mat-autocomplete>
@@ -170,6 +181,36 @@
           <p>{{ 'PALLET_CONTROL.ALL_PRODUCTS_PLACED' | translate }}</p>
         </div>
         }
+      </div>
+      </div>
+
+      <!-- SİPARİŞ ÜRÜNLERİ BÖLÜMÜ — yetkisi olmayan firmalar bu yarıyı hiç görmez -->
+      <div class="inventory-section-bottom" *appHasPermission="'orders.view_order_products'; mode: 'hide'">
+        <div class="section-header">
+          <mat-icon>list_alt</mat-icon>
+          <h2>{{ 'PALLET_CONTROL.ORDER_PRODUCTS' | translate }}</h2>
+        </div>
+
+        <div class="order-products-list">
+          @for(orderDetail of orderDetails(); track orderDetail.id){
+          <button type="button" class="order-product-item" (click)="addOrderProductToRemaining(orderDetail.id)"
+            [matTooltip]="'PALLET_CONTROL.ADD_TO_INVENTORY' | translate" [appDisableAuth]="['products.change_product']">
+            <div class="product-icon small"></div>
+            <div class="product-info">
+              <span class="product-name">{{ orderDetail.product.name }}</span>
+              <!-- <span class="product-count">{{ orderDetail.count }} {{ 'DIMENSIONS.QUANTITY' | translate }}</span> -->
+            </div>
+            <mat-icon class="add-icon">add_circle_outline</mat-icon>
+          </button>
+          }
+
+          @if(orderDetails().length === 0){
+          <div class="empty-state">
+            <mat-icon>info</mat-icon>
+            <p>{{ 'PALLET_CONTROL.NO_ORDER_PRODUCTS' | translate }}</p>
+          </div>
+          }
+        </div>
       </div>
     </div>
 
@@ -279,7 +320,7 @@
           </div>
 
           <!-- Paket içeriği -->
-          <div cdkDropList [id]="package.id" [cdkDropListData]="[]" [cdkDropListConnectedTo]="['availablePalletsList']"
+          <div cdkDropList [id]="package.id" [cdkDropListData]="[]" [cdkDropListConnectedTo]="['availablePalletsList', 'orderPalletsList']"
             class="package-dropzone" (cdkDropListDropped)="dropPalletToPackage($event)">
             <!-- Eğer paket içinde palet varsa göster -->
             @if(package.pallet){
@@ -400,67 +441,112 @@
 
     <!-- PALETLER BÖLÜMÜ -->
     <div class="pallets-section" *appHasPermission="'logistics.view_pallet'">
-      <div class="section-header">
-        <mat-icon>view_module</mat-icon>
-        <h2>{{ 'PALLET_CONTROL.PALLET_TYPES' | translate }}</h2>
-      </div>
+      <div class="pallets-section-top">
+        <div class="section-header">
+          <mat-icon>view_module</mat-icon>
+          <h2>{{ 'PALLET_CONTROL.PALLET_TYPES' | translate }}</h2>
+        </div>
 
-      <!-- SEARCH CONTAINER -->
-      <div class="search-container">
-        <div class="search-input-wrapper">
-          <mat-icon class="search-icon">search</mat-icon>
-          <input matInput class="search-input" type="text" [placeholder]="'PALLET_CONTROL.SEARCH_PALLET' | translate"
-            [formControl]="palletSearchControl" [matAutocomplete]="palletAuto" id="palletSearchControl"
-            name="palletSearchControl"/>
+        <!-- SEARCH CONTAINER -->
+        <div class="search-container">
+          <div class="search-input-wrapper">
+            <mat-icon class="search-icon">search</mat-icon>
+            <input matInput class="search-input" type="text" [placeholder]="'PALLET_CONTROL.SEARCH_PALLET' | translate"
+              [formControl]="palletSearchControl" [matAutocomplete]="palletAuto"
+              id="palletSearchControl" name="palletSearchControl"/>
 
-          @if(palletSearchControl.value) {
-          <button mat-icon-button class="clear-search" (click)="clearPalletSearch()"
-            [matTooltip]="'COMMON.CLEAR_SEARCH' | translate">
-            <mat-icon>close</mat-icon>
-          </button>
+            @if(palletSearchControl.value) {
+            <button mat-icon-button class="clear-search" (click)="clearPalletSearch()"
+              [matTooltip]="'COMMON.CLEAR_SEARCH' | translate">
+              <mat-icon>close</mat-icon>
+            </button>
+            }
+
+            <!-- AUTOCOMPLETE - SADECE BACKEND SONUÇLARI -->
+            <mat-autocomplete #palletAuto="matAutocomplete" class="search-autocomplete"
+              [displayWith]="displayPalletFn.bind(this)">
+              @if(!palletSearchControl.value) {
+              <mat-option disabled class="search-hint-option">
+                <div class="search-hint">
+                  <mat-icon>info</mat-icon>
+                  <span>{{ 'PALLET_CONTROL.SEARCH_PALLET_HINT' | translate }}</span>
+                </div>
+              </mat-option>
+              } @else {
+              @if(isPalletSearching) {
+              <mat-option class="loading-indicator">
+                <mat-spinner diameter="20"></mat-spinner>
+                <span>{{ 'COMMON.SEARCHING' | translate }}</span>
+              </mat-option>
+              }
+
+              @if(!isPalletSearching && filteredPalletsFromBackend().length === 0) {
+              <mat-option disabled>
+                <mat-icon>search_off</mat-icon>
+                <span>{{ 'COMMON.NO_RESULTS' | translate }}</span>
+              </mat-option>
+              }
+
+              @if(!isPalletSearching && filteredPalletsFromBackend().length > 0) {
+              @for(pallet of filteredPalletsFromBackend(); track pallet.id) {
+              <mat-option [value]="pallet" (click)="selectPallet(pallet)">
+                <div class="product-option">
+                  <!-- <div class="pallet-base-icon"></div> -->
+                  <span style="font-size: 12px; ">{{ displayPalletFn(pallet) }}</span>
+                </div>
+              </mat-option>
+              }
+              }
+              }
+            </mat-autocomplete>
+          </div>
+        </div>
+
+        <div cdkDropList #palletsList="cdkDropList" id="availablePalletsList" [cdkDropListData]="displayedPallets()"
+          [cdkDropListConnectedTo]="packageDropListIds()" class="pallets-list"
+          (cdkDropListDropped)="dropPalletToPackage($event)" [appDisableAuth]="['logistics.change_package']">
+
+          @for(pallet of displayedPallets(); track pallet.ui_id){
+          <div class="pallet-item" cdkDrag>
+            <div class="pallet-base-icon"></div>
+            <span class="pallet-name">{{ pallet.name }}</span>
+          </div>
           }
 
-          <!-- AUTOCOMPLETE - SADECE BACKEND SONUÇLARI -->
-          <mat-autocomplete #palletAuto="matAutocomplete" class="search-autocomplete"
-            [displayWith]="displayPalletFn.bind(this)">
-            @if(isPalletSearching) {
-            <mat-option class="loading-indicator">
-              <mat-spinner diameter="20"></mat-spinner>
-              <span>{{ 'COMMON.SEARCHING' | translate }}</span>
-            </mat-option>
-            }
-
-            @if(!isPalletSearching && filteredPalletsFromBackend().length > 0) {
-            @for(pallet of filteredPalletsFromBackend(); track pallet.id) {
-            <mat-option [value]="pallet" (click)="selectPallet(pallet)">
-              <div class="product-option">
-                <!-- <div class="pallet-base-icon"></div> -->
-                <span style="font-size: 12px; ">{{ displayPalletFn(pallet) }}</span>
-              </div>
-            </mat-option>
-            }
-            }
-          </mat-autocomplete>
+          @if(displayedPallets().length === 0){
+          <div class="empty-state">
+            <mat-icon>info</mat-icon>
+            <p>{{ 'PALLET_CONTROL.NO_PALLETS' | translate }}</p>
+          </div>
+          }
         </div>
       </div>
 
-      <div cdkDropList #palletsList="cdkDropList" id="availablePalletsList" [cdkDropListData]="displayedPallets()"
-        [cdkDropListConnectedTo]="packageDropListIds()" class="pallets-list"
-        (cdkDropListDropped)="dropPalletToPackage($event)" [appDisableAuth]="['logistics.change_package']">
-
-        @for(pallet of displayedPallets(); track pallet.ui_id){
-        <div class="pallet-item" cdkDrag>
-          <div class="pallet-base-icon"></div>
-          <span class="pallet-name">{{ pallet.name }}</span>
+      <!-- SİPARİŞ PALETLERİ BÖLÜMÜ — yetkisi olmayan firmalar bu yarıyı hiç görmez -->
+      <div class="pallets-section-bottom" *appHasPermission="'logistics.view_order_pallets'; mode: 'hide'">
+        <div class="section-header">
+          <mat-icon>inventory</mat-icon>
+          <h2>{{ 'PALLET_CONTROL.ORDER_PALLETS' | translate }}</h2>
         </div>
-        }
 
-        @if(displayedPallets().length === 0){
-        <div class="empty-state">
-          <mat-icon>info</mat-icon>
-          <p>{{ 'PALLET_CONTROL.NO_PALLETS' | translate }}</p>
+        <div cdkDropList id="orderPalletsList" [cdkDropListData]="orderPlacedPallets()"
+          [cdkDropListConnectedTo]="packageDropListIds()" class="pallets-list"
+          (cdkDropListDropped)="dropPalletToPackage($event)" [appDisableAuth]="['logistics.change_package']">
+
+          @for(pallet of orderPlacedPallets(); track pallet.ui_id){
+          <div class="pallet-item" cdkDrag>
+            <div class="pallet-base-icon"></div>
+            <span class="pallet-name">{{ pallet.name }}</span>
+          </div>
+          }
+
+          @if(orderPlacedPallets().length === 0){
+          <div class="empty-state">
+            <mat-icon>info</mat-icon>
+            <p>{{ 'PALLET_CONTROL.NO_ORDER_PALLETS' | translate }}</p>
+          </div>
+          }
         </div>
-        }
       </div>
     </div>
   </div>

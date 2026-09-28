@@ -116,6 +116,58 @@ form {
   flex: 1;
 }
 
+/* İki bölüme ayrılabilen sütunlar (ürünler/paletler) — yetkisi olan
+   firmalarda alt yarı (appHasPermission [mode]="'hide'") render edilince
+   bu iki wrapper aralarında %50/%50 paylaşır; yetkisi olmayanda alt yarı
+   hiç DOM'a girmediği için üst wrapper flex:1 sayesinde tüm alanı kaplar. */
+.inventory-section-top,
+.inventory-section-bottom,
+.pallets-section-top,
+.pallets-section-bottom {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.inventory-section-bottom,
+.pallets-section-bottom {
+  border-top: 2px solid $border-color;
+}
+
+.order-products-list {
+  padding: 8px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.order-product-item {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  border: none;
+  border-radius: 6px;
+  margin-bottom: 8px;
+  padding: 8px 10px;
+  background-color: rgba(0, 106, 106, 0.04);
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  transition: background-color 0.15s ease;
+
+  &:hover {
+    background-color: rgba(0, 106, 106, 0.1);
+  }
+
+  .add-icon {
+    margin-left: auto;
+    color: $primary-color;
+    flex-shrink: 0;
+  }
+}
+
 /* =====================
    4. HEADER & DASHBOARD
 ===================== */
@@ -230,11 +282,51 @@ form {
 /* =====================
    5. SEARCH CONTAINER
 ===================== */
+// Arama input'una tıklayınca açılan autocomplete panelinin İÇİNDE, ilk
+// (disabled) seçenek olarak gösterilen kullanım ipucu — panel zaten input'un
+// hemen altında yüzen bir kutu olduğu için ayrıca tooltip pozisyonlamaya
+// gerek yok, sadece görünümü tooltip gibi (koyu, ikonlu) yapıyoruz. Yazmaya
+// başlanınca @if koşulu bu option'ı kaldırıp yerini arama sonuçlarına
+// bırakıyor.
+.search-hint-option {
+  height: auto !important;
+  min-height: 0 !important;
+  line-height: normal !important;
+  padding: 0 !important;
+  opacity: 1 !important; // Material disabled option'ı soluklaştırmasın
+
+  &.mat-mdc-option-disabled {
+    opacity: 1 !important;
+  }
+}
+
+.search-hint {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 10px 12px;
+  background-color: #2c2c2c;
+  color: #ffffff;
+  font-size: 12px;
+  line-height: 1.4;
+  white-space: normal;
+
+  mat-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+    color: $secondary-color;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+}
+
 .search-container {
   padding: 8px;
   margin-bottom: 8px;
 
   .search-input-wrapper {
+    position: relative;
     display: flex;
     align-items: center;
     padding: 8px 10px;

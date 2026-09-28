@@ -13,6 +13,9 @@ export class HasPermissionDirective implements OnInit, OnChanges {
   private _canPermissions: PermissionType[] = [];
   private _cantPermission: PermissionType[] = [];
   private _operator: 'AND' | 'OR' = 'AND';
+  // 'card'  → yetki yoksa PermissionDeniedComponent kartı gösterilir (varsayılan, eski davranış).
+  // 'hide'  → yetki yoksa *ngIf gibi davranır: hiçbir şey render edilmez.
+  private _mode: 'card' | 'hide' = 'card';
 
   // Custom mesaj için
   private _customTitle?: string;
@@ -57,6 +60,11 @@ export class HasPermissionDirective implements OnInit, OnChanges {
   @Input()
   set appHasPermissionOperator(value: 'AND' | 'OR') {
     this._operator = value;
+  }
+
+  @Input()
+  set appHasPermissionMode(value: 'card' | 'hide') {
+    this._mode = value;
   }
 
   @Input()
@@ -115,6 +123,16 @@ export class HasPermissionDirective implements OnInit, OnChanges {
         this.hasCreatedErrorCard = false;
       }
     } else {
+      if (this._mode === 'hide') {
+        // *ngIf gibi: sessizce hiçbir şey render etme.
+        if (this.hasCreatedView || this.hasCreatedErrorCard) {
+          this.viewContainer.clear();
+        }
+        this.hasCreatedView = false;
+        this.hasCreatedErrorCard = false;
+        return;
+      }
+
       if (!this.hasCreatedErrorCard) {
         this.viewContainer.clear();
         const componentRef = this.viewContainer.createComponent(PermissionDeniedComponent);
