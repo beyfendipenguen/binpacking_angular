@@ -280,44 +280,37 @@ $c-text-sub:  #64748b;
   }
 }
 
-// Her zaman görünür kısayol şeridi — toolbar'ın hemen altında, ortalanmış
-.tjs-shortcuts-bar {
-  position: absolute;
-  top: calc(0.75rem + 2.6rem + 6px); // toolbar yüksekliği + boşluk
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 9;
+// Kısayollar paneli içeriği — .tjs-panel--shortcuts'ın __body'sine eklenir,
+// öğeler alt alta (dikey) listelenir, .tjs-panel--info ile aynı görsel dil.
+.tjs-shortcuts-list {
   display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 0.3rem 0.6rem;
-  max-width: 92vw;
-  padding: 0.35rem 0.6rem;
-  background: rgba($c-primary-d, 0.78);
-  backdrop-filter: blur(8px);
-  border-radius: var(--radius-md);
-  border: 1px solid rgba($c-white, 0.08);
+  flex-direction: column;
+  gap: 0.4rem;
+  overflow-y: auto;
 
   &__item {
     display: flex;
     align-items: center;
-    gap: 0.35rem;
-    font-size: 0.68rem;
-    color: rgba($c-white, 0.85);
-    white-space: nowrap;
+    gap: 0.5rem;
+    font-size: 0.72rem;
+    color: $c-text-sub;
 
     kbd {
       flex-shrink: 0;
-      min-width: 1.3rem;
+      min-width: 1.6rem;
       text-align: center;
-      padding: 0.05rem 0.3rem;
-      background: rgba($c-white, 0.14);
-      border: 1px solid rgba($c-white, 0.2);
+      padding: 0.1rem 0.35rem;
+      background: rgba($c-primary, 0.06);
+      border: 1px solid rgba($c-primary, 0.14);
       border-radius: 4px;
       font-family: 'Courier New', monospace;
-      font-size: 0.64rem;
+      font-size: 0.66rem;
       font-weight: 700;
-      color: $c-white;
+      color: $c-primary;
+    }
+
+    span {
+      flex: 1;
     }
   }
 }
@@ -394,6 +387,18 @@ $c-text-sub:  #64748b;
     left: 0.75rem;
     width: 260px;
     max-height: 380px;
+    display: flex;
+    flex-direction: column;
+    animation: slideInLeft 0.22s ease;
+  }
+
+  // Sol üstte gösterilen klavye kısayolları paneli — .tjs-panel--info ile
+  // aynı görsel dil, sadece ekranın sol tarafında.
+  &--shortcuts {
+    top: 0.75rem;
+    left: 0.75rem;
+    width: 280px;
+    max-height: calc(100% - 1.5rem);
     display: flex;
     flex-direction: column;
     animation: slideInLeft 0.22s ease;
@@ -617,13 +622,14 @@ $c-text-sub:  #64748b;
   z-index: 15;
   display: none; // ilk frame'den önce görünmesin
   align-items: center;
-  gap: 0.3rem;
-  padding: 0.3rem;
-  background: rgba($c-primary-d, 0.92);
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba($c-white, 0.15);
-  border-radius: 999px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  gap: 0.45rem;
+  // Bilinçli olarak arka plan/kenarlık/gölge YOK — sadece butonlar
+  // (her biri kendi dairesel arka planına sahip, bkz. .tjs-ring-btn)
+  // paketin üstünde havada duruyor, ayrı bir "pill" konteyner görünmüyor.
+  background: none;
+  border: none;
+  box-shadow: none;
+  padding: 0;
   pointer-events: auto;
   will-change: transform;
   animation: tjsRingPop 0.15s ease-out;
@@ -643,7 +649,11 @@ $c-text-sub:  #64748b;
   border: none;
   border-radius: 50%;
   cursor: pointer;
-  background: rgba($c-white, 0.12);
+  // Artık ortak bir "pill" arka planı yok (bkz. .tjs-action-ring) — her
+  // buton kendi başına okunaklı olsun diye daha koyu/opak bir zemin +
+  // hafif gölge taşıyor.
+  background: rgba($c-primary-d, 0.82);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
   color: $c-white;
   transition: var(--t);
 
@@ -667,6 +677,11 @@ $c-text-sub:  #64748b;
   &--danger {
     color: $c-danger;
     &:hover:not(:disabled) { background: rgba($c-danger, 0.22); }
+  }
+
+  &--add {
+    color: $c-accent;
+    &:hover:not(:disabled) { background: rgba($c-accent, 0.22); }
   }
 }
 

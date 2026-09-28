@@ -66,6 +66,12 @@ export const StepperPackageActions = createActionGroup({
     // Paket Silme/Bölme
     'Remove Package': props<{ packageId: string }>(),
     'Remove All Package': emptyProps(),
+    // Paket Klonlama — 3D sonuç ekranındaki "+" butonu (action ring). Kaynak
+    // paketi (pallet + package_details AYNEN) yeni bir id ile kopyalar ve
+    // is_remaining:true olarak ekler. remainingProducts'a DOKUNMAZ — klon,
+    // envanterden düşülmeden EK bir paket olarak sipariş toplamını artırır
+    // (bkz. threejs-truck-visualization duplicateAndSave... akışı).
+    'Duplicate Package': props<{ packageId: string }>(),
     'Remove Package Detail From Package': props<{ pkgId: string, packageDetailIndex: number }>(),
     'Split Package Detail': props<{ packageDetailId: string, splitCount: number | null }>(),
 

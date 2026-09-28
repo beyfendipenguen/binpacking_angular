@@ -74,30 +74,60 @@
         [matTooltip]="(isFullscreen ? 'TRUCK_VISUALIZATION.EXIT_FULLSCREEN' : 'TRUCK_VISUALIZATION.FULLSCREEN') | translate">
         <mat-icon>{{ isFullscreen ? 'fullscreen_exit' : 'fullscreen' }}</mat-icon>
       </button>
+      <button class="tjs-icon-btn" (click)="toggleShortcutsHint()"
+        [class.tjs-icon-btn--active]="showHelp"
+        [matTooltip]="(showHelp ? 'TRUCK_VISUALIZATION.HIDE_SHORTCUTS' : 'TRUCK_VISUALIZATION.SHOW_SHORTCUTS') | translate">
+        <mat-icon>help_outline</mat-icon>
+      </button>
     </div>
   </div>
 
-  <!-- Kısayollar — her zaman görünür, toolbar'ın hemen altında -->
-  <div class="tjs-shortcuts-bar">
-    <div class="tjs-shortcuts-bar__item">
-      <kbd>R</kbd><span>{{ 'TRUCK_VISUALIZATION.SHORTCUTS_ROTATE' | translate }}</span>
+  <!-- Kısayollar paneli — sol tarafta, detay paneliyle aynı stil, X ile kapatılabilir -->
+  @if (showHelp) {
+  <div class="tjs-panel tjs-panel--shortcuts">
+    <div class="tjs-panel__header">
+      <span class="tjs-panel__title">{{ 'TRUCK_VISUALIZATION.SHORTCUTS_TITLE' | translate }}</span>
+      <button class="tjs-close-btn" (click)="toggleShortcutsHint()">
+        <mat-icon>close</mat-icon>
+      </button>
     </div>
-    <div class="tjs-shortcuts-bar__item">
-      <kbd>Delete</kbd><span>{{ 'TRUCK_VISUALIZATION.SHORTCUTS_DELETE' | translate }}</span>
-    </div>
-    <div class="tjs-shortcuts-bar__item">
-      <kbd>F</kbd><span>{{ 'TRUCK_VISUALIZATION.SHORTCUTS_FULLSCREEN' | translate }}</span>
-    </div>
-    <div class="tjs-shortcuts-bar__item">
-      <kbd>Esc</kbd><span>{{ 'TRUCK_VISUALIZATION.SHORTCUTS_DESELECT' | translate }}</span>
-    </div>
-    <div class="tjs-shortcuts-bar__item">
-      <kbd>Ctrl+Z</kbd><span>{{ 'TRUCK_VISUALIZATION.SHORTCUTS_UNDO' | translate }}</span>
-    </div>
-    <div class="tjs-shortcuts-bar__item">
-      <kbd>Ctrl+Y</kbd><span>{{ 'TRUCK_VISUALIZATION.SHORTCUTS_REDO' | translate }}</span>
+    <div class="tjs-panel__body tjs-shortcuts-list">
+      <div class="tjs-shortcuts-list__item">
+        <kbd>R</kbd><span>{{ 'TRUCK_VISUALIZATION.SHORTCUTS_ROTATE' | translate }}</span>
+      </div>
+      <div class="tjs-shortcuts-list__item">
+        <kbd>A</kbd><span>{{ 'TRUCK_VISUALIZATION.SHORTCUTS_DUPLICATE' | translate }}</span>
+      </div>
+      <div class="tjs-shortcuts-list__item">
+        <kbd>W</kbd><span>{{ 'TRUCK_VISUALIZATION.SHORTCUTS_FORCE_PLACE' | translate }}</span>
+      </div>
+      <div class="tjs-shortcuts-list__item">
+        <kbd>Delete</kbd><kbd>D</kbd><span>{{ 'TRUCK_VISUALIZATION.SHORTCUTS_DELETE' | translate }}</span>
+      </div>
+      <div class="tjs-shortcuts-list__item">
+        <kbd>F</kbd><span>{{ 'TRUCK_VISUALIZATION.SHORTCUTS_FULLSCREEN' | translate }}</span>
+      </div>
+      <div class="tjs-shortcuts-list__item">
+        <kbd>Esc</kbd><span>{{ 'TRUCK_VISUALIZATION.SHORTCUTS_DESELECT' | translate }}</span>
+      </div>
+      <div class="tjs-shortcuts-list__item">
+        <kbd>Ctrl+Z</kbd><span>{{ 'TRUCK_VISUALIZATION.SHORTCUTS_UNDO' | translate }}</span>
+      </div>
+      <div class="tjs-shortcuts-list__item">
+        <kbd>Ctrl+Y</kbd><span>{{ 'TRUCK_VISUALIZATION.SHORTCUTS_REDO' | translate }}</span>
+      </div>
+      <div class="tjs-shortcuts-list__item">
+        <kbd>{{ 'TRUCK_VISUALIZATION.SHORTCUTS_SCROLL_LABEL' | translate }}</kbd><span>{{ 'TRUCK_VISUALIZATION.SHORTCUTS_ZOOM' | translate }}</span>
+      </div>
+      <div class="tjs-shortcuts-list__item">
+        <kbd>{{ 'TRUCK_VISUALIZATION.SHORTCUTS_RIGHT_CLICK_LABEL' | translate }}</kbd><span>{{ 'TRUCK_VISUALIZATION.SHORTCUTS_CAMERA_ROTATE' | translate }}</span>
+      </div>
+      <div class="tjs-shortcuts-list__item">
+        <kbd>{{ 'TRUCK_VISUALIZATION.SHORTCUTS_SCROLL_CLICK_LABEL' | translate }}</kbd><span>{{ 'TRUCK_VISUALIZATION.SHORTCUTS_PAN' | translate }}</span>
+      </div>
     </div>
   </div>
+  }
   }
 
   @if (selectedPackageSignal(); as selected) {
@@ -154,6 +184,53 @@
   }
   }
 
+  <!-- Plate'te (bekleme alanı) seçili paket için AYNI detay paneli —
+       tır sonuna mesafe/pozisyon gibi tıra özgü istatistikler hariç
+       (bkz. selectedPlatePackageSignal/selectedPlatePackageProducts). -->
+  @if (selectedPlatePackageSignal(); as platePkg) {
+  @if (!isLoadingModels && !isLoadingData) {
+  <div class="tjs-panel tjs-panel--info">
+    <div class="tjs-panel__header">
+      <span class="tjs-panel__title">Paket #{{ platePkg.id }}</span>
+      <button class="tjs-close-btn" (click)="clearPlateSelection()">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+
+    <div class="tjs-panel__body">
+      <div class="tjs-stat-row">
+        <span class="tjs-stat-row__label">{{ 'TRUCK_VISUALIZATION.DIMENSIONS' | translate }}</span>
+        <span class="tjs-stat-row__value tjs-mono">{{ platePkg.dimensions }}</span>
+      </div>
+      <div class="tjs-stat-row">
+        <span class="tjs-stat-row__label">{{ 'TRUCK_VISUALIZATION.WEIGHT' | translate }}</span>
+        <span class="tjs-stat-row__value tjs-mono">{{ platePkg.weight }} kg</span>
+      </div>
+      @if (platePkg.rotation) {
+      <div class="tjs-stat-row">
+        <span class="tjs-stat-row__label">{{ 'TRUCK_VISUALIZATION.ROTATION' | translate }}</span>
+        <span class="tjs-stat-row__value tjs-mono">{{ platePkg.rotation }}°</span>
+      </div>
+      }
+    </div>
+
+    @if (selectedPlatePackageProducts.length > 0) {
+    <div class="tjs-panel__section">
+      <p class="tjs-panel__section-title">{{ 'PERMISSION.MODELS.PACKAGEDETAIL' | translate }}</p>
+      <div class="tjs-product-list">
+        @for (detail of selectedPlatePackageProducts; track detail.id) {
+        <div class="tjs-product-item">
+          <span class="tjs-product-item__name">{{ detail.product.name }}</span>
+          <span class="tjs-product-item__count">{{ detail.count }}×</span>
+        </div>
+        }
+      </div>
+    </div>
+    }
+  </div>
+  }
+  }
+
   <!-- Paketin üstünde onu takip eden hızlı aksiyon halkası (bkz.
        updateActionRingPosition). Konteyner @if'e bağlı DEĞİL — seçim
        olsun/olmasın DOM'da SABİT kalır (görünürlük sadece style.display ile
@@ -181,6 +258,11 @@
       [appDisableAuth]="['orders.change_orderresult']" [matTooltip]="'TRUCK_VISUALIZATION.ROTATE_TIP' | translate">
       <mat-icon>rotate_right</mat-icon>
     </button>
+    <button class="tjs-ring-btn tjs-ring-btn--add" (click)="duplicateSelectedPackage()"
+      [appDisableAuth]="['orders.change_orderresult']"
+      [matTooltip]="'TRUCK_VISUALIZATION.DUPLICATE_PACKAGE_TIP' | translate">
+      <mat-icon>add</mat-icon>
+    </button>
     <button class="tjs-ring-btn tjs-ring-btn--danger" (click)="deleteSelectedPackage()"
       [appDisableAuth]="['orders.change_orderresult']"
       [matTooltip]="'TRUCK_VISUALIZATION.DELETE_PACKAGE' | translate">
@@ -190,10 +272,10 @@
   </div>
   }
 
-  <!-- Plate'te (bekleme alanı) seçili paket için sade halka: sadece döndür
-       + (şimdilik pasif) sil. Tır halkasından bilerek ayrı — bkz.
-       selectedPlatePackageSignal. Aynı sebeple (bkz. yukarıdaki not) dış
-       konteyner @if'e bağlı değil, hep DOM'da. -->
+  <!-- Plate'te (bekleme alanı) seçili paket için sade halka: döndür + klonla
+       + (artık gerçekten siparişten kaldıran) sil. Tır halkasından bilerek
+       ayrı — bkz. selectedPlatePackageSignal. Aynı sebeple (bkz. yukarıdaki
+       not) dış konteyner @if'e bağlı değil, hep DOM'da. -->
   @if (!isLoadingModels && !isLoadingData) {
   <div #plateActionRing class="tjs-action-ring tjs-action-ring--plate">
     @if (selectedPlatePackageSignal(); as platePkg) {
@@ -201,7 +283,12 @@
       [appDisableAuth]="['orders.change_orderresult']" [matTooltip]="'TRUCK_VISUALIZATION.ROTATE_TIP' | translate">
       <mat-icon>rotate_right</mat-icon>
     </button>
-    <button class="tjs-ring-btn tjs-ring-btn--danger" (click)="deletePlatePackageNoop()"
+    <button class="tjs-ring-btn tjs-ring-btn--add" (click)="duplicatePlatePackage()"
+      [appDisableAuth]="['orders.change_orderresult']"
+      [matTooltip]="'TRUCK_VISUALIZATION.DUPLICATE_PACKAGE_TIP' | translate">
+      <mat-icon>add</mat-icon>
+    </button>
+    <button class="tjs-ring-btn tjs-ring-btn--danger" (click)="deletePlatePackagePermanently()"
       [appDisableAuth]="['orders.change_orderresult']"
       [matTooltip]="'TRUCK_VISUALIZATION.STAGING_DELETE_TIP' | translate">
       <mat-icon>delete_outline</mat-icon>

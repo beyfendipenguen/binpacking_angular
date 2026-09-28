@@ -23,18 +23,22 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import * as THREE from 'three';
 import { Store } from '@ngrx/store';
+import { Actions, ofType } from '@ngrx/effects';
 import { AppState, selectActiveShipmentIndex, selectDeletedPackages, selectFirstZoneDepthMm, selectIsMultiShipment, selectOrderResult, selectPackages, selectShipments, selectStep3IsDirty, selectTruck, selectUserPermissions, selectZoneWeightLimits, StepperResultActions } from '../../store';
 import { StepperUiActions } from '@app/store/stepper/actions/stepper-ui.actions';
+import { StepperPackageActions } from '@app/store/stepper/actions/stepper-package.actions';
 import { ThreeJSRenderManagerService } from './services/threejs-render-manager.service';
 import { ThreeJSComponents, ThreeJSInitializationService } from './services/threejs-initialization.service';
 import { PackagesStateService } from './services/packages-state.service';
 import { PackageData, PackagePosition, PackageSnapshot } from '@app/features/interfaces/order-result.interface';
 import { toObservable } from '@angular/core/rxjs-interop';
-import { skip, distinctUntilChanged, takeUntil, Subject } from 'rxjs';
+import { skip, distinctUntilChanged, takeUntil, take, Subject } from 'rxjs';
 import { ToastService } from '@app/core/services/toast.service';
 import { DisableAuthDirective } from '@app/core/auth/directives/disable-auth.directive';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatDialog } from '@angular/material/dialog';
+import { ConfirmDialogComponent } from '../generic-table/confirm-dialog/confirm-dialog.component';
 
 
 
@@ -64,7 +68,11 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
   selectedPlatePackageSignal = signal<PackageData | null>(null);
   @Input() isActive = false;
   
-  showHelp: boolean = true;
+  // Sol tarafta gösterilen "klavye kısayolları" panelinin açık/kapalı durumu.
+  // Tercih localStorage'da saklanır, sayfa yenilense/tekrar açılsa bile
+  // kullanıcının seçimi korunur. Varsayılan olarak (ilk açılışta) görünür.
+  private readonly SHOW_SHORTCUTS_HINT_STORAGE_KEY = 'tjs-show-shortcuts-hint';
+  showHelp: boolean = this.loadShowShortcutsHintPreference();
   isFullscreen = false;
   // Paket üst/yan yüzeylerindeki ürün detay etiketlerini her zaman (hover
   // beklemeden) gösterme aç/kapa durumu — bkz. toggleAllPackageLabels().
@@ -85,6 +93,8 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
   private readonly translate = inject(TranslateService);
   private readonly packagesStateService = inject(PackagesStateService);
   private readonly toastService = inject(ToastService);
+  private readonly dialog = inject(MatDialog);
+  private readonly actions$ = inject(Actions);
 
   // Signals
   truckDimension = this.store.selectSignal(selectTruck);
@@ -180,6 +190,12 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
   // hiç girmeden doğrudan DOM style yazar (performans için, bkz.
   // updateActionRingPosition).
   private readonly ringProjectionVector = new THREE.Vector3();
+  // Halka ile paketin üstü arasında ekstra ekran-uzayı boşluk (px) —
+  // "margin-bottom" isteği: transform JS ile yazıldığı için gerçek CSS
+  // margin'i pozisyona etki etmiyor (top:0/left:0 + translate kullanılıyor,
+  // margin sadece bottom/right ile konumlananları etkiler), o yüzden bu
+  // boşluğu doğrudan piksel hesabına ekliyoruz.
+  private readonly RING_VERTICAL_GAP = 14;
 
   // Camera interaction
   private isRotatingCamera = false;
@@ -480,6 +496,23 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     return matchedPackage?.package_details || [];
   }
 
+  /**
+   * selectedPackageProducts ile AYNI eşleştirme, plate'te (bekleme
+   * alanı) seçili paket için — detay panelinin ürün listesi bölümü orada
+   * da görünsün diye (bkz. selectedPlatePackageSignal).
+   */
+  get selectedPlatePackageProducts(): any[] {
+    const selected = this.selectedPlatePackageSignal();
+    if (!selected) return [];
+
+    const packages = this.packagesSignal();
+    const matchedPackage = Object.values(packages).find(
+      (pkg: any) => pkg.id === selected.pkgId
+    );
+
+    return matchedPackage?.package_details || [];
+  }
+
   get selectedPackageDistanceToEndDisplay(): string {
     const distance = this.selectedPackageDistanceToEnd;
     if (distance >= 1000) {
@@ -557,6 +590,14 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
       return;
     }
 
+    // Mesh (veya bir üst grubu) YENİ eklendiyse matrixWorld'ü henüz hiç
+    // render'dan geçmemiş olabilir (varsayılan/eski değerde kalır) — bu
+    // durumda getWorldPosition YANLIŞ (ör. 0,0,0'a yakın, ekranın sol-üst
+    // köşesine izdüşen) bir konum döndürür ve halka bir kare boyunca
+    // köşede "flaşlar". Projeksiyondan ÖNCE matrisi elle güncelleyerek bunu
+    // render zamanlamasından bağımsız hale getiriyoruz.
+    this.packagesGroup?.updateMatrixWorld(true);
+
     // Kutunun tam dünya konumu (packagesGroup'un kendi transformu dahil) +
     // kutunun üstünden biraz yukarısı, ki halka paketin üstünde asılı dursun.
     selected.mesh.getWorldPosition(this.ringProjectionVector);
@@ -570,7 +611,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     }
 
     const x = (this.ringProjectionVector.x * 0.5 + 0.5) * width;
-    const y = (-this.ringProjectionVector.y * 0.5 + 0.5) * height;
+    const y = (-this.ringProjectionVector.y * 0.5 + 0.5) * height - this.RING_VERTICAL_GAP;
 
     ringEl.style.display = 'flex';
     ringEl.style.transform = `translate(${x}px, ${y}px) translate(-50%, -100%)`;
@@ -601,6 +642,12 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
       return;
     }
 
+    // Aynı flaş sorununa karşı — bkz. updateActionRingPosition'daki not.
+    // Plate mesh'leri özellikle sık dispose+yeniden-oluşturuluyor (bkz.
+    // refreshSinglePlatePackageMesh/createPlateVisualization), bu yüzden
+    // burada matrisin taze olduğundan emin olmak daha kritik.
+    this.plateGroup?.updateMatrixWorld(true);
+
     selected.mesh.getWorldPosition(this.ringProjectionVector);
     this.ringProjectionVector.y += selected.height / 2 + 180;
     this.ringProjectionVector.project(this.camera);
@@ -611,7 +658,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     }
 
     const x = (this.ringProjectionVector.x * 0.5 + 0.5) * width;
-    const y = (-this.ringProjectionVector.y * 0.5 + 0.5) * height;
+    const y = (-this.ringProjectionVector.y * 0.5 + 0.5) * height - this.RING_VERTICAL_GAP;
 
     ringEl.style.display = 'flex';
     ringEl.style.transform = `translate(${x}px, ${y}px) translate(-50%, -100%)`;
@@ -910,40 +957,62 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     maxWidth: number
   ): { slots: Map<string, { x: number; z: number }>; usedDepth: number } {
     const slots = new Map<string, { x: number; z: number }>();
-    let cursorX = this.PLATE_ITEM_GAP;
-    let cursorZ = this.PLATE_ITEM_GAP;
-    let rowDepth = 0;
-    let usedDepth = this.PLATE_ITEM_GAP;
+    const gap = this.PLATE_ITEM_GAP;
+    let usedDepth = gap;
 
     // Önce mevcut (kullanıcının serbestçe yerleştirdiği) konumları koru —
     // usedDepth hesaplamasına dahil et ki plate zemini/derinliği bu
-    // paketleri de kapsasın.
+    // paketleri de kapsasın. Bu dikdörtgenleri, aşağıdaki grid taramasının
+    // ÇAKIŞMA kontrolünde de kullanıyoruz — aksi halde yeni silinen bir
+    // paket, kullanıcının serbestçe yerleştirdiği bir paketin TAM ÜZERİNE
+    // (satır/sütun kör bir kursörle) yerleştirilebiliyordu.
+    const placedRects: Array<{ x: number; z: number; length: number; width: number }> = [];
     for (const pkg of packages) {
       if (pkg.x >= 0 && pkg.y >= 0) {
         slots.set(pkg.pkgId, { x: pkg.x, z: pkg.y });
-        usedDepth = Math.max(usedDepth, pkg.y + pkg.width + this.PLATE_ITEM_GAP);
+        placedRects.push({ x: pkg.x, z: pkg.y, length: pkg.length, width: pkg.width });
+        usedDepth = Math.max(usedDepth, pkg.y + pkg.width + gap);
       }
     }
 
-    // Henüz konumu olmayan (yeni silinmiş) paketleri grid'e diz.
+    const overlapsAny = (x: number, z: number, length: number, width: number): boolean => {
+      for (const r of placedRects) {
+        const separatedOnX = x + length + gap <= r.x || r.x + r.length + gap <= x;
+        const separatedOnZ = z + width + gap <= r.z || r.z + r.width + gap <= z;
+        if (!separatedOnX && !separatedOnZ) return true;
+      }
+      return false;
+    };
+
+    // Henüz konumu olmayan (yeni silinmiş) paketleri, MEVCUT paketlerle
+    // (ve bu döngüde daha önce yerleştirilenlerle) çakışmayacak ilk boş
+    // yere diz — satır satır tarayıp uygun bir boşluk bulunca yerleştirir.
+    const step = 100;
     for (const pkg of packages) {
       if (pkg.x >= 0 && pkg.y >= 0) continue;
 
       const footprintX = pkg.length;
       const footprintZ = pkg.width;
+      let placed: { x: number; z: number } | undefined;
 
-      if (cursorX > this.PLATE_ITEM_GAP && cursorX + footprintX + this.PLATE_ITEM_GAP > maxWidth) {
-        // Satır doldu → bir alt satıra geç
-        cursorX = this.PLATE_ITEM_GAP;
-        cursorZ += rowDepth + this.PLATE_ITEM_GAP;
-        rowDepth = 0;
+      zScan:
+      for (let z = gap; z <= usedDepth + 20000; z += step) {
+        for (let x = gap; x + footprintX + gap <= maxWidth; x += step) {
+          if (!overlapsAny(x, z, footprintX, footprintZ)) {
+            placed = { x, z };
+            break zScan;
+          }
+        }
       }
 
-      slots.set(pkg.pkgId, { x: cursorX, z: cursorZ });
+      if (!placed) {
+        // Hiç boşluk bulunamadıysa (aşırı kalabalık) — mevcut derinliğin altına ekle.
+        placed = { x: gap, z: usedDepth };
+      }
 
-      cursorX += footprintX + this.PLATE_ITEM_GAP;
-      rowDepth = Math.max(rowDepth, footprintZ);
-      usedDepth = Math.max(usedDepth, cursorZ + rowDepth + this.PLATE_ITEM_GAP);
+      slots.set(pkg.pkgId, placed);
+      placedRects.push({ x: placed.x, z: placed.z, length: footprintX, width: footprintZ });
+      usedDepth = Math.max(usedDepth, placed.z + footprintZ + gap);
     }
 
     return { slots, usedDepth };
@@ -1070,6 +1139,31 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     }
 
     this.renderManager.requestRender();
+  }
+
+  /**
+   * initiateDragging, sürüklemeye BAŞLARKEN (tıklama mı gerçek sürükleme mi
+   * olduğu henüz belli değilken) plate paketinin mesh'ini geçici olarak
+   * packagesGroup'a alıyor (bkz. initiateDragging'deki not). Eğer sürükleme
+   * hiç gerçekleşmediyse (sadece tıklandıysa), pkg.x/y/z zaten değişmedi —
+   * bu durumda mesh'i dispose edip YENİDEN KURMAK (refreshSinglePlatePackageMesh)
+   * gereksiz pahalı: hem CanvasTexture etiketleri boş yere yeniden çiziliyor
+   * hem de bu işlem sırasında halka için bir anlık "eski/yanlış konum"
+   * görünme riski yaratıyor. Bunun yerine mesh'i AYNI OBJE olarak, dünya
+   * konumunu koruyarak plateGroup'a GERİ taşıyoruz — ucuz ve anlık.
+   */
+  private revertPlateMeshReparent(pkg: PackageData): void {
+    if (!pkg.mesh || pkg.mesh.parent === this.plateGroup) return;
+
+    const worldPos = new THREE.Vector3();
+    pkg.mesh.getWorldPosition(worldPos);
+    pkg.mesh.parent?.remove(pkg.mesh);
+    this.plateGroup.add(pkg.mesh);
+    pkg.mesh.position.set(
+      worldPos.x - this.plateGroup.position.x,
+      worldPos.y - this.plateGroup.position.y,
+      worldPos.z - this.plateGroup.position.z
+    );
   }
 
   /**
@@ -2285,29 +2379,36 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     this.clearHighlights();
     this.skipStoreSync = false;
 
-    if (wasFromPlate && (!positionChanged || endsOverPlate)) {
-      // Plate'te kaldı — ya hiç gerçek sürükleme olmadı (sadece tıklandı)
-      // ya da plate sınırları içinde taşındı. Sürükleme SIRASINDA çakışma
-      // kontrolü yapılmıyor (serbestçe gezinebilsin diye), ama BIRAKMA
-      // ANINDA tek seferlik bir kontrol yapıyoruz: bırakılan yer müsaitse
-      // orada kalır, değilse en yakın müsait boşluğa oturtulur. Sadece
-      // tıklandıysa (pozisyon değişmedi) pkg.x/y zaten doğru plate-local
-      // değerlerde, dokunmuyoruz.
-      if (positionChanged) {
-        const plateOffsetZ = truckDims[1] + this.PLATE_GAP;
-        const desiredX = pkg.x;
-        const desiredZ = pkg.y - plateOffsetZ;
-        const others = this.packagesStateService.deletedPackages()
-          .filter(p => p.pkgId !== pkg.pkgId && p.x >= 0 && p.y >= 0);
-        const spot = this.findNearestFreePlateSpot(pkg, desiredX, desiredZ, others);
-        pkg.x = spot.x;
-        pkg.y = spot.z;
-        pkg.z = 0;
-      }
-      // initiateDragging'in geçici olarak packagesGroup'a aldığı mesh'i
-      // temizleyip SADECE bu paketin mesh'ini (korunan konumla) yeniden
-      // kuruyoruz — plate'teki diğer paketlere dokunmadan (bkz.
-      // refreshSinglePlatePackageMesh, performans notu).
+    if (wasFromPlate && !positionChanged) {
+      // Sadece tıklandı — hiç gerçek sürükleme olmadı. initiateDragging YİNE
+      // DE mesh'i mousedown anında geçici olarak packagesGroup'a almıştı
+      // (bkz. initiateDragging) — burada mesh'i DISPOSE EDİP YENİDEN
+      // KURMAK YERİNE ucuz bir şekilde plateGroup'a GERİ TAŞIYORUZ (dünya
+      // konumunu koruyarak). Önceden her tıklamada tam bir dispose+rebuild
+      // (CanvasTexture etiketleri dahil) yapılıyordu — bu hem gereksiz
+      // pahalıydı hem de plate ring'in bir an için yanlış/eski konumda
+      // görünüp sonra pakete "atlaması" hissi veriyordu.
+      this.revertPlateMeshReparent(pkg);
+      this.renderManager.requestRender();
+      return;
+    }
+
+    if (wasFromPlate && endsOverPlate) {
+      // Plate sınırları içinde GERÇEKTEN taşındı. Sürükleme SIRASINDA
+      // çakışma kontrolü yapılmıyor (serbestçe gezinebilsin diye), ama
+      // BIRAKMA ANINDA tek seferlik bir kontrol yapıyoruz: bırakılan yer
+      // müsaitse orada kalır, değilse en yakın müsait boşluğa oturtulur.
+      const plateOffsetZ = truckDims[1] + this.PLATE_GAP;
+      const desiredX = pkg.x;
+      const desiredZ = pkg.y - plateOffsetZ;
+      const others = this.packagesStateService.deletedPackages()
+        .filter(p => p.pkgId !== pkg.pkgId && p.x >= 0 && p.y >= 0);
+      const spot = this.findNearestFreePlateSpot(pkg, desiredX, desiredZ, others);
+      pkg.x = spot.x;
+      pkg.y = spot.z;
+      pkg.z = 0;
+      // Konum gerçekten değiştiği için burada tam yeniden kurulum (yeni
+      // slot'a göre) gerekiyor — bkz. refreshSinglePlatePackageMesh.
       this.refreshSinglePlatePackageMesh(pkg);
       this.renderManager.requestRender();
       return;
@@ -2435,11 +2536,12 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
 
       // Plate'ten alınmış bir paketin sürüklemesi iptal edildiyse (ör. 2.
       // parmak devreye girdi) — initiateDragging'in geçici olarak
-      // packagesGroup'a aldığı mesh'i temizleyip SADECE bu paketin
-      // mesh'ini plate'e geri kur (aksi halde hayalet mesh sızar; diğer
-      // plate paketlerine dokunmadan — bkz. refreshSinglePlatePackageMesh).
+      // packagesGroup'a aldığı mesh'i ucuza (dispose+rebuild YAPMADAN,
+      // dünya konumunu koruyarak) plate'e geri taşı — bkz.
+      // revertPlateMeshReparent.
       if (this.draggedFromPlate) {
-        this.refreshSinglePlatePackageMesh(pkg);
+        this.revertPlateMeshReparent(pkg);
+        this.renderManager.requestRender();
       }
     }
     this.isDragging = false;
@@ -2826,12 +2928,109 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
   }
 
   /**
-   * Plate'teki sil butonu — kullanıcı isteği üzerine ŞİMDİLİK sadece
-   * bilgilendirme veriyor, gerçek bir silme işlemi yapmıyor (davranışı
-   * ayrıca netleştirilecek).
+   * "+" (klonla) — seçili paketi (pallet + ürün içeriği AYNEN) yeni bir
+   * paket olarak siparişe ekler. Klon HER ZAMAN plate'e (yerleşmemiş
+   * havuza) düşer, otomatik yerleştirilmez. Ürün detaylarının kopyalanması
+   * ve kalıcı/çakışmasız numaralandırma Step2 (StepperPackageActions.
+   * duplicatePackage) + backend save tarafından yapılıyor; sonucu 3D'ye
+   * yaymak (plate'e ekleme, TÜM paketlerin numaralarını güncelleme) mevcut
+   * syncBackendPackages$ effect'inin (stepper-result.effects.ts) işi.
+   *
+   * upsertMany() TEK BAŞINA yetmiyor — sadece step2State.packages'ı
+   * kaydediyor. Sipariş DETAYLARININ (step1State/orderDetails, yani
+   * faturadaki ürün adetleri) de güncellenmesi için ÖNCE
+   * calculateOrderDetailChanges() ile step1State.added/modified/deletedIds
+   * ÇAKIŞMALARI taze packages'a göre yeniden hesaplanmalı (bu alanlar sadece
+   * bu action çalışınca güncellenir, otomatik değil), SONRA
+   * palletControlSubmit() ile hem paket hem sipariş detay kaydı birlikte
+   * tetiklenmeli — palletControlSubmit$ effect'i tam bunu yapıyor
+   * (upsertMany() + StepperInvoiceUploadActions.upsertMany()).
    */
-  deletePlatePackageNoop(): void {
-    this.toastService.info(this.translate.instant('TRUCK_VISUALIZATION.STAGING_DELETE_TIP'));
+  private duplicatePackageAndSave(pkg: PackageData): void {
+    this.store.dispatch(StepperPackageActions.duplicatePackage({ packageId: pkg.pkgId }));
+    this.store.dispatch(StepperPackageActions.calculateOrderDetailChanges());
+    this.store.dispatch(StepperPackageActions.palletControlSubmit());
+  }
+
+  duplicateSelectedPackage(): void {
+    const selected = this.selectedPackageSignal();
+    if (!selected) return;
+    this.duplicatePackageAndSave(selected);
+  }
+
+  duplicatePlatePackage(): void {
+    const selected = this.selectedPlatePackageSignal();
+    if (!selected) return;
+    this.duplicatePackageAndSave(selected);
+  }
+
+  /**
+   * Plate'teki sil butonu — artık gerçekten siparişten kaldırıyor (Step2'den
+   * silip ürünlerini kalan ürünler havuzuna geri koyuyor, backend'e kaydediyor).
+   * Geri alınamaz olduğu için önce onay isteniyor. Onay sonrası ÖNCE local
+   * (anlık görsel geri bildirim için mesh/seçim/plate havuzu temizliği),
+   * SONRA store/backend dispatch'leri yapılır.
+   */
+  deletePlatePackagePermanently(): void {
+    const selected = this.selectedPlatePackageSignal();
+    if (!selected) return;
+
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '350px',
+      data: {
+        message: this.translate.instant('TRUCK_VISUALIZATION.STAGING_DELETE_CONFIRM_MESSAGE', { id: selected.id })
+      }
+    });
+
+    dialogRef.afterClosed().subscribe((confirmed) => {
+      if (!confirmed) return;
+
+      const pkg = selected;
+
+      // Local — anlık görsel geri bildirim (backend round-trip beklemeden).
+      if (pkg.mesh) {
+        pkg.mesh.parent?.remove(pkg.mesh);
+        this.disposeObjectTree(pkg.mesh);
+        pkg.mesh = undefined;
+      }
+      this.clearPlateSelection();
+      this.packagesStateService.removeFromDeletedPackages(pkg.pkgId);
+
+      // Store/backend — Step2'den sil (ürünler kalan havuza döner) + kaydet.
+      // syncBackendPackages$ (stepper-result.effects.ts) sonucu Step3'e
+      // (deletedPackages + TÜM paketlerin güncel numaraları) otomatik yayar.
+      // upsertMany() TEK BAŞINA sadece step2State.packages'ı kaydeder —
+      // sipariş DETAYLARININ (step1State/orderDetails, faturadaki ürün
+      // adetleri) de bu silmeyi yansıtması için ÖNCE
+      // calculateOrderDetailChanges() (step1State.added/modified/deletedIds'i
+      // taze packages'a göre yeniden hesaplar — otomatik değil, sadece bu
+      // action çalışınca güncellenir), SONRA palletControlSubmit() (paket +
+      // sipariş detay kaydını BİRLİKTE tetikler) gerekiyor.
+      this.store.dispatch(StepperResultActions.removeDeletedPackage({ pkgId: pkg.pkgId }));
+      this.store.dispatch(StepperPackageActions.removePackage({ packageId: pkg.pkgId }));
+      this.store.dispatch(StepperPackageActions.calculateOrderDetailChanges());
+      this.store.dispatch(StepperPackageActions.palletControlSubmit());
+
+      // Silme, klonlamanın aksine "açık iş" bırakmaz (yerleştirilecek yeni
+      // bir paket yok) — bu yüzden backend kaydı BAŞARIYLA dönünce Step3'ün
+      // "kaydedilmemiş değişiklik var" (isDirty) göstergesi takılı kalmasın
+      // diye açıkça temizliyoruz. applyBackendSync (syncBackendPackages$
+      // effect'i, aynı upsertManySuccess'i dinliyor) isDirty'i sadece TRUE
+      // yapabiliyor, hiç false'a çekmiyor — bu yüzden bu temizliği BİZ
+      // yapıyoruz. Kayıt başarısız olursa (upsertManyFailure) dokunmuyoruz,
+      // dirty true kalsın ki kullanıcı kaydedilmediğini görsün.
+      this.actions$.pipe(
+        ofType(StepperPackageActions.upsertManySuccess, StepperPackageActions.upsertManyFailure),
+        take(1),
+        takeUntil(this.destroy$)
+      ).subscribe((action) => {
+        if (action.type === StepperPackageActions.upsertManySuccess.type) {
+          this.store.dispatch(StepperResultActions.setIsDirty({ isDirty: false }));
+        }
+      });
+
+      this.orderResultChange();
+    });
   }
 
   private highlightSelectedPackage(): void {
@@ -2873,6 +3072,13 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
         pkg.detailLabelMeshes?.forEach(label => (label.visible = false));
       }
     });
+    // Plate (bekleme alanı) paketleri de aynı şekilde temizlenmeli —
+    // aksi halde plate'ten çıkan hover sonrası etiketler takılı kalabilir.
+    if (!this.showAllPackageLabels) {
+      this.packagesStateService.deletedPackages().forEach(pkg => {
+        pkg.detailLabelMeshes?.forEach(label => (label.visible = false));
+      });
+    }
   }
 
   private updateHoverEffectsThrottled(): void {
@@ -2886,7 +3092,15 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
   private updateHoverEffects(): void {
     if (this.isDragging) return;
 
-    const hoveredPackage = this.getIntersectedPackage();
+    // getIntersectedAny() hem tır (packagesGroup) hem plate (plateGroup)
+    // mesh'lerini tarar — eskiden burada sadece tır-özel getIntersectedPackage()
+    // kullanılıyordu, bu yüzden plate'teki (deletedPackages) paketlerin ürün
+    // detay etiketleri hover'da HİÇ görünmüyordu, sadece paket sürüklenip
+    // mesh'i yeniden kurulunca (refreshSinglePlatePackageMesh) görünür oluyordu.
+    const intersected = this.getIntersectedAny();
+    const hoveredPackage = intersected?.pkg ?? null;
+    const selectedPlate = this.selectedPlatePackageSignal();
+
     this.processedPackagesSignal().forEach(pkg => {
       if (pkg.mesh && pkg !== this.selectedPackageSignal() && !pkg.isBeingDragged) {
         const material = pkg.mesh.material as THREE.MeshStandardMaterial;
@@ -2904,6 +3118,23 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
         label => (label.visible = this.showAllPackageLabels || pkg === hoveredPackage)
       );
     });
+
+    // Plate (bekleme alanı) paketleri için de aynı hover/etiket mantığı.
+    this.packagesStateService.deletedPackages().forEach(pkg => {
+      if (pkg.mesh && pkg !== selectedPlate && !pkg.isBeingDragged) {
+        const material = pkg.mesh.material as THREE.MeshStandardMaterial;
+        if (pkg === hoveredPackage) {
+          material.emissive.setHex(0x333333);
+        } else {
+          material.emissive.setHex(0x000000);
+        }
+        pkg.mesh.scale.setScalar(1.0);
+      }
+      pkg.detailLabelMeshes?.forEach(
+        label => (label.visible = this.showAllPackageLabels || pkg === hoveredPackage)
+      );
+    });
+
     this.renderManager.requestRender();
   }
 
@@ -2917,6 +3148,10 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
   toggleAllPackageLabels(): void {
     this.showAllPackageLabels = !this.showAllPackageLabels;
     this.processedPackagesSignal().forEach(pkg => {
+      pkg.detailLabelMeshes?.forEach(label => (label.visible = this.showAllPackageLabels));
+    });
+    // Plate (bekleme alanı) paketleri de toggle'a dahil olmalı.
+    this.packagesStateService.deletedPackages().forEach(pkg => {
       pkg.detailLabelMeshes?.forEach(label => (label.visible = this.showAllPackageLabels));
     });
     this.renderManager.requestRender();
@@ -2936,6 +3171,32 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
   private saveShowAllPackageLabelsPreference(value: boolean): void {
     try {
       localStorage.setItem(this.SHOW_ALL_LABELS_STORAGE_KEY, String(value));
+    } catch {
+      // localStorage kullanılamıyorsa sessizce yut — kritik bir işlev değil
+    }
+  }
+
+  /** Klavye kısayolları panelini açar/kapatır ve tercihi localStorage'a yazar. */
+  toggleShortcutsHint(): void {
+    this.showHelp = !this.showHelp;
+    this.saveShowShortcutsHintPreference(this.showHelp);
+  }
+
+  /** localStorage'da saklanan "kısayollar panelini göster" tercihini okur. */
+  private loadShowShortcutsHintPreference(): boolean {
+    try {
+      const stored = localStorage.getItem(this.SHOW_SHORTCUTS_HINT_STORAGE_KEY);
+      // Henüz bir tercih kaydedilmemişse (ilk açılış) varsayılan olarak görünür olsun.
+      return stored === null ? true : stored === 'true';
+    } catch {
+      return true; // localStorage kullanılamıyorsa (gizli sekme vb.) sessizce varsayılana düş
+    }
+  }
+
+  /** "Kısayollar panelini göster" tercihini localStorage'a yazar. */
+  private saveShowShortcutsHintPreference(value: boolean): void {
+    try {
+      localStorage.setItem(this.SHOW_SHORTCUTS_HINT_STORAGE_KEY, String(value));
     } catch {
       // localStorage kullanılamıyorsa sessizce yut — kritik bir işlev değil
     }
@@ -3429,7 +3690,31 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
           this.deleteSelectedPackage();
         } else if (this.selectedPlatePackageSignal() && this.hasChangePerm()) {
           event.preventDefault();
-          this.deletePlatePackageNoop();
+          this.deletePlatePackagePermanently();
+        }
+        break;
+
+      case 'a':
+      case 'A':
+        if (this.selectedPackageSignal() && this.hasChangePerm()) {
+          event.preventDefault();
+          this.duplicateSelectedPackage();
+        } else if (this.selectedPlatePackageSignal() && this.hasChangePerm()) {
+          event.preventDefault();
+          this.duplicatePlatePackage();
+        }
+        break;
+
+      case 'w':
+      case 'W':
+        if (this.selectedPackageSignal() && this.hasChangePerm()) {
+          event.preventDefault();
+          const selected = this.selectedPackageSignal()!;
+          if (selected.isForcePlaced) {
+            this.unforcePlacePackage();
+          } else {
+            this.forcePlacePackage();
+          }
         }
         break;
 

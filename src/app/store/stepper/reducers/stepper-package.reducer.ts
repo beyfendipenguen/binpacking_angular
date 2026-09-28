@@ -852,6 +852,39 @@ export const stepperPackageHandlers = [
     };
   }),
 
+  // Duplicate Package — 3D sonuç ekranındaki "+" butonu. Kaynak paketi
+  // (pallet + package_details AYNEN) yeni bir id ile kopyalar, is_remaining:
+  // true olarak ekler. remainingProducts'a DOKUNMAZ (klon, envanterden
+  // düşülmeden EK bir paket olarak sipariş toplamını artırır — bilinçli
+  // ürün kararı). name burada sadece GEÇİCİ bir değer — asıl (kalıcı,
+  // çakışmasız) numarayı upsertMany sonrası backend'in _reindex_packages'ı
+  // atar; syncBackendPackages$ effect'i (stepper-result.effects.ts) bunu
+  // hem bu klona hem TÜM diğer paketlere otomatik yayar.
+  on(StepperPackageActions.duplicatePackage, (state: StepperState, { packageId }) => {
+    const currentPackages = state.step2State.packages;
+    const source = currentPackages.find(p => p.id === packageId);
+
+    if (!source) return state;
+
+    const nextName = Math.max(0, ...currentPackages.map(p => p.name)) + 1;
+
+    const clone: IUiPackage = {
+      ...source,
+      id: Guid(),
+      name: nextName,
+      is_remaining: true,
+      package_details: (source.package_details || []).map(detail => ({ ...detail })),
+    };
+
+    return {
+      ...state,
+      step2State: {
+        ...state.step2State,
+        packages: [...currentPackages, clone],
+      }
+    };
+  }),
+
   // Remove All Package
   on(StepperPackageActions.removeAllPackage, (state: StepperState) => {
     const allPackageDetails: PackageDetailReadDto[] = [];
