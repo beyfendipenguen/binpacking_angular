@@ -49,7 +49,6 @@
         </button>
         }
       </mat-form-field>
-      <ng-container *appHasPermission="'organizations.view_erpcredential'">
         @if (hasErpCredential) {
         <button mat-stroked-button color="primary" (click)="goToIntegration()"
           [matTooltip]="'ORDER.GO_TO_INTEGRATION' | translate">
@@ -57,7 +56,6 @@
           {{ 'ORDER.GO_TO_INTEGRATION' | translate }}
         </button>
         }
-      </ng-container>
     </div>
     <app-generic-table *appHasPermission="'orders.view_order'" [service]="orderService"
       [displayedColumns]="displayedColumns" [columnTypes]="columnTypes"
