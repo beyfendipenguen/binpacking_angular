@@ -66,6 +66,11 @@
       </mat-autocomplete>
     </mat-form-field>
 
+    <div class="info-hint">
+      <mat-icon>info_outline</mat-icon>
+      <span>{{ 'ORDER.MERGE_SELECT_CUSTOMER_HINT' | translate }}</span>
+    </div>
+
     @if (selectedOrders.length >= 2 && selectedRelation) {
     <!-- 4. Uyarı + onay -->
     <div class="warning-box">

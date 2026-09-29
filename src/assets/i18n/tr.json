@@ -388,6 +388,7 @@
     "MERGE_NO_ORDERS_SELECTED": "Henüz sipariş seçilmedi. Yukarıdan arayıp ekleyin.",
     "MERGE_SELECT_CUSTOMER": "Hedef müşteri",
     "MERGE_SELECT_CUSTOMER_PLACEHOLDER": "Müşteri ara ve seç...",
+    "MERGE_SELECT_CUSTOMER_HINT": "Hedef müşteri, siparişlerin birleştirileceği müşteriyi belirtir. Bunun için Müşteri Yönetimi'nden \"Birleştirilmiş Müşteriler\" gibi ayrı bir müşteri oluşturup birleştirilecek tüm siparişleri bu müşteride toplayabilirsiniz.",
     "MERGE_WARNING": "{{count}} sipariş tek bir siparişte birleştirilecek. Ürün adetleri toplanacak, eski siparişlerin paket/palet ve sonuç verileri ile dosyaları silinecek. Bu işlem geri alınamaz.",
     "MERGE_CONFIRM": "Seçilen siparişlerin birleştirileceğini, eski paket/palet verilerinin ve dosyaların silineceğini anlıyorum",
     "MERGE_SAVE": "Birleştir",

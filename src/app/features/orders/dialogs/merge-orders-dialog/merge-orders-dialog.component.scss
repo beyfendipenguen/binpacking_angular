@@ -149,6 +149,28 @@
     }
   }
 
+  .info-hint {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px 14px;
+    margin: 6px 0 4px;
+    border-radius: 10px;
+    border: 1px solid rgba(0, 106, 106, 0.2);
+    background-color: rgba(0, 106, 106, 0.05);
+    color: #005757;
+    font-size: 12.5px;
+    line-height: 1.45;
+
+    mat-icon {
+      flex-shrink: 0;
+      color: #006A6A;
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
+    }
+  }
+
   .warning-box {
     display: flex;
     align-items: center;
