@@ -13,6 +13,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatChipsModule } from '@angular/material/chips';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
 import { HasPermissionDirective } from '@app/core/auth/directives/has-permission.directive';
@@ -21,6 +22,7 @@ import { ToastService } from '@app/core/services/toast.service';
 import { ErpIntegrationService } from '@app/features/services/erp-integration.service';
 import { ErpCredential, ErpListPageInfo, ErpOrderSummary, ErpRowImportState } from '@app/features/interfaces/erp-integration.interface';
 import { ErpCredentialDialogComponent } from './dialogs/erp-credential-dialog/erp-credential-dialog.component';
+import { ConfirmDialogComponent } from '@app/shared/generic-table/confirm-dialog/confirm-dialog.component';
 
 @Component({
   selector: 'app-integration',
@@ -39,6 +41,7 @@ import { ErpCredentialDialogComponent } from './dialogs/erp-credential-dialog/er
     MatProgressSpinnerModule,
     MatTooltipModule,
     MatChipsModule,
+    MatButtonToggleModule,
     TranslateModule,
     HasPermissionDirective,
     DisableAuthDirective,
@@ -77,9 +80,18 @@ export class IntegrationComponent implements OnInit, OnDestroy {
     'customer_name',
     'customer_code',
     'date',
-    'status',
     'actions',
   ];
+
+  /**
+   * Teklif/Sipariş ayrımı — backend'de tek bir liste endpoint'i var
+   * (POST erp/list-orders/), sadece filters.source_type'a göre connector
+   * farklı bir tablo seti sorguluyor (bkz. SanicaConnector._SOURCE_TABLES).
+   * Ayrı buton/ayrı ekran yerine TEK liste + bu toggle — mevcut pagination/
+   * arama/import-durumu altyapısının ikilenmemesi için (bkz. tartışma).
+   * Varsayılan 'offer' — mevcut/eski davranışla birebir aynı.
+   */
+  sourceType: 'offer' | 'order' = 'offer';
 
   isFetchingOrders = false;
   hasFetchedOnce = false;
@@ -130,6 +142,15 @@ export class IntegrationComponent implements OnInit, OnDestroy {
 
   clearSearch(): void {
     this.searchControl.setValue('');
+  }
+
+  /** Teklif/Sipariş toggle'ı değiştiğinde — yeni tür için baştan çek. */
+  onSourceTypeChange(value: 'offer' | 'order'): void {
+    if (this.sourceType === value) return;
+    this.sourceType = value;
+    if (this.credential?.is_configured) {
+      this.refreshOrders();
+    }
   }
 
   /**
@@ -204,6 +225,7 @@ export class IntegrationComponent implements OnInit, OnDestroy {
     const filters: Record<string, any> = {
       page: this.currentPage + 1,
       page_size: this.pageSize,
+      source_type: this.sourceType,
     };
     if (search) {
       filters['search'] = search;
@@ -293,11 +315,39 @@ export class IntegrationComponent implements OnInit, OnDestroy {
 
   importOrder(row: ErpOrderSummary): void {
     if (!this.canImport(row.order_number)) return;
+    this.doImportOrder(row, false);
+  }
 
+  /**
+   * "Tekrar İçeri Aktar" — zaten aktarılmış bir siparişi confirm sonrası
+   * force=true ile yeniden çeker. Backend (bkz. reimport_order — orders/
+   * services/erp_integration/order_import_service.py) AYNI order_id
+   * üzerinde çalışır: mevcut ürün satırları, yerleşim/palet sonucu ve
+   * raporlar SİLİNİP ERP'den gelen güncel veriyle yeniden doldurulur;
+   * revizyon geçmişi KORUNUR (yeni bir revizyon eklenir).
+   */
+  reimportOrder(row: ErpOrderSummary): void {
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '460px',
+      data: {
+        message: this.translate.instant('INTEGRATION.REIMPORT_CONFIRM', {
+          order_number: row.order_number,
+        }),
+      },
+    });
+
+    dialogRef.afterClosed().subscribe((confirmed) => {
+      if (confirmed) {
+        this.doImportOrder(row, true);
+      }
+    });
+  }
+
+  private doImportOrder(row: ErpOrderSummary, force: boolean): void {
     this.rowStates.set(row.order_number, 'importing');
     this.rowErrors.delete(row.order_number);
 
-    this.erpService.requestImportOrder(row.order_number).subscribe({
+    this.erpService.requestImportOrder(row.order_number, row.source_type, force).subscribe({
       next: () => {
         this.erpService
           .pollImportOrder()
@@ -377,7 +427,6 @@ export class IntegrationComponent implements OnInit, OnDestroy {
       customer_name: this.translate.instant('INTEGRATION.CUSTOMER_NAME'),
       customer_code: this.translate.instant('INTEGRATION.CUSTOMER_CODE'),
       date: this.translate.instant('ORDER.CREATION_DATE'),
-      status: this.translate.instant('COMMON.STATUS'),
       actions: this.translate.instant('MENU.OPERATIONS'),
     };
     return names[column] || column;

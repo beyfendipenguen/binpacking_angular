@@ -80,10 +80,22 @@ export class ErpIntegrationService {
 
   // ───────────────────────── Sipariş içeri aktarma ─────────────────────────
 
-  requestImportOrder(orderNumber: string): Observable<ErpAsyncQueuedResponse> {
+  /**
+   * `sourceType` — satırın geldiği kaynak ("offer" | "order", bkz.
+   * ErpOrderSummary.source_type) — backend connector.get_order'ın doğru
+   * tabloyu sorgulaması için olduğu gibi geri gönderilir.
+   * `force` — true ise sipariş DAHA ÖNCE aktarılmış olsa bile backend
+   * reddetmez, mevcut Order'ı AYNI id ile yeniden doldurur ("Tekrar İçeri
+   * Aktar" akışı — bkz. integration.component.ts).
+   */
+  requestImportOrder(
+    orderNumber: string,
+    sourceType?: string | null,
+    force = false
+  ): Observable<ErpAsyncQueuedResponse> {
     return this.http.post<ErpAsyncQueuedResponse>(
       `${this.baseUrl}/orders/erp/import-order/`,
-      { order_number: orderNumber }
+      { order_number: orderNumber, source_type: sourceType, force }
     );
   }
 

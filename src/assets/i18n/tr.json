@@ -1427,7 +1427,7 @@
     "CREDENTIAL_SAVED": "Kimlik bilgileri kaydedildi",
     "CREDENTIAL_SAVE_ERROR": "Kimlik bilgileri kaydedilirken hata oluştu",
     "NOT_CONFIGURED_HINT": "Henüz bir ERP bağlantısı tanımlanmadı. Siparişleri çekebilmek için önce İşlemler menüsünden kimlik bilgilerini girin.",
-    "FETCH_ORDERS": "Siparişleri Çek",
+    "FETCH_ORDERS": "Çek",
     "FETCH_ERROR": "Siparişler alınırken hata oluştu",
     "ORDERS_FETCHED": "{{count}} sipariş alındı",
     "FETCH_HINT": "Siparişleri görmek için \"Siparişleri Çek\" butonuna basın",
@@ -1443,7 +1443,11 @@
     "CUSTOMER_NAME": "Müşteri",
     "CUSTOMER_CODE": "Müşteri Kodu",
     "GO_TO_ORDER": "Siparişe Git",
-    "GO_TO_ORDERS_LIST": "Siparişlere Git"
+    "GO_TO_ORDERS_LIST": "Sipariş Yönetimine Git",
+    "SOURCE_TYPE_OFFER": "Teklifler",
+    "SOURCE_TYPE_ORDER": "Siparişler",
+    "REIMPORT_TIP": "Siparişi ERP'den yeniden çeker, mevcut yerleşim ve raporlar silinir",
+    "REIMPORT_CONFIRM": "'{{order_number}}' numaralı sipariş yeniden içeri aktarılacak. Bu siparişteki TÜM yerleşimler ve raporlar silinecek, sipariş ERP'den gelen güncel verilerle yeniden oluşturulacak. Devam etmek istiyor musunuz?"
   },
   "PUBLIC_ORDER_VIEW": {
     "LOADING": "Yükleniyor...",

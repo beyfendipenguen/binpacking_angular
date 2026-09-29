@@ -1427,7 +1427,7 @@
     "CREDENTIAL_SAVED": "Credentials saved",
     "CREDENTIAL_SAVE_ERROR": "An error occurred while saving credentials",
     "NOT_CONFIGURED_HINT": "No ERP connection has been configured yet. Enter credentials from the Actions menu before fetching orders.",
-    "FETCH_ORDERS": "Fetch Orders",
+    "FETCH_ORDERS": "Fetch",
     "FETCH_ERROR": "An error occurred while fetching orders",
     "ORDERS_FETCHED": "{{count}} orders received",
     "FETCH_HINT": "Press \"Fetch Orders\" to see orders",
@@ -1443,7 +1443,11 @@
     "CUSTOMER_NAME": "Customer",
     "CUSTOMER_CODE": "Customer Code",
     "GO_TO_ORDER": "Go to Order",
-    "GO_TO_ORDERS_LIST": "Go to Orders"
+    "GO_TO_ORDERS_LIST": "Go to Order Management",
+    "SOURCE_TYPE_OFFER": "Offers",
+    "SOURCE_TYPE_ORDER": "Orders",
+    "REIMPORT_TIP": "Fetches the order again from the ERP; current placement and reports will be deleted",
+    "REIMPORT_CONFIRM": "Order '{{order_number}}' will be re-imported. ALL placements and reports for this order will be deleted, and the order will be recreated with the latest data from the ERP. Do you want to continue?"
   },
   "PUBLIC_ORDER_VIEW": {
     "LOADING": "Loading...",

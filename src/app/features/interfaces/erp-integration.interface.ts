@@ -41,7 +41,13 @@ export interface ErpOrderSummary {
   customer_name: string;
   customer_code?: string | null;
   date?: string | null;
-  status?: string | null;
+  /**
+   * Hangi ERP kaynağından geldiği — "offer" (teklif) / "order" (kesin
+   * sipariş). integration.component.ts'teki Teklif/Sipariş toggle'ının
+   * hangi konumuyla çekildiğini yansıtır; import isteğinde backend'e
+   * olduğu gibi geri gönderilir (bkz. ErpIntegrationService.requestImportOrder).
+   */
+  source_type?: string | null;
   /**
    * Backend (erp_list_orders_task) bu siparişin daha önce BAŞARIYLA içeri
    * aktarılıp aktarılmadığını ErpImportedOrder tablosuna bakarak ekler.
