@@ -492,6 +492,7 @@
   "PROFILE": {
     "TITLE": "Profile",
     "PHOTO": "Profile photo",
+    "CHANGE_PHOTO": "Change photo",
     "ADMIN": "Administrator",
     "PERSONAL_INFO": "Personal Information",
     "BASIC_INFO": "Basic Information",
@@ -526,6 +527,10 @@
     "NO_COMPANY": "No Company Information Found",
     "NO_COMPANY_ASSIGNED": "No company has been assigned to your account yet.",
     "SECURITY": "Security",
+    "PASSWORD_REQ_LENGTH": "At least 8 characters",
+    "PASSWORD_REQ_CASE": "Upper and lower case letters",
+    "PASSWORD_REQ_NUMBER": "At least one number",
+    "PASSWORD_REQ_SPECIAL": "At least one special character",
     "CHANGE_PASSWORD": "Change Password",
     "CONFIRM_PASSWORD_PLACEHOLDER": "Please confirm your password",
     "SETTINGS": "Settings",

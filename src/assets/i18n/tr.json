@@ -492,6 +492,7 @@
   "PROFILE": {
     "TITLE": "Profil",
     "PHOTO": "Profil fotoğrafı",
+    "CHANGE_PHOTO": "Fotoğrafı değiştir",
     "ADMIN": "Yönetici",
     "PERSONAL_INFO": "Kişisel Bilgiler",
     "BASIC_INFO": "Temel Bilgiler",
@@ -528,6 +529,10 @@
     "SECURITY": "Güvenlik",
     "CHANGE_PASSWORD": "Parola Değiştir",
     "CONFIRM_PASSWORD_PLACEHOLDER": "Lütfen parolanızı onaylayın",
+    "PASSWORD_REQ_LENGTH": "En az 8 karakter",
+    "PASSWORD_REQ_CASE": "Büyük ve küçük harf",
+    "PASSWORD_REQ_NUMBER": "En az bir rakam",
+    "PASSWORD_REQ_SPECIAL": "En az bir özel karakter",
     "SETTINGS": "Ayarlar",
     "ACCOUNT_INFO": "Hesap Bilgileri",
     "ACCOUNT_TYPE": "Hesap Türü",

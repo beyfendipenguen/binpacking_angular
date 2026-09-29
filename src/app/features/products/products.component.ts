@@ -29,7 +29,6 @@ import { ConfirmDialogComponent } from '@app/shared/generic-table/confirm-dialog
     MatIconModule,
     BulkUploadButtonDirective,
     TranslateModule,
-    DisableAuthDirective,
     MatMenuModule,
     HasPermissionDirective
   ],

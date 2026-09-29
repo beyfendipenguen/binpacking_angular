@@ -40,7 +40,6 @@ import { ErpIntegrationService } from '@app/features/services/erp-integration.se
     MatInputModule,
     GenericTableComponent,
     HasPermissionDirective,
-    DisableAuthDirective,
     TranslateModule,
   ],
   templateUrl: './orders.component.html',

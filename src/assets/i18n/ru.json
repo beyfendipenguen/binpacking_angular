@@ -489,6 +489,7 @@
   "PROFILE": {
     "TITLE": "Профиль",
     "PHOTO": "Фото профиля",
+    "CHANGE_PHOTO": "Изменить фото",
     "ADMIN": "Администратор",
     "PERSONAL_INFO": "Личная информация",
     "BASIC_INFO": "Основная информация",
@@ -523,6 +524,10 @@
     "NO_COMPANY": "Информация о компании не найдена",
     "NO_COMPANY_ASSIGNED": "Компания еще не назначена вашей учетной записи.",
     "SECURITY": "Безопасность",
+    "PASSWORD_REQ_LENGTH": "Минимум 8 символов",
+    "PASSWORD_REQ_CASE": "Заглавные и строчные буквы",
+    "PASSWORD_REQ_NUMBER": "Минимум одна цифра",
+    "PASSWORD_REQ_SPECIAL": "Минимум один спецсимвол",
     "CHANGE_PASSWORD": "Изменить пароль",
     "CONFIRM_PASSWORD_PLACEHOLDER": "Пожалуйста, подтвердите ваш пароль",
     "SETTINGS": "Настройки",

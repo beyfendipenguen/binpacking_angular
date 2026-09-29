@@ -27,7 +27,6 @@ import { ConfirmDialogComponent } from '@app/shared/generic-table/confirm-dialog
     MatDialogModule,
     BulkUploadButtonDirective,
     TranslateModule,
-    DisableAuthDirective,
     HasPermissionDirective,
   ],
   templateUrl: './pallets.component.html',

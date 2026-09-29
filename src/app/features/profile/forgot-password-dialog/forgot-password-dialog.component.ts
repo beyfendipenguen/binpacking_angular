@@ -1,15 +1,28 @@
 import { CommonModule } from '@angular/common';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { Component, inject } from '@angular/core';
+import { Component, inject, Optional, Inject } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
-import { MatDialogModule, MatDialogRef } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
 import { UserService } from '@app/features/auth/user.service';
+
+export interface ForgotPasswordDialogData {
+  /**
+   * Kullanıcı zaten giriş yapmış durumdaysa (Profile sayfasından açılıyorsa),
+   * çağıran component kendi hesap e-postasını buraya verir. Verildiğinde
+   * dialog e-posta ALANI GÖSTERMEZ — kullanıcı başka birinin e-postasına
+   * sıfırlama maili tetikleyemesin diye e-posta girişi tamamen kapatılır,
+   * doğrudan bu adrese gönderilir.
+   * Giriş ekranından (signin) açılırken bu veri verilmez — o durumda
+   * kullanıcı henüz kimliği bilinmediği için e-posta sormak zorunludur.
+   */
+  lockedEmail?: string;
+}
 
 @Component({
   selector: 'app-forgot-password-dialog',
@@ -40,17 +53,37 @@ export class ForgotPasswordDialogComponent {
   isLoading = false;
   emailSent = false;
 
-  constructor() {
+  /** true ise e-posta alanı hiç gösterilmez, doğrudan lockedEmail'e gönderilir. */
+  readonly isEmailLocked: boolean;
+  readonly lockedEmail: string | null;
+
+  constructor(@Optional() @Inject(MAT_DIALOG_DATA) data: ForgotPasswordDialogData | null) {
+    this.lockedEmail = data?.lockedEmail || null;
+    this.isEmailLocked = !!this.lockedEmail;
+
     this.resetForm = this.fb.group({
-      email: ['', [Validators.required, Validators.email]]
+      email: [
+        this.lockedEmail || '',
+        this.isEmailLocked ? [] : [Validators.required, Validators.email]
+      ]
     });
+
+    if (this.isEmailLocked) {
+      // Kullanıcı değiştiremesin diye alanı devre dışı bırakıyoruz —
+      // template zaten input'u göstermiyor, bu ek bir güvenlik katmanı.
+      this.resetForm.get('email')?.disable();
+    }
+  }
+
+  get displayEmail(): string {
+    return this.lockedEmail || this.resetForm.get('email')?.value || '';
   }
 
   sendResetEmail() {
     if (this.resetForm.invalid && !this.emailSent) return;
 
     this.isLoading = true;
-    const email = this.resetForm.get('email')?.value;
+    const email = this.lockedEmail || this.resetForm.get('email')?.value;
 
     this.userService.requestPasswordReset(email).subscribe({
       next: () => {

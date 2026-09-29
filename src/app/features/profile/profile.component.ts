@@ -94,6 +94,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
     { code: '+81', country: this.translate.instant('COUNTRIES.JAPAN') },
   ];
   selectedCountryCode = '+90';
+  readonly strengthSegments = [1, 2, 3, 4, 5];
 
   ngOnInit() {
     this.initializeForms();
@@ -200,9 +201,13 @@ export class ProfileComponent implements OnInit, OnDestroy {
   }
 
   openForgotPasswordDialog() {
+    // Profile sayfası zaten giriş yapmış kullanıcı içindir — e-posta sormak
+    // yerine doğrudan kendi hesap e-postasına gönderiyoruz (lockedEmail).
+    // Dialog bu veri verildiğinde e-posta alanını hiç göstermiyor.
     const dialogRef = this.dialog.open(ForgotPasswordDialogComponent, {
       width: '400px',
       disableClose: true,
+      data: { lockedEmail: this.userProfile?.email || '' },
     });
 
     dialogRef.afterClosed().subscribe((result) => { });
@@ -389,7 +394,12 @@ export class ProfileComponent implements OnInit, OnDestroy {
       this.isLoadingPicture = true;
       this.userService.updateProfilePicture(file).subscribe({
         next: (user) => {
-          this.profilePictureUrl = user.profile_picture;
+          // NOT: backend aynı dosya yolunu (aynı URL) döndürebiliyor —
+          // bu durumda [src] string'i değişmediği için tarayıcı ESKİ
+          // görseli cache'ten gösterip duruyordu ("değiştirince hiçbir
+          // şey değişmiyor" hissi buradan geliyordu). Cache-busting
+          // query param ile her yüklemede URL'i benzersiz kılıyoruz.
+          this.profilePictureUrl = this.withCacheBust(user.profile_picture);
           this.isLoadingPicture = false;
           this.showSuccess(this.translate.instant('PROFILE_MESSAGES.PHOTO_UPDATED'));
         },
@@ -415,7 +425,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
         next: (updatedCompany) => {
           this.userCompany = updatedCompany;
           if (updatedCompany.logo) {
-            this.companyLogoUrl = updatedCompany.logo;
+            this.companyLogoUrl = this.withCacheBust(updatedCompany.logo);
           }
           this.isLoadingCompanyLogo = false;
           this.showSuccess(this.translate.instant('PROFILE_MESSAGES.LOGO_UPDATED'));
@@ -536,25 +546,61 @@ export class ProfileComponent implements OnInit, OnDestroy {
     }
   }
 
-  getPasswordStrength(): string {
+  // NOT: Daha önce 'zayif'/'orta'/'guclu' (Türkçe) döndürüyordu, ama
+  // template'teki [class.weak]/[class.medium]/[class.strong] bağlamaları
+  // İngilizce string'lerle karşılaştırıyordu — bu yüzden renk/sınıf hiç
+  // eşleşmiyordu (kırmızı/turuncu/yeşil göstergesi hep devre dışıydı).
+  // Artık İngilizce enum değeri dönüyor; ekranda gösterilecek metin
+  // i18n üzerinden (AUTH.PASSWORD_STRENGTH_WEAK/MEDIUM/STRONG) alınıyor.
+  getPasswordStrengthScore(): number {
     const password = this.passwordForm.get('new_password')?.value || '';
+    if (!password) return 0;
 
-    if (password.length === 0) return '';
+    let score = 0;
+    if (this.passwordHasMinLength()) score++;
+    if (password.length >= 12) score++;
+    if (this.passwordHasNumber()) score++;
+    if (this.passwordHasMixedCase()) score++;
+    if (this.passwordHasSpecialChar()) score++;
+    return score;
+  }
 
-    let strength = 0;
+  getPasswordStrength(): 'weak' | 'medium' | 'strong' | '' {
+    const password = this.passwordForm.get('new_password')?.value || '';
+    if (!password) return '';
 
-    if (password.length >= 8) strength++;
-    if (password.length >= 12) strength++;
+    const score = this.getPasswordStrengthScore();
+    if (score <= 2) return 'weak';
+    if (score <= 4) return 'medium';
+    return 'strong';
+  }
 
-    if (/[0-9]/.test(password)) strength++;
+  passwordHasMinLength(): boolean {
+    return (this.passwordForm.get('new_password')?.value || '').length >= 8;
+  }
 
-    if (/[a-z]/.test(password) && /[A-Z]/.test(password)) strength++;
+  passwordHasNumber(): boolean {
+    return /[0-9]/.test(this.passwordForm.get('new_password')?.value || '');
+  }
 
-    if (/[^A-Za-z0-9]/.test(password)) strength++;
+  passwordHasMixedCase(): boolean {
+    const password = this.passwordForm.get('new_password')?.value || '';
+    return /[a-z]/.test(password) && /[A-Z]/.test(password);
+  }
 
-    if (strength <= 2) return 'zayif';
-    if (strength <= 4) return 'orta';
-    return 'guclu';
+  passwordHasSpecialChar(): boolean {
+    return /[^A-Za-z0-9]/.test(this.passwordForm.get('new_password')?.value || '');
+  }
+
+  // Backend, bir önceki upload ile AYNI dosya URL'sini döndürebiliyor
+  // (örn. sabit bir path'e overwrite ediyorsa). Bu durumda [src] string'i
+  // değişmeyince tarayıcı eski görseli cache'ten göstermeye devam ediyor.
+  // Benzersiz bir query param ekleyerek her yüklemede zorla yeniden çekilmesini
+  // sağlıyoruz.
+  private withCacheBust(url: string): string {
+    if (!url) return url;
+    const separator = url.includes('?') ? '&' : '?';
+    return `${url}${separator}v=${Date.now()}`;
   }
 
   private showSuccess(message: string) {

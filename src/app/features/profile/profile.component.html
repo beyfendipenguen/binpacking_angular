@@ -3,9 +3,12 @@
     <!-- Profile Header Section -->
     @if (!isLoading) {
       <div class="profile-header-card">
+        <div class="hero-background"></div>
+        <div class="hero-pattern"></div>
         <div class="cover-section">
           <div class="profile-picture-wrapper">
-            <div class="profile-picture-container">
+            <div class="picture-glow"></div>
+            <div class="profile-picture-container" (click)="fileInput.click()">
               <img
                 [src]="profilePictureUrl"
                 [alt]="'PROFILE.PHOTO' | translate"
@@ -14,13 +17,18 @@
               >
               @if (isLoadingPicture) {
                 <div class="picture-overlay">
-                  <mat-spinner diameter="30"></mat-spinner>
+                  <mat-spinner diameter="30" [color]="'accent'"></mat-spinner>
+                </div>
+              } @else {
+                <div class="picture-hover-hint">
+                  <mat-icon>photo_camera</mat-icon>
+                  <span>{{ 'PROFILE.CHANGE_PHOTO' | translate }}</span>
                 </div>
               }
               <button
                 mat-mini-fab
                 class="upload-button"
-                (click)="fileInput.click()"
+                (click)="$event.stopPropagation(); fileInput.click()"
                 [disabled]="isLoading"
               >
                 <mat-icon>photo_camera</mat-icon>
@@ -42,9 +50,13 @@
                 <span class="admin-badge">{{ 'PROFILE.ADMIN' | translate }}</span>
               }
             </h1>
-            <p class="profile-email">{{userProfile?.email}}</p>
+            <p class="profile-email">
+              <mat-icon>email</mat-icon>{{userProfile?.email}}
+            </p>
             @if (userProfile?.username) {
-              <p class="profile-username">{{userProfile?.username}}</p>
+              <p class="profile-username">
+                <mat-icon>alternate_email</mat-icon>{{userProfile.username}}
+              </p>
             }
           </div>
         </div>
@@ -81,7 +93,7 @@
           <div class="tab-content">
             <form [formGroup]="profileForm" (ngSubmit)="onUpdateProfile()" class="profile-form">
               <div class="form-section">
-                <h3 class="section-title">{{ 'PROFILE.BASIC_INFO' | translate }}</h3>
+                <h3 class="section-title"><mat-icon>badge</mat-icon>{{ 'PROFILE.BASIC_INFO' | translate }}</h3>
 
                 <div class="form-row">
                   <mat-form-field appearance="outline" class="form-field">
@@ -94,7 +106,7 @@
                   </mat-form-field>
 
                   <mat-form-field appearance="outline" class="form-field">
-                    <mat-label>{{ 'COMMON.SURNAME' | translate }}</mat-label>
+                    <mat-label>{{ 'COMMON.LAST_NAME' | translate }}</mat-label>
                     <input matInput formControlName="last_name" [placeholder]="'PROFILE.SURNAME_PLACEHOLDER' | translate">
                     <mat-icon matSuffix>person</mat-icon>
                     @if (profileForm.get('last_name')?.hasError('required')) {
@@ -130,7 +142,7 @@
               <mat-divider></mat-divider>
 
               <div class="form-section">
-                <h3 class="section-title">{{ 'PROFILE.CONTACT_INFO' | translate }}</h3>
+                <h3 class="section-title"><mat-icon>contact_phone</mat-icon>{{ 'PROFILE.CONTACT_INFO' | translate }}</h3>
 
                 <div class="form-row">
                   <mat-form-field appearance="outline" class="form-field country-code">
@@ -202,7 +214,7 @@
 
                 <!-- Company Logo Section -->
                 <div class="form-section">
-                  <h3 class="section-title">{{ 'PROFILE.COMPANY_LOGO' | translate }}</h3>
+                  <h3 class="section-title"><mat-icon>image</mat-icon>{{ 'PROFILE.COMPANY_LOGO' | translate }}</h3>
 
                   <div class="company-logo-section">
                     <div class="company-logo-container">
@@ -222,7 +234,7 @@
                         class="upload-button"
                         (click)="companyLogoInput.click()"
                         [disabled]="isSavingCompany"
-                        type="button",
+                        type="button"
                         [appDisableAuth]="['organizations.change_company']"
                       >
                         <mat-icon>photo_camera</mat-icon>
@@ -247,7 +259,7 @@
 
                 <!-- Company Details Section -->
                 <div class="form-section">
-                  <h3 class="section-title">{{ 'PROFILE.COMPANY_DETAILS' | translate }}</h3>
+                  <h3 class="section-title"><mat-icon>business</mat-icon>{{ 'PROFILE.COMPANY_DETAILS' | translate }}</h3>
 
                   <mat-form-field appearance="outline" class="form-field full-width">
                     <mat-label>{{ 'CUSTOMER.COMPANY_NAME' | translate }}</mat-label>
@@ -317,7 +329,7 @@
           <div class="tab-content">
             <form [formGroup]="passwordForm" (ngSubmit)="onChangePassword()" class="profile-form">
               <div class="form-section">
-                <h3 class="section-title">{{ 'PROFILE.CHANGE_PASSWORD' | translate }}</h3>
+                <h3 class="section-title"><mat-icon>vpn_key</mat-icon>{{ 'PROFILE.CHANGE_PASSWORD' | translate }}</h3>
 
                 <mat-form-field appearance="outline" class="form-field full-width">
                   <mat-label>{{ 'AUTH.CURRENT_PASSWORD' | translate }}</mat-label>
@@ -359,13 +371,46 @@
                 </mat-form-field>
               </div>
 
-              <div class="password-strength">
-                <div class="strength-indicator" [class.weak]="getPasswordStrength() === 'weak'"
-                     [class.medium]="getPasswordStrength() === 'medium'"
-                     [class.strong]="getPasswordStrength() === 'strong'">
-                  <span>Parola gücü: {{getPasswordStrength()}}</span>
+              @if (passwordForm.get('new_password')?.value) {
+                <div class="password-strength">
+                  <div class="strength-bar-track">
+                    @for (i of strengthSegments; track i) {
+                      <div class="strength-bar-segment"
+                           [class.filled]="i <= getPasswordStrengthScore()"
+                           [class.weak]="getPasswordStrength() === 'weak'"
+                           [class.medium]="getPasswordStrength() === 'medium'"
+                           [class.strong]="getPasswordStrength() === 'strong'">
+                      </div>
+                    }
+                  </div>
+                  <span class="strength-label"
+                        [class.weak]="getPasswordStrength() === 'weak'"
+                        [class.medium]="getPasswordStrength() === 'medium'"
+                        [class.strong]="getPasswordStrength() === 'strong'">
+                    {{ 'AUTH.PASSWORD_STRENGTH' | translate }}
+                    {{ ('AUTH.PASSWORD_STRENGTH_' + getPasswordStrength().toUpperCase()) | translate }}
+                  </span>
+
+                  <div class="password-requirements">
+                    <div class="requirement-item" [class.met]="passwordHasMinLength()">
+                      <mat-icon>{{ passwordHasMinLength() ? 'check_circle' : 'radio_button_unchecked' }}</mat-icon>
+                      <span>{{ 'PROFILE.PASSWORD_REQ_LENGTH' | translate }}</span>
+                    </div>
+                    <div class="requirement-item" [class.met]="passwordHasMixedCase()">
+                      <mat-icon>{{ passwordHasMixedCase() ? 'check_circle' : 'radio_button_unchecked' }}</mat-icon>
+                      <span>{{ 'PROFILE.PASSWORD_REQ_CASE' | translate }}</span>
+                    </div>
+                    <div class="requirement-item" [class.met]="passwordHasNumber()">
+                      <mat-icon>{{ passwordHasNumber() ? 'check_circle' : 'radio_button_unchecked' }}</mat-icon>
+                      <span>{{ 'PROFILE.PASSWORD_REQ_NUMBER' | translate }}</span>
+                    </div>
+                    <div class="requirement-item" [class.met]="passwordHasSpecialChar()">
+                      <mat-icon>{{ passwordHasSpecialChar() ? 'check_circle' : 'radio_button_unchecked' }}</mat-icon>
+                      <span>{{ 'PROFILE.PASSWORD_REQ_SPECIAL' | translate }}</span>
+                    </div>
+                  </div>
                 </div>
-              </div>
+              }
 
               <div class="form-actions">
                 <button
@@ -414,7 +459,7 @@
 
           <div class="tab-content">
             <div class="settings-section">
-              <h3 class="section-title">{{ 'PROFILE.ACCOUNT_INFO' | translate }}</h3>
+              <h3 class="section-title"><mat-icon>info</mat-icon>{{ 'PROFILE.ACCOUNT_INFO' | translate }}</h3>
 
               <div class="info-card">
                 <div class="info-item">
@@ -430,7 +475,7 @@
                     <mat-icon>business</mat-icon>
                     <div>
                       <p class="info-label">{{ 'COMMON.COMPANY' | translate }}</p>
-                      <p class="info-value">{{userCompany?.company_name || 'INFO.FILE_UPLOADING' | translate}}</p>
+                      <p class="info-value">{{userCompany?.company_name || ('INFO.FILE_UPLOADING' | translate)}}</p>
                     </div>
                   </div>
                 }
