@@ -10,6 +10,7 @@ import {
   selectHasRevisedOrder,
   selectIsEditMode,
   selectIsMultiShipment,
+  selectStep2IsDirty,
   selectOrder,
   selectOrderResult,
   selectOrderResultId,
@@ -48,7 +49,8 @@ export class StepperResultEffects {
         this.store.select(selectStep3IsDirty),
         this.store.select(selectIsEditMode),
         this.store.select(selectHasRevisedOrder),
-        this.store.select(selectOrderResultId)
+        this.store.select(selectOrderResultId),
+        this.store.select(selectStep2IsDirty)
       ),
       tap(([action]) => {
         if (action.resetStepper) {
@@ -56,8 +58,14 @@ export class StepperResultEffects {
         }
       }),
       filter(([, isDirty]) => isDirty),
-      switchMap(([action, , isEditMode, hasRevised, orderResultId]) => {
-        if (isEditMode && !hasRevised) {
+      switchMap(([action, , isEditMode, hasRevised, orderResultId, isPackagesDirty]) => {
+        // Revize kararı SADECE step2 (paket/palet) tarafında GERÇEKTEN
+        // kaydedilmiş bir değişiklik varsa alınmalı — step3IsDirty yukarıda
+        // "kaydetmeli miyiz" sorusunu yanıtlıyor, "revize sayılmalı mı"
+        // sorusunu değil. selectStep2IsDirty kalıcı (sticky) bir bayrak;
+        // upsertManySuccess sonrası originalPackages == packages olsa da
+        // false'a dönmez (bkz. applyBackendPackagesAfterSave).
+        if (isEditMode && !hasRevised && isPackagesDirty) {
           return this.orderService.reviseOrder(action.orderId).pipe(
             tap(() => {
               this.store.dispatch(StepperUiActions.reviseOrderSuccess());

@@ -63,6 +63,21 @@ const applyBackendPackages = (state: StepperState, { packages }: { packages: Pac
   };
 };
 
+// upsertManySuccess GERÇEKTEN bir kaydetme işlemidir (isDirty=true iken
+// backend'e gönderilip başarıyla dönmüştür) — bu yüzden step2State'in
+// KALICI (sticky) isDirty bayrağı burada true'ya sabitlenir. loadPackagesSuccess
+// bunu KULLANMAZ (o sadece ilk yükleme, kullanıcı değişikliği değil).
+const applyBackendPackagesAfterSave = (state: StepperState, payload: { packages: PackageReadDto[] }) => {
+  const base = applyBackendPackages(state, payload);
+  return {
+    ...base,
+    step2State: {
+      ...base.step2State,
+      isDirty: true,
+    },
+  };
+};
+
 const createEmptyPackage = (packageNo: number, order: any) => (
   {
     id: Guid(),
@@ -1079,7 +1094,7 @@ export const stepperPackageHandlers = [
   }),
   
   // Package Details Upsert Many Success
-  on(StepperPackageActions.upsertManySuccess, applyBackendPackages),
+  on(StepperPackageActions.upsertManySuccess, applyBackendPackagesAfterSave),
   on(StepperPackageActions.loadPackagesSuccess, applyBackendPackages),
   
   // Calculate Package Changes

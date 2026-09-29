@@ -123,6 +123,23 @@ export const selectRemainingProducts = createSelector(
   (step2State) => step2State.remainingProducts
 );
 
+/**
+ * Step2 için KALICI (sticky) dirty flag'i.
+ *
+ * selectIsPackagesDirty (aşağıda) her seferinde packages/originalPackages
+ * karşılaştırarak ANLIK sonuç üretir — upsertManySuccess sonrası
+ * originalPackages, packages ile eşitlenince bu selector tekrar false'a
+ * döner. Bu yüzden "bu edit session'ında GERÇEKTEN bir değişiklik
+ * kaydedildi mi?" sorusuna (örn. revize kararı için) bu selector DEĞİL,
+ * bu sticky flag cevap vermeli: bir kez true olduktan sonra (bkz.
+ * stepper-package.reducer.ts → upsertManySuccess) sadece resetStepper /
+ * resetStepperForEditMode ile false'a döner.
+ */
+export const selectStep2IsDirty = createSelector(
+  selectStep2State,
+  (step2State) => step2State.isDirty
+);
+
 
 /**
  * Selects the plain object representation of packages

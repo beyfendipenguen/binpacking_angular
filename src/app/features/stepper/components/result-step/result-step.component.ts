@@ -26,7 +26,7 @@ import { ToastService } from '@core/services/toast.service';
 import { CancelConfirmationDialogComponent } from '@shared/cancel-confirmation-dialog/cancel-confirmation-dialog.component';
 import { ThreeJSTruckVisualizationComponent } from '@shared/threejs-truck-visualization/threejs-truck-visualization.component';
 
-import { AppState, selectRemainingProducts, selectStep3IsDirty, selectOrderId, selectIsEditMode, selectHasRevisedOrder, selectOrderResult, selectOrderResultId, selectStep3CurrentViewType, selectStep3ReportFiles, selectActiveShipmentIndex, selectIsMultiShipment, selectShipments, selectCurrentStep } from '@app/store';
+import { AppState, selectRemainingProducts, selectStep3IsDirty, selectOrderId, selectIsEditMode, selectHasRevisedOrder, selectOrderResult, selectOrderResultId, selectStep3CurrentViewType, selectStep3ReportFiles, selectActiveShipmentIndex, selectIsMultiShipment, selectShipments, selectCurrentStep, selectStep2IsDirty } from '@app/store';
 import { StepperUiActions } from '@app/store/stepper/actions/stepper-ui.actions';
 import { StepperResultActions } from '@app/store/stepper/actions/stepper-result.actions';
 import { ReportFile, ResultStepService } from './result-step.service';
@@ -180,11 +180,22 @@ export class ResultStepComponent implements OnInit, OnDestroy {
 
     this.startProgressSimulation();
 
+    // Revize SADECE step2'de (paket/palet ekranı) GERÇEKTEN kaydedilmiş
+    // bir değişiklik varsa sayılmalı. selectStep3IsDirty burada YANLIŞ
+    // olurdu — step3 içindeki (result ekranı) sürükle/sil gibi işlemleri
+    // yansıtır, "yeniden hesapla"nın kendisi bir değişiklik değildir.
+    // selectStep2IsDirty de (computed selectIsPackagesDirty DEĞİL) KALICI
+    // bir bayrak: upsertManySuccess ile bir kez true olur ve sadece
+    // originalPackages/packages tekrar eşitlendiği için false'a dönmez —
+    // bkz. stepper-package.reducer.ts → applyBackendPackagesAfterSave.
     this.store.select(selectIsEditMode).pipe(
       take(1),
-      withLatestFrom(this.store.select(selectHasRevisedOrder))
-    ).subscribe(([isEditMode, hasRevised]) => {
-      if (isEditMode && !hasRevised) {
+      withLatestFrom(
+        this.store.select(selectHasRevisedOrder),
+        this.store.select(selectStep2IsDirty)
+      )
+    ).subscribe(([isEditMode, hasRevised, isPackagesDirty]) => {
+      if (isEditMode && !hasRevised && isPackagesDirty) {
         this.store.select(selectOrderId).pipe(take(1)).subscribe(orderId => {
           this.store.dispatch(StepperUiActions.reviseOrder({ orderId }));
         });
