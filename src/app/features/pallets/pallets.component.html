@@ -10,18 +10,18 @@
         </div>
       </div>
       <div class="header-actions">
-        <button mat-raised-button color="primary" [matMenuTriggerFor]="actionsMenu" class="actions-btn">
+        <button mat-raised-button color="primary" [matMenuTriggerFor]="actionsMenu" class="actions-btn"
+          *appHasPermission="['logistics.add_pallet', 'logistics.view_palletgroup']; operator: 'OR'; mode: 'hide'">
           <mat-icon>settings</mat-icon>{{ 'MENU.OPERATIONS' | translate }}
           <mat-icon class="dropdown-icon">arrow_drop_down</mat-icon>
         </button>
         <mat-menu #actionsMenu="matMenu" class="actions-menu">
-          <button mat-menu-item [appBulkUploadButton]="palletBulkConfig"
-            [appDisableAuth]="['logistics.add_pallet']">
+          <button mat-menu-item *appHasPermission="['logistics.add_pallet']; mode: 'hide'"
+            [appBulkUploadButton]="palletBulkConfig">
             <mat-icon>add_box</mat-icon>
             <span>{{ 'PALLET.BULK_ADD' | translate }}</span>
           </button>
-          <button mat-menu-item (click)="openPalletGroupsDialog()"
-            [appDisableAuth]="['logistics.view_palletgroup']">
+          <button mat-menu-item *appHasPermission="['logistics.view_palletgroup']; mode: 'hide'" (click)="openPalletGroupsDialog()">
             <mat-icon>folder</mat-icon>
             <span>{{ 'PALLET.MANAGE_GROUPS' | translate }}</span>
           </button>

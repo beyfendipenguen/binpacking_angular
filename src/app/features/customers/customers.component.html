@@ -12,47 +12,42 @@
       </div>
       <div class="header-actions">
         <!-- İşlemler Menüsü -->
-        <button mat-raised-button color="primary" [matMenuTriggerFor]="actionsMenu" class="actions-btn">
+        <button mat-raised-button color="primary" [matMenuTriggerFor]="actionsMenu" class="actions-btn"
+          *appHasPermission="['organizations.add_companyrelation', 'organizations.change_companyrelation', 'organizations.change_companyreportprofile', 'logistics.add_loadingconstraint', 'logistics.add_palletselectionrule']; operator: 'OR'; mode: 'hide'">
           <mat-icon>settings</mat-icon>{{ 'MENU.OPERATIONS' | translate }}<mat-icon
             class="dropdown-icon">arrow_drop_down</mat-icon>
         </button>
 
         <mat-menu #actionsMenu="matMenu" class="actions-menu">
-          <button mat-menu-item [appDisableAuth]="['organizations.add_companyrelation']" (click)="openAddDialog()">
+          <button mat-menu-item *appHasPermission="['organizations.add_companyrelation']; mode: 'hide'" (click)="openAddDialog()">
             <mat-icon>add_box</mat-icon>
             <span>{{ 'CUSTOMER.ADD_NEW' | translate }}</span>
           </button>
-          <button mat-menu-item (click)="openExtraDataDialog()"
-            [appDisableAuth]="['organizations.add_companyrelation']">
+          <button mat-menu-item *appHasPermission="['organizations.add_companyrelation']; mode: 'hide'" (click)="openExtraDataDialog()">
             <mat-icon>build</mat-icon>
             <span>{{ 'CUSTOMER.CUSTOMER_SETTINGS' | translate }}</span>
           </button>
-          <button mat-menu-item (click)="openConstraintBulkDialog()"
-            [appDisableAuth]="['organizations.change_companyrelation']">
+          <button mat-menu-item *appHasPermission="['organizations.change_companyrelation']; mode: 'hide'" (click)="openConstraintBulkDialog()">
             <mat-icon>tune</mat-icon>
             {{ 'CONSTRAINT.BULK.TITLE' | translate }}
           </button>
-          <button mat-menu-item (click)="openReportProfileDialog()">
+          <button mat-menu-item *appHasPermission="['organizations.change_companyreportprofile']; mode: 'hide'" (click)="openReportProfileDialog()">
             <mat-icon>tune</mat-icon>
             <span>{{ 'REPORT_PROFILE.MENU_TITLE' | translate }}</span>
           </button>
-          <button mat-menu-item (click)="openLoadingConstraintDialog()"
-            [appDisableAuth]="['logistics.add_loadingconstraint']">
+          <button mat-menu-item *appHasPermission="['logistics.add_loadingconstraint']; mode: 'hide'" (click)="openLoadingConstraintDialog()">
             <mat-icon>add_circle_outline</mat-icon>
             <span>{{ 'LOADING_CONSTRAINT.CREATE_TITLE' | translate }}</span>
           </button>
-          <button mat-menu-item (click)="openLoadingConstraintBulkDialog()"
-            [appDisableAuth]="['logistics.add_loadingconstraint']">
+          <button mat-menu-item *appHasPermission="['logistics.add_loadingconstraint']; mode: 'hide'" (click)="openLoadingConstraintBulkDialog()">
             <mat-icon>layers</mat-icon>
             <span>{{ 'LOADING_CONSTRAINT.BULK_TITLE' | translate }}</span>
           </button>
-          <button mat-menu-item (click)="openPalletSelectionRuleDialog()"
-            [appDisableAuth]="['logistics.add_palletselectionrule']">
+          <button mat-menu-item *appHasPermission="['logistics.add_palletselectionrule']; mode: 'hide'" (click)="openPalletSelectionRuleDialog()">
             <mat-icon>rule</mat-icon>
             <span>{{ 'PALLET_SELECTION_RULE.CREATE_TITLE' | translate }}</span>
           </button>
-          <button mat-menu-item (click)="openPalletSelectionRuleBulkDialog()"
-            [appDisableAuth]="['logistics.add_palletselectionrule']">
+          <button mat-menu-item *appHasPermission="['logistics.add_palletselectionrule']; mode: 'hide'" (click)="openPalletSelectionRuleBulkDialog()">
             <mat-icon>layers</mat-icon>
             <span>{{ 'PALLET_SELECTION_RULE.BULK_TITLE' | translate }}</span>
           </button>

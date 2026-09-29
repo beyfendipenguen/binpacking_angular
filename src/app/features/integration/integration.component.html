@@ -10,13 +10,13 @@
         </div>
       </div>
       <div class="header-actions">
-        <button mat-raised-button color="primary" [matMenuTriggerFor]="actionsMenu" class="actions-btn">
+        <button mat-raised-button color="primary" [matMenuTriggerFor]="actionsMenu" class="actions-btn"
+          *appHasPermission="['organizations.change_erpcredential']; mode: 'hide'">
           <mat-icon>settings</mat-icon>{{ 'MENU.OPERATIONS' | translate }}
           <mat-icon class="dropdown-icon">arrow_drop_down</mat-icon>
         </button>
         <mat-menu #actionsMenu="matMenu" class="actions-menu">
-          <button mat-menu-item (click)="openCredentialDialog()"
-            [appDisableAuth]="['organizations.change_erpcredential']">
+          <button mat-menu-item *appHasPermission="['organizations.change_erpcredential']; mode: 'hide'" (click)="openCredentialDialog()">
             <mat-icon>vpn_key</mat-icon>
             <span>{{ 'INTEGRATION.CREDENTIAL_MENU_ITEM' | translate }}</span>
           </button>

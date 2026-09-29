@@ -15,19 +15,19 @@
           <mat-icon class="dropdown-icon">arrow_drop_down</mat-icon>
         </button>
         <mat-menu #actionsMenu="matMenu" class="actions-menu">
-          <button mat-menu-item [appBulkUploadButton]="productBulkConfig" class="bulk-add-btn"
-            [appDisableAuth]="['products.add_product']">
+          <button mat-menu-item *appHasPermission="['products.add_product']; mode: 'hide'"
+            [appBulkUploadButton]="productBulkConfig" class="bulk-add-btn">
             <mat-icon>add_box</mat-icon>{{ 'PRODUCT.BULK_ADD' | translate }}
           </button>
           <button mat-menu-item (click)="exportProducts()">
             <mat-icon>download</mat-icon>
             <span>{{ 'PRODUCT.EXPORT' | translate }}</span>
           </button>
-          <button mat-menu-item [appBulkUploadButton]="productBulkUpdateConfig">
+          <button mat-menu-item *appHasPermission="['products.change_product']; mode: 'hide'" [appBulkUploadButton]="productBulkUpdateConfig">
             <mat-icon>{{ isBulkUpdating ? 'hourglass_empty' : 'sync' }}</mat-icon>
             <span>{{ 'PRODUCT.BULK_UPDATE' | translate }}</span>
           </button>
-          <button mat-menu-item (click)="openWeightCategoryDialog()">
+          <button mat-menu-item *appHasPermission="['products.view_weightcategory']; mode: 'hide'" (click)="openWeightCategoryDialog()">
             <mat-icon>scale</mat-icon>
             {{ 'WEIGHT_CATEGORY.TITLE' | translate }}
           </button>
