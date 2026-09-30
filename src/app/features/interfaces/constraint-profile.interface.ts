@@ -17,6 +17,10 @@ export interface ConstraintProfile  {
   max_geometric_ratio: number;
   pallet_depth_margin_mm:number,
   pallet_width_margin_mm:number,
+  // İstifleme (create_stacks) footprint toleransı — üstteki palet tabandan
+  // her iki eksende (width, depth) en fazla bu kadar (mm) küçük olabilir.
+  // Yön tek taraflı: üst asla tabandan büyük olamaz. 0 = kapalı.
+  stack_footprint_tolerance_mm: number;
   // ─── Bölüm 2 — simetrik tolerans ───
   check_depth_symmetric: boolean;
   depth_symmetric_tolerance_mm: number;
@@ -58,6 +62,7 @@ export function createDefaultConstraintProfile(): ConstraintProfile {
     min_fill_ratio: 0.0,
     pallet_depth_margin_mm:0.0,
     pallet_width_margin_mm:0.0,
+    stack_footprint_tolerance_mm: 0.0,
     max_geometric_ratio: 2.0,
     check_depth_symmetric: false,
     depth_symmetric_tolerance_mm: 200.0,

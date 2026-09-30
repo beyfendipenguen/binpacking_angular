@@ -83,6 +83,17 @@ export const CONSTRAINT_FIELDS: ConstraintFieldConfig[] = [
     detailedInfo: 'CONSTRAINT.PALLET_DEPTH_MARGIN_DETAIL',
     validators: [Validators.min(0)],
   },
+  {
+    key: 'stack_footprint_tolerance_mm',
+    label: 'CONSTRAINT.STACK_FOOTPRINT_TOLERANCE',
+    type: 'number',
+    icon: 'layers',
+    group: 'CONSTRAINT.GROUP_STACK_TOLERANCE',
+    suffix: 'mm',
+    hint: 'CONSTRAINT.STACK_FOOTPRINT_TOLERANCE_HINT',
+    detailedInfo: 'CONSTRAINT.STACK_FOOTPRINT_TOLERANCE_DETAIL',
+    validators: [Validators.min(0)],
+  },
 
   // ─── Grup 2: Simetrik Tolerans ───
   {

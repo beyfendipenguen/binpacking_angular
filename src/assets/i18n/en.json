@@ -1229,6 +1229,7 @@
     "SECTION_TITLE": "Algorithm Settings",
     "GROUP_TOLERANCE": "Tolerance Settings",
     "GROUP_PALLET_TOLERANCE": "Pallet Tolerance Settings",
+    "GROUP_STACK_TOLERANCE": "Stacking Tolerance",
     "GROUP_SYMMETRIC": "Bidirectional Tolerance (Optional)",
     "GROUP_GEOMETRIC": "Dimension Matching",
     "GROUP_ANCHOR": "Uniform Pallet Settings",
@@ -1308,6 +1309,9 @@
     "PALLET_DEPTH_MARGIN": "Pallet Depth Margin",
     "PALLET_DEPTH_MARGIN_HINT": "Margin to be added to each pallet's depth dimension (mm)",
     "PALLET_DEPTH_MARGIN_DETAIL": "Used to leave front-to-back clearance between pallets. For example, entering 30 means a pallet with a 1400 mm depth will be calculated as 1430 mm.",
+    "STACK_FOOTPRINT_TOLERANCE": "Stack Footprint Tolerance",
+    "STACK_FOOTPRINT_TOLERANCE_HINT": "How much smaller the top pallet may be than the base (mm)",
+    "STACK_FOOTPRINT_TOLERANCE_DETAIL": "Normal placement runs <strong>completely independently</strong> of this setting — every pallet is first placed on its own, with no tolerance applied. This setting only kicks in for pallets that are <strong>still left over (unplaced)</strong> once normal placement is done: a leftover pallet is rescued by stacking it on top of an already-placed stack's current top layer if it is up to this many millimeters <strong>smaller</strong> on <strong>both axes independently</strong> (width and depth) and that stack still has spare height. Example: an already-placed pallet is 1000x1600 mm, tolerance is set to 200 mm; a leftover 1000x1400 pallet that didn't fit can then be rescued on top of it. The direction is <strong>one-way</strong> — the top pallet can never be <strong>larger</strong> than the one below it. Default <strong>0</strong>: off, this rescue is never attempted for leftover pallets (current behavior).",
     "BULK": {
       "TITLE": "Bulk Algorithm Settings",
       "CONFIGURE": "Configure Constraints",

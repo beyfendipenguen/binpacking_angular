@@ -1229,6 +1229,7 @@
     "SECTION_TITLE": "Algoritma Ayarları",
     "GROUP_TOLERANCE": "Tolerans Ayarları",
     "GROUP_PALLET_TOLERANCE": "Palet Tolerans Ayarları",
+    "GROUP_STACK_TOLERANCE": "İstifleme Toleransı",
     "GROUP_SYMMETRIC": "İki Yönlü Tolerans (Opsiyonel)",
     "GROUP_GEOMETRIC": "Boyut Eşleştirme",
     "GROUP_ANCHOR": "Tek Tip Palet Ayarları",
@@ -1308,6 +1309,9 @@
     "PALLET_DEPTH_MARGIN": "Palet Boy Toleransı",
     "PALLET_DEPTH_MARGIN_HINT": "Her paletin boy boyutuna eklenecek pay (mm)",
     "PALLET_DEPTH_MARGIN_DETAIL": "Paletler arası ön-arka boşluk bırakmak için kullanılır. Örneğin 30 girerseniz 1400mm boyundaki palet 1430mm olarak hesaplanır.",
+    "STACK_FOOTPRINT_TOLERANCE": "İstifleme Footprint Toleransı",
+    "STACK_FOOTPRINT_TOLERANCE_HINT": "Üstteki palet tabandan en fazla ne kadar küçük olabilir (mm)",
+    "STACK_FOOTPRINT_TOLERANCE_DETAIL": "Normal yerleştirme bu ayardan <strong>tamamen bağımsız</strong> çalışır — her palet önce kendi başına, toleranssız yerleştirilmeye çalışılır. Bu ayar SADECE yerleştirmenin <strong>sonunda hâlâ sığmamış (kalan) paletler</strong> için devreye girer: kalan bir palet, mevcut (zaten yerleşmiş) bir istifin en üst katmanından <strong>her iki eksende de</strong> (en ve boy, birbirinden bağımsız) en fazla bu kadar (mm) <strong>küçükse</strong> ve o istifte hâlâ boş yükseklik varsa, üstüne bindirilerek kurtarılır. Örnek: yerleşmiş bir palet 1000x1600 mm, tolerans 200 mm girilirse; sığmayan 1000x1400'lük bir palet bunun üstüne konarak kurtarılabilir. Yön <strong>tek taraflıdır</strong> — üstteki palet alttakinden asla <strong>büyük</strong> olamaz. Varsayılan <strong>0</strong>: kapalı, kalan paletler için de bu kurtarma denenmez (mevcut davranış).",
     "BULK": {
       "TITLE": "Toplu Algoritma Ayarları",
       "CONFIGURE": "Kısıtları Ayarla",
