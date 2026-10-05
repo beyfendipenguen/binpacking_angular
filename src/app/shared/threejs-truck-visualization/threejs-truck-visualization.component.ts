@@ -197,6 +197,17 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
   // boşluğu doğrudan piksel hesabına ekliyoruz.
   private readonly RING_VERTICAL_GAP = 14;
 
+  // Çakışma/sınır uyarıları — bir paket başka bir paketin İÇİNDE (zorla
+  // yerleştirme çakışma kontrolünü kapattığı için mümkün) ya da tır dışında
+  // ise paketin üstünde tooltip tarzı bir rozet gösterilir. Liste
+  // refreshOverlapWarnings() ile her konum/yönelim değişiminde (sürükleme
+  // dahil, "normale döndür" beklemeden) yenilenir; rozetlerin ekran
+  // konumu her frame'de doğrudan DOM'a yazılır (bkz.
+  // updateOverlapBadgePositions, action ring ile aynı mantık).
+  readonly overlapWarningsSignal = signal<{ pkgId: string; text: string }[]>([]);
+  private overlapWarningsKey = '';
+  @ViewChild('overlapLayer') overlapLayerRef?: ElementRef<HTMLElement>;
+
   // Camera interaction
   private isRotatingCamera = false;
   private isPanningCamera = false;
@@ -559,6 +570,12 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     material.emissive.setHex(0x000000);
 
     this.orderResultChange();
+
+    // Normale döndürülürken hâlâ başka bir paketin içindeyse uyar
+    // (rozet de paketin üstünde kalır — bkz. refreshOverlapWarnings).
+    if (this.overlapWarningsSignal().some(w => w.pkgId === selected.pkgId)) {
+      this.toastService.warning(this.translate.instant('TRUCK_VISUALIZATION.WARN_NORMALIZE_OVERLAP'));
+    }
     this.renderManager.requestRender();
     this.cdr.detectChanges();
   }
@@ -763,6 +780,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
         () => {
           this.updateActionRingPosition();
           this.updatePlateActionRingPosition();
+          this.updateOverlapBadgePositions();
         }
       );
 
@@ -2276,7 +2294,9 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
 
         let finalX = desiredPos.x;
         let finalY = desiredPos.y;
-        let finalZ = desiredPos.z;
+        // Yükseklik de tır içinde kalsın (zorla yerleştirilmiş paketlerde
+        // çakışma kontrolü kapalı olduğu için başka bir sınır yok).
+        let finalZ = Math.max(0, Math.min(desiredPos.z, Math.max(0, truckDims[2] - pkg.height)));
         let isSliding = false;
 
         if (!isOverPlate) {
@@ -3244,15 +3264,40 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     selected.length = oldWidth;
     selected.width = oldLength;
 
+    // Tır sınırı: döndürünce ayak izi tırın dışına taşıyorsa (zorla
+    // yerleştirilmiş paketlerde de) konumu sınır içine çek; tır boyutundan
+    // büyükse döndürmeyi reddet — paket asla tır dışına çıkamaz.
+    const truckDims = this.truckDimension();
+    const oldX = selected.x;
+    const oldY = selected.y;
+    const maxX = truckDims[0] - selected.length;
+    const maxY = truckDims[1] - selected.width;
+    if (maxX < 0 || maxY < 0) {
+      selected.length = oldLength;
+      selected.width = oldWidth;
+      this.showCollisionWarningBriefly();
+      this.toastService.warning(this.translate.instant('TRUCK_VISUALIZATION.WARN_OUTSIDE_TRUCK'));
+      return;
+    }
+    const clampedX = Math.max(0, Math.min(selected.x, maxX));
+    const clampedY = Math.max(0, Math.min(selected.y, maxY));
+
     if (this.checkCollisionPrecise(selected, {
-      x: selected.x,
-      y: selected.y,
+      x: clampedX,
+      y: clampedY,
       z: selected.z
     })) {
       selected.length = oldLength;
       selected.width = oldWidth;
       this.showCollisionWarningBriefly();
       return;
+    }
+
+    selected.x = clampedX;
+    selected.y = clampedY;
+    if (clampedX !== oldX || clampedY !== oldY) {
+      selected.mesh.position.x = clampedX + selected.length / 2;
+      selected.mesh.position.z = clampedY + selected.width / 2;
     }
 
     selected.rotation = (selected.rotation || 0) + 90;
@@ -3765,7 +3810,103 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     return item.pkgId;
   }
 
+  /**
+   * Tırdaki her paket için: (1) başka bir paketin İÇİNDE mi (3 eksende AABB
+   * çakışması — zorla yerleştirme çakışma kontrolünü kapattığı için
+   * oluşabilir), (2) tır sınırlarının DIŞINDA mı kontrol eder; sorunlu
+   * paketler için overlapWarningsSignal'i günceller (üstlerinde rozet
+   * görünür). orderResultChange'ten çağrıldığı için her konum/yönelim
+   * değişiminde — sürükleme sırasında da, "normale döndür" beklemeden —
+   * anında yenilenir. Sonuç değişmediyse sinyale dokunmaz.
+   */
+  private refreshOverlapWarnings(): void {
+    const packages = this.processedPackagesSignal();
+    const truckDims = this.truckDimension();
+    const warnings: { pkgId: string; text: string }[] = [];
+
+    for (const pkg of packages) {
+      if (pkg.isBeingDragged && pkg.y + pkg.width / 2 > truckDims[1]) continue; // plate üstünde
+
+      const outside =
+        pkg.x < -0.5 || pkg.y < -0.5 || pkg.z < -0.5 ||
+        pkg.x + pkg.length > truckDims[0] + 0.5 ||
+        pkg.y + pkg.width > truckDims[1] + 0.5 ||
+        pkg.z + pkg.height > truckDims[2] + 0.5;
+
+      if (outside) {
+        warnings.push({
+          pkgId: pkg.pkgId,
+          text: this.translate.instant('TRUCK_VISUALIZATION.WARN_OUTSIDE_TRUCK'),
+        });
+        continue;
+      }
+
+      // Normal paketler normalde birbirleriyle çakışmaz; çakışma varsa
+      // (zorla yerleştirme ya da "normale döndür" sonrası) işaretlenir.
+      for (const other of packages) {
+        if (other.pkgId === pkg.pkgId) continue;
+        if (
+          pkg.x < other.x + other.length && pkg.x + pkg.length > other.x &&
+          pkg.y < other.y + other.width && pkg.y + pkg.width > other.y &&
+          pkg.z < other.z + other.height && pkg.z + pkg.height > other.z
+        ) {
+          warnings.push({
+            pkgId: pkg.pkgId,
+            text: this.translate.instant('TRUCK_VISUALIZATION.WARN_INSIDE_PACKAGE'),
+          });
+          break;
+        }
+      }
+    }
+
+    const key = warnings.map(w => `${w.pkgId}:${w.text}`).join('|');
+    if (key !== this.overlapWarningsKey) {
+      this.overlapWarningsKey = key;
+      this.overlapWarningsSignal.set(warnings);
+    }
+  }
+
+  /**
+   * Çakışma rozetlerinin ekran konumunu günceller (updateActionRingPosition
+   * ile aynı yaklaşım: her frame, NgZone dışında, doğrudan DOM style).
+   */
+  private updateOverlapBadgePositions(): void {
+    const layer = this.overlapLayerRef?.nativeElement;
+    if (!layer || !this.camera || !this.threeContainer) return;
+
+    const badges = layer.querySelectorAll<HTMLElement>('.tjs-overlap-badge');
+    if (!badges.length) return;
+
+    const container = this.threeContainer.nativeElement as HTMLElement;
+    const width = container.clientWidth;
+    const height = container.clientHeight;
+    if (!width || !height) return;
+
+    this.packagesGroup?.updateMatrixWorld(true);
+    const packages = this.processedPackagesSignal();
+
+    badges.forEach(el => {
+      const pkg = packages.find(p => p.pkgId === el.dataset['pkg']);
+      if (!pkg?.mesh) {
+        el.style.display = 'none';
+        return;
+      }
+      pkg.mesh.getWorldPosition(this.ringProjectionVector);
+      this.ringProjectionVector.y += pkg.height / 2 + 60;
+      this.ringProjectionVector.project(this.camera);
+      if (this.ringProjectionVector.z > 1) {
+        el.style.display = 'none';
+        return;
+      }
+      const x = (this.ringProjectionVector.x * 0.5 + 0.5) * width;
+      const y = (-this.ringProjectionVector.y * 0.5 + 0.5) * height;
+      el.style.display = 'flex';
+      el.style.transform = `translate(${x}px, ${y}px) translate(-50%, -100%)`;
+    });
+  }
+
   private orderResultChange(): void {
+    this.refreshOverlapWarnings();
     const processed = this.processedPackagesSignal();
 
     const orderResult: PackagePosition[] = processed.map(pkg => [

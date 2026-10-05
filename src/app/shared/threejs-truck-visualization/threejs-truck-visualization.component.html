@@ -231,6 +231,18 @@
   }
   }
 
+  <!-- Başka bir paketin içinde / tır dışında kalan paketlerin üstündeki
+       uyarı rozetleri (bkz. refreshOverlapWarnings / updateOverlapBadgePositions).
+       Konteyner her zaman DOM'da; konumlar her frame'de doğrudan style ile yazılır. -->
+  <div #overlapLayer class="tjs-overlap-layer">
+    @for (w of overlapWarningsSignal(); track w.pkgId) {
+    <div class="tjs-overlap-badge" [attr.data-pkg]="w.pkgId">
+      <mat-icon>warning_amber</mat-icon>
+      <span>{{ w.text }}</span>
+    </div>
+    }
+  </div>
+
   <!-- Paketin üstünde onu takip eden hızlı aksiyon halkası (bkz.
        updateActionRingPosition). Konteyner @if'e bağlı DEĞİL — seçim
        olsun/olmasın DOM'da SABİT kalır (görünürlük sadece style.display ile
