@@ -53,9 +53,9 @@
             <p class="profile-email">
               <mat-icon>email</mat-icon>{{userProfile?.email}}
             </p>
-            @if (userProfile?.username) {
+            @if (userProfile?.username; as username) {
               <p class="profile-username">
-                <mat-icon>alternate_email</mat-icon>{{userProfile?.username}}
+                <mat-icon>alternate_email</mat-icon>{{ username }}
               </p>
             }
           </div>
