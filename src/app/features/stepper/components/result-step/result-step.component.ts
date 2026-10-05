@@ -34,6 +34,8 @@ import { PackagePosition } from '@app/features/interfaces/order-result.interface
 import { DisableAuthDirective } from '@app/core/auth/directives/disable-auth.directive';
 import { HasPermissionDirective } from '@app/core/auth/directives/has-permission.directive';
 import { getApiErrorMessage } from '@app/core/utils/api-error.util';
+import { OrderFillAnalysisService } from '@features/services/order-fill-analysis.service';
+import { FillAnalysisDialogComponent } from './fill-analysis-dialog/fill-analysis-dialog.component';
 
 @Component({
   selector: 'app-result-step',
@@ -62,6 +64,10 @@ export class ResultStepComponent implements OnInit, OnDestroy {
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly toastService = inject(ToastService);
   private readonly resultStepService = inject(ResultStepService);
+  private readonly fillAnalysisService = inject(OrderFillAnalysisService);
+
+  // "Tır nasıl tam dolar?" analizi çalışırken butonda spinner için
+  readonly fillAnalysisLoading = signal(false);
 
   // Signals
 
@@ -255,6 +261,10 @@ export class ResultStepComponent implements OnInit, OnDestroy {
           }
 
           this.cdr.markForCheck();
+
+          // Hesap + OrderResult hazır → "tır nasıl tam dolar?" analizi.
+          // Öneri çıkarsa dialog kendiliğinden açılır; çıkmazsa sessiz kalır.
+          this.runFillAnalysisAfterCalculation();
         },
         error: (error) => {
           this.store.dispatch(StepperUiActions.setGlobalError({
@@ -268,6 +278,55 @@ export class ResultStepComponent implements OnInit, OnDestroy {
           this.toastService.error(this.getErrorMessage(error));
         }
       });
+  }
+
+  // ========================================
+  // TIR DOLULUK ANALİZİ
+  // ========================================
+
+  /**
+   * Hesaplama bittikten sonra analizi arka planda çalıştırır (sonuç
+   * gösterimini geciktirmez). Hata olursa sessizce geçer — analiz opsiyonel.
+   * has_suggestions=true ise dialog otomatik açılır.
+   */
+  private runFillAnalysisAfterCalculation(): void {
+    const orderId = this.orderIdSignal();
+    if (!orderId) return;
+
+    this.fillAnalysisLoading.set(true);
+    this.fillAnalysisService.analyze(orderId).pipe(
+      takeUntil(this.destroy$),
+      finalize(() => {
+        this.fillAnalysisLoading.set(false);
+        this.cdr.markForCheck();
+      })
+    ).subscribe({
+      next: (analysis) => {
+        if (analysis?.has_suggestions) {
+          this.dialog.open(FillAnalysisDialogComponent, {
+            width: '820px',
+            maxWidth: '95vw',
+            maxHeight: '90vh',
+            autoFocus: false,
+            data: { orderId, analysis },
+          });
+        }
+      },
+      error: () => { /* analiz opsiyonel — sessiz geç */ },
+    });
+  }
+
+  /** Butondan: en son kaydı gösterir (yoksa dialog analizi çalıştırır). */
+  openFillAnalysis(): void {
+    const orderId = this.orderIdSignal();
+    if (!orderId) return;
+    this.dialog.open(FillAnalysisDialogComponent, {
+      width: '820px',
+      maxWidth: '95vw',
+      maxHeight: '90vh',
+      autoFocus: false,
+      data: { orderId },
+    });
   }
 
   // ========================================

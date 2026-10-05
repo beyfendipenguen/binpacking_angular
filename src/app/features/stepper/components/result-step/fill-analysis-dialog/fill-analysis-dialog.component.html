@@ -1,0 +1,167 @@
+<!-- features/stepper/components/result-step/fill-analysis-dialog/fill-analysis-dialog.component.html -->
+<div class="fill-dialog">
+  <div class="dialog-header">
+    <div class="header-titles">
+      <h2 mat-dialog-title>{{ 'FILL_ANALYSIS.TITLE' | translate }}</h2>
+      @if (analysis) {
+      <span class="header-subtitle">
+        {{ 'FILL_ANALYSIS.SHIPMENT' | translate }} {{ analysis.shipment_number }}
+        · {{ analysis.created_at | date: 'dd/MM/yyyy HH:mm' }}
+      </span>
+      }
+    </div>
+    <button mat-icon-button (click)="close()" class="close-button">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <mat-dialog-content>
+    @if (isLoading) {
+    <div class="loading-container">
+      <mat-spinner diameter="42"></mat-spinner>
+    </div>
+    } @else if (analysis) {
+
+    <!-- ===== Mevcut durum ===== -->
+    <div class="current-box">
+      <div class="stat">
+        <span class="stat-label">{{ 'FILL_ANALYSIS.WEIGHT' | translate }}</span>
+        <span class="stat-value">{{ analysis.result.current.weight_kg | number: '1.0-0' }} kg</span>
+        <span class="stat-sub">
+          %{{ analysis.result.current.weight_pct }} /
+          {{ analysis.result.truck.weight_limit_kg | number: '1.0-0' }} kg
+        </span>
+      </div>
+      <div class="stat">
+        <span class="stat-label">{{ 'FILL_ANALYSIS.LENGTH_USED' | translate }}</span>
+        <span class="stat-value">%{{ analysis.result.current.length_used_pct }}</span>
+        <span class="stat-sub">
+          {{ 'FILL_ANALYSIS.FREE' | translate }}:
+          {{ analysis.result.current.free_length_mm | number: '1.0-0' }} mm
+        </span>
+      </div>
+      <div class="stat">
+        <span class="stat-label">{{ 'FILL_ANALYSIS.PALLETS' | translate }}</span>
+        <span class="stat-value">{{ analysis.result.current.pallet_count }}</span>
+        <span class="stat-sub">
+          {{ 'FILL_ANALYSIS.PARTIAL' | translate }}: {{ analysis.result.partial_pallets.length }}
+        </span>
+      </div>
+    </div>
+
+    @if (!analysis.result.baseline_ok) {
+    <div class="note warn">
+      <mat-icon>info</mat-icon>
+      {{ 'FILL_ANALYSIS.BASELINE_MISMATCH' | translate }}
+    </div>
+    }
+    @if (analysis.result.truncated) {
+    <div class="note warn">
+      <mat-icon>hourglass_bottom</mat-icon>
+      {{ 'FILL_ANALYSIS.TRUNCATED' | translate }}
+    </div>
+    }
+
+    <!-- ===== Öneri yok ===== -->
+    @if (!scenarios.length) {
+    <div class="empty-state">
+      <mat-icon>check_circle_outline</mat-icon>
+      <p>{{ 'FILL_ANALYSIS.NO_SUGGESTION' | translate }}</p>
+    </div>
+    }
+
+    <!-- ===== Senaryolar ===== -->
+    @for (sc of scenarios; track sc.type) {
+    <section class="scenario" [class.over]="sc.type === 'over_limit'">
+      <header class="scenario-header">
+        <mat-icon>{{ sc.type === 'over_limit' ? 'warning_amber' : 'task_alt' }}</mat-icon>
+        <div class="scenario-titles">
+          <h3>{{ (sc.type === 'over_limit' ? 'FILL_ANALYSIS.OVER_TITLE' : 'FILL_ANALYSIS.WITHIN_TITLE') | translate }}</h3>
+          <span class="scenario-sub">
+            {{ (sc.type === 'over_limit' ? 'FILL_ANALYSIS.OVER_SUB' : 'FILL_ANALYSIS.WITHIN_SUB') | translate }}
+          </span>
+        </div>
+      </header>
+
+      <div class="result-chips">
+        <span class="chip">
+          {{ 'FILL_ANALYSIS.WEIGHT' | translate }}:
+          <b>{{ sc.result.weight_kg | number: '1.0-0' }} kg</b> (%{{ sc.result.weight_pct }})
+        </span>
+        <span class="chip">
+          {{ 'FILL_ANALYSIS.LENGTH_USED' | translate }}: <b>%{{ sc.result.length_used_pct }}</b>
+        </span>
+        <span class="chip">
+          {{ 'FILL_ANALYSIS.PALLETS' | translate }}: <b>{{ sc.result.pallet_count }}</b>
+        </span>
+        @if (sc.result.excess_kg) {
+        <span class="chip danger">
+          {{ 'FILL_ANALYSIS.EXCESS' | translate }}: <b>+{{ sc.result.excess_kg | number: '1.0-0' }} kg</b>
+        </span>
+        }
+      </div>
+
+      @if (sc.partial_pallet_additions.length) {
+      <h4>{{ 'FILL_ANALYSIS.COMPLETE_PARTIAL' | translate }}</h4>
+      <table class="fa-table">
+        <thead>
+          <tr>
+            <th>{{ 'FILL_ANALYSIS.PALLET' | translate }}</th>
+            <th>{{ 'FILL_ANALYSIS.PRODUCT' | translate }}</th>
+            <th class="num">{{ 'FILL_ANALYSIS.ADD' | translate }}</th>
+            <th class="num">{{ 'FILL_ANALYSIS.FILL' | translate }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (a of sc.partial_pallet_additions; track a.package_id) {
+          <tr>
+            <td>#{{ a.package_name }}</td>
+            <td>{{ productLabel(a.product) }}</td>
+            <td class="num"><b>+{{ a.add_count }}</b></td>
+            <td class="num">%{{ a.fill_before_pct }} → %{{ a.fill_after_pct }}</td>
+          </tr>
+          }
+        </tbody>
+      </table>
+      }
+
+      @if (sc.new_pallets.length) {
+      <h4>{{ 'FILL_ANALYSIS.NEW_PALLETS' | translate }}</h4>
+      <table class="fa-table">
+        <thead>
+          <tr>
+            <th>{{ 'FILL_ANALYSIS.PRODUCT' | translate }}</th>
+            <th class="num">{{ 'FILL_ANALYSIS.PALLET_COUNT' | translate }}</th>
+            <th class="num">{{ 'FILL_ANALYSIS.UNITS' | translate }}</th>
+            <th class="num">{{ 'FILL_ANALYSIS.WEIGHT' | translate }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (n of sc.new_pallets; track n.product.id) {
+          <tr>
+            <td>{{ productLabel(n.product) }}</td>
+            <td class="num"><b>{{ n.pallets }}</b> × {{ n.units_per_pallet }}</td>
+            <td class="num"><b>{{ n.units_total }}</b></td>
+            <td class="num">{{ n.weight_kg | number: '1.0-0' }} kg</td>
+          </tr>
+          }
+        </tbody>
+      </table>
+      }
+    </section>
+    }
+
+    <p class="disclaimer">{{ 'FILL_ANALYSIS.DISCLAIMER' | translate }}</p>
+    }
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-stroked-button (click)="rerun()" [disabled]="isLoading">
+      <mat-icon>refresh</mat-icon>
+      {{ 'FILL_ANALYSIS.RERUN' | translate }}
+    </button>
+    <button mat-flat-button color="primary" (click)="close()">
+      {{ 'COMMON.CLOSE' | translate }}
+    </button>
+  </mat-dialog-actions>
+</div>

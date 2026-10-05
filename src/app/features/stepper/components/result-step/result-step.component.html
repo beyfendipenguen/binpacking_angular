@@ -102,6 +102,11 @@
           [title]="'RESULT_STEP.CUSTOMER_VIEW_OPEN' | translate">
           <mat-icon>open_in_new</mat-icon>
         </a>
+        <button class="customer-copy-btn fill-analysis-btn" (click)="openFillAnalysis()"
+          [disabled]="fillAnalysisLoading()" [title]="'FILL_ANALYSIS.BUTTON_TITLE' | translate">
+          <mat-icon>{{ fillAnalysisLoading() ? 'hourglass_top' : 'local_shipping' }}</mat-icon>
+          <span>{{ 'FILL_ANALYSIS.BUTTON' | translate }}</span>
+        </button>
         <button class="customer-copy-btn" (click)="copyCustomerLink()"
           [title]="'RESULT_STEP.COPY_LINK' | translate">
           <mat-icon>{{ linkCopied ? 'check' : 'content_copy' }}</mat-icon>
