@@ -351,6 +351,7 @@
     "SUBTITLE": "Aktif siparişleri görüntüleyin ve detaylı bilgilere erişin",
     "ORDERS": "Sevkiyat Emirleri",
     "ORDER_NAME": "Sipariş Adı",
+    "ORDER_NO": "Sipariş No",
     "GO_TO_INTEGRATION": "Entegrasyona Git",
     "SEARCH_PLACEHOLDER": "Sipariş adı, firma adı veya ekstra veri ile ara...",
     "CHANGE_NUMBER_TITLE": "Sipariş No Değiştir",

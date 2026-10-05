@@ -155,6 +155,11 @@ export class GenericTableComponent<T extends { id: any }> implements OnInit, Aft
   // NEW: Output for custom button clicks
   @Output() cellButtonClick = new EventEmitter<CellButtonClickEvent<T>>();
 
+  // Sunucudan (service) bir sayfa veri yüklendiğinde o sayfanın satırlarını
+  // yayınlar — üst component'in satır verisine göre sütun açıp kapatması vb.
+  // için (örn. orders: extra_data.order_no sadece doluysa görünür).
+  @Output() dataLoaded = new EventEmitter<T[]>();
+
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
 
@@ -563,6 +568,7 @@ export class GenericTableComponent<T extends { id: any }> implements OnInit, Aft
             setTimeout(() => {
               this.dataSource.data = page.results;
               this.totalItems = page.count;
+              this.dataLoaded.emit(page.results);
             }, 0);
           } else {
             this.toastService.error(
@@ -824,6 +830,24 @@ export class GenericTableComponent<T extends { id: any }> implements OnInit, Aft
    * CSS text-overflow font'a/rakam-harf genişliğine göre tutarsız
    * kırpıyordu). Tam metin getCellTooltip() ile tooltip'te görünür.
    */
+  /**
+   * columnTypes[column] === 'list' için: hücre değerini virgülle ayırıp
+   * boşları atar (örn. "ITT-1,IHT-2" → ["ITT-1","IHT-2"]). Array gelirse
+   * olduğu gibi (string'e çevrilerek) kullanılır.
+   */
+  getListValues(row: any, column: string): string[] {
+    // HAM değer okunur — getNestedPropertyValue() sonucu formatValue()'dan
+    // geçirir, o da array'leri "weights" varsayıp "undefined: NaN" üretir.
+    let value: any = row;
+    for (const prop of column.split('.')) {
+      if (value === null || value === undefined) return [];
+      value = value[prop];
+    }
+    if (value === null || value === undefined || value === '') return [];
+    const parts = Array.isArray(value) ? value : String(value).split(',');
+    return parts.map(p => String(p).trim()).filter(p => p.length > 0);
+  }
+
   getTruncatedValue(row: any, column: string): string {
     const value = this.getNestedPropertyValue(row, column);
     const text = value === null || value === undefined ? '' : String(value);

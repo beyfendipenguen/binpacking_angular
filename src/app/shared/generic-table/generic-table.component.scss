@@ -212,6 +212,25 @@ $breakpoint-small: 480px;
         white-space: nowrap;
       }
 
+      // columnTypes 'list': virgülle ayrılmış çoklu değerler, alt alta küçük etiketler
+      .list-cell {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 2px;
+        padding: 2px 0;
+
+        .list-chip {
+          white-space: nowrap;
+          font-size: 12px;
+          line-height: 1.5;
+          padding: 0 8px;
+          border-radius: 10px;
+          background: rgba($primary-dark, 0.08);
+          color: $primary-dark;
+        }
+      }
+
       &.row-number-cell {
         text-align: center;
         font-weight: 600;

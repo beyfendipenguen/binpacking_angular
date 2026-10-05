@@ -86,8 +86,27 @@ export class OrdersComponent implements OnInit, OnDestroy {
     'created_at',
   ];
 
+  // Veri-tabanlı opsiyonel sütun: sipariş satırlarında extra_data.order_no
+  // doluysa (şu an sadece Sanica ERP importu dolduruyor) 'name'in yanına
+  // eklenir. Müşteri adına bakılmaz — başka bir ERP de order_no yazarsa
+  // sütun otomatik açılır. Bir kez açılınca sayfa/arama değişse de kapanmaz
+  // (sütun titremesin diye).
+  private readonly ORDER_NO_COLUMN = 'extra_data.order_no';
+  notSortableColumns: string[] = [this.ORDER_NO_COLUMN]; // JSON alanı, sunucuda sıralanamaz
+
+  onDataLoaded(rows: any[]): void {
+    if (this.displayedColumns.includes(this.ORDER_NO_COLUMN)) return;
+    if (!rows?.some((r) => !!r?.extra_data?.order_no)) return;
+
+    const idx = this.displayedColumns.indexOf('name');
+    const next = [...this.displayedColumns];
+    next.splice(idx + 1, 0, this.ORDER_NO_COLUMN);
+    this.displayedColumns = next; // yeni referans → generic-table ngOnChanges
+  }
+
   columnTypes: { [key: string]: string } = {
     'date': 'date',
+    'extra_data.order_no': 'list', // "A,B,C" → alt alta etiketler
     'created_at': 'date',
     'is_completed': 'status'
   };
@@ -107,6 +126,12 @@ export class OrdersComponent implements OnInit, OnDestroy {
       // üzerine gelince tooltip olarak gösterilsin — bkz.
       // GenericTableComponent.getCellTooltip()
       showRowExtraData: true
+    },
+    {
+      key: 'extra_data.order_no',
+      label: 'ORDER.ORDER_NO',
+      type: 'text',
+      required: false
     },
     {
       key: 'date',
@@ -195,6 +220,7 @@ export class OrdersComponent implements OnInit, OnDestroy {
     'files': 'ORDER.FILES',
     'date': 'INVOICE_UPLOAD.ORDER_DATE',
     'name': 'ORDER.ORDER_NAME',
+    'extra_data.order_no': 'ORDER.ORDER_NO',
     'is_completed': 'COMMON.STATUS',
     'history': 'ORDER_HISTORY.TITLE',
     'created_by': 'COMMON.USER',

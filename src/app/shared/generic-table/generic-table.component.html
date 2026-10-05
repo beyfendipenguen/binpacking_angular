@@ -99,6 +99,16 @@
             }
           </div>
           }
+          @else if (columnTypes[column] === 'list') {
+          <div class="list-cell">
+            @for (item of getListValues(row, column); track $index) {
+            <span class="list-chip">{{ item }}</span>
+            }
+            @if (!getListValues(row, column).length) {
+            <span class="no-weight">—</span>
+            }
+          </div>
+          }
           @else if (columnTypes[column] === 'weights') {
           <div class="weights-cell">
             @for (w of $any(row)['weights']; track w.id) {

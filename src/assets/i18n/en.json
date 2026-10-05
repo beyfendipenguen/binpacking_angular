@@ -351,6 +351,7 @@
     "SUBTITLE": "View active orders and access detailed information",
     "ORDERS": "Shipment Orders",
     "ORDER_NAME": "Order Name",
+    "ORDER_NO": "Order No",
     "GO_TO_INTEGRATION": "Go to Integration",
     "SEARCH_PLACEHOLDER": "Search by order name, company name or extra data...",
     "CHANGE_NUMBER_TITLE": "Change Order Number",
