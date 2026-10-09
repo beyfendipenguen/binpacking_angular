@@ -73,6 +73,10 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
   // kullanıcının seçimi korunur. Varsayılan olarak (ilk açılışta) görünür.
   private readonly SHOW_SHORTCUTS_HINT_STORAGE_KEY = 'tjs-show-shortcuts-hint';
   showHelp: boolean = this.loadShowShortcutsHintPreference();
+  // Sol altta gösterilen "yerleşmeyen ürünler" (deletedPackages) kartının
+  // açık/kapalı durumu — tercih localStorage'da saklanır.
+  private readonly SHOW_UNPLACED_CARD_STORAGE_KEY = 'tjs-show-unplaced-card';
+  showUnplacedCard: boolean = this.loadShowUnplacedCardPreference();
   isFullscreen = false;
   // Paket üst/yan yüzeylerindeki ürün detay etiketlerini her zaman (hover
   // beklemeden) gösterme aç/kapa durumu — bkz. toggleAllPackageLabels().
@@ -114,6 +118,31 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
       pkgId: row[8],
       dimensions: `${row[3]}×${row[4]}×${row[5]} mm`,
     } as PackageData));
+  });
+  // "Yerleşmeyen ürünler" kartı: plate'teki (deletedPackages) paketlerin
+  // ürünleri, ürün bazında toplanmış adetlerle. packagesStateService.deletedPackages
+  // canlı signal olduğu için plate'e paket eklenip çıkarıldıkça anında güncellenir.
+  unplacedSummary = computed(() => {
+    const deleted = this.packagesStateService.deletedPackages();
+    const packages = Object.values(this.packagesSignal() ?? {}) as any[];
+    const byId = new Map<string, any>(packages.map(p => [p.id, p]));
+    const totals = new Map<string, { name: string; count: number }>();
+    for (const pkg of deleted) {
+      const details = byId.get(pkg.pkgId)?.package_details ?? [];
+      for (const d of details) {
+        const key = String(d?.product?.id ?? d?.product?.name ?? '');
+        if (!key || !(d.count > 0)) continue;
+        const entry = totals.get(key) ?? { name: d.product?.name ?? key, count: 0 };
+        entry.count += d.count;
+        totals.set(key, entry);
+      }
+    }
+    const items = [...totals.values()].sort((a, b) => b.count - a.count);
+    return {
+      packageCount: deleted.length,
+      totalUnits: items.reduce((s, i) => s + i.count, 0),
+      items,
+    };
   });
   processedPackagesSignal = this.packagesStateService.processedPackages;
   selectedPackageSignal = this.packagesStateService.selectedPackage;
@@ -3200,6 +3229,25 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
   toggleShortcutsHint(): void {
     this.showHelp = !this.showHelp;
     this.saveShowShortcutsHintPreference(this.showHelp);
+  }
+
+  /** "Yerleşmeyen ürünler" kartını açar/kapatır ve tercihi localStorage'a yazar. */
+  toggleUnplacedCard(): void {
+    this.showUnplacedCard = !this.showUnplacedCard;
+    try {
+      localStorage.setItem(this.SHOW_UNPLACED_CARD_STORAGE_KEY, String(this.showUnplacedCard));
+    } catch {
+      // localStorage kullanılamıyorsa sessizce yut — kritik bir işlev değil
+    }
+  }
+
+  private loadShowUnplacedCardPreference(): boolean {
+    try {
+      const stored = localStorage.getItem(this.SHOW_UNPLACED_CARD_STORAGE_KEY);
+      return stored === null ? true : stored === 'true';
+    } catch {
+      return true;
+    }
   }
 
   /** localStorage'da saklanan "kısayollar panelini göster" tercihini okur. */

@@ -74,6 +74,11 @@
         [matTooltip]="(isFullscreen ? 'TRUCK_VISUALIZATION.EXIT_FULLSCREEN' : 'TRUCK_VISUALIZATION.FULLSCREEN') | translate">
         <mat-icon>{{ isFullscreen ? 'fullscreen_exit' : 'fullscreen' }}</mat-icon>
       </button>
+      <button class="tjs-icon-btn" (click)="toggleUnplacedCard()"
+        [class.tjs-icon-btn--active]="showUnplacedCard"
+        [matTooltip]="(showUnplacedCard ? 'TRUCK_VISUALIZATION.HIDE_UNPLACED' : 'TRUCK_VISUALIZATION.SHOW_UNPLACED') | translate">
+        <mat-icon>inventory_2</mat-icon>
+      </button>
       <button class="tjs-icon-btn" (click)="toggleShortcutsHint()"
         [class.tjs-icon-btn--active]="showHelp"
         [matTooltip]="(showHelp ? 'TRUCK_VISUALIZATION.HIDE_SHORTCUTS' : 'TRUCK_VISUALIZATION.SHOW_SHORTCUTS') | translate">
@@ -125,6 +130,37 @@
       <div class="tjs-shortcuts-list__item">
         <kbd>{{ 'TRUCK_VISUALIZATION.SHORTCUTS_SCROLL_CLICK_LABEL' | translate }}</kbd><span>{{ 'TRUCK_VISUALIZATION.SHORTCUTS_PAN' | translate }}</span>
       </div>
+    </div>
+  </div>
+  }
+
+  <!-- Yerleşmeyen ürünler kartı — plate'teki (deletedPackages) ürünler, anlık güncellenir -->
+  @if (showUnplacedCard) {
+  <div class="tjs-panel tjs-panel--deleted">
+    <div class="tjs-panel__header">
+      <span class="tjs-panel__title">
+        {{ 'TRUCK_VISUALIZATION.UNPLACED_TITLE' | translate }}
+        ({{ unplacedSummary().packageCount }})
+      </span>
+      <button class="tjs-close-btn" (click)="toggleUnplacedCard()">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+    <div class="tjs-panel__body tjs-unplaced-list">
+      @if (unplacedSummary().items.length === 0) {
+      <span class="tjs-unplaced-list__empty">{{ 'TRUCK_VISUALIZATION.UNPLACED_EMPTY' | translate }}</span>
+      } @else {
+      @for (item of unplacedSummary().items; track item.name) {
+      <div class="tjs-unplaced-list__item">
+        <span class="tjs-unplaced-list__name" [matTooltip]="item.name">{{ item.name }}</span>
+        <span class="tjs-unplaced-list__count">× {{ item.count }}</span>
+      </div>
+      }
+      <div class="tjs-unplaced-list__total">
+        <span>{{ 'TRUCK_VISUALIZATION.UNPLACED_TOTAL' | translate }}</span>
+        <span>{{ unplacedSummary().totalUnits }}</span>
+      </div>
+      }
     </div>
   </div>
   }
