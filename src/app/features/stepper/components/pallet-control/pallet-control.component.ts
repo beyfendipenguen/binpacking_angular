@@ -97,6 +97,7 @@ import { HasPermissionDirective } from '@app/core/auth/directives/has-permission
 import { DisableAuthDirective } from '@app/core/auth/directives/disable-auth.directive';
 import { Pallet } from '@app/features/interfaces/pallet.interface';
 import { PalletService } from '@app/features/services/pallet.service';
+import { FeedbackReactionComponent } from '../feedback-reaction/feedback-reaction.component';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActiveToast } from 'ngx-toastr';
 import { CalculateParamsDialogComponent } from './calculate-params-dialog/calculate-params-dialog.component';
@@ -127,7 +128,8 @@ import { NavigationEnd, Router } from '@angular/router';
     MatCheckboxModule,
     TranslateModule,
     HasPermissionDirective,
-    DisableAuthDirective
+    DisableAuthDirective,
+    FeedbackReactionComponent
   ],
   templateUrl: './pallet-control.component.html',
   styleUrl: './pallet-control.component.scss',

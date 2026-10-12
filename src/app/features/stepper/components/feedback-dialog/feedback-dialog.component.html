@@ -1,0 +1,62 @@
+<h2 mat-dialog-title class="fb-title">
+  <mat-icon>rate_review</mat-icon>
+  {{ 'FEEDBACK.TITLE' | translate }}
+</h2>
+
+<mat-dialog-content class="fb-content">
+  <p class="fb-intro">
+    {{ (data.required ? 'FEEDBACK.INTRO_REQUIRED' : 'FEEDBACK.INTRO') | translate }}
+  </p>
+
+  @for (s of sections; track s.key) {
+  <div class="fb-section" [class.enabled]="s.enabled">
+    <span [matTooltip]="isDisabled(s.key) ? ('FEEDBACK.PLACEMENT_NOT_READY' | translate) : ''">
+    <mat-checkbox [(ngModel)]="s.enabled" class="fb-section__check" [disabled]="isDisabled(s.key)">
+      {{ (s.key === 'packages' ? 'FEEDBACK.SECTION_PACKAGES' : 'FEEDBACK.SECTION_PLACEMENT') | translate }}
+    </mat-checkbox>
+    </span>
+
+    @if (s.enabled) {
+    <div class="fb-section__body">
+      <div class="fb-like-row">
+        <button type="button" class="fb-like-btn" [class.active]="s.liked === true" (click)="setLiked(s, true)">
+          <mat-icon>thumb_up</mat-icon>
+          <span>{{ 'FEEDBACK.LIKE' | translate }}</span>
+        </button>
+        <button type="button" class="fb-like-btn dislike" [class.active]="s.liked === false" (click)="setLiked(s, false)">
+          <mat-icon>thumb_down</mat-icon>
+          <span>{{ 'FEEDBACK.DISLIKE' | translate }}</span>
+        </button>
+      </div>
+
+      <div class="fb-reasons">
+        @for (r of reasonsFor(s.key); track r) {
+        <button type="button" class="fb-chip" [class.active]="s.reasons.has(r)" (click)="toggleReason(s, r)">
+          {{ 'FEEDBACK.REASON.' + r | translate }}
+        </button>
+        }
+      </div>
+
+      <textarea class="fb-comment" rows="2" [(ngModel)]="s.comment"
+        [placeholder]="'FEEDBACK.COMMENT_PLACEHOLDER' | translate"></textarea>
+    </div>
+    }
+  </div>
+  }
+
+  @if (data.required) {
+  <p class="fb-hint">{{ 'FEEDBACK.REQUIRED_HINT' | translate }}</p>
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end" class="fb-actions">
+  @if (data.allowStay) {
+  <button mat-button type="button" (click)="stay()" [disabled]="isSending">{{ 'FEEDBACK.STAY' | translate }}</button>
+  }
+  @if (!data.required) {
+  <button mat-button type="button" (click)="skip()" [disabled]="isSending">{{ 'FEEDBACK.SKIP' | translate }}</button>
+  }
+  <button mat-raised-button color="primary" type="button" (click)="send()" [disabled]="!canSubmit">
+    {{ 'FEEDBACK.SEND' | translate }}
+  </button>
+</mat-dialog-actions>

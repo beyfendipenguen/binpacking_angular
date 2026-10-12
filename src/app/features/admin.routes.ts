@@ -4,6 +4,7 @@ import { OrdersComponent } from './orders/orders.component';
 import { ProductsComponent } from './products/products.component';
 import { ProfileComponent } from './profile/profile.component';
 import { StepperComponent } from './stepper/stepper.component';
+import { feedbackExitGuard } from './stepper/guards/feedback-exit.guard';
 import { PalletsComponent } from './pallets/pallets.component';
 import { TrucksComponent } from './trucks/trucks.component';
 import { PermissionsComponent } from './permissions/permissions.component';
@@ -16,6 +17,7 @@ const ADMIN_ROUTES: Routes = [
     path: '',
     component: StepperComponent,
     canActivate: [permissionGuard],
+    canDeactivate: [feedbackExitGuard],
     data: { permission: 'orders.view_order' }
   },
   {

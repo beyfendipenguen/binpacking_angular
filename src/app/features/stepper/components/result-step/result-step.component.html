@@ -31,6 +31,9 @@
         </span>
       </button>
       }
+      @if (hasResultsSignal() && orderIdSignal()) {
+      <app-feedback-reaction section="placement" [orderId]="orderIdSignal()" [resetKey]="calcVersion()" />
+      }
     </div>
 
     <!-- Enhanced View Controls -->

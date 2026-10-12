@@ -718,6 +718,37 @@
       "OPERATION_IN_PROGRESS": "İşlem gerçekleştiriliyor..."
     }
   },
+  "FEEDBACK": {
+    "PLACEMENT_NOT_READY": "Bu aşamaya henüz gelinmedi: tır yerleşimi sonucu yok",
+    "TITLE": "Geri Bildirim",
+    "INTRO": "Sonuç hakkında düşüncelerini paylaşmak ister misiniz?",
+    "INTRO_REQUIRED": "Sonuçta değişiklik yaptın veya yerleşmeyen palet var. Algoritmayı geliştirebilmemiz için neyin yanlış gittiğini kısaca belirtebilirsiniz.",
+    "SECTION_PACKAGES": "Paketleme (palet oluşturma)",
+    "SECTION_PLACEMENT": "Tır yerleşimi",
+    "LIKE": "Beğendim",
+    "DISLIKE": "Beğenmedim",
+    "LIKE_TIP": "Sonucu beğendim",
+    "DISLIKE_TIP": "Sonucu beğenmedim",
+    "COMMENT_PLACEHOLDER": "İstersen kısa bir not ekle",
+    "REQUIRED_HINT": "Devam etmek için en az bir bölümü işaretleyip beğen/beğenme, neden veya not girmeniz gerekiyor.",
+    "SEND": "Gönder",
+    "SKIP": "Vazgeç",
+    "STAY": "Sayfada kal",
+    "THANKS": "Geri bildirim için teşekkürler",
+    "SEND_ERROR": "Geri bildirim gönderilemedi",
+    "REASON": {
+      "SMALL_PALLETS": "Çok küçük paletler",
+      "MIXED_PALLETS": "Karışık paletler",
+      "WRONG_PALLET_TYPE": "Yanlış palet seçimi",
+      "TOO_MANY_PALLETS": "Çok fazla palet",
+      "EMPTY_SPACE": "Tırda gereksiz boşluk",
+      "ROTATION_TOO_STRICT": "Yön kuralı çok katı",
+      "WEIGHT_LIMIT": "Tonaj sorunu",
+      "UNPLACED": "Yerleşmeyen paletler",
+      "WRONG_ORDER": "Yükleme sırası yanlış",
+      "OTHER": "Diğer"
+    }
+  },
   "FILL_ANALYSIS": {
     "TITLE": "Tır Doluluk Analizi",
     "SHIPMENT": "Sevkiyat",

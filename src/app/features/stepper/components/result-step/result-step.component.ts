@@ -36,6 +36,10 @@ import { HasPermissionDirective } from '@app/core/auth/directives/has-permission
 import { getApiErrorMessage } from '@app/core/utils/api-error.util';
 import { OrderFillAnalysisService } from '@features/services/order-fill-analysis.service';
 import { FillAnalysisDialogComponent } from './fill-analysis-dialog/fill-analysis-dialog.component';
+import { OrderFeedbackService } from '@features/services/order-feedback.service';
+import { FeedbackSectionKey } from '@features/interfaces/order-feedback.interface';
+import { FeedbackReactionComponent } from '../feedback-reaction/feedback-reaction.component';
+import { FeedbackDialogComponent, FeedbackDialogResult } from '../feedback-dialog/feedback-dialog.component';
 
 @Component({
   selector: 'app-result-step',
@@ -45,7 +49,8 @@ import { FillAnalysisDialogComponent } from './fill-analysis-dialog/fill-analysi
     MatIconModule,
     ThreeJSTruckVisualizationComponent,
     TranslateModule,
-    DisableAuthDirective, HasPermissionDirective
+    DisableAuthDirective, HasPermissionDirective,
+    FeedbackReactionComponent
   ],
   templateUrl: './result-step.component.html',
   styleUrl: './result-step.component.scss',
@@ -65,6 +70,10 @@ export class ResultStepComponent implements OnInit, OnDestroy {
   private readonly toastService = inject(ToastService);
   private readonly resultStepService = inject(ResultStepService);
   private readonly fillAnalysisService = inject(OrderFillAnalysisService);
+  private readonly feedbackService = inject(OrderFeedbackService);
+
+  /** Her başarılı hesaplamada artar; beğen/beğenme butonlarını sıfırlar. */
+  readonly calcVersion = signal(0);
 
   // "Tır nasıl tam dolar?" analizi çalışırken butonda spinner için
   readonly fillAnalysisLoading = signal(false);
@@ -161,11 +170,22 @@ export class ResultStepComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
       this.isMultiShipmentSignal.set(this.store.selectSignal(selectIsMultiShipment)());
+
+      // Geri bildirim: ekran görüntüsü + ekrandaki son yerleşim sağlayıcıları
+      // (dialog ve çıkış guard'ı kullanır).
+      this.feedbackService.screenshotProvider = () =>
+        this.threeJSComponent?.captureScreenshot() ?? null;
+      this.feedbackService.resultProvider = async () => {
+        if (!this.hasResultsSignal()) return null;
+        return this.resultStepService.formatAllShipmentsForResult();
+      };
   }
 
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+    this.feedbackService.screenshotProvider = null;
+    this.feedbackService.resultProvider = null;
   }
 
   copyCustomerLink(): void {
@@ -255,6 +275,7 @@ export class ResultStepComponent implements OnInit, OnDestroy {
           this.threeJSComponent?.safeProcessData();
 
           this.toastService.success(this.translate.instant('RESULT_STEP.PACKAGING_SUCCESS'));
+          this.calcVersion.update(v => v + 1);
 
           if (deletedRows.length > 0) {
             this.store.dispatch(StepperResultActions.setIsDirty({ isDirty: true }));
@@ -410,7 +431,68 @@ export class ResultStepComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.completeOrder(true);
+    this.requestFeedbackThenComplete();
+  }
+
+  /**
+   * Tamamlamadan önce geri bildirim: kullanıcı sonucu değiştirdiyse (ya da
+   * hesaplama sonrası paket/yerleşim farkı varsa) geri bildirim ZORUNLU;
+   * değişiklik yoksa doğrudan tamamlanır (beğen/beğenme butonları zaten var).
+   */
+  private requestFeedbackThenComplete(): void {
+    const orderId = this.orderIdSignal();
+    const screenDirty = this.isDirtySignal();
+    // Yerleşmeyen palet varsa tamamlama zaten uyarıyla bloklanır — önce onu çöz.
+    if ((this.threeJSComponent?.deletedPackagesSignal()?.length ?? 0) > 0) {
+      this.completeOrder(true);
+      return;
+    }
+    if (!orderId) {
+      this.completeOrder(true);
+      return;
+    }
+
+    this.feedbackService.getStatus(orderId).pipe(takeUntil(this.destroy$)).subscribe({
+      next: (status) => {
+        const sections: FeedbackSectionKey[] = [];
+        if (status.packages.changed) sections.push('packages');
+        if (screenDirty || status.placement.changed || status.placement.unplaced_now > 0) {
+          sections.push('placement');
+        }
+        if (!(screenDirty || status.required) || sections.length === 0) {
+          this.completeOrder(true);
+          return;
+        }
+        this.openFeedbackDialog(orderId, sections);
+      },
+      // Durum alınamazsa kullanıcıyı bloklama; sadece ekrandaki değişikliğe bak
+      error: () => {
+        if (screenDirty) {
+          this.openFeedbackDialog(orderId, ['placement']);
+        } else {
+          this.completeOrder(true);
+        }
+      },
+    });
+  }
+
+  private openFeedbackDialog(orderId: string, sections: FeedbackSectionKey[]): void {
+    this.dialog.open<FeedbackDialogComponent, any, FeedbackDialogResult>(FeedbackDialogComponent, {
+      width: '560px',
+      maxWidth: '95vw',
+      disableClose: true,
+      autoFocus: false,
+      data: {
+        orderId,
+        trigger: 'complete',
+        required: true,
+        initialSections: sections,
+      },
+    }).afterClosed().subscribe(result => {
+      if (result === 'sent') {
+        this.completeOrder(true);
+      }
+    });
   }
 
   // ========================================

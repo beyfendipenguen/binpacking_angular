@@ -718,6 +718,37 @@
       "OPERATION_IN_PROGRESS": "Operation in progress..."
     }
   },
+  "FEEDBACK": {
+    "PLACEMENT_NOT_READY": "Not at this stage yet: there is no truck placement result",
+    "TITLE": "Feedback",
+    "INTRO": "Would you like to share your thoughts on the result?",
+    "INTRO_REQUIRED": "You changed the result or some pallets are unplaced. Please briefly tell us what went wrong so we can improve the algorithm.",
+    "SECTION_PACKAGES": "Packaging (pallet building)",
+    "SECTION_PLACEMENT": "Truck placement",
+    "LIKE": "Like",
+    "DISLIKE": "Dislike",
+    "LIKE_TIP": "I like this result",
+    "DISLIKE_TIP": "I don't like this result",
+    "COMMENT_PLACEHOLDER": "Add a short note (optional)",
+    "REQUIRED_HINT": "To continue, tick at least one section and choose like/dislike, a reason, or write a note.",
+    "SEND": "Send",
+    "SKIP": "Skip",
+    "STAY": "Stay on page",
+    "THANKS": "Thanks for your feedback",
+    "SEND_ERROR": "Could not send feedback",
+    "REASON": {
+      "SMALL_PALLETS": "Pallets too small",
+      "MIXED_PALLETS": "Mixed pallets",
+      "WRONG_PALLET_TYPE": "Wrong pallet choice",
+      "TOO_MANY_PALLETS": "Too many pallets",
+      "EMPTY_SPACE": "Unnecessary empty space",
+      "ROTATION_TOO_STRICT": "Orientation rule too strict",
+      "WEIGHT_LIMIT": "Weight issue",
+      "UNPLACED": "Unplaced pallets",
+      "WRONG_ORDER": "Wrong loading order",
+      "OTHER": "Other"
+    }
+  },
   "FILL_ANALYSIS": {
     "TITLE": "Truck Fill Analysis",
     "SHIPMENT": "Shipment",

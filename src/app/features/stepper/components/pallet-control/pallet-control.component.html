@@ -244,6 +244,9 @@
               </button>
             </div>
 
+            @if (uiPackages().length > 0 && orderSignal()?.id) {
+            <app-feedback-reaction section="packages" [orderId]="orderSignal()!.id" [resetKey]="uiPackages()" />
+            }
           </div>
 
           <div class="undo-redo-controls">

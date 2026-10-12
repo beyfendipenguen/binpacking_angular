@@ -3227,6 +3227,33 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     }
   }
 
+  /**
+   * Geri bildirim için sahnenin ekran görüntüsü (JPEG data URL, en fazla
+   * ~1280px genişlik). WebGL tamponu render sonrası hemen okunur; alınamazsa
+   * null döner (geri bildirimi engellemez).
+   */
+  captureScreenshot(maxWidth = 1280, quality = 0.7): string | null {
+    try {
+      if (!this.renderer || !this.scene || !this.camera) return null;
+      this.renderer.render(this.scene, this.camera);
+      const src = this.renderer.domElement;
+      if (!src.width || !src.height) return null;
+
+      const scale = Math.min(1, maxWidth / src.width);
+      const out = document.createElement('canvas');
+      out.width = Math.round(src.width * scale);
+      out.height = Math.round(src.height * scale);
+      const ctx = out.getContext('2d');
+      if (!ctx) return null;
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, out.width, out.height);
+      ctx.drawImage(src, 0, 0, out.width, out.height);
+      return out.toDataURL('image/jpeg', quality);
+    } catch {
+      return null;
+    }
+  }
+
   /** Klavye kısayolları panelini açar/kapatır ve tercihi localStorage'a yazar. */
   toggleShortcutsHint(): void {
     this.showHelp = !this.showHelp;
