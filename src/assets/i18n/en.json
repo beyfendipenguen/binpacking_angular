@@ -1350,6 +1350,13 @@
     "STACK_FOOTPRINT_TOLERANCE": "Stack Footprint Tolerance",
     "STACK_FOOTPRINT_TOLERANCE_HINT": "How much smaller the top pallet may be than the base (mm)",
     "STACK_FOOTPRINT_TOLERANCE_DETAIL": "Normal placement runs <strong>completely independently</strong> of this setting — every pallet is first placed on its own, with no tolerance applied. This setting only kicks in for pallets that are <strong>still left over (unplaced)</strong> once normal placement is done: a leftover pallet is rescued by stacking it on top of an already-placed stack's current top layer if it is up to this many millimeters <strong>smaller</strong> on <strong>both axes independently</strong> (width and depth) and that stack still has spare height. Example: an already-placed pallet is 1000x1600 mm, tolerance is set to 200 mm; a leftover 1000x1400 pallet that didn't fit can then be rescued on top of it. The direction is <strong>one-way</strong> — the top pallet can never be <strong>larger</strong> than the one below it. Default <strong>0</strong>: off, this rescue is never attempted for leftover pallets (current behavior).",
+    "GROUP_TRUCK_LOAD": "Truck Loading",
+    "REAR_CLEARANCE": "Rear Clearance",
+    "REAR_CLEARANCE_HINT": "Length left empty at the rear of the truck (mm)",
+    "REAR_CLEARANCE_DETAIL": "If non-zero, loading uses <strong>(truck length − this value)</strong> instead of the full length. E.g. 300 leaves the last 300 mm empty. Reports count this space as <strong>filled</strong>: a truck loaded up to this limit shows 100% fill. 0 = off.",
+    "ENFORCE_WEIGHT_LIMIT": "Enforce Weight Limit",
+    "ENFORCE_WEIGHT_LIMIT_HINT": "Each truck cannot exceed the order's weight limit",
+    "ENFORCE_WEIGHT_LIMIT_DETAIL": "When on, each shipment's (truck's) total weight cannot exceed the order's <strong>weight limit</strong>. With multiple shipments each truck is evaluated separately. Pallets that do not fit by weight go to the next truck; in a single shipment they appear as <strong>unplaced</strong>. When off, weight does not affect placement.",
     "BULK": {
       "TITLE": "Bulk Algorithm Settings",
       "CONFIGURE": "Configure Constraints",

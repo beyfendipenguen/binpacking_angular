@@ -95,6 +95,28 @@ export const CONSTRAINT_FIELDS: ConstraintFieldConfig[] = [
     validators: [Validators.min(0)],
   },
 
+  // ─── Tır yükleme: arka boşluk + tonaj ───
+  {
+    key: 'rear_clearance_mm',
+    label: 'CONSTRAINT.REAR_CLEARANCE',
+    type: 'number',
+    icon: 'space_bar',
+    group: 'CONSTRAINT.GROUP_TRUCK_LOAD',
+    suffix: 'mm',
+    hint: 'CONSTRAINT.REAR_CLEARANCE_HINT',
+    detailedInfo: 'CONSTRAINT.REAR_CLEARANCE_DETAIL',
+    validators: [Validators.min(0)],
+  },
+  {
+    key: 'enforce_weight_limit',
+    label: 'CONSTRAINT.ENFORCE_WEIGHT_LIMIT',
+    type: 'boolean',
+    icon: 'scale',
+    group: 'CONSTRAINT.GROUP_TRUCK_LOAD',
+    hint: 'CONSTRAINT.ENFORCE_WEIGHT_LIMIT_HINT',
+    detailedInfo: 'CONSTRAINT.ENFORCE_WEIGHT_LIMIT_DETAIL',
+  },
+
   // ─── Grup 2: Simetrik Tolerans ───
   {
     key: 'check_depth_symmetric',

@@ -541,6 +541,12 @@ export const selectTruck: MemoizedSelector<any, [number, number, number]> = crea
 
 export const selectOrderId = createSelector(selectOrder, (order) => order?.id || '')
 
+/** Müşteri profilindeki tır arkası boşluk (mm) — kalan alan hesaplarından düşülür. */
+export const selectRearClearance = createSelector(
+  selectOrder,
+  (order) => Number(order?.rear_clearance_mm) || 0
+);
+
 
 export const selectRemainingArea = createSelector(selectUiPackages, selectOrder, (uiPackages, order) => {
   const packages = uiPackages;
@@ -553,7 +559,12 @@ export const selectRemainingArea = createSelector(selectUiPackages, selectOrder,
 
   let trailerArea = 0;
   if (order) {
-    trailerArea = (order.truck?.dimension?.width ?? 0) * (order.truck?.dimension?.depth ?? 0);
+    // Arka boşluk (rear_clearance_mm) kullanılabilir alandan düşülür
+    const usableLength = Math.max(
+      0,
+      (order.truck?.dimension?.width ?? 0) - (Number(order.rear_clearance_mm) || 0)
+    );
+    trailerArea = usableLength * (order.truck?.dimension?.depth ?? 0);
   }
 
   return Math.floor((trailerArea - totalArea) / 1000000);

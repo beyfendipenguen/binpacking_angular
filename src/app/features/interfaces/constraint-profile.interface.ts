@@ -21,6 +21,10 @@ export interface ConstraintProfile  {
   // her iki eksende (width, depth) en fazla bu kadar (mm) küçük olabilir.
   // Yön tek taraflı: üst asla tabandan büyük olamaz. 0 = kapalı.
   stack_footprint_tolerance_mm: number;
+  // Tırın arkasında bilerek boş bırakılacak uzunluk (mm); raporlarda dolu sayılır. 0 = kapalı.
+  rear_clearance_mm: number;
+  // true ise her sevkiyatın toplam ağırlığı order.truck_weight_limit'i aşamaz.
+  enforce_weight_limit: boolean;
   // ─── Bölüm 2 — simetrik tolerans ───
   check_depth_symmetric: boolean;
   depth_symmetric_tolerance_mm: number;
@@ -63,6 +67,8 @@ export function createDefaultConstraintProfile(): ConstraintProfile {
     pallet_depth_margin_mm:0.0,
     pallet_width_margin_mm:0.0,
     stack_footprint_tolerance_mm: 0.0,
+    rear_clearance_mm: 0.0,
+    enforce_weight_limit: false,
     max_geometric_ratio: 2.0,
     check_depth_symmetric: false,
     depth_symmetric_tolerance_mm: 200.0,

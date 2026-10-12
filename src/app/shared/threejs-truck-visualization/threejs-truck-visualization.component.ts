@@ -24,7 +24,7 @@ import { FormsModule } from '@angular/forms';
 import * as THREE from 'three';
 import { Store } from '@ngrx/store';
 import { Actions, ofType } from '@ngrx/effects';
-import { AppState, selectActiveShipmentIndex, selectDeletedPackages, selectFirstZoneDepthMm, selectIsMultiShipment, selectOrderResult, selectPackages, selectShipments, selectStep3IsDirty, selectTruck, selectUserPermissions, selectZoneWeightLimits, StepperResultActions } from '../../store';
+import { AppState, selectActiveShipmentIndex, selectDeletedPackages, selectFirstZoneDepthMm, selectIsMultiShipment, selectOrderResult, selectPackages, selectRearClearance, selectShipments, selectStep3IsDirty, selectTruck, selectUserPermissions, selectZoneWeightLimits, StepperResultActions } from '../../store';
 import { StepperUiActions } from '@app/store/stepper/actions/stepper-ui.actions';
 import { StepperPackageActions } from '@app/store/stepper/actions/stepper-package.actions';
 import { ThreeJSRenderManagerService } from './services/threejs-render-manager.service';
@@ -102,6 +102,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
 
   // Signals
   truckDimension = this.store.selectSignal(selectTruck);
+  rearClearanceSignal = this.store.selectSignal(selectRearClearance);
   isDirty = this.store.selectSignal(selectStep3IsDirty);
   piecesDataSignal = this.store.selectSignal(selectOrderResult);
   isLoadingSignal = signal(true);
@@ -520,7 +521,8 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     const selected = this.selectedPackageSignal();
     if (!selected) return 0;
 
-    const truckLength = this.truckDimension()[0];
+    // Kalan alandan arka boşluk (rear_clearance_mm) düşülür
+    const truckLength = this.truckDimension()[0] - this.rearClearanceSignal();
     return truckLength - (selected.x + selected.length);
   }
 
