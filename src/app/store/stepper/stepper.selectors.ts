@@ -670,7 +670,12 @@ export const selectDeletedPackages = createSelector(selectStep3State, s => s.del
 
 export const selectZoneWeightLimits = createSelector(
   selectOrder,
-  (order) => order?.company_relation?.constraint_profile?.zone_weight_limits ?? []
+  (order) => {
+    const zones = order?.company_relation?.constraint_profile?.zone_weight_limits ?? [];
+    const truckId = order?.truck?.id;
+    // truck_ids boş/null → tüm araçlara; doluysa sadece siparişin aracı listedeyse geçerli.
+    return zones.filter(z => !z.truck_ids?.length || (!!truckId && z.truck_ids.includes(String(truckId))));
+  }
 );
 
 export const selectFirstZoneDepthMm = createSelector(

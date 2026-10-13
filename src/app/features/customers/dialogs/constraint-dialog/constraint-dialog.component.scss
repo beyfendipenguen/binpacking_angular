@@ -1,0 +1,95 @@
+$primary: #006a6a;
+$accent: #004a4a;
+$secondary: #d6bb86;
+$light-accent: #c0a670;
+$bg: #f8f9fa;
+$text-dark: #333333;
+$text-light: #666666;
+$border: #e0e0e0;
+$white: #ffffff;
+
+.constraint-dialog {
+  .dialog-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px;
+    background-color: rgba($primary, 0.08);
+    border-bottom: 2px solid $primary;
+
+    h2 {
+      margin: 0;
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: $primary;
+    }
+
+    .close-btn {
+      color: $text-light;
+      transition: color 0.2s ease, transform 0.2s ease;
+      &:hover {
+        color: $primary;
+        transform: rotate(90deg);
+      }
+    }
+  }
+
+  .dialog-content {
+    padding: 24px;
+    max-height: 70vh;
+    overflow-y: auto;
+
+    &::-webkit-scrollbar { width: 6px; }
+    &::-webkit-scrollbar-track { background: $bg; }
+    &::-webkit-scrollbar-thumb {
+      background: $secondary;
+      border-radius: 3px;
+      &:hover { background: $light-accent; }
+    }
+  }
+
+  .dialog-actions {
+    padding: 16px 24px;
+    border-top: 2px solid $border;
+    background-color: $bg;
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+
+    button {
+      min-width: 100px;
+      height: 42px;
+      font-weight: 500;
+      transition: all 0.2s ease;
+
+      &[mat-raised-button] {
+        background-color: $primary;
+        color: $white;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+
+        &:hover:not([disabled]) {
+          background-color: $accent;
+          transform: translateY(-1px);
+          box-shadow: 0 4px 8px rgba($primary, 0.3);
+        }
+
+        &[disabled] { background-color: rgba($primary, 0.3); }
+      }
+
+      &[mat-button] {
+        color: $text-light;
+        &:hover { background-color: rgba(0, 0, 0, 0.05); }
+      }
+    }
+  }
+}
+
+.btn-spinner {
+  ::ng-deep circle { stroke: $white; }
+}
+
+::ng-deep .constraint-dialog {
+  .mat-mdc-dialog-container { --mdc-dialog-container-shape: 12px; }
+}

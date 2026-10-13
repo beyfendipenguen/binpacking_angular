@@ -237,7 +237,7 @@
             </div>
 
             <div class="tooltip-wrapper" [matTooltip]="'PALLET_CONTROL.ALGORITHM_PARAMS_TOOLTIP' | translate: { company_name: orderSignal()?.company_relation?.target_company?.company_name }">
-              <button mat-raised-button (click)="openAlgorithmParamsDialog()" [appDisableAuth]="['logistics.add_package']"
+              <button mat-raised-button (click)="openConstraintDialog()" [appDisableAuth]="['logistics.add_package']"
                 class="calculate-button params-button">
                 <mat-icon>tune</mat-icon>
                 <span>{{ 'PALLET_CONTROL.ALGORITHM_PARAMS' | translate }}</span>

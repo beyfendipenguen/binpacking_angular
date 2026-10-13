@@ -45,7 +45,7 @@ export interface ConstraintProfile  {
   force_top_product_ids: string[];
   force_bottom_product_ids: string[];
   load_order_priorities: Record<string, number>; // {uuid: priority}
-  zone_weight_limits: Array<{ x_limit_mm: number; max_kg: number }>;
+  zone_weight_limits: Array<{ x_limit_mm: number; max_kg: number; truck_ids?: string[] | null }>;
 
   // ─── Büyük paket yönelim kısıtı ───
   // threshold_mm ve üzeri büyük kenara sahip paketlerde döndürmeyi TEK

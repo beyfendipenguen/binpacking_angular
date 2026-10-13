@@ -1,0 +1,308 @@
+<!-- Bilgi butonu (alan başlığı yanında) -->
+<ng-template #infoBtn let-field>
+  @if (field.detailedInfo) {
+  <button mat-icon-button type="button" class="cf-info-btn" [matMenuTriggerFor]="infoMenu"
+    (click)="showFieldInfo(field); $event.stopPropagation()">
+    <mat-icon>info_outline</mat-icon>
+  </button>
+  }
+</ng-template>
+
+<form [formGroup]="form" class="cf">
+  @for (group of constraintGroups; track group.key) {
+  <section class="cf-group">
+    <h4 class="cf-group-title">{{ group.key | translate }}</h4>
+
+    <div class="cf-grid">
+      @for (field of group.fields; track field.key) {
+
+      @switch (field.type) {
+
+      <!-- Yakında -->
+      @case ('disabled-placeholder') {
+      <div class="cf-card cf-card--disabled cf-full">
+        <div class="cf-card-header">
+          <mat-icon>{{ field.icon }}</mat-icon>
+          <span>{{ field.label | translate }}</span>
+          <span class="cf-badge">{{ 'COMMON.COMING_SOON' | translate }}</span>
+          <ng-container *ngTemplateOutlet="infoBtn; context: { $implicit: field }"></ng-container>
+        </div>
+        @if (field.helpText) {
+        <p class="cf-hint">{{ field.helpText | translate }}</p>
+        }
+      </div>
+      }
+
+      <!-- Boolean -->
+      @case ('boolean') {
+      @if (isBulk) {
+      <!-- Toplu: üç durumlu (değişiklik yok / açık / kapalı) -->
+      <div class="cf-field">
+        <mat-form-field appearance="outline" subscriptSizing="dynamic">
+          <mat-label>{{ field.label | translate }}</mat-label>
+          <mat-icon matPrefix>{{ field.icon }}</mat-icon>
+          <mat-select [formControlName]="field.key">
+            <mat-option value="keep">{{ 'CONSTRAINT.BULK.TOGGLE_KEEP' | translate }}</mat-option>
+            <mat-option value="on">{{ 'CONSTRAINT.BULK.TOGGLE_ON' | translate }}</mat-option>
+            <mat-option value="off">{{ 'CONSTRAINT.BULK.TOGGLE_OFF' | translate }}</mat-option>
+          </mat-select>
+          @if (field.hint) {
+          <mat-hint>{{ field.hint | translate }}</mat-hint>
+          }
+        </mat-form-field>
+        <ng-container *ngTemplateOutlet="infoBtn; context: { $implicit: field }"></ng-container>
+      </div>
+      } @else {
+      <div class="cf-card cf-full">
+        <div class="cf-card-header">
+          <mat-slide-toggle [formControlName]="field.key" color="primary">
+            <span class="cf-label">
+              <mat-icon>{{ field.icon }}</mat-icon>
+              <span>{{ field.label | translate }}</span>
+            </span>
+          </mat-slide-toggle>
+          <ng-container *ngTemplateOutlet="infoBtn; context: { $implicit: field }"></ng-container>
+        </div>
+        @if (field.hint) {
+        <p class="cf-hint cf-hint--indented">{{ field.hint | translate }}</p>
+        }
+      </div>
+      }
+      }
+
+      <!-- Sayı -->
+      @case ('number') {
+      <div class="cf-field">
+        <mat-form-field appearance="outline" subscriptSizing="dynamic">
+          <mat-label>{{ field.label | translate }}</mat-label>
+          <mat-icon matPrefix>{{ field.icon }}</mat-icon>
+          <input matInput type="number" [formControlName]="field.key"
+            [placeholder]="isBulk ? ('CONSTRAINT.BULK.LEAVE_EMPTY' | translate) : (field.placeholder || '')" />
+          @if (field.suffix) {
+          <span matSuffix class="cf-unit">{{ field.suffix }}</span>
+          }
+          @if (form.get(field.key)?.hasError('min')) {
+          <mat-error>{{ 'CONSTRAINT.MIN_VALUE_ERROR' | translate }}</mat-error>
+          }
+          @if (form.get(field.key)?.hasError('max')) {
+          <mat-error>{{ 'CONSTRAINT.MAX_VALUE_ERROR' | translate }}</mat-error>
+          }
+          @if (field.hint) {
+          <mat-hint>{{ field.hint | translate }}</mat-hint>
+          }
+        </mat-form-field>
+        <ng-container *ngTemplateOutlet="infoBtn; context: { $implicit: field }"></ng-container>
+      </div>
+      }
+
+      <!-- Çoklu ürün -->
+      @case ('multi-product') {
+      <div class="cf-full">
+        <div class="cf-field">
+          <mat-form-field appearance="outline" subscriptSizing="dynamic">
+            <mat-label>{{ field.label | translate }}</mat-label>
+            <mat-icon matPrefix>{{ field.icon }}</mat-icon>
+            <input type="text" matInput formControlName="side_product_search" [matAutocomplete]="productAuto"
+              [placeholder]="'CONSTRAINT.SEARCH_PRODUCT_PLACEHOLDER' | translate" />
+            @if (isSearchingProducts) {
+            <mat-spinner matSuffix diameter="20" class="cf-spinner"></mat-spinner>
+            }
+            <mat-autocomplete #productAuto="matAutocomplete" [displayWith]="displayProductFn"
+              (optionSelected)="onSideProductSelected($event.option.value)">
+              @for (product of filteredProducts; track product.id) {
+              <mat-option [value]="product">{{ product.name }}</mat-option>
+              }
+              @if (filteredProducts.length === 0 && form.get('side_product_search')?.value?.length >= 3 &&
+              !isSearchingProducts) {
+              <mat-option disabled>
+                <span class="cf-no-results"><mat-icon>search_off</mat-icon>{{ 'COMMON.NO_RESULTS' | translate }}</span>
+              </mat-option>
+              }
+            </mat-autocomplete>
+            @if (field.hint) {
+            <mat-hint>{{ field.hint | translate }}</mat-hint>
+            }
+          </mat-form-field>
+          <ng-container *ngTemplateOutlet="infoBtn; context: { $implicit: field }"></ng-container>
+        </div>
+        @if (selectedSideProducts.length > 0) {
+        <mat-chip-set class="cf-chips">
+          @for (product of selectedSideProducts; track product.id) {
+          <mat-chip (removed)="removeSideProduct(product)">
+            {{ product.name }}
+            <button matChipRemove type="button" aria-label="remove"><mat-icon>cancel</mat-icon></button>
+          </mat-chip>
+          }
+        </mat-chip-set>
+        }
+      </div>
+      }
+
+      <!-- Bölge ağırlık limiti -->
+      @case ('zone-limits') {
+      <div class="cf-card cf-full">
+        <div class="cf-card-header">
+          <span class="cf-label">
+            <mat-icon>{{ field.icon }}</mat-icon>
+            <span>{{ field.label | translate }}</span>
+          </span>
+          <ng-container *ngTemplateOutlet="infoBtn; context: { $implicit: field }"></ng-container>
+        </div>
+        @if (field.hint) {
+        <p class="cf-hint">{{ field.hint | translate }}</p>
+        }
+
+        <div class="cf-row">
+          <mat-form-field appearance="outline" subscriptSizing="dynamic">
+            <mat-label>{{ 'CONSTRAINT.ZONE_X_LIMIT' | translate }}</mat-label>
+            <input matInput type="number" min="0" [(ngModel)]="zoneLimit.x_limit_mm"
+              [ngModelOptions]="{ standalone: true }" (ngModelChange)="onZoneChange()" />
+            <span matSuffix class="cf-unit">mm</span>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" subscriptSizing="dynamic">
+            <mat-label>{{ 'CONSTRAINT.ZONE_MAX_KG' | translate }}</mat-label>
+            <input matInput type="number" min="0" [(ngModel)]="zoneLimit.max_kg"
+              [ngModelOptions]="{ standalone: true }" (ngModelChange)="onZoneChange()" />
+            <span matSuffix class="cf-unit">kg</span>
+          </mat-form-field>
+        </div>
+
+        <mat-form-field appearance="outline" class="cf-wide" subscriptSizing="dynamic">
+          <mat-label>{{ 'CONSTRAINT.ZONE_TRUCKS' | translate }}</mat-label>
+          <mat-select multiple [(ngModel)]="selectedZoneTruckIds" [ngModelOptions]="{ standalone: true }"
+            (selectionChange)="onZoneChange()">
+            @for (t of availableTrucks; track t.id) {
+            <mat-option [value]="t.id">{{ truckLabel(t) }}</mat-option>
+            }
+          </mat-select>
+          <mat-hint>{{ 'CONSTRAINT.ZONE_TRUCKS_HINT' | translate }}</mat-hint>
+        </mat-form-field>
+      </div>
+      }
+
+      <!-- Yasaklı çiftler (sadece tek profil düzenlemede) -->
+      @case ('pair-list') {
+      @if (!isBulk) {
+      <div class="cf-card cf-full">
+        <div class="cf-card-header">
+          <span class="cf-label">
+            <mat-icon>{{ field.icon }}</mat-icon>
+            <span>{{ field.label | translate }}</span>
+          </span>
+          <ng-container *ngTemplateOutlet="infoBtn; context: { $implicit: field }"></ng-container>
+        </div>
+        @if (field.hint) {
+        <p class="cf-hint">{{ field.hint | translate }}</p>
+        }
+
+        <div class="cf-row cf-row--pair">
+          <mat-form-field appearance="outline" subscriptSizing="dynamic">
+            <mat-label>{{ 'CONSTRAINT.FORBIDDEN_PAIR_SEARCH_A_PLACEHOLDER' | translate }}</mat-label>
+            <input type="text" matInput formControlName="forbidden_pair_search_a" [matAutocomplete]="pairAAuto" />
+            @if (isSearchingProductsA) {
+            <mat-spinner matSuffix diameter="20" class="cf-spinner"></mat-spinner>
+            }
+            <mat-autocomplete #pairAAuto="matAutocomplete" [displayWith]="displayProductFn"
+              (optionSelected)="onForbiddenPairProductASelected($event.option.value)">
+              @for (product of filteredProductsA; track product.id) {
+              <mat-option [value]="product">{{ product.name }}</mat-option>
+              }
+            </mat-autocomplete>
+            @if (forbiddenPairProductA) {
+            <mat-hint>{{ forbiddenPairProductA.name }}</mat-hint>
+            }
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" subscriptSizing="dynamic">
+            <mat-label>{{ 'CONSTRAINT.FORBIDDEN_PAIR_SEARCH_B_PLACEHOLDER' | translate }}</mat-label>
+            <input type="text" matInput formControlName="forbidden_pair_search_b" [matAutocomplete]="pairBAuto" />
+            @if (isSearchingProductsB) {
+            <mat-spinner matSuffix diameter="20" class="cf-spinner"></mat-spinner>
+            }
+            <mat-autocomplete #pairBAuto="matAutocomplete" [displayWith]="displayProductFn"
+              (optionSelected)="onForbiddenPairProductBSelected($event.option.value)">
+              @for (product of filteredProductsB; track product.id) {
+              <mat-option [value]="product">{{ product.name }}</mat-option>
+              }
+            </mat-autocomplete>
+            @if (forbiddenPairProductB) {
+            <mat-hint>{{ forbiddenPairProductB.name }}</mat-hint>
+            }
+          </mat-form-field>
+
+          <button mat-stroked-button type="button" color="primary" class="cf-add-btn"
+            [disabled]="!forbiddenPairProductA || !forbiddenPairProductB" (click)="addForbiddenPair()">
+            <mat-icon>add</mat-icon>
+            {{ 'CONSTRAINT.ADD_PAIR' | translate }}
+          </button>
+        </div>
+
+        @if (forbiddenPairs.length > 0) {
+        <mat-chip-set class="cf-chips">
+          @for (pair of forbiddenPairs; track pair.a.id + pair.b.id; let i = $index) {
+          <mat-chip (removed)="removeForbiddenPair(i)">
+            {{ pair.a.name }} ↔ {{ pair.b.name }}
+            <button matChipRemove type="button" aria-label="remove"><mat-icon>cancel</mat-icon></button>
+          </mat-chip>
+          }
+        </mat-chip-set>
+        } @else {
+        <p class="cf-hint">{{ 'CONSTRAINT.FORBIDDEN_PAIRS_EMPTY' | translate }}</p>
+        }
+      </div>
+      }
+      }
+
+      <!-- Büyük paket yönelim kilidi -->
+      @case ('orientation-lock') {
+      <div class="cf-card cf-full">
+        <div class="cf-card-header">
+          <span class="cf-label">
+            <mat-icon>{{ field.icon }}</mat-icon>
+            <span>{{ field.label | translate }}</span>
+          </span>
+          <ng-container *ngTemplateOutlet="infoBtn; context: { $implicit: field }"></ng-container>
+        </div>
+        @if (field.hint) {
+        <p class="cf-hint">{{ field.hint | translate }}</p>
+        }
+
+        <div class="cf-row">
+          <mat-form-field appearance="outline" subscriptSizing="dynamic">
+            <mat-label>{{ 'CONSTRAINT.ORIENTATION_LOCK_THRESHOLD' | translate }}</mat-label>
+            <input matInput type="number" min="0" [(ngModel)]="orientationLock.threshold_mm"
+              [ngModelOptions]="{ standalone: true }" />
+            <span matSuffix class="cf-unit">mm</span>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" subscriptSizing="dynamic">
+            <mat-label>{{ 'CONSTRAINT.ORIENTATION_LOCK_ALIGN_TO' | translate }}</mat-label>
+            <mat-select [(ngModel)]="orientationLock.align_to" [ngModelOptions]="{ standalone: true }">
+              <mat-option value="width">{{ 'CONSTRAINT.ORIENTATION_LOCK_ALIGN_WIDTH' | translate }}</mat-option>
+              <mat-option value="length">{{ 'CONSTRAINT.ORIENTATION_LOCK_ALIGN_LENGTH' | translate }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+      </div>
+      }
+
+      }
+      }
+    </div>
+  </section>
+  }
+</form>
+
+<!-- Paylaşımlı bilgi menüsü -->
+<mat-menu #infoMenu="matMenu" class="constraint-info-menu" xPosition="before">
+  @if (currentInfoField) {
+  <div class="cf-popover" (click)="$event.stopPropagation()">
+    <div class="cf-popover-header">
+      <mat-icon>{{ currentInfoField.icon }}</mat-icon>
+      <strong>{{ currentInfoField.label | translate }}</strong>
+    </div>
+    <p class="cf-popover-body" [innerHTML]="(currentInfoField.detailedInfo || '') | translate"></p>
+  </div>
+  }
+</mat-menu>

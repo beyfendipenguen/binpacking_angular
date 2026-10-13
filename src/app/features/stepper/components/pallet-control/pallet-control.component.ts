@@ -101,7 +101,7 @@ import { FeedbackReactionComponent } from '../feedback-reaction/feedback-reactio
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActiveToast } from 'ngx-toastr';
 import { CalculateParamsDialogComponent } from './calculate-params-dialog/calculate-params-dialog.component';
-import { AlgorithmParamsDialogComponent, AlgorithmParamsDialogData } from './algorithm-params-dialog/algorithm-params-dialog.component';
+import { ConstraintDialogComponent, ConstraintDialogData } from '@app/features/customers/dialogs/constraint-dialog/constraint-dialog.component';
 import { ConstraintProfileService } from '@app/features/services/constraint-profile.service';
 import { ConstraintProfile } from '@app/features/interfaces/constraint-profile.interface';
 import { calculatePackageTotalWeight } from '@app/features/utils/package-weight.util';
@@ -1043,7 +1043,7 @@ export class PalletControlComponent
     });
   }
 
-  openAlgorithmParamsDialog(): void {
+  openConstraintDialog(): void {
     const companyRelationId = this.orderSignal()?.company_relation?.id;
 
     if (!companyRelationId) {
@@ -1053,12 +1053,12 @@ export class PalletControlComponent
 
     this.constraintProfileService.getByRelationId(companyRelationId).subscribe({
       next: (constraintProfile) => {
-        const dialogRef = this.dialog.open(AlgorithmParamsDialogComponent, {
-          width: '600px',
+        const dialogRef = this.dialog.open(ConstraintDialogComponent, {
+          width: '760px',
           maxWidth: '95vw',
           maxHeight: '90vh',
           disableClose: false,
-          data: { constraintProfile } satisfies AlgorithmParamsDialogData,
+          data: { constraintProfile } satisfies ConstraintDialogData,
         });
 
         dialogRef.afterClosed().subscribe((result: ConstraintProfile | null) => {

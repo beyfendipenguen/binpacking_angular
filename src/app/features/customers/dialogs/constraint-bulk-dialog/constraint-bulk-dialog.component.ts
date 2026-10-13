@@ -1,63 +1,48 @@
 import { Component, OnInit, ViewChild, inject, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { getApiErrorMessage } from '@app/core/utils/api-error.util';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormControl } from '@angular/forms';
-import { FormsModule } from '@angular/forms';
-import { MatDialogRef, MatDialogModule, MatDialog } from '@angular/material/dialog';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { MatDialogRef, MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
-import { MatSelectModule } from '@angular/material/select';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatChipsModule } from '@angular/material/chips';
-import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatPaginatorModule, MatPaginator, PageEvent } from '@angular/material/paginator';
-import { MatSlideToggleModule } from '@angular/material/slide-toggle';
-import { MatAutocompleteModule } from '@angular/material/autocomplete';
-import { MatMenuModule } from '@angular/material/menu';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { CompanyRelationService } from '../../../services/company-relation.service';
-import { ProductService } from '@app/features/services/product.service';
 import { ToastService } from '@app/core/services/toast.service';
 import { CompanyRelation } from '../../../interfaces/company-relation.interface';
-import { Product } from '@app/features/interfaces/product.interface';
-import { ConstraintProfile, createDefaultConstraintProfile } from '@app/features/interfaces/constraint-profile.interface';
-import { CONSTRAINT_FIELDS, ConstraintFieldConfig } from '../../config/constraint-fields.config';
-import { Subject, of } from 'rxjs';
-import { debounceTime, distinctUntilChanged, takeUntil, switchMap, catchError, finalize } from 'rxjs/operators';
+import { ConstraintProfile } from '@app/features/interfaces/constraint-profile.interface';
+import { ConstraintFormComponent } from '../../components/constraint-form/constraint-form.component';
+import { Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged, takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'app-constraint-bulk-dialog',
   standalone: true,
   imports: [
     CommonModule,
-    FormsModule,
     ReactiveFormsModule,
     MatDialogModule,
     MatFormFieldModule,
     MatInputModule,
     MatButtonModule,
-    MatSelectModule,
     MatCheckboxModule,
     MatIconModule,
     MatProgressSpinnerModule,
     MatChipsModule,
-    MatTooltipModule,
     MatPaginatorModule,
-    MatSlideToggleModule,
-    MatAutocompleteModule,
-    MatMenuModule,
     TranslateModule,
+    ConstraintFormComponent,
   ],
   templateUrl: './constraint-bulk-dialog.component.html',
   styleUrl: './constraint-bulk-dialog.component.scss'
 })
 export class ConstraintBulkDialogComponent implements OnInit, OnDestroy {
-  private fb = inject(FormBuilder);
   private companyRelationService = inject(CompanyRelationService);
-  private productService = inject(ProductService);
   private toastService = inject(ToastService);
   private translate = inject(TranslateService);
   private dialogRef = inject(MatDialogRef<ConstraintBulkDialogComponent>);
@@ -82,70 +67,19 @@ export class ConstraintBulkDialogComponent implements OnInit, OnDestroy {
   selectedRelationIds: string[] = [];
   selectAllMode: 'page' | 'all' = 'page';
 
-  // Constraint form
-  updateForm!: FormGroup;
-  constraintFields = CONSTRAINT_FIELDS;
-  currentInfoField: ConstraintFieldConfig | null = null;
-
-  // Product autocomplete (side_product_ids)
-  filteredProducts: Product[] = [];
-  isSearchingProducts = false;
-  selectedSideProducts: Product[] = [];
-  singleZoneLimit = { x_limit_mm: 0, max_kg: 0 };
-  singleOrientationLock: { threshold_mm: number; align_to: 'width' | 'length' } = {
-    threshold_mm: 0,
-    align_to: 'width',
-  };
+  // Ortak kısıt formu
+  @ViewChild(ConstraintFormComponent) constraintForm?: ConstraintFormComponent;
+  /** Tam 1 ilişki seçiliyse onun mevcut profili (form buna göre dolar); aksi halde null. */
+  formProfile: Partial<ConstraintProfile> | null = null;
 
   ngOnInit(): void {
-    this.initForm();
     this.setupSearchDebounce();
-    this.setupSideProductAutocomplete();
     this.loadRelations();
   }
 
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
-  }
-
-  // ─── Constraint grupları (customer dialog ile aynı) ───
-  get constraintGroups(): Array<{ key: string; fields: ConstraintFieldConfig[] }> {
-    const groupMap = new Map<string, ConstraintFieldConfig[]>();
-    for (const field of this.constraintFields) {
-      if (!groupMap.has(field.group)) {
-        groupMap.set(field.group, []);
-      }
-      groupMap.get(field.group)!.push(field);
-    }
-    return Array.from(groupMap.entries()).map(([key, fields]) => ({ key, fields }));
-  }
-
-  showFieldInfo(field: ConstraintFieldConfig): void {
-    this.currentInfoField = field;
-  }
-
-  // ─── Form init ───
-  private initForm(): void {
-    const constraintDefaults = createDefaultConstraintProfile();
-    const formConfig: any = {};
-
-    this.constraintFields.forEach(field => {
-      if (field.disabled) return;
-
-      if (field.type === 'multi-product' || field.type === 'zone-limits' || field.type === 'orientation-lock') {
-        formConfig[field.key] = [null];
-      } else if (field.type === 'boolean') {
-        formConfig[field.key] = [(constraintDefaults as any)[field.key]];
-      } else {
-        formConfig[field.key] = [null, field.validators || []];
-      }
-    });
-
-    formConfig['side_product_search'] = [''];
-    this.singleZoneLimit = { x_limit_mm: 0, max_kg: 0 };
-    this.singleOrientationLock = { threshold_mm: 0, align_to: 'width' };
-    this.updateForm = this.fb.group(formConfig);
   }
 
   // ─── Search debounce (extra-data dialog ile birebir) ───
@@ -267,127 +201,18 @@ export class ConstraintBulkDialogComponent implements OnInit, OnDestroy {
       return;
     }
 
+    // Tek ilişki seçildiyse mevcut profilini göster; çoklu seçimde form boş başlar.
+    this.formProfile = null;
     if (this.selectedRelationIds.length === 1) {
-      this.initForm(); // önce sıfırla
-      const selectedRelation = this.allRelations.find(r => r.id === this.selectedRelationIds[0]);
-      if (selectedRelation?.constraint_profile) {
-        this.populateFormFromProfile(selectedRelation.constraint_profile);
-      }
-    } else {
-      this.initForm();
+      const rel = this.allRelations.find(r => r.id === this.selectedRelationIds[0]);
+      this.formProfile = (rel?.constraint_profile as Partial<ConstraintProfile> | undefined) ?? null;
     }
 
     this.currentStep = 2;
   }
 
-  private populateFormFromProfile(profile: Partial<ConstraintProfile>): void {
-    const formValues: Record<string, any> = {};
-
-    this.constraintFields.forEach(field => {
-      if (field.disabled) return;
-      if (field.type === 'multi-product') return; // side_product_ids ayrı ele alınıyor
-      const value = (profile as any)[field.key];
-      if (value !== undefined) {
-        formValues[field.key] = value;
-      }
-    });
-
-    this.updateForm.patchValue(formValues);
-
-    // side_product_ids + selectedSideProducts senkronu
-    if (profile.side_product_ids?.length) {
-      this.updateForm.patchValue({ side_product_ids: profile.side_product_ids });
-      this.loadSelectedSideProductsForBulk(profile.side_product_ids);
-    }
-    
-    const zones = profile.zone_weight_limits ?? [];
-    this.singleZoneLimit = zones.length > 0
-      ? { ...zones[0] }
-      : { x_limit_mm: 0, max_kg: 0 };
-    this.singleOrientationLock = profile.orientation_lock
-      ? { ...profile.orientation_lock }
-      : { threshold_mm: 0, align_to: 'width' };
-  }
-
-  private loadSelectedSideProductsForBulk(productIds: string[]): void {
-    this.productService.getByIds(productIds).subscribe({
-      next: products => (this.selectedSideProducts = products),
-      error: () => {
-        this.selectedSideProducts = productIds.map(id => ({ id, name: id }) as Product);
-      },
-    });
-  }
-
-  private resetFormToEmpty(): void {
-    this.initForm(); // mevcut initForm zaten her şeyi null/default'a döndürüyor
-    this.selectedSideProducts = [];
-  }
-
   previousStep(): void {
     this.currentStep = 1;
-  }
-
-  // ─── Product autocomplete (customer dialog ile birebir) ───
-  private setupSideProductAutocomplete(): void {
-    this.updateForm.get('side_product_search')!.valueChanges
-      .pipe(
-        debounceTime(500),
-        distinctUntilChanged(),
-        switchMap((value) => {
-          if (typeof value === 'string' && value.trim().length > 2) {
-            this.isSearchingProducts = true;
-            return this.productService.searchProducts(value, 10).pipe(
-              catchError(() => of([])),
-              finalize(() => { this.isSearchingProducts = false; })
-            );
-          }
-          return of([]);
-        }),
-        takeUntil(this.destroy$)
-      )
-      .subscribe({
-        next: (products: Product[]) => {
-          const selectedIds = new Set(this.selectedSideProducts.map(p => p.id));
-          this.filteredProducts = products.filter(p => !selectedIds.has(p.id));
-        },
-      });
-  }
-
-  displayProductFn(product: Product): string {
-    return product?.name || '';
-  }
-
-  onSideProductSelected(product: Product): void {
-    if (this.selectedSideProducts.find(p => p.id === product.id)) return;
-    this.selectedSideProducts.push(product);
-    this.updateForm.patchValue({
-      side_product_ids: this.selectedSideProducts.map(p => p.id),
-      side_product_search: '',
-    });
-  }
-
-  removeSideProduct(product: Product): void {
-    this.selectedSideProducts = this.selectedSideProducts.filter(p => p.id !== product.id);
-    this.updateForm.patchValue({
-      side_product_ids: this.selectedSideProducts.map(p => p.id),
-    });
-  }
-
-  onZoneLimitChange(): void {
-    const hasValue = this.singleZoneLimit.x_limit_mm > 0 || this.singleZoneLimit.max_kg > 0;
-    this.updateForm.patchValue({
-      // BULK SEMANTİĞİ: boş = "dokunma" → null (payload'a girmez).
-      // [] gönderilirse seçili TÜM şirketlerin zone limiti silinir!
-      zone_weight_limits: hasValue ? [{ ...this.singleZoneLimit }] : null
-    });
-  }
-
-  onOrientationLockChange(): void {
-    // BULK SEMANTİĞİ: threshold_mm boş/0 = "dokunma" → null (payload'a girmez).
-    const hasValue = this.singleOrientationLock.threshold_mm > 0;
-    this.updateForm.patchValue({
-      orientation_lock: hasValue ? { ...this.singleOrientationLock } : null
-    });
   }
 
   // ─── Save ───
@@ -397,34 +222,18 @@ export class ConstraintBulkDialogComponent implements OnInit, OnDestroy {
       return;
     }
 
-    if (this.updateForm.invalid) {
-      this.updateForm.markAllAsTouched();
+    const form = this.constraintForm;
+    if (!form) return;
+
+    if (!form.valid) {
+      form.markAllAsTouched();
       this.toastService.error(this.translate.instant('CUSTOMER.FILL_ALL_FIELDS'));
       return;
     }
 
-    // BULK MANTIK: sadece NULL OLMAYAN alanları gönder
-    // (kullanıcı neyi değiştirmek istemişse onu doldurmuş)
-    const constraintUpdates: any = {};
-    this.constraintFields.forEach(field => {
-      if (field.disabled) return;
-      const value = this.updateForm.get(field.key)?.value;
-      // null/undefined/boş array gönderme — "değiştirme" demek
-      if (value !== null && value !== undefined) {
-        // multi-product için boş array da "değiştirme" sayılabilir, ama
-        // kullanıcı bilinçli boşaltmış olabilir; şimdilik dolu ise gönder
-        if (field.type === 'multi-product') {
-          if (Array.isArray(value) && value.length > 0) {
-            constraintUpdates[field.key] = value;
-          }
-        } else {
-          constraintUpdates[field.key] = value;
-        }
-      }
-    });
-
-    const hasAnyValue = Object.keys(constraintUpdates).length > 0;
-    if (!hasAnyValue) {
+    // Sadece DEĞİŞTİRİLEN alanlar gönderilir; dokunulmayan hiçbir alan ezilmez.
+    const constraintUpdates = form.getChanges();
+    if (Object.keys(constraintUpdates).length === 0) {
       this.toastService.warning(this.translate.instant('CONSTRAINT.BULK.NO_CHANGES'));
       return;
     }

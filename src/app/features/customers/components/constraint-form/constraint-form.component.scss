@@ -1,0 +1,305 @@
+$primary: #006a6a;
+$accent: #004a4a;
+$secondary: #d6bb86;
+$text-dark: #333333;
+$text-light: #666666;
+$border: #e0e0e0;
+$white: #ffffff;
+
+:host {
+  display: block;
+}
+
+// ─── Gruplar ve grid ─────────────────────────────────────────────────────────
+
+.cf-group {
+  margin-bottom: 24px;
+  padding-left: 12px;
+  border-left: 3px solid rgba($primary, 0.2);
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.cf-group-title {
+  margin: 0 0 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: $accent;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.cf-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 12px 16px;
+  align-items: start;
+}
+
+.cf-full {
+  grid-column: 1 / -1;
+  min-width: 0;
+}
+
+// ─── Alan satırı: form-field + bilgi butonu ──────────────────────────────────
+
+.cf-field {
+  display: flex;
+  align-items: flex-start;
+  gap: 2px;
+  min-width: 0;
+
+  mat-form-field {
+    flex: 1;
+    min-width: 0;
+  }
+}
+
+.cf-info-btn {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  padding: 6px;
+  margin-top: 6px;
+  color: $text-light;
+
+  mat-icon {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+  }
+
+  &:hover {
+    color: $primary;
+  }
+}
+
+// ─── Kartlar (toggle, zone, çift, yönelim) ───────────────────────────────────
+
+.cf-card {
+  padding: 12px 16px;
+  border-radius: 8px;
+  background-color: rgba($primary, 0.03);
+  border: 1px solid rgba($primary, 0.12);
+
+  &--disabled {
+    background-color: rgba(0, 0, 0, 0.04);
+    border: 1px dashed rgba(0, 0, 0, 0.15);
+    opacity: 0.7;
+  }
+}
+
+.cf-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 36px;
+
+  .cf-info-btn {
+    margin-top: 0;
+  }
+}
+
+.cf-card--disabled .cf-card-header {
+  justify-content: flex-start;
+
+  .cf-badge {
+    margin-left: auto;
+  }
+}
+
+.cf-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+  color: $text-dark;
+
+  mat-icon {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+    color: $primary;
+  }
+}
+
+.cf-badge {
+  padding: 2px 8px;
+  font-size: 0.7rem;
+  background-color: $secondary;
+  color: $white;
+  border-radius: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.cf-hint {
+  margin: 4px 0 8px;
+  font-size: 0.8rem;
+  line-height: 1.4;
+  color: $text-light;
+
+  &--indented {
+    margin-left: 48px;
+  }
+}
+
+// ─── Kart içi satırlar ───────────────────────────────────────────────────────
+
+.cf-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 8px;
+
+  &--pair {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+
+    .cf-add-btn {
+      grid-column: 1 / -1;
+      justify-self: start;
+    }
+  }
+
+  @media (max-width: 520px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.cf-wide {
+  width: 100%;
+  margin-top: 12px;
+}
+
+mat-form-field {
+  width: 100%;
+}
+
+// ─── Son ek (mm / kg / %) ve spinner: çerçeveden uzak dursun ───────────────
+
+.cf-unit {
+  padding: 0 14px 0 4px;
+  color: $text-light;
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
+.cf-spinner {
+  margin-right: 12px;
+}
+
+// ─── Chip ve boş sonuç ───────────────────────────────────────────────────────
+
+.cf-chips {
+  margin-top: 8px;
+
+  mat-chip {
+    background-color: rgba($primary, 0.1);
+    color: $primary;
+    font-weight: 500;
+  }
+}
+
+.cf-no-results {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: $text-light;
+  font-style: italic;
+
+  mat-icon {
+    opacity: 0.5;
+  }
+}
+
+// ─── Material özelleştirmeleri ───────────────────────────────────────────────
+
+:host ::ng-deep {
+  .mat-mdc-form-field {
+    .mdc-notched-outline__leading,
+    .mdc-notched-outline__notch,
+    .mdc-notched-outline__trailing {
+      border-color: $border;
+    }
+
+    &:hover .mdc-notched-outline__leading,
+    &:hover .mdc-notched-outline__notch,
+    &:hover .mdc-notched-outline__trailing,
+    &.mat-focused .mdc-notched-outline__leading,
+    &.mat-focused .mdc-notched-outline__notch,
+    &.mat-focused .mdc-notched-outline__trailing {
+      border-color: $primary;
+    }
+
+    .mat-mdc-form-field-icon-prefix {
+      padding: 0 8px 0 12px;
+      color: $primary;
+    }
+
+    .mat-mdc-form-field-hint-wrapper,
+    .mat-mdc-form-field-error-wrapper {
+      padding: 0 12px;
+    }
+
+    .mat-mdc-form-field-hint {
+      white-space: normal;
+      line-height: 1.3;
+    }
+  }
+
+  .mat-mdc-slide-toggle {
+    --mdc-switch-selected-handle-color: #{$primary};
+    --mdc-switch-selected-track-color: #{$primary};
+  }
+}
+
+// ─── Bilgi popover (menü overlay'inde olduğu için global) ────────────────────
+
+::ng-deep .constraint-info-menu {
+  max-width: 360px !important;
+
+  .mat-mdc-menu-content {
+    padding: 0 !important;
+  }
+}
+
+.cf-popover {
+  padding: 16px;
+
+  .cf-popover-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba($primary, 0.15);
+
+    mat-icon {
+      color: $primary;
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
+    }
+
+    strong {
+      color: $primary;
+      font-size: 0.95rem;
+    }
+  }
+
+  .cf-popover-body {
+    margin: 0;
+    font-size: 0.85rem;
+    line-height: 1.5;
+    color: $text-dark;
+    white-space: normal;
+
+    ::ng-deep strong {
+      color: $primary;
+      font-weight: 600;
+    }
+  }
+}

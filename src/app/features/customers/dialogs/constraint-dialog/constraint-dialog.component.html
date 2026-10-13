@@ -1,0 +1,22 @@
+<div class="constraint-dialog">
+  <div class="dialog-header">
+    <h2 mat-dialog-title>{{ 'CONSTRAINT.ALGORITHM_TITLE' | translate }}</h2>
+    <button mat-icon-button (click)="onCancel()" class="close-btn">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <mat-dialog-content class="dialog-content">
+    <app-constraint-form mode="single" [profile]="data.constraintProfile ?? null"></app-constraint-form>
+  </mat-dialog-content>
+
+  <mat-dialog-actions class="dialog-actions">
+    <button mat-button (click)="onCancel()">{{ 'COMMON.CANCEL' | translate }}</button>
+    <button mat-raised-button color="primary" (click)="onSave()" [disabled]="isSaving">
+      @if (isSaving) {
+      <mat-spinner diameter="20" class="btn-spinner"></mat-spinner>
+      }
+      {{ 'COMMON.SAVE' | translate }}
+    </button>
+  </mat-dialog-actions>
+</div>
