@@ -9,6 +9,7 @@ import { catchError } from 'rxjs/operators';
 import { selectDeletedPackages, selectOrderId, selectStep3IsDirty } from '@app/store';
 import { OrderFeedbackService } from '@features/services/order-feedback.service';
 import { LoadingService } from '@app/shared/loading/loading.service';
+import { ResultStepService } from '../components/result-step/result-step.service';
 import { FeedbackSectionKey } from '@features/interfaces/order-feedback.interface';
 import {
   FeedbackDialogComponent,
@@ -25,10 +26,22 @@ export const feedbackExitGuard: CanDeactivateFn<unknown> = async () => {
   const dialog = inject(MatDialog);
   const feedbackService = inject(OrderFeedbackService);
   const loadingService = inject(LoadingService);
+  const resultStepService = inject(ResultStepService);
 
   const dirty = await firstValueFrom(store.select(selectStep3IsDirty));
   const orderId = await firstValueFrom(store.select(selectOrderId));
   if (!dirty || !orderId) return true;
+
+  // Çıkmadan önce order result'u sessizce kaydet (debounce'u beklemeden).
+  // Hata/zaman aşımı çıkışı engellemez; 5 sn'den fazla beklenmez.
+  try {
+    await Promise.race([
+      resultStepService.persistOrderResult(),
+      new Promise<void>(resolve => setTimeout(resolve, 5000)),
+    ]);
+  } catch {
+    /* sessiz */
+  }
 
   // Yerleşmeyen (silinen) paket varsa sipariş henüz tamamlanmış sayılmaz;
   // kullanıcı bu siparişe geri dönecek. Bu durumda sayfa değiştirirken geri

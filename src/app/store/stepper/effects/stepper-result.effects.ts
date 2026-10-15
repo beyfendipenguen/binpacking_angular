@@ -1,8 +1,9 @@
 import { Injectable, inject } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
-import { map, switchMap, catchError, withLatestFrom, tap } from 'rxjs/operators';
-import { of, filter } from 'rxjs';
+import { map, switchMap, catchError, withLatestFrom, tap, debounceTime } from 'rxjs/operators';
+import { of, filter, from } from 'rxjs';
+import { ResultStepService } from '@features/stepper/components/result-step/result-step.service';
 
 import {
   AppState,
@@ -39,6 +40,7 @@ export class StepperResultEffects {
   private authService = inject(AuthService);
   private toastService = inject(ToastService);
   private translate = inject(TranslateService);
+  private resultStepService = inject(ResultStepService);
 
   // Result Step Submit
   // orderResult artık { shipments: [{shipment, result}, ...] } formatında —
@@ -217,6 +219,37 @@ export class StepperResultEffects {
         });
       })
     )
+  );
+
+  /**
+   * Order result otomatik kaydı: sonuç değiştikten sonra 7 sn sessizlik olunca
+   * SADECE order result DB'ye yazılır (sessiz, spinner yok). step3.isDirty
+   * değiştirilmez (Bitir/rapor ve çıkış geri bildirimi ona bağlı); revizyon yok.
+   * switchMap: yeni değişiklik gelirse bekleyen istek iptal edilir.
+   */
+  autoPersistOrderResult$ = createEffect(
+    () =>
+      this.actions$.pipe(
+        ofType(
+          StepperResultActions.setOrderResult,
+          StepperResultActions.removePackageFromTruck,
+          StepperResultActions.addPackageToTruck,
+          StepperResultActions.placePackageInTruck,
+          StepperResultActions.setDeletedPackages,
+          StepperResultActions.addDeletedPackage,
+          StepperResultActions.removeDeletedPackage,
+          StepperResultActions.applyBackendSync
+        ),
+        debounceTime(5000),
+        withLatestFrom(this.store.select(selectOrderResultId)),
+        filter(([, orderResultId]) => !!orderResultId),
+        switchMap(() =>
+          from(this.resultStepService.persistOrderResult()).pipe(
+            catchError(() => of(null)) // sessiz; çıkışta tekrar denenir
+          )
+        )
+      ),
+    { dispatch: false }
   );
 
   /**

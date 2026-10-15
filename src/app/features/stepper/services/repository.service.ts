@@ -1,4 +1,5 @@
-import { HttpClient, HttpParams } from "@angular/common/http";
+import { HttpClient, HttpContext, HttpParams } from "@angular/common/http";
+import { SKIP_LOADING } from "@app/shared/loading/skip-loading.token";
 import { Injectable, inject } from "@angular/core";
 import { ApiService } from "@core/services/api.service";
 import { CompanyRelation } from "@features/interfaces/company-relation.interface";
@@ -278,7 +279,8 @@ export class RepositoryService {
 
   partialUpdateOrderResult(
     orderResultId: string,
-    orderResult: { shipments: { shipment: number; result: any[] }[] }
+    orderResult: { shipments: { shipment: number; result: any[] }[] },
+    silent = false
   ): Observable<any> {
 
     const payload = {
@@ -287,7 +289,9 @@ export class RepositoryService {
 
     const url = `${this.api.getApiUrl()}/orders/order-results/${orderResultId}/partial-update-order-result/`;
 
-    return this.http.post<any>(url, payload).pipe(
+    const context = new HttpContext().set(SKIP_LOADING, silent);
+
+    return this.http.post<any>(url, payload, { context }).pipe(
       map(response => {
         return response;
       }),

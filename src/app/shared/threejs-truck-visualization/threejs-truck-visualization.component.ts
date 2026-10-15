@@ -834,6 +834,10 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
         await this.safeProcessData();
       }
       this.syncDeletedPackagesCache(this.store.selectSignal(selectDeletedPackages)());
+      // Cache (root servis) zaten dolu olabilir → signal değişmez, plateVisualizationSyncEffect
+      // tetiklenmez ve yeni sahnede plate boş kalır. İlk kurulumu açıkça yap.
+      this.createPlateVisualization();
+      this.renderManager.requestRender();
       this.cdr.detectChanges();
 
     } catch (error) {

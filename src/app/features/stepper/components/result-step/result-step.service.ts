@@ -3,7 +3,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { Store } from '@ngrx/store';
 import { firstValueFrom, Observable } from 'rxjs';
 import { map, switchMap, take } from 'rxjs/operators';
-import { AppState, selectActiveShipmentIndex, selectIsMultiShipment, selectOrder, selectOrderId, selectOrderResult, selectPackages, selectShipments, selectStep3IsDirty, StepperResultActions } from '@app/store';
+import { AppState, selectDeletedPackages, selectOrderResultId, selectActiveShipmentIndex, selectIsMultiShipment, selectOrder, selectOrderId, selectOrderResult, selectPackages, selectShipments, selectStep3IsDirty, StepperResultActions } from '@app/store';
 import { calculatePackageTotalWeight } from '@app/features/utils/package-weight.util';
 import { ToastService } from '@core/services/toast.service';
 import { RepositoryService } from '@features/stepper/services/repository.service';
@@ -163,6 +163,48 @@ export class ResultStepService {
         result: dedupe(result).map(mapToName)
       }))
     };
+  }
+
+  /**
+   * Otomatik/çıkış kaydı için payload: formatAllShipmentsForResult + yerleşmeyen
+   * (deletedPackages) paketler -1,-1,-1 satırı olarak ilk sevkiyata eklenir.
+   * Siparişe dönüşte enableEditMode$ plate'i bu -1 satırlardan kurar.
+   */
+  async buildPersistPayload(): Promise<{ shipments: { shipment: number; result: PackagePosition[] }[] }> {
+    const payload = await this.formatAllShipmentsForResult();
+    const packages = await firstValueFrom(this.store.select(selectPackages));
+    const order = await firstValueFrom(this.store.select(selectOrder));
+    const deleted = await firstValueFrom(this.store.select(selectDeletedPackages));
+
+    const placedIds = new Set(payload.shipments.flatMap(s => s.result.map(r => r[8])));
+    const unplacedById = new Map<string, PackagePosition>();
+    for (const row of deleted) {
+      if (placedIds.has(row[8])) continue;
+      const pkg = packages.find((p: any) => p.id === row[8]);
+      unplacedById.set(row[8], [
+        -1, -1, -1, row[3], row[4], row[5],
+        pkg ? pkg.name : row[6],
+        pkg ? calculatePackageTotalWeight(pkg, order) : row[7],
+        row[8]
+      ] as PackagePosition);
+    }
+    const unplaced = Array.from(unplacedById.values());
+
+    if (unplaced.length === 0) return payload;
+    if (payload.shipments.length === 0) {
+      return { shipments: [{ shipment: 1, result: unplaced }] };
+    }
+    payload.shipments[0].result = [...payload.shipments[0].result, ...unplaced];
+    return payload;
+  }
+
+  /** Order result'ı sessizce (spinner'sız) DB'ye yazar. Id yoksa false döner. */
+  async persistOrderResult(): Promise<boolean> {
+    const orderResultId = await firstValueFrom(this.store.select(selectOrderResultId));
+    if (!orderResultId) return false;
+    const payload = await this.buildPersistPayload();
+    await firstValueFrom(this.repositoryService.partialUpdateOrderResult(orderResultId, payload, true));
+    return true;
   }
 
   /**
