@@ -261,6 +261,35 @@ $white: #ffffff;
     // ========================================
     // REPORT FILES ROW (controls-container içinde, TEK SATIR, yatay-scroll)
     // ========================================
+    .files-hint {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 10px;
+      padding: 8px 10px;
+      border-radius: 8px;
+      background: #e8f1fd;
+      border: 1px solid #b6d4fa;
+      color: #0d3c78;
+      font-size: 13px;
+      animation: files-hint-in 0.25s ease-out;
+
+      &__icon { font-size: 20px; width: 20px; height: 20px; flex-shrink: 0; }
+      &__text { flex: 1; min-width: 0; }
+      &__close {
+        display: inline-flex; align-items: center; justify-content: center;
+        width: 24px; height: 24px; padding: 0; border: 0; border-radius: 50%;
+        background: transparent; color: inherit; cursor: pointer;
+        mat-icon { font-size: 16px; width: 16px; height: 16px; }
+        &:hover { background: rgba(0, 0, 0, 0.08); }
+      }
+    }
+
+    @keyframes files-hint-in {
+      from { opacity: 0; transform: translateY(-4px); }
+      to { opacity: 1; transform: none; }
+    }
+
     .controls-files-row {
       display: flex;
       align-items: center;

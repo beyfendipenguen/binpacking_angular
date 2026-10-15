@@ -794,6 +794,7 @@
     "REPORT_FILES": "Rapor Dosyaları",
     "UNSAVED_CHANGES": "Kaydedilmemiş değişiklikler var",
     "CHANGES_NOT_SAVED": "Değişiklikler Kaydedilmedi",
+    "FILES_HINT": "Sipariş içindeyken raporlara tıklayarak son halini görebilirsiniz.",
     "NO_REPORT_FILES": "Henüz rapor dosyası oluşturulmadı",
     "AUTO_SAVE_MESSAGE": "Dosyaya tıkladığınızda değişiklikler otomatik kaydedilecek",
     "COMPLETE_SHIPMENT": "Sevkiyatı Tamamla",

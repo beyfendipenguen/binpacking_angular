@@ -165,6 +165,48 @@ export class ResultStepComponent implements OnInit, OnDestroy {
     }
   });
 
+  // ── Dosyalar için "son halini raporlardan görebilirsiniz" hatırlatması ──
+  // Her isDirty'de değil, en fazla FILES_HINT_INTERVAL_MS'de bir gösterilir;
+  // 8 sn sonra kendiliğinden kapanır, kullanıcı da kapatabilir.
+  private static readonly FILES_HINT_KEY = 'resultFilesHintLastShown';
+  private static readonly FILES_HINT_INTERVAL_MS = 10 * 60 * 1000;
+  private static readonly FILES_HINT_DURATION_MS = 8000;
+  readonly showFilesHint = signal(false);
+  private filesHintTimer: ReturnType<typeof setTimeout> | null = null;
+
+  private filesHintEffect = effect(() => {
+    const dirty = this.isDirtySignal();
+    untracked(() => {
+      if (!dirty) {
+        this.hideFilesHint();
+        return;
+      }
+      if (this.showFilesHint() || !this.canShowFilesHint()) return;
+      this.showFilesHint.set(true);
+      this.filesHintTimer = setTimeout(
+        () => this.hideFilesHint(), ResultStepComponent.FILES_HINT_DURATION_MS
+      );
+    });
+  });
+
+  private canShowFilesHint(): boolean {
+    const now = Date.now();
+    try {
+      const last = Number(localStorage.getItem(ResultStepComponent.FILES_HINT_KEY) || 0);
+      if (now - last < ResultStepComponent.FILES_HINT_INTERVAL_MS) return false;
+      localStorage.setItem(ResultStepComponent.FILES_HINT_KEY, String(now));
+    } catch { /* storage yoksa her seferinde gösterme riski yerine göster */ }
+    return true;
+  }
+
+  hideFilesHint(): void {
+    if (this.filesHintTimer) {
+      clearTimeout(this.filesHintTimer);
+      this.filesHintTimer = null;
+    }
+    if (this.showFilesHint()) this.showFilesHint.set(false);
+  }
+
   constructor() { }
 
 

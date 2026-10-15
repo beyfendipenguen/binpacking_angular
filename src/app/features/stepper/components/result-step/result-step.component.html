@@ -68,6 +68,16 @@
 
     <!-- Enhanced Report Files Row (controls-container içinde, tek satır, scroll gerektirmez) -->
     @if (reportFilesSignal() && reportFilesSignal().length > 0) {
+    @if (showFilesHint() && isDirtySignal()) {
+    <div class="files-hint" role="status">
+      <mat-icon class="files-hint__icon">info</mat-icon>
+      <span class="files-hint__text">{{ 'RESULT_STEP.FILES_HINT' | translate }}</span>
+      <button type="button" class="files-hint__close" (click)="hideFilesHint()"
+        [attr.aria-label]="'COMMON.CLOSE' | translate">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+    }
     <div id="report-files" class="controls-files-row">
       <div class="report-files-label" [title]="'RESULT_STEP.REPORT_FILES' | translate">
         <mat-icon>description</mat-icon>
@@ -85,7 +95,7 @@
       <div class="report-files-chips">
         @for (file of reportFilesSignal(); track trackByFileId($index, file)) {
         <a class="report-file-chip" [class.has-changes]="isDirtySignal()" [class.saving]="isDirtySignal()"
-          (click)="onFileClick($event, file)" style="cursor: pointer;">
+          (click)="hideFilesHint(); onFileClick($event, file)" style="cursor: pointer;">
           <div class="file-icon" [class]="'file-type-' + getFileIcon(file.type)">
             <mat-icon>{{ getFileIcon(file.type) }}</mat-icon>
           </div>

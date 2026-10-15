@@ -794,6 +794,7 @@
     "REPORT_FILES": "Report Files",
     "UNSAVED_CHANGES": "There are unsaved changes",
     "CHANGES_NOT_SAVED": "Changes Not Saved",
+    "FILES_HINT": "While in the order, you can click the reports to see the latest version.",
     "NO_REPORT_FILES": "No report files created yet",
     "AUTO_SAVE_MESSAGE": "Changes will be automatically saved when you click the file",
     "COMPLETE_SHIPMENT": "Complete Shipment",
