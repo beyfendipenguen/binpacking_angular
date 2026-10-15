@@ -60,7 +60,7 @@ export class ResultStepComponent implements OnInit, OnDestroy {
 
   private translate = inject(TranslateService);
   @ViewChild('threeJSComponent') threeJSComponent!: ThreeJSTruckVisualizationComponent;
-  @Output() shipmentCompleted = new EventEmitter<void>();
+  @Output() shipmentCompleted = new EventEmitter<string | undefined>();
   
   // Services
   private readonly destroy$ = new Subject<void>();
@@ -558,7 +558,9 @@ export class ResultStepComponent implements OnInit, OnDestroy {
       this.originalPiecesData = [];
     }
 
-    this.shipmentCompleted.emit();
+    // orderId yalnızca gerçek "Bitir"de (resetStepper) gönderilir; dosyaya tıklama
+    // gibi ara kayıtlarda şirket yönlendirmesi (post_complete_action) tetiklenmemeli.
+    this.shipmentCompleted.emit(resetStepper ? orderId : undefined);
     this.toastService.success(this.translate.instant('RESULT_STEP.ORDER_COMPLETED'));
   }
 

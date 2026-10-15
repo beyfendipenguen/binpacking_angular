@@ -14,6 +14,12 @@ export const selectUserPermissions = createSelector(
   (user: User | null) => user?.permissions
 )
 
+// Login'de gelen user.company.report_profile'dan okunur — ek istek yok.
+export const selectPostCompleteAction = createSelector(
+  selectUser,
+  (user: User | null) => user?.company?.report_profile?.post_complete_action ?? ''
+);
+
 export const selectUserLoading = createSelector(
   selectUserState,
   (state: UserState) => state.loading

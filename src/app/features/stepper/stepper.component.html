@@ -30,7 +30,7 @@
           <span class="edit-mode-badge">{{ 'STEPPER.EDIT_MODE' | translate }}</span>
         }
       </ng-template>
-      <app-result-step #resultStepComponent (shipmentCompleted)="onShipmentCompleted()"></app-result-step>
+      <app-result-step #resultStepComponent (shipmentCompleted)="onShipmentCompleted($event)"></app-result-step>
     </mat-step>
   </mat-stepper>
 </ng-container>

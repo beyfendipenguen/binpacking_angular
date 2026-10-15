@@ -7,8 +7,12 @@ export interface ReportConfig {
   extra_header_fields: ExtraHeaderField[];
 }
 
+/** Sevkiyat tamamlandığında uygulanacak ek eylem (backend: CompanyReportProfile.PostCompleteAction). */
+export type PostCompleteAction = '' | 'open_files_dialog';
+
 export interface CompanyReportProfile {
   id: string | null;
   template_schema: string;
   report_config: ReportConfig;
+  post_complete_action?: PostCompleteAction;
 }

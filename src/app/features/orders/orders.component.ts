@@ -1,7 +1,7 @@
 import { Component, inject, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
@@ -53,6 +53,7 @@ export class OrdersComponent implements OnInit, OnDestroy {
   fileService = inject(FileService);
   dialog = inject(MatDialog);
   router = inject(Router);
+  private route = inject(ActivatedRoute);
   private erpService = inject(ErpIntegrationService);
   copiedOrderId: string | null = null;
 
@@ -233,6 +234,8 @@ export class OrdersComponent implements OnInit, OnDestroy {
   ];
 
   ngOnInit(): void {
+    this.openFilesFromQueryParam();
+
     this.erpService.getMyCredential().subscribe({
       next: (credential) => (this.hasErpCredential = !!credential?.is_configured),
       error: () => (this.hasErpCredential = false),
@@ -400,15 +403,34 @@ export class OrdersComponent implements OnInit, OnDestroy {
   /**
    * Open Files Dialog
    */
-  openFilesDialog(order: Order): void {
+  openFilesDialog(order: Order, refreshOnReportReady = false): void {
     this.dialog.open(FilesDialogComponent, {
       width: '800px',
       maxHeight: '80vh',
       data: {
         orderId: order.id,
         orderName: order.name,
-        companyName: order.company_relation?.target_company.company_name || 'N/A'
+        companyName: order.company_relation?.target_company.company_name || 'N/A',
+        refreshOnReportReady
       }
+    });
+  }
+
+  /**
+   * Sevkiyat tamamlandıktan sonra (şirketin post_complete_action'ı
+   * 'open_files_dialog' ise) stepper "?openFiles=<orderId>" ile yönlendirir:
+   * ilgili siparişin dosya dialogunu aç ve parametreyi URL'den temizle.
+   */
+  private openFilesFromQueryParam(): void {
+    const orderId = this.route.snapshot.queryParamMap.get('openFiles');
+    if (!orderId) return;
+
+    this.router.navigate([], { queryParams: { openFiles: null }, queryParamsHandling: 'merge', replaceUrl: true });
+
+    this.orderService.getById(orderId).pipe(takeUntil(this.destroy$)).subscribe({
+      // Raporlar "Bitir"den sonra arka planda üretiliyor; dialog hazır olunca yenilenir.
+      next: (order) => this.openFilesDialog(order, true),
+      error: () => { /* sessiz: kullanıcı listeden kendisi açabilir */ },
     });
   }
 

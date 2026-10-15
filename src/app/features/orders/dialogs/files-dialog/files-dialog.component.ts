@@ -1,4 +1,8 @@
-import { Component, Inject, OnInit, inject } from '@angular/core';
+import { Component, DestroyRef, Inject, OnInit, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Actions, ofType } from '@ngrx/effects';
+import { take } from 'rxjs/operators';
+import { StepperResultActions } from '@app/store';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { CommonModule } from '@angular/common';
 import { MAT_DIALOG_DATA, MatDialogRef, MatDialogModule } from '@angular/material/dialog';
@@ -48,11 +52,26 @@ export class FilesDialogComponent implements OnInit {
       orderId: string;
       orderName: string;
       companyName: string;
+      /** "Bitir" sonrası otomatik açıldıysa: raporlar arka planda üretiliyor olabilir. */
+      refreshOnReportReady?: boolean;
     }
   ) { }
 
+  private actions$ = inject(Actions);
+  private destroyRef = inject(DestroyRef);
+
   ngOnInit(): void {
     this.loadFiles();
+
+    if (this.data.refreshOnReportReady) {
+      // createReportFile effect'i store seviyesinde çalışır (navigasyondan etkilenmez);
+      // rapor üretimi bitince (veya hata verince) listeyi yenile.
+      this.actions$.pipe(
+        ofType(StepperResultActions.createReportFileSuccess),
+        take(1),
+        takeUntilDestroyed(this.destroyRef)
+      ).subscribe(() => this.loadFiles());
+    }
   }
 
   /**

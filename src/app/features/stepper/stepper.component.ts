@@ -25,7 +25,7 @@ import { LocalStorageService } from './services/local-storage.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ToastService } from '@core/services/toast.service';
 import { LoadingComponent } from '@shared/loading/loading.component';
-import { AppState, selectCompletedStep, selectIsEditMode, selectCurrentStep } from '@app/store';
+import { AppState, selectCompletedStep, selectIsEditMode, selectCurrentStep, selectPostCompleteAction } from '@app/store';
 import { StepperUiActions } from '@app/store/stepper/actions/stepper-ui.actions';
 import { TranslateModule } from '@ngx-translate/core';
 
@@ -76,11 +76,22 @@ export class StepperComponent implements OnInit {
 
   }
 
-  onShipmentCompleted = (): void => {
+  private readonly postCompleteAction = this.store.selectSignal(selectPostCompleteAction);
+
+  onShipmentCompleted = (orderId?: string): void => {
     try {
-      this.router.navigate(['/'], {
+      // Şirketin report profile'ındaki post_complete_action (login'de store'a
+      // gelir) — şimdilik tek eylem: sipariş listesinde dosya dialogunu aç.
+      // NOT: '/' stepper'ın kendisi; sipariş listesi '/orders' altında.
+      const queryParams: Record<string, string> = {};
+      let target = '/';
+      if (orderId && this.postCompleteAction() === 'open_files_dialog') {
+        target = '/orders';
+        queryParams['openFiles'] = orderId;
+      }
+      this.router.navigate([target], {
         replaceUrl: true,
-        queryParams: {}
+        queryParams
       });
     } catch (error) {
     }
