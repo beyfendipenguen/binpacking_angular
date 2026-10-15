@@ -158,7 +158,9 @@ export class FeedbackDialogComponent {
     // Ekran görüntüsü + ekrandaki son yerleşim (beğen/beğenme anında gerekmez).
     if (this.data.trigger !== 'like') {
       try {
-        payload.screenshot = this.feedbackService.screenshotProvider?.() ?? null;
+        // Ekran görüntüsü sadece "beğenmedim" için alınır.
+        const disliked = payload.packages?.liked === false || payload.placement?.liked === false;
+        payload.screenshot = disliked ? (this.feedbackService.screenshotProvider?.() ?? null) : null;
         payload.result = (await this.feedbackService.resultProvider?.()) ?? null;
       } catch {
         /* ekran görüntüsü/sonuç alınamasa da geri bildirim gönderilir */

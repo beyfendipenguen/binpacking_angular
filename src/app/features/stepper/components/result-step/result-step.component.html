@@ -32,7 +32,7 @@
       </button>
       }
       @if (hasResultsSignal() && orderIdSignal()) {
-      <app-feedback-reaction section="placement" [orderId]="orderIdSignal()" [resetKey]="calcVersion()" />
+      <app-feedback-reaction section="placement" [orderId]="orderIdSignal()" [resetKey]="calcVersion()" [dirty]="isDirtySignal()" />
       }
     </div>
 

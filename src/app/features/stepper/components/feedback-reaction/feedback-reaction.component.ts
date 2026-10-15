@@ -1,5 +1,5 @@
 // features/stepper/components/feedback-reaction/feedback-reaction.component.ts
-import { Component, Input, OnChanges, inject, signal } from '@angular/core';
+import { Component, Input, OnChanges, SimpleChanges, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
@@ -50,6 +50,8 @@ export class FeedbackReactionComponent implements OnChanges {
   @Input({ required: true }) orderId!: string;
   /** Değiştiğinde (örn. yeni hesaplama) önceki tepki sıfırlanır. */
   @Input() resetKey: unknown;
+  /** true olduğunda (ekrandaki içerik kaydedilmemiş şekilde değişti) geri bildirim UI'da sıfırlanır. */
+  @Input() dirty = false;
 
   private feedbackService = inject(OrderFeedbackService);
   private dialog = inject(MatDialog);
@@ -61,10 +63,21 @@ export class FeedbackReactionComponent implements OnChanges {
   /** Sunucuda kayıtlı önceki geri bildirim (neden/yorum dahil). */
   private saved: FeedbackSection | null = null;
 
-  ngOnChanges(): void {
+  ngOnChanges(changes: SimpleChanges): void {
     if (!this.orderId) {
       this.liked.set(null);
       this.saved = null;
+      return;
+    }
+    // İçerik değişti (isDirty): önceki geri bildirim eskidi → UI sıfırlanır,
+    // kullanıcı yeni durum için tekrar geri bildirim verebilir. Sunucudaki
+    // eski kayıt silinmez (yeni gönderimde ayrı kayıt açılır).
+    if (changes['dirty'] && this.dirty) {
+      this.liked.set(null);
+      this.saved = null;
+      return;
+    }
+    if (this.dirty && !changes['orderId'] && !changes['resetKey']) {
       return;
     }
     // Arka plan sorgusu: global yükleme göstergesi açılmasın (silent).
@@ -91,6 +104,9 @@ export class FeedbackReactionComponent implements OnChanges {
         initialValues: this.saved ? { [this.section]: this.saved } : undefined,
       },
     }).afterClosed().subscribe(() => {
+      // Kaydedilmemiş değişiklik varken sunucu durumu ekrandakinden farklı olabilir;
+      // yerel durum korunur (yeniden sorgulanırsa yeni verilen geri bildirim kaybolur).
+      if (this.dirty) return;
       this.feedbackService.getStatus(this.orderId, true).subscribe(st => {
         this.saved = st.feedback?.[this.section] ?? null;
         this.liked.set(this.saved?.liked ?? null);
