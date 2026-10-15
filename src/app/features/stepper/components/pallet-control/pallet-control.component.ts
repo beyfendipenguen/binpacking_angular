@@ -964,10 +964,10 @@ export class PalletControlComponent
   }
 
   calculatePackageDetail() {
-    if (!this.orderDetailsIsDirtySignal()) {
-      this.saveSnapshot();
-      this.store.dispatch(StepperPackageActions.calculatePackageDetail());
-    }
+    // Kaydedilmemiş sipariş detayı varsa effect (calculatePackageDetail$)
+    // hesaplamadan önce onları kaydeder; bu yüzden burada engellemiyoruz.
+    this.saveSnapshot();
+    this.store.dispatch(StepperPackageActions.calculatePackageDetail());
   }
 
   toggleAlignment(_package: any): void {

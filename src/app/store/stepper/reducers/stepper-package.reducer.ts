@@ -200,6 +200,54 @@ export const stepperPackageHandlers = [
     }
   }),
 
+  // Hesaplamadan ÖNCE: kaydedilmemiş sipariş detayı farkını hazırla.
+  // Sipariş detayı = paketlerdeki ürünler + envanterdeki (remaining) ürünler.
+  // Envanterde elle eklenmiş ürün varsa fark "added/modified" olarak çıkar ve
+  // effect hesaplamadan önce bunu kaydeder (palletControlSubmit'ten farklı
+  // olarak envanter burada TEMİZLENMEZ — kullanıcı hesaplamaya devam ediyor).
+  on(
+    StepperPackageActions.calculatePackageDetail,
+    StepperPackageActions.calculatePackageDetailWithParams,
+    (state: StepperState, action: any) => {
+      // WithParams: dialog, tetiklemeden hemen önce setRemainingProducts ile
+      // store'daki envanteri boşaltıyor/değiştiriyor (onlyRemaining'de
+      // orderDetailParams=[] olduğu için envanter []'a düşüyor). Gerçek envanter
+      // action.remainingProducts'ta taşınıyor — onu kullan. onlyRemaining
+      // değilse backend DB'deki sipariş detaylarıyla hesaplar; envanter
+      // anlamsız (azaltılan kalemler) olduğundan sipariş detayına dokunma.
+      let inventory = state.step2State.remainingProducts;
+      if (action.type === StepperPackageActions.calculatePackageDetailWithParams.type) {
+        if (!action.onlyRemaining) return state;
+        inventory = action.remainingProducts ?? [];
+      }
+
+      const mapperOrderDetails = mapUiPackagesToOrderDetails([
+        ...state.step2State.packages,
+        { package_details: inventory } as any,
+      ]);
+      // Paket ve envanter tamamen boşsa (ilk hesaplama) türetilecek bir şey yok;
+      // boş listeyle diff almak mevcut TÜM sipariş detaylarını "silinmiş"
+      // gösterip siliyordu ("hesaplanacak ürün yok" hatası).
+      if (mapperOrderDetails.length === 0) return state;
+
+      const changes = OrderDetailDiffCalculator.calculateDiff(
+        mapperOrderDetails,
+        state.step1State.originalOrderDetails
+      );
+
+      return {
+        ...state,
+        step1State: {
+          ...state.step1State,
+          orderDetails: [...mapperOrderDetails],
+          added: changes.added.map(od => ({ ...od })),
+          modified: changes.modified.map(od => ({ ...od })),
+          deletedIds: [...changes.deletedIds],
+        }
+      };
+    }
+  ),
+
   on(StepperPackageActions.calculateOrderDetailChanges, (state: StepperState) => {
     const mapperOrderDetails = mapUiPackagesToOrderDetails(state.step2State.packages);
     const changes = OrderDetailDiffCalculator.calculateDiff(

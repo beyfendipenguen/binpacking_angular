@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
 import { map, switchMap, catchError, withLatestFrom, filter, concatMap, take, tap, mergeMap } from 'rxjs/operators';
-import { of } from 'rxjs';
+import { of, concat, EMPTY } from 'rxjs';
 
 import { StepperInvoiceUploadActions } from '../actions/stepper-invoice-upload.actions';
 import { StepperPackageActions } from '../actions/stepper-package.actions';
@@ -13,7 +13,9 @@ import {
   selectVerticalSort,
   selectCompanyRelationId,
   selectPackageChanges,
-  selectIsPackagesDirty
+  selectIsPackagesDirty,
+  selectIsOrderDetailsDirty,
+  selectOrderDetailsChanges
 } from '../../index';
 
 import { RepositoryService } from '@features/stepper/services/repository.service';
@@ -73,8 +75,14 @@ export class StepperPackageEffects {
         StepperPackageActions.calculatePackageDetail,
         StepperPackageActions.calculatePackageDetailWithParams
       ),
-      withLatestFrom(this.store.select(selectVerticalSort)),
-      switchMap(([action, verticalSort]) => {
+      withLatestFrom(
+        this.store.select(selectVerticalSort),
+        this.store.select(selectIsPackagesDirty),
+        this.store.select(selectPackageChanges),
+        this.store.select(selectIsOrderDetailsDirty),
+        this.store.select(selectOrderDetailsChanges)
+      ),
+      switchMap(([action, verticalSort, isPackagesDirty, packageChanges, isOrderDetailsDirty, orderDetailChanges]) => {
         const isParamAction = action.type === StepperPackageActions.calculatePackageDetailWithParams.type;
         const orderDetailParams = isParamAction && !(action as any).onlyRemaining ? (action as any).orderDetailParams : undefined;
         const vSort = isParamAction ? (action as any).verticalSort : verticalSort;
@@ -85,7 +93,7 @@ export class StepperPackageEffects {
           ? this.packageDetailsToOrderDetails((action as any).remainingProducts)
           : undefined;
 
-        return this.repositoryService.calculatePackageDetails(
+        const calculate$ = this.repositoryService.calculatePackageDetails(
           vSort,
           undefined,
           orderDetailParams,
@@ -103,6 +111,33 @@ export class StepperPackageEffects {
               error: { message: error.message, stepIndex: 2 }
             }))
           )
+        );
+
+        // Hesaplamadan ÖNCE kaydedilmemiş durumu DB'ye eşitle (sırayla):
+        // 1) Sipariş detayı farkı (envanterde elle eklenen ürünler dahil) —
+        //    backend tam hesaplamada DB'deki OrderDetail'leri kullanır.
+        // 2) Paketler — SADECE "kalanları yerleştir" modunda: backend o modda
+        //    mevcut DB paketlerine dokunmadan üstüne ekler ve TÜM paketleri
+        //    döndürüp ekrandakini ezer; kaydedilmemiş temizle/sürükle
+        //    değişiklikleri önce kaydedilmezse eski paketler geri gelip kopya
+        //    oluşturuyordu. Tam hesaplamada backend zaten tüm paketleri siler.
+        // Sıra: sipariş detayı önce → paket upsertManySuccess'indeki
+        // orderDetailsAfterPackagesSaved$ zinciri artık "temiz" bulup atlar.
+        const saveOrderDetails$ = isOrderDetailsDirty
+          ? this.repositoryService.bulkUpdateOrderDetails(orderDetailChanges).pipe(
+              map((result) => StepperInvoiceUploadActions.upsertManySuccess({ orderDetails: result.order_details }))
+            )
+          : EMPTY;
+
+        const savePackages$ = onlyRemaining && isPackagesDirty
+          ? this.repositoryService.bulkUpdatePackageDetails(packageChanges).pipe(
+              map((result) => StepperPackageActions.upsertManySuccess({ packages: result.packages, changes: packageChanges }))
+            )
+          : EMPTY;
+
+        return concat(saveOrderDetails$, savePackages$, calculate$).pipe(
+          // calculate$ kendi hatasını yakalıyor; buraya yalnızca kayıt adımları düşer.
+          catchError(() => of(StepperPackageActions.upsertManyFailure()))
         );
       })
     )
