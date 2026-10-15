@@ -245,7 +245,7 @@
             </div>
 
             @if (uiPackages().length > 0 && orderSignal()?.id) {
-            <app-feedback-reaction section="packages" [orderId]="orderSignal()!.id" [resetKey]="uiPackages()" />
+            <app-feedback-reaction section="packages" [orderId]="orderSignal()!.id" />
             }
           </div>
 

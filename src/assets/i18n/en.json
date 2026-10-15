@@ -1001,6 +1001,7 @@
     "SYSTEM_ERROR": "System Error",
     "ORDER_NOT_FOUND": "Order not found",
     "PACKAGING_ERROR": "An error occurred during packaging process.",
+    "SAVE_FAILED": "Changes could not be saved. Please try again; if the problem persists, contact support without refreshing the page.",
     "STEP_1_LABEL": "Order Check",
     "STEP_2_LABEL": "Pallet Check",
     "STEP_3_LABEL": "Result Screen",

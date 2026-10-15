@@ -133,15 +133,28 @@ export class StepperPackageEffects {
   );
 
   // Palet Kontrol Adımını Tamamla (Sıralı Kayıt: Paketler -> Detaylar -> Step Complete)
+  // Paketler ve sipariş detayları SIRAYLA kaydedilir: önce paketler; başarılı
+  // olursa sipariş detayları (aşağıdaki effect). Eskiden ikisi paralel
+  // gidiyordu — biri hata alırsa diğeri kaydedilmiş kalıyor (paket silinmiş,
+  // sipariş detayı eski) ve hata sessizce yutuluyordu.
+  // Paketlerde değişiklik yoksa (upsertMany filtreye takılır, hiçbir action
+  // üretmez) doğrudan sipariş detayları kaydedilir.
   palletControlSubmit$ = createEffect(() =>
     this.actions$.pipe(
       ofType(StepperPackageActions.palletControlSubmit),
-      mergeMap(() =>
-        [
-          StepperPackageActions.upsertMany(),
-          StepperInvoiceUploadActions.upsertMany()
-        ]
-      ),
+      withLatestFrom(this.store.select(selectIsPackagesDirty)),
+      map(([, isPackagesDirty]) =>
+        isPackagesDirty
+          ? StepperPackageActions.upsertMany()
+          : StepperInvoiceUploadActions.upsertMany()
+      )
+    )
+  );
+
+  orderDetailsAfterPackagesSaved$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(StepperPackageActions.upsertManySuccess),
+      map(() => StepperInvoiceUploadActions.upsertMany())
     )
   );
 

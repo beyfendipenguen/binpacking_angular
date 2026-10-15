@@ -3,7 +3,8 @@ import { TranslateService } from '@ngx-translate/core';
 import { Store } from '@ngrx/store';
 import { firstValueFrom, Observable } from 'rxjs';
 import { map, switchMap, take } from 'rxjs/operators';
-import { AppState, selectActiveShipmentIndex, selectIsMultiShipment, selectOrderId, selectOrderResult, selectPackages, selectShipments, selectStep3IsDirty, StepperResultActions } from '@app/store';
+import { AppState, selectActiveShipmentIndex, selectIsMultiShipment, selectOrder, selectOrderId, selectOrderResult, selectPackages, selectShipments, selectStep3IsDirty, StepperResultActions } from '@app/store';
+import { calculatePackageTotalWeight } from '@app/features/utils/package-weight.util';
 import { ToastService } from '@core/services/toast.service';
 import { RepositoryService } from '@features/stepper/services/repository.service';
 import { OrderResultService } from '@app/features/services/order-result.service';
@@ -116,15 +117,32 @@ export class ResultStepService {
     const currentOrderResult = await firstValueFrom(this.store.select(selectOrderResult));
     const activeIndex = await firstValueFrom(this.store.select(selectActiveShipmentIndex));
 
+    const order = await firstValueFrom(this.store.select(selectOrder));
+
+    // Ağırlık TEK kaynaktan (step2 paketleri: palet + ürünler) yeniden hesaplanır;
+    // satırda saklı eski ağırlık (row[7]) paketler elle düzenlendikten sonra
+    // bayatlayabilir ve tır/PDF toplamının pallet control'den farklı çıkmasına
+    // yol açıyordu. Eşleşen paket yoksa satırdaki değer korunur.
     const mapToName = (row: PackagePosition): PackagePosition => {
       const matchingPackage = packages.find((pkg: any) => pkg.id === row[8]);
       const pieceId = matchingPackage ? matchingPackage.name : row[6];
-      return [row[0], row[1], row[2], row[3], row[4], row[5], pieceId, row[7], row[8]] as PackagePosition;
+      const weight = matchingPackage
+        ? calculatePackageTotalWeight(matchingPackage, order)
+        : row[7];
+      return [row[0], row[1], row[2], row[3], row[4], row[5], pieceId, weight, row[8]] as PackagePosition;
+    };
+
+    // Aynı pkgId birden fazla satırda olamaz (kopya satır tır/PDF ağırlığını şişirir).
+    // İlk görülen sıra korunur, son (en taze) satır kullanılır.
+    const dedupe = (rows: PackagePosition[]): PackagePosition[] => {
+      const byId = new Map<string, PackagePosition>();
+      for (const row of rows) byId.set(row[8], row);
+      return Array.from(byId.values());
     };
 
     if (!isMultiShipment || shipments.length === 0) {
       // Tek shipment — mevcut orderResult'u kullan
-      const formatted = currentOrderResult.map(mapToName);
+      const formatted = dedupe(currentOrderResult).map(mapToName);
       return { shipments: [{ shipment: 1, result: formatted }] };
     }
 
@@ -142,7 +160,7 @@ export class ResultStepService {
     return {
       shipments: nonEmptyShipments.map((result, i) => ({
         shipment: i + 1,
-        result: result.map(mapToName)
+        result: dedupe(result).map(mapToName)
       }))
     };
   }

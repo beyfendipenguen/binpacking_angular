@@ -114,7 +114,11 @@ export class PackagesStateService {
    * Processed packages'a yeni package(ler) ekler
    */
   addToProcessedPackages(packages: PackageData | PackageData[]): void {
-    const toAdd = Array.isArray(packages) ? packages : [packages];
+    // Aynı pkgId ikinci kez eklenmez (çift tetiklenmede kopya satır oluşmasın)
+    const existing = new Set(this._processedPackages().map(p => p.pkgId));
+    const toAdd = (Array.isArray(packages) ? packages : [packages])
+      .filter(p => !existing.has(p.pkgId));
+    if (toAdd.length === 0) return;
     this._processedPackages.update(arr => [...arr, ...toAdd]);
 
     if (this.onPackageAddedCallback) {
@@ -138,7 +142,10 @@ export class PackagesStateService {
    * Deleted packages'a yeni package(ler) ekler
    */
   addToDeletedPackages(packages: PackageData | PackageData[]): void {
-    const toAdd = Array.isArray(packages) ? packages : [packages];
+    const existing = new Set(this._deletedPackages().map(p => p.pkgId));
+    const toAdd = (Array.isArray(packages) ? packages : [packages])
+      .filter(p => !existing.has(p.pkgId));
+    if (toAdd.length === 0) return;
     this._deletedPackages.update(arr => [...arr, ...toAdd]);
   }
 

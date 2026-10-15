@@ -360,7 +360,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
           this.applyGravityToAllPackages();
         });
       });
-    document.addEventListener('fullscreenchange', this.handleFullscreenChange.bind(this));
+    document.addEventListener('fullscreenchange', this.onDocFullscreenChange);
   }
 
   onPrevShipment(): void {
@@ -505,10 +505,12 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
   }
 
   ngOnDestroy(): void {
-    document.removeEventListener('mouseup', this.handleMouseUp.bind(this));
-    document.removeEventListener('touchend', this.handleTouchEnd.bind(this));
-    document.removeEventListener('touchcancel', this.handleTouchEnd.bind(this));
-    document.removeEventListener('fullscreenchange', this.handleFullscreenChange.bind(this));
+    document.removeEventListener('mouseup', this.onDocMouseUp);
+    document.removeEventListener('touchstart', this.onDocTouchStart);
+    document.removeEventListener('touchmove', this.onDocTouchMove);
+    document.removeEventListener('touchend', this.onDocTouchEnd);
+    document.removeEventListener('touchcancel', this.onDocTouchEnd);
+    document.removeEventListener('fullscreenchange', this.onDocFullscreenChange);
     this.resizeObserver?.disconnect();
     this.destroy$.next();
     this.destroy$.complete();
@@ -1728,12 +1730,22 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
 
     // mouseup ve touchend'i document üzerinde dinle
     // böylece canvas dışında bırakılsa da yakalanır
-    document.addEventListener('mouseup', this.handleMouseUp.bind(this));
-    document.addEventListener('touchstart', this.handleTouchStart.bind(this), { passive: false });
-    document.addEventListener('touchmove', this.handleTouchMove.bind(this), { passive: false });
-    document.addEventListener('touchend', this.handleTouchEnd.bind(this), { passive: false });
-    document.addEventListener('touchcancel', this.handleTouchEnd.bind(this), { passive: false });
+    // NOT: removeEventListener için AYNI fonksiyon referansı şart; `.bind(this)`
+    // her çağrıda yeni fonksiyon ürettiği için eskiden ngOnDestroy'da hiçbir
+    // dinleyici kaldırılmıyordu (bileşen her yeniden oluştuğunda document'a
+    // bir kat daha dinleyici birikiyordu). Referanslar alan olarak tutuluyor.
+    document.addEventListener('mouseup', this.onDocMouseUp);
+    document.addEventListener('touchstart', this.onDocTouchStart, { passive: false });
+    document.addEventListener('touchmove', this.onDocTouchMove, { passive: false });
+    document.addEventListener('touchend', this.onDocTouchEnd, { passive: false });
+    document.addEventListener('touchcancel', this.onDocTouchEnd, { passive: false });
   }
+
+  private readonly onDocMouseUp = (e: MouseEvent) => this.handleMouseUp(e);
+  private readonly onDocTouchStart = (e: TouchEvent) => this.handleTouchStart(e);
+  private readonly onDocTouchMove = (e: TouchEvent) => this.handleTouchMove(e);
+  private readonly onDocTouchEnd = (e: TouchEvent) => this.handleTouchEnd(e);
+  private readonly onDocFullscreenChange = () => this.handleFullscreenChange();
 
   private handleTouchStart(event: TouchEvent): void {
     event.preventDefault();
@@ -3784,7 +3796,28 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
   @HostListener('document:keydown', ['$event'])
   handleKeyboardShortcuts(event: KeyboardEvent): void {
     if (!this.isActive || this.isDragging) return;
-    
+
+    // Kullanıcı bir metin alanına yazıyorsa ya da bir dialog açıksa kısayollar
+    // çalışmasın (aksi halde geri bildirim kutusuna "a"/"d" yazmak seçili
+    // paketi klonlar/siler ve harfi yutar).
+    const target = event.target as HTMLElement | null;
+    const tag = target?.tagName;
+    if (
+      tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' ||
+      target?.isContentEditable ||
+      this.dialog.openDialogs.length > 0
+    ) {
+      return;
+    }
+
+    // Tuşa basılı tutunca tekrar eden olaylar (klonla/sil/döndür/zorla yerleştir)
+    // birden fazla kez işlem yapmasın. Geri al/yinele (Ctrl+Z/Y) tekrarlayabilir.
+    if (event.repeat && !(event.ctrlKey || event.metaKey)) return;
+
+    // Ctrl/Cmd+A (tümünü seç), Ctrl+D (yer imi) gibi tarayıcı kısayolları paket
+    // klonlama/silme kısayollarını tetiklemesin; sadece Ctrl+Z/Y bizim.
+    if ((event.ctrlKey || event.metaKey) && !['z', 'Z', 'y', 'Y'].includes(event.key)) return;
+
     switch (event.key) {
       case 'f':
       case 'F':

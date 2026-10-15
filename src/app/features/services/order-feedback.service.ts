@@ -1,6 +1,7 @@
 // features/services/order-feedback.service.ts
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpContext } from '@angular/common/http';
+import { SKIP_LOADING } from '@app/shared/loading/skip-loading.token';
 import { Observable } from 'rxjs';
 import { GenericCrudService } from '@core/services/generic-crud.service';
 import { FeedbackPayload, FeedbackStatus, OrderFeedback } from '@features/interfaces/order-feedback.interface';
@@ -23,15 +24,21 @@ export class OrderFeedbackService extends GenericCrudService<any> {
     super(http, 'orders/order-revisions');
   }
 
-  getStatus(orderId: string): Observable<FeedbackStatus> {
+  /**
+   * @param silent true ise global yükleme göstergesi açılmaz (arka plan
+   * sorguları: beğen/beğenme durumu gibi).
+   */
+  getStatus(orderId: string, silent = false): Observable<FeedbackStatus> {
     this.ensureApiUrl();
-    return this.http.get<FeedbackStatus>(`${this.apiUrl}${orderId}/feedback-status/`);
+    const context = new HttpContext().set(SKIP_LOADING, silent);
+    return this.http.get<FeedbackStatus>(`${this.apiUrl}${orderId}/feedback-status/`, { context });
   }
 
-  submit(orderId: string, payload: FeedbackPayload): Observable<{ feedback: OrderFeedback; version: number; has_screenshot: boolean }> {
+  submit(orderId: string, payload: FeedbackPayload, silent = false): Observable<{ feedback: OrderFeedback; version: number; has_screenshot: boolean }> {
     this.ensureApiUrl();
+    const context = new HttpContext().set(SKIP_LOADING, silent);
     return this.http.post<{ feedback: OrderFeedback; version: number; has_screenshot: boolean }>(
-      `${this.apiUrl}${orderId}/feedback/`, payload
+      `${this.apiUrl}${orderId}/feedback/`, payload, { context }
     );
   }
 }

@@ -17,6 +17,7 @@ import {
   selectOriginalPackages,
   selectShipments,
   selectStep3IsDirty,
+  StepperInvoiceUploadActions,
   StepperPackageActions
 } from '../../index';
 import { RepositoryService } from '@features/stepper/services/repository.service';
@@ -215,6 +216,23 @@ export class StepperResultEffects {
           nameByPkgId
         });
       })
+    )
+  );
+
+  /**
+   * Paket ya da sipariş detayı kaydı başarısız olursa kullanıcı bilgilendirilir
+   * ve "kaydedilmemiş değişiklik var" işareti açık tutulur. (Eskiden iki
+   * upsertManyFailure da hiçbir yerde işlenmiyordu: paket silinip sipariş
+   * detayı eski kalabiliyor, kimse fark etmiyordu.)
+   */
+  saveFailed$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(
+        StepperPackageActions.upsertManyFailure,
+        StepperInvoiceUploadActions.upsertManyFailure
+      ),
+      tap(() => this.toastService.error(this.translate.instant('STEPPER.SAVE_FAILED'))),
+      map(() => StepperResultActions.setIsDirty({ isDirty: true }))
     )
   );
 

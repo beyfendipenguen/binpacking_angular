@@ -67,7 +67,8 @@ export class FeedbackReactionComponent implements OnChanges {
       this.saved = null;
       return;
     }
-    this.feedbackService.getStatus(this.orderId).subscribe({
+    // Arka plan sorgusu: global yükleme göstergesi açılmasın (silent).
+    this.feedbackService.getStatus(this.orderId, true).subscribe({
       next: (st) => {
         this.saved = st.feedback?.[this.section] ?? null;
         this.liked.set(this.saved?.liked ?? null);
@@ -90,7 +91,7 @@ export class FeedbackReactionComponent implements OnChanges {
         initialValues: this.saved ? { [this.section]: this.saved } : undefined,
       },
     }).afterClosed().subscribe(() => {
-      this.feedbackService.getStatus(this.orderId).subscribe(st => {
+      this.feedbackService.getStatus(this.orderId, true).subscribe(st => {
         this.saved = st.feedback?.[this.section] ?? null;
         this.liked.set(this.saved?.liked ?? null);
       });

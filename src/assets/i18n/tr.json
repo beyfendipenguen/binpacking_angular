@@ -1001,6 +1001,7 @@
     "SYSTEM_ERROR": "Sistem Hatası",
     "ORDER_NOT_FOUND": "Sipariş bulunamadı",
     "PACKAGING_ERROR": "Paketleme işlemi sırasında bir hata oluştu.",
+    "SAVE_FAILED": "Değişiklikler kaydedilemedi. Lütfen tekrar deneyin; sorun sürerse sayfayı yenilemeden destek ile iletişime geçin.",
     "STEP_1_LABEL": "Sipariş Kontrolü",
     "STEP_2_LABEL": "Palet Kontrolü",
     "STEP_3_LABEL": "Sonuç Ekranı",

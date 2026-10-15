@@ -4,11 +4,25 @@ import { StepperResultActions } from '../actions/stepper-result.actions';
 import { PackagePosition } from '@app/features/interfaces/order-result.interface';
 
 /**
+ * Aynı pkgId'ye (index 8) sahip satırları tekilleştirir: ilk görülen sıra
+ * korunur, değer olarak SON (en taze) satır kullanılır. Bir pkgId'nin
+ * sonuçta birden fazla satır olması tır/PDF ağırlığını şişirir ve paket
+ * içeriğinin tekrar tekrar listelenmesine yol açar.
+ */
+function dedupeByPkgId(rows: PackagePosition[]): PackagePosition[] {
+  if (!rows || rows.length < 2) return rows;
+  const map = new Map<string, PackagePosition>();
+  for (const row of rows) map.set(row[8], row);
+  return map.size === rows.length ? rows : Array.from(map.values());
+}
+
+/**
  * Aktif shipment'ın orderResult'unu günceller VE shipments[activeIndex]'i
  * aynı veriyle senkron tutar. orderResult'ı değiştiren her reducer bunu
  * kullanmalı — aksi halde shipment'lar arası geçişte eski veri geri gelir.
  */
-function syncActiveShipment(state: StepperState, newOrderResult: PackagePosition[]) {
+function syncActiveShipment(state: StepperState, rawOrderResult: PackagePosition[]) {
+  const newOrderResult = dedupeByPkgId(rawOrderResult);
   const idx = state.step3State.activeShipmentIndex;
   const updatedShipments = state.step3State.shipments.length > 0
     ? state.step3State.shipments.map((s, i) => i === idx ? newOrderResult : s)
@@ -19,20 +33,30 @@ function syncActiveShipment(state: StepperState, newOrderResult: PackagePosition
 export const stepperResultHandlers = [
 
   // Load Order Result Success (Edit Mode / Calculate sonrası)
-  on(StepperResultActions.loadOrderResultSuccess, (state: StepperState, { orderResult, reportFiles, shipments, isMultiShipment, deletedPackages }) => ({
-    ...state,
-    step2State: syncStep2Remaining(state, deletedPackages ?? []),
-    step3State: {
-      ...state.step3State,
-      orderResult: [...orderResult],
-      reportFiles,
-      shipments: shipments ?? [],
-      isMultiShipment: isMultiShipment ?? false,
-      deletedPackages: deletedPackages ?? [],
-      activeShipmentIndex: 0,
-      isDirty: false
-    }
-  })),
+  on(StepperResultActions.loadOrderResultSuccess, (state: StepperState, { orderResult, reportFiles, shipments, isMultiShipment, deletedPackages }) => {
+    // Kayıtlı sonuçtaki olası kopya pkgId satırlarını yüklerken temizle;
+    // tırda olan bir paket aynı zamanda "yerleşmeyen" havuzunda da kalmasın.
+    const cleanShipments = (shipments ?? []).map(dedupeByPkgId);
+    const cleanOrderResult = dedupeByPkgId([...orderResult]);
+    const placedIds = new Set<string>(
+      [...cleanOrderResult, ...cleanShipments.flat()].map(row => row[8])
+    );
+    const cleanDeleted = dedupeByPkgId(deletedPackages ?? []).filter(row => !placedIds.has(row[8]));
+    return {
+      ...state,
+      step2State: syncStep2Remaining(state, cleanDeleted),
+      step3State: {
+        ...state.step3State,
+        orderResult: cleanOrderResult,
+        reportFiles,
+        shipments: cleanShipments,
+        isMultiShipment: isMultiShipment ?? false,
+        deletedPackages: cleanDeleted,
+        activeShipmentIndex: 0,
+        isDirty: false
+      }
+    };
+  }),
 
   on(StepperResultActions.setActiveShipment, (state: StepperState, { index }) => ({
     ...state,
@@ -102,14 +126,17 @@ export const stepperResultHandlers = [
 
   // ───────── Deleted packages — global havuz ─────────
 
-  on(StepperResultActions.setDeletedPackages, (state: StepperState, { deletedPackages }) => ({
-    ...state,
-    step2State: syncStep2Remaining(state, deletedPackages),
-    step3State: { ...state.step3State, deletedPackages }
-  })),
+  on(StepperResultActions.setDeletedPackages, (state: StepperState, { deletedPackages: rawDeleted }) => {
+    const deletedPackages = dedupeByPkgId(rawDeleted);
+    return {
+      ...state,
+      step2State: syncStep2Remaining(state, deletedPackages),
+      step3State: { ...state.step3State, deletedPackages }
+    };
+  }),
 
   on(StepperResultActions.addDeletedPackage, (state: StepperState, { row }) => {
-    const newDeleted = [...state.step3State.deletedPackages, row];
+    const newDeleted = dedupeByPkgId([...state.step3State.deletedPackages, row]);
     return {
       ...state,
       step2State: syncStep2Remaining(state, newDeleted),
