@@ -101,6 +101,12 @@ export class ConstraintFormComponent implements OnInit, OnDestroy {
     align_to: 'width',
   };
 
+  frontRules: { no_rotation: boolean; center_single: boolean; proportional_weight: boolean } = {
+    no_rotation: false,
+    center_single: false,
+    proportional_weight: false,
+  };
+
   currentInfoField: ConstraintFieldConfig | null = null;
 
   get isBulk(): boolean {
@@ -204,6 +210,12 @@ export class ConstraintFormComponent implements OnInit, OnDestroy {
     if (profile?.orientation_lock) {
       this.orientationLock = { ...profile.orientation_lock };
     }
+    const fz = profile?.front_zone_rules ?? {};
+    this.frontRules = {
+      no_rotation: !!fz.no_rotation,
+      center_single: !!fz.center_single,
+      proportional_weight: !!fz.proportional_weight,
+    };
     this.loadSelectedSideProducts(profile?.side_product_ids ?? []);
     this.loadForbiddenPairs(profile?.forbidden_pairs ?? []);
   }
@@ -262,6 +274,10 @@ export class ConstraintFormComponent implements OnInit, OnDestroy {
                   align_to: this.orientationLock.align_to,
                 }
               : null;
+          break;
+        case 'front-zone-rules':
+          // Toplu düzenlemede yok (mesafe zone kuralına bağlı, profil bazında ayarlanır).
+          if (!this.isBulk) v[field.key] = { ...this.frontRules };
           break;
       }
     }

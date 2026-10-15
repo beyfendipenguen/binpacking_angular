@@ -3,7 +3,7 @@ import { Validators } from '@angular/forms';
 export interface ConstraintFieldConfig {
   key: string;
   label: string; // translation key
-  type: 'number' | 'string' | 'boolean' | 'select' | 'multi-product' | 'disabled-placeholder'| 'zone-limits' | 'orientation-lock' | 'pair-list';
+  type: 'number' | 'string' | 'boolean' | 'select' | 'multi-product' | 'disabled-placeholder'| 'zone-limits' | 'orientation-lock' | 'pair-list' | 'front-zone-rules';
   icon: string;
   group: string; // grup başlığı (translation key)
   placeholder?: string;
@@ -253,5 +253,16 @@ export const CONSTRAINT_FIELDS: ConstraintFieldConfig[] = [
     group: 'CONSTRAINT.GROUP_ORIENTATION',
     hint: 'CONSTRAINT.ORIENTATION_LOCK_HINT',
     detailedInfo: 'CONSTRAINT.ORIENTATION_LOCK_DETAIL',
+  },
+
+  // ─── Grup 6.7: Ön Bölge Kuralları (zone_weight_limits mesafesini kullanır) ───
+  {
+    key: 'front_zone_rules',
+    label: 'CONSTRAINT.FRONT_ZONE_RULES',
+    type: 'front-zone-rules',  // özel tip — form component'te ayrı render edilir
+    icon: 'flip_to_front',
+    group: 'CONSTRAINT.GROUP_ORIENTATION',
+    hint: 'CONSTRAINT.FRONT_ZONE_RULES_HINT',
+    detailedInfo: 'CONSTRAINT.FRONT_ZONE_RULES_DETAIL',
   },
 ];

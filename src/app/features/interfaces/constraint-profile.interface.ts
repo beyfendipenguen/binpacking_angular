@@ -52,6 +52,18 @@ export interface ConstraintProfile  {
   // yönelime sabitler: "width" büyük kenarı tırın enine, "length" tırın
   // boyuna paralel yapar. null = kısıt yok, döndürme tamamen serbest.
   orientation_lock: { threshold_mm: number; align_to: 'width' | 'length' } | null;
+
+  // ─── Ön bölge kuralları (zone_weight_limits'teki x_limit_mm mesafesi; tır filtresine bakılmaz) ───
+  // no_rotation: ön bölgede kilide aykırı (döndürülmüş) yönelim yasak.
+  // center_single: ön bölgede tek kalan palet tır eninde ortalanır.
+  // proportional_weight: bölge sınırını kesen paletin yalnızca bölge içindeki kısmının ağırlığı sayılır.
+  front_zone_rules: FrontZoneRules;
+}
+
+export interface FrontZoneRules {
+  no_rotation?: boolean;
+  center_single?: boolean;
+  proportional_weight?: boolean;
 }
 
 /**
@@ -86,5 +98,6 @@ export function createDefaultConstraintProfile(): ConstraintProfile {
     load_order_priorities: {},
     zone_weight_limits: [],
     orientation_lock: null,
+    front_zone_rules: {},
   };
 }
