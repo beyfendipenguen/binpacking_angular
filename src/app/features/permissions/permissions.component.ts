@@ -137,6 +137,7 @@ export class PermissionsComponent implements OnInit, OnDestroy {
 
   // Dirty check için başlangıç değerleri
   private initialMemberIds = signal<Set<string>>(new Set());
+  private initialPermissionIds = signal<Set<number>>(new Set());
   private initialUserGroupIds = signal<Set<number>>(new Set());
   private initialUserPermissionIds = signal<Set<number>>(new Set());
 
@@ -282,6 +283,15 @@ export class PermissionsComponent implements OnInit, OnDestroy {
     for (const id of current) {
       if (!initial.has(id)) return true;
     }
+    // Yetkiler sadece düzenlenebilir (CUSTOM) grupta kaydedilir
+    if (this.selectedGroup()?.is_editable) {
+      const initialPerms = this.initialPermissionIds();
+      const currentPerms = this.selectedPermissionIds();
+      if (initialPerms.size !== currentPerms.size) return true;
+      for (const id of currentPerms) {
+        if (!initialPerms.has(id)) return true;
+      }
+    }
     return false;
   });
 
@@ -377,7 +387,9 @@ export class PermissionsComponent implements OnInit, OnDestroy {
     this.selectedGroup.set(group);
     this.isNewGroup.set(false);
     this.groupForm.patchValue({ name: group.name });
+    this.groupForm.markAsPristine();
     this.selectedPermissionIds.set(new Set(group.permissions));
+    this.initialPermissionIds.set(new Set(group.permissions)); // ← başlangıç kaydı
 
     const usersInGroup = this.allUsers().filter(u => u.groups.includes(group.id));
     const memberIds = new Set(usersInGroup.map(u => u.id));
