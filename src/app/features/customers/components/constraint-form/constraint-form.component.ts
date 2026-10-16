@@ -107,6 +107,20 @@ export class ConstraintFormComponent implements OnInit, OnDestroy {
     proportional_weight: false,
   };
 
+  /** Toplu düzenleme: her ön bölge kuralı üç durumlu (değişiklik yok / açık / kapalı). */
+  frontRulesBulk: Record<'no_rotation' | 'center_single' | 'proportional_weight', TriState> = {
+    no_rotation: 'keep',
+    center_single: 'keep',
+    proportional_weight: 'keep',
+  };
+
+  readonly frontRuleKeys = ['no_rotation', 'center_single', 'proportional_weight'] as const;
+  readonly frontRuleLabels: Record<'no_rotation' | 'center_single' | 'proportional_weight', string> = {
+    no_rotation: 'CONSTRAINT.FRONT_ZONE_NO_ROTATION',
+    center_single: 'CONSTRAINT.FRONT_ZONE_CENTER_SINGLE',
+    proportional_weight: 'CONSTRAINT.FRONT_ZONE_PROPORTIONAL_WEIGHT',
+  };
+
   currentInfoField: ConstraintFieldConfig | null = null;
 
   get isBulk(): boolean {
@@ -276,8 +290,18 @@ export class ConstraintFormComponent implements OnInit, OnDestroy {
               : null;
           break;
         case 'front-zone-rules':
-          // Toplu düzenlemede yok (mesafe zone kuralına bağlı, profil bazında ayarlanır).
-          if (!this.isBulk) v[field.key] = { ...this.frontRules };
+          if (!this.isBulk) {
+            v[field.key] = { ...this.frontRules };
+          } else {
+            // Toplu: sadece "açık/kapalı" seçilen kurallar gönderilir; backend mevcut
+            // değerlerle birleştirir (dokunulmayan kural ezilmez).
+            const changed: Record<string, boolean> = {};
+            for (const k of this.frontRuleKeys) {
+              const t = this.frontRulesBulk[k];
+              if (t !== 'keep') changed[k] = t === 'on';
+            }
+            v[field.key] = Object.keys(changed).length ? changed : null;
+          }
           break;
       }
     }

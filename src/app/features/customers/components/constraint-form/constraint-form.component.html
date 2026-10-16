@@ -289,7 +289,33 @@
 
       <!-- Ön bölge kuralları (zone_weight_limits mesafesini kullanır) -->
       @case ('front-zone-rules') {
-      @if (!isBulk) {
+      @if (isBulk) {
+      <!-- Toplu: her kural üç durumlu (değişiklik yok / açık / kapalı) -->
+      <div class="cf-card cf-full">
+        <div class="cf-card-header">
+          <span class="cf-label">
+            <mat-icon>{{ field.icon }}</mat-icon>
+            <span>{{ field.label | translate }}</span>
+          </span>
+          <ng-container *ngTemplateOutlet="infoBtn; context: { $implicit: field }"></ng-container>
+        </div>
+        @if (field.hint) {
+        <p class="cf-hint">{{ field.hint | translate }}</p>
+        }
+        <div class="cf-row">
+          @for (rk of frontRuleKeys; track rk) {
+          <mat-form-field appearance="outline" subscriptSizing="dynamic">
+            <mat-label>{{ frontRuleLabels[rk] | translate }}</mat-label>
+            <mat-select [(ngModel)]="frontRulesBulk[rk]" [ngModelOptions]="{ standalone: true }">
+              <mat-option value="keep">{{ 'CONSTRAINT.BULK.TOGGLE_KEEP' | translate }}</mat-option>
+              <mat-option value="on">{{ 'CONSTRAINT.BULK.TOGGLE_ON' | translate }}</mat-option>
+              <mat-option value="off">{{ 'CONSTRAINT.BULK.TOGGLE_OFF' | translate }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+          }
+        </div>
+      </div>
+      } @else {
       <div class="cf-card cf-full">
         <div class="cf-card-header">
           <span class="cf-label">
