@@ -11,7 +11,7 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { MatDialogRef } from '@angular/material/dialog';
+import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { Store } from '@ngrx/store';
@@ -22,6 +22,7 @@ import { ChatMessage, ConversationSummary } from '@features/interfaces/messaging
 import { MessagingService } from '@features/services/messaging.service';
 import { ToastService } from '@app/core/services/toast.service';
 import { MessagingActions } from '@app/store';
+import { ImagePreviewDialogComponent } from './image-preview-dialog.component';
 
 /**
  * Mesajlar paneli: solda konuşmalar (Destek + şirketteki kişiler), sağda yazışma.
@@ -82,9 +83,7 @@ import { MessagingActions } from '@app/store';
             }
             <div class="md__bubble">
               @if (m.image_url) {
-              <a [href]="m.image_url" target="_blank" rel="noopener">
-                <img class="md__img" [src]="m.image_url" alt="" loading="lazy" />
-              </a>
+              <img class="md__img" [src]="m.image_url" alt="" loading="lazy" (click)="previewImage(m.image_url)" />
               }
               @if (m.body) { <span>{{ m.body }}</span> }
             </div>
@@ -150,7 +149,7 @@ import { MessagingActions } from '@app/store';
     .md__tag { font-size: 11px; color: #2563eb; margin-bottom: 2px; }
     .md__composer { display: flex; gap: 8px; padding: 10px 12px; border-top: 1px solid #e5e7eb; align-items: flex-end; }
     .md__composer textarea { flex: 1; resize: none; padding: 8px 10px; border: 1px solid #d1d5db; border-radius: 6px; font: inherit; }
-    .md__img { display: block; max-width: 100%; max-height: 240px; border-radius: 8px; margin-bottom: 4px; }
+    .md__img { cursor: zoom-in; display: block; max-width: 100%; max-height: 240px; border-radius: 8px; margin-bottom: 4px; }
     .md__preview { display: flex; align-items: center; gap: 8px; padding: 6px 12px 0; }
     .md__preview img { max-height: 64px; border-radius: 6px; border: 1px solid #e5e7eb; }
     .md__empty { color: #9ca3af; text-align: center; padding: 16px; font-size: 13px; }
@@ -166,6 +165,7 @@ export class MessagesDialogComponent implements OnInit, OnDestroy {
   private readonly svc = inject(MessagingService);
   private readonly store = inject(Store);
   private readonly dialogRef = inject(MatDialogRef<MessagesDialogComponent>);
+  private readonly dialog = inject(MatDialog);
   private readonly toast = inject(ToastService);
   private readonly translate = inject(TranslateService);
 
@@ -211,6 +211,16 @@ export class MessagesDialogComponent implements OnInit, OnDestroy {
 
   close(): void {
     this.dialogRef.close();
+  }
+
+  previewImage(url: string): void {
+    this.dialog.open(ImagePreviewDialogComponent, {
+      data: { url },
+      panelClass: 'image-preview-panel',
+      maxWidth: '96vw',
+      maxHeight: '94vh',
+      autoFocus: false,
+    });
   }
 
   private loadConversations(): void {
