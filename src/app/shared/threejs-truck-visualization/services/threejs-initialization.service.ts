@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import * as THREE from 'three';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import { ThreeJSModelCacheService } from './threejs-model-cache.service';
+import { QualityProfile, getQualityProfile } from './threejs-quality';
 
 export interface ThreeJSConfig {
   containerElement: HTMLElement;
@@ -28,11 +29,12 @@ export class ThreeJSInitializationService {
   private modelCacheService = inject(ThreeJSModelCacheService);
 
   async initialize(config: ThreeJSConfig): Promise<ThreeJSComponents> {
+    const quality  = getQualityProfile();
     const scene    = this.createScene();
-    const camera   = this.createCamera(config.containerElement, config.truckDimensions);
-    const renderer = this.createRenderer(config.containerElement, config);
+    const camera   = this.createCamera(config.containerElement, config.truckDimensions, quality);
+    const renderer = this.createRenderer(config.containerElement, config, quality);
 
-    this.setupLighting(scene, renderer);
+    this.setupLighting(scene, renderer, config.enableShadows !== false && quality.shadows);
 
     const truckGroup    = new THREE.Group();
     const packagesGroup = new THREE.Group();
@@ -85,12 +87,13 @@ export class ThreeJSInitializationService {
 
   private createCamera(
     container: HTMLElement,
-    truckDimensions: [number, number, number]
+    truckDimensions: [number, number, number],
+    quality: QualityProfile
   ): THREE.PerspectiveCamera {
     const width  = container.clientWidth  || 800;
     const height = container.clientHeight || 600;
 
-    const camera  = new THREE.PerspectiveCamera(75, width / height, 0.1, 100000);
+    const camera  = new THREE.PerspectiveCamera(75, width / height, quality.cameraNear, 100000);
     const maxDim  = Math.max(...truckDimensions);
     const dist    = maxDim * 1.5;
     const cx      = truckDimensions[0] / 2;
@@ -109,26 +112,32 @@ export class ThreeJSInitializationService {
   // ② toneMapping + exposure  → renklerin daha canlı görünmesi
   // ---------------------------------------------------------------------------
 
-  private createRenderer(container: HTMLElement, config: ThreeJSConfig): THREE.WebGLRenderer {
+  private createRenderer(
+    container: HTMLElement,
+    config: ThreeJSConfig,
+    quality: QualityProfile
+  ): THREE.WebGLRenderer {
     const width  = container.clientWidth  || 800;
     const height = container.clientHeight || 600;
 
     const renderer = new THREE.WebGLRenderer({
-      antialias:             true,
+      antialias:             quality.antialias,
       alpha:                 true,
       powerPreference:       'high-performance',
-      logarithmicDepthBuffer: true   // ← Z-fighting fix
+      logarithmicDepthBuffer: quality.logarithmicDepthBuffer   // ← Z-fighting fix (düşük modda kapalı, near büyütüldü)
     });
 
     renderer.setSize(width, height);   // false → CSS'e dokunma
-    renderer.setPixelRatio(Math.min(config.pixelRatio ?? window.devicePixelRatio, 2));
+    renderer.setPixelRatio(
+      Math.min(config.pixelRatio ?? window.devicePixelRatio, quality.maxPixelRatio)
+    );
 
     // Tone mapping — renkleri gerçekçi kılar
     renderer.toneMapping         = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.2;
     renderer.outputColorSpace    = THREE.SRGBColorSpace;
 
-    if (config.enableShadows !== false) {
+    if (config.enableShadows !== false && quality.shadows) {
       renderer.shadowMap.enabled = true;
       renderer.shadowMap.type    = THREE.PCFSoftShadowMap;
     }
@@ -145,14 +154,14 @@ export class ThreeJSInitializationService {
   // RoomEnvironment tek satır — MeshStandardMaterial ile birleşince dramatik fark
   // ---------------------------------------------------------------------------
 
-  private setupLighting(scene: THREE.Scene, renderer: THREE.WebGLRenderer): void {
+  private setupLighting(scene: THREE.Scene, renderer: THREE.WebGLRenderer, shadows = true): void {
     // 1. Ambient — düşük tut, aksi halde gölgeler yok olur
     scene.add(new THREE.AmbientLight(0xffffff, 0.3));
 
     // 2. Ana güneş ışığı
     const sun = new THREE.DirectionalLight(0xffffff, 1.8);
     sun.position.set(5000, 8000, 3000);
-    sun.castShadow               = true;
+    sun.castShadow               = shadows;
     sun.shadow.mapSize.width     = 2048;
     sun.shadow.mapSize.height    = 2048;
     sun.shadow.camera.near       = 1;

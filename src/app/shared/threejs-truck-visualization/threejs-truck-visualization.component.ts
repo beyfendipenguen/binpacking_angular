@@ -29,6 +29,7 @@ import { StepperUiActions } from '@app/store/stepper/actions/stepper-ui.actions'
 import { StepperPackageActions } from '@app/store/stepper/actions/stepper-package.actions';
 import { ThreeJSRenderManagerService } from './services/threejs-render-manager.service';
 import { ThreeJSComponents, ThreeJSInitializationService } from './services/threejs-initialization.service';
+import { getQualityProfile } from './services/threejs-quality';
 import { PackagesStateService } from './services/packages-state.service';
 import { PackageData, PackagePosition, PackageSnapshot } from '@app/features/interfaces/order-result.interface';
 import { toObservable } from '@angular/core/rxjs-interop';
@@ -84,6 +85,20 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
   // kullanıcının seçimi korunur.
   private readonly SHOW_ALL_LABELS_STORAGE_KEY = 'tjs-show-all-package-labels';
   showAllPackageLabels = this.loadShowAllPackageLabelsPreference();
+
+  /** Cihaz gücüne göre otomatik kalite profili (bkz. services/threejs-quality.ts). */
+  private readonly quality = getQualityProfile();
+
+  /**
+   * Palet geometrileri (boyuta göre) ve palet materyalleri TÜM paketler arasında
+   * paylaşılır: eskiden her paket ~19 ayrı Mesh + 19 BoxGeometry üretiyordu.
+   * Paylaşılan kaynaklar `userData.shared = true` ile işaretlenir ve
+   * disposeObjectTree tarafından atlanır; bileşen yok edilirken topluca serbest bırakılır.
+   */
+  private palletGeometryCache = new Map<string, {
+    light: THREE.BufferGeometry; dark: THREE.BufferGeometry; height: number;
+  }>();
+  private sharedPalletMaterials: { light: THREE.Material; dark: THREE.Material } | null = null;
   showWeightDisplay: boolean = true;
   weightCalculationDepth: number = 3000;
   private resizeObserver?: ResizeObserver;
@@ -442,12 +457,16 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
   private disposeObjectTree(root: THREE.Object3D): void {
     root.traverse((obj) => {
       const mesh = obj as THREE.Mesh;
-      mesh.geometry?.dispose();
+      // Paylaşılan (palet) kaynaklar başka paketlerce de kullanılıyor — atla.
+      if (!mesh.geometry?.userData?.['shared']) {
+        mesh.geometry?.dispose();
+      }
 
       const material = (obj as THREE.Mesh).material as THREE.Material | THREE.Material[] | undefined;
       if (material) {
         const materials = Array.isArray(material) ? material : [material];
         materials.forEach((mat) => {
+          if (mat.userData?.['shared']) return;
           const map = (mat as THREE.MeshBasicMaterial).map;
           map?.dispose();
           mat.dispose();
@@ -465,6 +484,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
       this.packagesGroup.remove(pkg.mesh);
       this.disposeObjectTree(pkg.mesh);
       pkg.mesh = undefined;
+      pkg.detailLabelMeshes = undefined;
       // forcePlaceBorder mesh'in bir ÇOCUĞUYDU (bkz. addForcePlaceBorder) —
       // yukarıdaki disposeObjectTree zaten onu da kapsadı, referansı
       // temizlemek yeterli.
@@ -1245,12 +1265,20 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
 
     // Geometry'yi palet kadar yukarı kaydır (mesh position değişmez)
 
-    const material = new THREE.MeshStandardMaterial({
-      color: packageData.color,
-      roughness: 0.65,
-      metalness: 0.01,
-      wireframe: this.wireframeMode
-    });
+    // Düşük kalite modunda ucuz (Lambert) materyal: ortam haritası/PBR hesabı yok.
+    // Seçim/hover vurgusu sadece `emissive` kullanıyor — iki materyalde de var.
+    // (Materyal paket başına ayrı: emissive paket bazında değişiyor, paylaşılamaz.)
+    const material: THREE.MeshStandardMaterial = this.quality.cheapMaterials
+      ? (new THREE.MeshLambertMaterial({
+          color: packageData.color,
+          wireframe: this.wireframeMode
+        }) as unknown as THREE.MeshStandardMaterial)
+      : new THREE.MeshStandardMaterial({
+          color: packageData.color,
+          roughness: 0.65,
+          metalness: 0.01,
+          wireframe: this.wireframeMode
+        });
 
     const mesh = new THREE.Mesh(geometry, material);
 
@@ -1260,8 +1288,8 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
       pos.y + packageData.width / 2
     );
 
-    mesh.castShadow = true;
-    mesh.receiveShadow = true;
+    mesh.castShadow = this.quality.shadows;
+    mesh.receiveShadow = this.quality.shadows;
     mesh.userData = { packageData };
 
     const edges = new THREE.EdgesGeometry(geometry);
@@ -1292,13 +1320,57 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     // kapatabildiği için sadece üste eklemek yetmiyordu — yanlar her zaman
     // (komşu paket tam bitişik olmadığı sürece) görünür kalıyor. Sadece
     // mouse üzerine gelince görünür (bkz. updateHoverEffects()).
-    const detailLabels = this.createPackageDetailLabels(packageData, visualHeight);
-    if (detailLabels.length > 0) {
-      detailLabels.forEach(l => mesh.add(l));
-      packageData.detailLabelMeshes = detailLabels;
+    //
+    // PERFORMANS: Her paket için 5 adet büyük canvas texture (üst + 4 yan) RAM'i
+    // en çok tüketen kalemdi. Artık etiketler TEMBEL üretilir: sadece "her zaman
+    // göster" açıksa şimdi, değilse paket ilk kez hover edildiğinde
+    // (bkz. ensureDetailLabels / updateHoverEffects).
+    packageData.detailLabelMeshes = undefined;
+    if (this.showAllPackageLabels) {
+      this.ensureDetailLabels(packageData, mesh, visualHeight);
     }
 
     return mesh;
+  }
+
+  /** Palet yüksekliği — createPalletMesh ile AYNI formül (etiket/boyut hesapları için). */
+  private getPalletHeight(pkgLength: number, pkgWidth: number): number {
+    const boardThick = Math.max(18, pkgWidth * 0.018);
+    const blockH = Math.max(70, pkgLength * 0.045);
+    return boardThick * 2 + blockH;
+  }
+
+  /**
+   * Ürün detay etiketlerini (üst + 4 yan yüz) gerektiğinde üretip pakete ekler.
+   * Zaten üretilmişse bir şey yapmaz. Etiket verisi yoksa boş kalır.
+   */
+  private ensureDetailLabels(
+    packageData: PackageData,
+    meshArg?: THREE.Mesh,
+    visualHeightArg?: number
+  ): void {
+    if (packageData.detailLabelMeshes) return;
+    const mesh = meshArg ?? packageData.mesh;
+    if (!mesh) return;
+
+    const visualHeight = visualHeightArg
+      ?? (packageData.height - this.getPalletHeight(packageData.length, packageData.width));
+    const labels = this.createPackageDetailLabels(packageData, visualHeight);
+    if (labels.length === 0) return;
+
+    labels.forEach(l => mesh.add(l));
+    packageData.detailLabelMeshes = labels;
+  }
+
+  /** Düşük kalite modunda görünmeyen etiketlerin texture'larını serbest bırakır (RAM). */
+  private releaseDetailLabels(packageData: PackageData): void {
+    const labels = packageData.detailLabelMeshes;
+    if (!labels) return;
+    labels.forEach(l => {
+      l.parent?.remove(l);
+      this.disposeObjectTree(l);
+    });
+    packageData.detailLabelMeshes = undefined;
   }
 
   /**
@@ -1382,7 +1454,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
   ): THREE.Mesh | null {
     // Canvas çözünürlüğü — gerçek yüzey oranını korur, en büyük kenar 1024'ü
     // geçmesin (performans).
-    const maxRes = 1024;
+    const maxRes = this.quality.detailLabelMaxRes;
     const aspect = faceW / faceH;
     const canvasWidth = aspect >= 1 ? maxRes : Math.round(maxRes * aspect);
     const canvasHeight = aspect >= 1 ? Math.round(maxRes / aspect) : maxRes;
@@ -1417,7 +1489,14 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
 
     const texture = new THREE.CanvasTexture(canvas);
     texture.needsUpdate = true;
-    texture.anisotropy = 4;
+    if (this.quality.richTextures) {
+      texture.anisotropy = 4;
+    } else {
+      // Mipmap üretimi GPU belleğini ~%33 artırır; düşük modda kapalı.
+      texture.generateMipmaps = false;
+      texture.minFilter = THREE.LinearFilter;
+      texture.anisotropy = 1;
+    }
 
     const material = new THREE.MeshBasicMaterial({
       map: texture,
@@ -1604,7 +1683,13 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
 
     const texture = new THREE.CanvasTexture(canvas);
     texture.needsUpdate = true;
-    texture.anisotropy = 4;
+    if (this.quality.richTextures) {
+      texture.anisotropy = 4;
+    } else {
+      texture.generateMipmaps = false;
+      texture.minFilter = THREE.LinearFilter;
+      texture.anisotropy = 1;
+    }
 
     const material = new THREE.SpriteMaterial({
       map: texture,
@@ -1636,8 +1721,50 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
   // =============================================================================
 
   private createPalletMesh(pkgLength: number, pkgWidth: number): { group: THREE.Group, palletHeight: number } {
-    const group = new THREE.Group();
+    // PERFORMANS: Palet geometrisi sadece (uzunluk × en)'e bağlı. Eskiden her paket
+    // ~19 ayrı Mesh + 19 BoxGeometry + 2 materyal üretiyordu. Şimdi boyuta göre
+    // TEK sefer, açık/koyu tahta olarak 2 birleşik geometriye indirilip paketler
+    // arasında paylaşılıyor (paket başına 2 draw call, geometri/materyal kopyası yok).
+    const key = `${Math.round(pkgLength)}x${Math.round(pkgWidth)}`;
+    let entry = this.palletGeometryCache.get(key);
+    if (!entry) {
+      entry = this.buildPalletGeometries(pkgLength, pkgWidth);
+      this.palletGeometryCache.set(key, entry);
+    }
 
+    if (!this.sharedPalletMaterials) {
+      const make = (color: number, roughness: number): THREE.Material => {
+        const m = this.quality.cheapMaterials
+          ? new THREE.MeshLambertMaterial({ color })
+          : new THREE.MeshStandardMaterial({ color, roughness, metalness: 0.0 });
+        m.userData['shared'] = true;
+        return m;
+      };
+      this.sharedPalletMaterials = {
+        light: make(0xC4A265, 0.92),
+        dark: make(0xA07840, 0.95),
+      };
+    }
+
+    const group = new THREE.Group();
+    const shadows = this.quality.shadows;
+    const light = new THREE.Mesh(entry.light, this.sharedPalletMaterials.light);
+    const dark = new THREE.Mesh(entry.dark, this.sharedPalletMaterials.dark);
+    [light, dark].forEach(m => {
+      m.castShadow = shadows;
+      m.receiveShadow = shadows;
+      group.add(m);
+    });
+
+    // Palet grubunun origin'i palet tabanı (y=0) → üst yüzeyi y=PALLET_H
+    return { group, palletHeight: entry.height };
+  }
+
+  /** Verilen boyuta göre açık/koyu tahta birleşik palet geometrilerini üretir. */
+  private buildPalletGeometries(
+    pkgLength: number,
+    pkgWidth: number
+  ): { light: THREE.BufferGeometry; dark: THREE.BufferGeometry; height: number } {
     // --- Boyutlar ---
     const BOARD_THICK = Math.max(18, pkgWidth * 0.018); // üst/alt tahta kalınlığı
     const BLOCK_H = Math.max(70, pkgLength * 0.045); // blok yüksekliği
@@ -1646,27 +1773,9 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     const BOARD_COUNT = 7;
     const BLOCK_W = Math.min(pkgLength * 0.10, 120); // blok eni
 
-    // --- Malzemeler ---
-    // İki ton ahşap rengi — alternating board rengi gerçekçilik katar
-    const matLight = new THREE.MeshStandardMaterial({
-      color: 0xC4A265, roughness: 0.92, metalness: 0.0
-    });
-    const matDark = new THREE.MeshStandardMaterial({
-      color: 0xA07840, roughness: 0.95, metalness: 0.0
-    });
-
-    // --- Yardımcı: mesh oluştur ve sahneye ekle ---
-    const addBoard = (
-      w: number, h: number, d: number,
-      x: number, y: number, z: number,
-      mat: THREE.MeshStandardMaterial
-    ) => {
-      const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
-      mesh.position.set(x, y, z);
-      mesh.castShadow = true;
-      mesh.receiveShadow = true;
-      group.add(mesh);
-    };
+    type Box = { w: number; h: number; d: number; x: number; y: number; z: number };
+    const light: Box[] = [];
+    const dark: Box[] = [];
 
     // ── 1. ÜST TAHTALAR ─────────────────────────────────────────────────────
     // 7 tahta, Z ekseninde eşit aralıklı, length boyunca uzanıyor
@@ -1676,11 +1785,10 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
 
     for (let i = 0; i < BOARD_COUNT; i++) {
       const zPos = boardDepth / 2 + i * (boardDepth + BOARD_GAP);
-      addBoard(
-        pkgLength, BOARD_THICK, boardDepth,
-        pkgLength / 2, topY, zPos,
-        i % 2 === 0 ? matLight : matDark
-      );
+      (i % 2 === 0 ? light : dark).push({
+        w: pkgLength, h: BOARD_THICK, d: boardDepth,
+        x: pkgLength / 2, y: topY, z: zPos,
+      });
     }
 
     // ── 2. ORTA DESTEK BLOKLARI ──────────────────────────────────────────────
@@ -1691,11 +1799,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
 
     for (const bx of blockXPositions) {
       for (const bz of blockZPositions) {
-        addBoard(
-          BLOCK_W, BLOCK_H, BLOCK_W,
-          bx, blockY, bz,
-          matDark
-        );
+        dark.push({ w: BLOCK_W, h: BLOCK_H, d: BLOCK_W, x: bx, y: blockY, z: bz });
       }
     }
 
@@ -1705,18 +1809,61 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     const runnerY = BOARD_THICK / 2;
 
     for (const rz of blockZPositions) {
-      addBoard(
-        pkgLength, BOARD_THICK, runnerW,
-        pkgLength / 2, runnerY, rz,
-        matLight
-      );
+      light.push({ w: pkgLength, h: BOARD_THICK, d: runnerW, x: pkgLength / 2, y: runnerY, z: rz });
     }
 
-    // Palet grubunun origin'i palet tabanı (y=0) → üst yüzeyi y=PALLET_H
-    // createPackageMesh'te palet.position.y = -packageData.height/2 yapıldığında
-    // palet üstü paketin tabanına tam yaslanır
+    const lightGeo = this.mergeBoxes(light);
+    const darkGeo = this.mergeBoxes(dark);
+    lightGeo.userData['shared'] = true;
+    darkGeo.userData['shared'] = true;
+    return { light: lightGeo, dark: darkGeo, height: PALLET_H };
+  }
 
-    return { group, palletHeight: PALLET_H };
+  /** Kutu listesini tek bir BufferGeometry'de birleştirir (üç.js sürümünden bağımsız). */
+  private mergeBoxes(
+    boxes: Array<{ w: number; h: number; d: number; x: number; y: number; z: number }>
+  ): THREE.BufferGeometry {
+    const positions: number[] = [];
+    const normals: number[] = [];
+    const uvs: number[] = [];
+    const indices: number[] = [];
+    let offset = 0;
+
+    for (const b of boxes) {
+      const g = new THREE.BoxGeometry(b.w, b.h, b.d);
+      g.translate(b.x, b.y, b.z);
+      const p = g.getAttribute('position');
+      const n = g.getAttribute('normal');
+      const t = g.getAttribute('uv');
+      const ix = g.getIndex()!;
+      for (let i = 0; i < p.count; i++) {
+        positions.push(p.getX(i), p.getY(i), p.getZ(i));
+        normals.push(n.getX(i), n.getY(i), n.getZ(i));
+        uvs.push(t.getX(i), t.getY(i));
+      }
+      for (let i = 0; i < ix.count; i++) indices.push(ix.getX(i) + offset);
+      offset += p.count;
+      g.dispose();
+    }
+
+    const merged = new THREE.BufferGeometry();
+    merged.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+    merged.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
+    merged.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+    merged.setIndex(indices);
+    return merged;
+  }
+
+  /** Paylaşılan palet geometri/materyallerini serbest bırakır (bileşen yok edilirken). */
+  private disposeSharedPalletResources(): void {
+    this.palletGeometryCache.forEach(e => {
+      e.light.dispose();
+      e.dark.dispose();
+    });
+    this.palletGeometryCache.clear();
+    this.sharedPalletMaterials?.light.dispose();
+    this.sharedPalletMaterials?.dark.dispose();
+    this.sharedPalletMaterials = null;
   }
 
   // ========================================
@@ -3148,6 +3295,25 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     }
   }
 
+  /**
+   * Bir paketin detay etiketlerini göster/gizle. Gösterilecekse (henüz
+   * üretilmediyse) tembel üretir. Düşük kalite modunda gizlenen etiketlerin
+   * texture'ları serbest bırakılır (tekrar hover'da yeniden çizilir).
+   */
+  private syncDetailLabels(pkg: PackageData, show: boolean): void {
+    if (!pkg.mesh) return;
+    if (show) {
+      this.ensureDetailLabels(pkg);
+      pkg.detailLabelMeshes?.forEach(label => (label.visible = true));
+    } else if (pkg.detailLabelMeshes) {
+      if (this.quality.level === 'low') {
+        this.releaseDetailLabels(pkg);
+      } else {
+        pkg.detailLabelMeshes.forEach(label => (label.visible = false));
+      }
+    }
+  }
+
   private updateHoverEffectsThrottled(): void {
     if (this.hoverThrottleTimeout) return;
     this.hoverThrottleTimeout = setTimeout(() => {
@@ -3181,9 +3347,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
       // Ürün detay etiketleri (üst + 4 yan yüzey) — toggle açıksa (bkz.
       // toggleAllPackageLabels()) her paket için her zaman görünür, kapalıysa
       // sadece üzerine gelinen pakette görünür.
-      pkg.detailLabelMeshes?.forEach(
-        label => (label.visible = this.showAllPackageLabels || pkg === hoveredPackage)
-      );
+      this.syncDetailLabels(pkg, this.showAllPackageLabels || pkg === hoveredPackage);
     });
 
     // Plate (bekleme alanı) paketleri için de aynı hover/etiket mantığı.
@@ -3197,9 +3361,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
         }
         pkg.mesh.scale.setScalar(1.0);
       }
-      pkg.detailLabelMeshes?.forEach(
-        label => (label.visible = this.showAllPackageLabels || pkg === hoveredPackage)
-      );
+      this.syncDetailLabels(pkg, this.showAllPackageLabels || pkg === hoveredPackage);
     });
 
     this.renderManager.requestRender();
@@ -3215,11 +3377,11 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
   toggleAllPackageLabels(): void {
     this.showAllPackageLabels = !this.showAllPackageLabels;
     this.processedPackagesSignal().forEach(pkg => {
-      pkg.detailLabelMeshes?.forEach(label => (label.visible = this.showAllPackageLabels));
+      this.syncDetailLabels(pkg, this.showAllPackageLabels);
     });
     // Plate (bekleme alanı) paketleri de toggle'a dahil olmalı.
     this.packagesStateService.deletedPackages().forEach(pkg => {
-      pkg.detailLabelMeshes?.forEach(label => (label.visible = this.showAllPackageLabels));
+      this.syncDetailLabels(pkg, this.showAllPackageLabels);
     });
     this.renderManager.requestRender();
     this.saveShowAllPackageLabelsPreference(this.showAllPackageLabels);
@@ -3520,9 +3682,11 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
       }
 
       this.packagesGroup.remove(packageData.mesh);
-      packageData.mesh.geometry.dispose();
-      material.dispose();
+      // Alt hiyerarşi (kenar çizgileri, palet, etiketler) dahil — paylaşılan
+      // palet kaynakları disposeObjectTree tarafından atlanır.
+      this.disposeObjectTree(packageData.mesh);
       packageData.mesh = undefined;
+      packageData.detailLabelMeshes = undefined;
     }
 
     this.createPackageMesh(packageData);
@@ -4283,6 +4447,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
         this.disposeObjectTree(pkg.mesh);
       }
     });
+    this.disposeSharedPalletResources();
 
     // Plate (bekleme alanı) mesh'leri — zemin + paket mesh'leri, hepsi
     // plateGroup'un altında olduğu için tek seferde dispose edilebiliyor.
