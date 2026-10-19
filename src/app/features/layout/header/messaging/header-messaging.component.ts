@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Signal, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { MatMenuModule } from '@angular/material/menu';
@@ -10,6 +10,7 @@ import { Store } from '@ngrx/store';
 import { TranslateModule } from '@ngx-translate/core';
 
 import {
+  AppState,
   MessagingActions,
   selectNotifications,
   selectUnreadMessages,
@@ -26,15 +27,17 @@ import { MessagesDialogComponent } from './messages-dialog.component';
   imports: [CommonModule, MatMenuModule, MatIconModule, MatButtonModule, MatBadgeModule, TranslateModule],
   template: `
     <button mat-icon-button class="hm__btn" [matMenuTriggerFor]="notifMenu" (menuOpened)="onMenuOpened()"
-      [attr.aria-label]="'MESSAGING.NOTIFICATIONS' | translate">
-      <mat-icon [matBadge]="unreadNotifications() || null" matBadgeColor="warn" matBadgeSize="small"
-        [matBadgeHidden]="!unreadNotifications()">notifications</mat-icon>
+      [attr.aria-label]="'MESSAGING.NOTIFICATIONS' | translate"
+      [matBadge]="notifBadge()" matBadgeColor="warn" matBadgeSize="small"
+      [matBadgeHidden]="!unreadNotifications()">
+      <mat-icon>notifications</mat-icon>
     </button>
 
     <button mat-icon-button class="hm__btn" (click)="openMessages()"
-      [attr.aria-label]="'MESSAGING.MESSAGES' | translate">
-      <mat-icon [matBadge]="unreadMessages() || null" matBadgeColor="warn" matBadgeSize="small"
-        [matBadgeHidden]="!unreadMessages()">chat</mat-icon>
+      [attr.aria-label]="'MESSAGING.MESSAGES' | translate"
+      [matBadge]="messageBadge()" matBadgeColor="warn" matBadgeSize="small"
+      [matBadgeHidden]="!unreadMessages()">
+      <mat-icon>chat</mat-icon>
     </button>
 
     <mat-menu #notifMenu="matMenu" class="hm-menu" xPosition="before">
@@ -76,13 +79,17 @@ import { MessagesDialogComponent } from './messages-dialog.component';
   `],
 })
 export class HeaderMessagingComponent {
-  private readonly store = inject(Store);
+  private readonly store = inject(Store<AppState>);
   private readonly dialog = inject(MatDialog);
   private readonly router = inject(Router);
 
-  readonly unreadNotifications = this.store.selectSignal(selectUnreadNotifications);
-  readonly unreadMessages = this.store.selectSignal(selectUnreadMessages);
-  readonly notifications = this.store.selectSignal(selectNotifications);
+  readonly unreadNotifications: Signal<number> = this.store.selectSignal(selectUnreadNotifications);
+  readonly unreadMessages: Signal<number> = this.store.selectSignal(selectUnreadMessages);
+  readonly notifications: Signal<AppNotification[]> = this.store.selectSignal(selectNotifications);
+
+  // matBadge string | number | null bekler; store sinyalleri geniş tipli döndüğü için sayıya çevir.
+  readonly notifBadge = computed<number | null>(() => Number(this.unreadNotifications()) || null);
+  readonly messageBadge = computed<number | null>(() => Number(this.unreadMessages()) || null);
 
   onMenuOpened(): void {
     this.store.dispatch(MessagingActions.loadNotifications());
