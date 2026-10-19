@@ -24,7 +24,7 @@ import { FormsModule } from '@angular/forms';
 import * as THREE from 'three';
 import { Store } from '@ngrx/store';
 import { Actions, ofType } from '@ngrx/effects';
-import { AppState, selectActiveShipmentIndex, selectDeletedPackages, selectFirstZoneDepthMm, selectIsMultiShipment, selectOrderResult, selectPackages, selectRearClearance, selectShipments, selectStep3IsDirty, selectTruck, selectUserPermissions, selectZoneWeightLimits, StepperResultActions } from '../../store';
+import { AppState, PackageGroupsActions, selectMultiSelectedIds, selectPackageGroups, selectActiveShipmentIndex, selectDeletedPackages, selectFirstZoneDepthMm, selectIsMultiShipment, selectOrderResult, selectPackages, selectRearClearance, selectShipments, selectStep3IsDirty, selectTruck, selectUserPermissions, selectZoneWeightLimits, StepperResultActions } from '../../store';
 import { StepperUiActions } from '@app/store/stepper/actions/stepper-ui.actions';
 import { StepperPackageActions } from '@app/store/stepper/actions/stepper-package.actions';
 import { ThreeJSRenderManagerService } from './services/threejs-render-manager.service';
@@ -42,6 +42,22 @@ import { MatDialog } from '@angular/material/dialog';
 import { ConfirmDialogComponent } from '../generic-table/confirm-dialog/confirm-dialog.component';
 
 
+
+/** Toplu (çoklu seçim / grup) sürükleme durumu. */
+interface GroupDragState {
+  members: PackageData[];
+  fromPlate: boolean;
+  /** Dünya (data) koordinatı (plate üyeleri için plate ofseti eklenmiş) + seviye z. */
+  start: Map<string, { x: number; y: number; lz: number }>;
+  startMesh: Map<string, THREE.Vector3>;
+  startPointer: THREE.Vector3;
+  bbox: { minX: number; maxX: number; minY: number; maxY: number };
+  moved: boolean;
+  dx: number;
+  dy: number;
+  overPlate: boolean;
+  valid: boolean;
+}
 
 @Component({
   selector: 'app-threejs-truck-visualization',
@@ -329,6 +345,76 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     });
   });
 
+  // ========================================
+  // ÇOKLU SEÇİM + NUMARALI GRUPLAR (NgRx: store/package-groups)
+  // ========================================
+  readonly multiSelectedSignal = this.store.selectSignal(selectMultiSelectedIds);
+  private readonly rawGroupsSignal = this.store.selectSignal(selectPackageGroups);
+  /**
+   * Gruplar sevkiyat bazında tutulur (store anahtarı `<sevkiyatIndex>:<no>`): her sevkiyatın
+   * kendi 1..9 numaraları vardır. Bu signal SADECE aktif sevkiyatın gruplarını (no → pkgId[]) verir.
+   */
+  readonly groupsSignal = computed(() => {
+    const prefix = `${this.activeShipmentIndexSignal()}:`;
+    const out: Record<string, string[]> = {};
+    for (const [key, ids] of Object.entries(this.rawGroupsSignal())) {
+      if (key.startsWith(prefix)) out[key.slice(prefix.length)] = ids;
+    }
+    return out;
+  });
+  private groupKey(no: string | number): string {
+    return `${this.activeShipmentIndexSignal()}:${no}`;
+  }
+  readonly multiCount = computed(() => this.multiSelectedSignal().length);
+  /** Paketlerin üstünde gösterilen grup numarası rozetleri. */
+  readonly groupBadges = computed(() => {
+    const out: { pkgId: string; no: string }[] = [];
+    for (const [no, ids] of Object.entries(this.groupsSignal())) {
+      ids.forEach(pkgId => out.push({ pkgId, no }));
+    }
+    return out;
+  });
+  /** Çoklu seçim paneli özeti: adet, toplam ağırlık, (tam bir grupsa) grup no. */
+  readonly multiInfo = computed(() => {
+    const ids = this.multiSelectedSignal();
+    if (ids.length < 2) return null;
+    const all = [...this.packagesStateService.processedPackages(), ...this.packagesStateService.deletedPackages()];
+    const byId = new Map(all.map(p => [p.pkgId, p]));
+    const weight = ids.reduce((s, id) => s + (byId.get(id)?.weight ?? 0), 0);
+    const set = new Set(ids);
+    let groupNo: string | null = null;
+    for (const [no, members] of Object.entries(this.groupsSignal())) {
+      if (members.length === set.size && members.every(m => set.has(m))) { groupNo = no; break; }
+    }
+    const anyGrouped = ids.some(id => Object.values(this.groupsSignal()).some(m => m.includes(id)));
+    const onTruck = ids.some(id => !!this.packagesStateService.getProcessedPackageById(id));
+    return { count: ids.length, weight, groupNo, anyGrouped, onTruck };
+  });
+  readonly groupNumbers = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+  /** Sol tık sürükleyerek kutu seçimi dikdörtgeni (konteyner-göreli px). */
+  readonly selectionBox = signal<{ left: number; top: number; width: number; height: number } | null>(null);
+  @ViewChild('groupBadgeLayer') groupBadgeLayerRef?: ElementRef<HTMLElement>;
+
+  // Yerel ayna (store'dan efektle senkron) — handler'larda senkron okuma için.
+  private multiSet = new Set<string>();
+  private isBoxSelecting = false;
+  private boxAdditive = false;
+  private boxMoved = false;
+  private boxOrigin = { x: 0, y: 0 };
+
+  private groupDrag: GroupDragState | null = null;
+
+  private multiSelectionSyncEffect = effect(() => {
+    const ids = this.multiSelectedSignal();
+    untracked(() => {
+      this.multiSet = new Set(ids);
+      if (this.isViewReady) {
+        this.reapplyMultiEmissive();
+        this.renderManager.requestRender();
+      }
+    });
+  });
+
   get totalWeightDisplay(): string {
     const total = this.processedPackagesSignal()
       .reduce((sum, pkg) => sum + (pkg.weight || 0), 0);
@@ -370,7 +456,10 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
           this.isLocalOperation = false;
           return;
         }
-        // Dışarıdan (step 2 sync) geldi → sahneyi yeniden kur, sonra gravity
+        // Dışarıdan (step 2 sync / yeniden hesaplama) geldi → konumlar değişti:
+        // gruplar ve çoklu seçim geçersiz.
+        this.clearAllGroups(true, true);
+        this.clearMultiSelection();
         this.safeProcessData().then(() => {
           this.applyGravityToAllPackages();
         });
@@ -525,6 +614,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
   }
 
   ngOnDestroy(): void {
+    this.store.dispatch(PackageGroupsActions.clearMultiSelection());
     document.removeEventListener('mouseup', this.onDocMouseUp);
     document.removeEventListener('touchstart', this.onDocTouchStart);
     document.removeEventListener('touchmove', this.onDocTouchMove);
@@ -834,6 +924,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
           this.updateActionRingPosition();
           this.updatePlateActionRingPosition();
           this.updateOverlapBadgePositions();
+          this.updateGroupBadgePositions();
         }
       );
 
@@ -1167,7 +1258,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
    * ayırt eder (bkz. getIntersectedAny).
    */
   private createPlatePackageMesh(packageData: PackageData, slot: { x: number; z: number }): void {
-    const mesh = this.buildPackageMeshObject(packageData, { x: slot.x, y: slot.z, z: 0 });
+    const mesh = this.buildPackageMeshObject(packageData, { x: slot.x, y: slot.z, z: packageData.plateZ ?? 0 });
     mesh.userData['isPlatePackage'] = true;
     packageData.mesh = mesh;
     this.plateGroup.add(mesh);
@@ -2077,8 +2168,32 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     if (event.button === 0) {
       // Left click - package drag (tır veya plate)
       const intersected = this.getIntersectedAny();
-      if (intersected && this.dragModeEnabled && this.hasChangePerm()) {
-        this.initiateDragging(intersected.pkg, intersected.isPlate);
+      const additive = event.ctrlKey || event.metaKey;
+
+      if (additive) {
+        // Ctrl+tık: seçime ekle/çıkar (handleMouseClick'te); boş alanda Ctrl+sürükle:
+        // mevcut seçime kutu seçimi ekler. Ctrl basılıyken paket sürüklenmez.
+        if (!intersected) this.startBoxSelection(event, true);
+        return;
+      }
+
+      if (!intersected) {
+        // Boş alanda sol tık + sürükle: kutu seçimi (kamera sadece sağ/orta tıkla döner/kayar)
+        this.startBoxSelection(event, false);
+        return;
+      }
+
+      if (this.dragModeEnabled && this.hasChangePerm()) {
+        const id = intersected.pkg.pkgId;
+        const multi = Array.from(this.multiSet);
+        const groupNo = this.groupOf(id);
+        if (multi.length > 1 && this.multiSet.has(id)) {
+          this.initiateGroupDragging(multi);
+        } else if (groupNo) {
+          this.initiateGroupDragging(this.groupsSignal()[groupNo]);
+        } else {
+          this.initiateDragging(intersected.pkg, intersected.isPlate);
+        }
       }
     } else if (event.button === 1) {
       // Middle click - pan
@@ -2098,7 +2213,12 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     this.mouseMoved = true;
     this.updateMouseCoordinates(event);
 
-    if (this.isDragging && this.draggedPackage) {
+    if (this.groupDrag) {
+      this.updateGroupDrag();
+      this.renderManager.requestRender();
+    } else if (this.isBoxSelecting) {
+      this.updateBoxSelection(event);
+    } else if (this.isDragging && this.draggedPackage) {
       this.updateDraggedPackageWithSnapping();
       this.renderManager.requestRender();
     } else if (this.isRotatingCamera) {
@@ -2116,6 +2236,14 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     event.preventDefault();
 
     const clickDuration = Date.now() - this.mouseDownTime;
+
+    if (this.groupDrag) {
+      this.completeGroupDrag();
+    }
+
+    if (this.isBoxSelecting) {
+      this.finishBoxSelection();
+    }
 
     if (this.isDragging) {
       this.completeDragging();
@@ -2135,12 +2263,33 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
   }
 
   private handleMouseClick(event: MouseEvent): void {
-    if (this.isDragging || this.isRotatingCamera || this.mouseMoved) return;
+    if (this.isDragging || this.groupDrag || this.isRotatingCamera || this.mouseMoved) return;
+
+    // 'click' olayı + mouseup'taki gecikmeli çağrı aynı tıklamayı iki kez getirir;
+    // Ctrl+tık gibi aç/kapa davranışı için tekilleştir.
+    const now = Date.now();
+    if (now - this.lastClickHandledAt < 80) return;
+    this.lastClickHandledAt = now;
 
     event.preventDefault();
     this.updateMouseCoordinates(event);
 
     const intersected = this.getIntersectedAny();
+
+    // Ctrl+tık: çoklu seçime ekle/çıkar (gruplu pakette grubun tamamı)
+    if (event.ctrlKey || event.metaKey) {
+      if (intersected) this.ctrlToggle(intersected.pkg.pkgId);
+      return;
+    }
+
+    if (intersected) {
+      const groupNo = this.groupOf(intersected.pkg.pkgId);
+      if (groupNo) {
+        // Gruplu pakete tıklamak grubun tamamını seçer (kilitli blok)
+        this.setMultiSelection(this.groupsSignal()[groupNo]);
+        return;
+      }
+    }
 
     if (intersected?.isPlate) {
       this.selectPlatePackage(intersected.pkg.pkgId);
@@ -2270,7 +2419,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
 
   private stopCameraRotation(): void {
     this.isRotatingCamera = false;
-    this.renderer.domElement.style.cursor = this.dragModeEnabled ? 'grab' : 'default';
+    this.renderer.domElement.style.cursor = 'default';
   }
 
   private startCameraPanning(event: MouseEvent): void {
@@ -2320,7 +2469,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
 
   private stopCameraPanning(): void {
     this.isPanningCamera = false;
-    this.renderer.domElement.style.cursor = this.dragModeEnabled ? 'grab' : 'default';
+    this.renderer.domElement.style.cursor = 'default';
   }
 
   private rotateViewAroundTarget(deltaX: number, deltaY: number): void {
@@ -2589,7 +2738,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     this.draggedPackage = null;
     this.dragStartPosition = null;
     this.draggedFromPlate = false;
-    this.renderer.domElement.style.cursor = this.dragModeEnabled ? 'grab' : 'default';
+    this.renderer.domElement.style.cursor = 'default';
     this.clearHighlights();
     this.skipStoreSync = false;
 
@@ -2761,7 +2910,665 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     this.isDragging = false;
     this.draggedPackage = null;
     this.draggedFromPlate = false;
-    this.renderer.domElement.style.cursor = this.dragModeEnabled ? 'grab' : 'default';
+    this.renderer.domElement.style.cursor = 'default';
+  }
+
+  // ========================================
+  // ÇOKLU SEÇİM / GRUPLAR / TOPLU TAŞIMA
+  // ========================================
+  //
+  // - Seçim: Ctrl+tık (ekle/çıkar), boş alanda sol tık sürükle (kutu seçimi).
+  //   Seçim NgRx store'da (store/package-groups) tutulur; `multiSet` yerel aynasıdır.
+  // - Gruplar (Shift+1..9): gruplu paketler kilitli bir blok gibi taşınır/silinir.
+  // - Toplu taşıma: göreli konumlar (x/y/z) korunur; bırakmada TÜM üyeler birlikte
+  //   doğrulanır — biri bile sığmıyorsa hepsi eski yerine döner.
+  // - Çoklu seçimde halka/döndürme yok; sadece taşıma ve "sil" (= plate'e al).
+
+  private lastClickHandledAt = 0;
+
+  private groupOf(pkgId: string): string | null {
+    for (const [no, ids] of Object.entries(this.groupsSignal())) {
+      if (ids.includes(pkgId)) return no;
+    }
+    return null;
+  }
+
+  private expandWithGroups(ids: string[]): string[] {
+    const groups = this.groupsSignal();
+    const out = new Set(ids);
+    for (const id of ids) {
+      const no = this.groupOf(id);
+      if (no) groups[no].forEach(m => out.add(m));
+    }
+    return Array.from(out);
+  }
+
+  private findAnyPackage(pkgId: string): { pkg: PackageData; isPlate: boolean } | null {
+    const onTruck = this.packagesStateService.getProcessedPackageById(pkgId);
+    if (onTruck) return { pkg: onTruck, isPlate: false };
+    const onPlate = this.packagesStateService.getDeletedPackageById(pkgId);
+    return onPlate ? { pkg: onPlate, isPlate: true } : null;
+  }
+
+  private currentSingleIds(): Set<string> {
+    const s = new Set<string>();
+    const a = this.selectedPackageSignal();
+    if (a) s.add(a.pkgId);
+    const b = this.selectedPlatePackageSignal();
+    if (b) s.add(b.pkgId);
+    return s;
+  }
+
+  private selectAny(pkgId: string): void {
+    const f = this.findAnyPackage(pkgId);
+    if (!f) return;
+    if (f.isPlate) this.selectPlatePackage(pkgId);
+    else this.selectPackage(pkgId);
+  }
+
+  private setMultiSelection(ids: string[]): void {
+    const unique = Array.from(new Set(ids)).filter(id => !!this.findAnyPackage(id));
+    if (unique.length < 2) {
+      this.clearMultiSelection();
+      if (unique.length === 1) this.selectAny(unique[0]);
+      else this.clearSelection();
+      return;
+    }
+    // Tekli seçimi temizle (halka da kapanır)
+    this.packagesStateService.clearSelection();
+    this.clearPlateSelection();
+    this.multiSet = new Set(unique);
+    this.store.dispatch(PackageGroupsActions.setMultiSelection({ ids: unique }));
+    this.clearHighlights();
+    this.renderManager.requestRender();
+    this.cdr.markForCheck();
+  }
+
+  private clearMultiSelection(): void {
+    if (this.multiSet.size === 0) return;
+    this.multiSet = new Set();
+    this.store.dispatch(PackageGroupsActions.clearMultiSelection());
+    this.clearHighlights();
+    this.renderManager.requestRender();
+  }
+
+  private ctrlToggle(pkgId: string): void {
+    const base = this.multiSet.size > 0 ? new Set(this.multiSet) : this.currentSingleIds();
+    const clicked = this.expandWithGroups([pkgId]);
+    const allIn = clicked.every(id => base.has(id));
+    clicked.forEach(id => (allIn ? base.delete(id) : base.add(id)));
+    this.setMultiSelection(Array.from(base));
+  }
+
+  /** Çoklu seçimdeki paketlerin vurgusunu (emissive) yeniden uygular. */
+  private reapplyMultiEmissive(): void {
+    this.multiSet.forEach(id => {
+      const f = this.findAnyPackage(id);
+      if (f?.pkg.mesh && !f.pkg.isBeingDragged) {
+        (f.pkg.mesh.material as THREE.MeshStandardMaterial).emissive.setHex(0x666666);
+      }
+    });
+  }
+
+  // ---------- Kutu seçimi ----------
+
+  private startBoxSelection(event: MouseEvent, additive: boolean): void {
+    const rect = (this.threeContainer.nativeElement as HTMLElement).getBoundingClientRect();
+    this.isBoxSelecting = true;
+    this.boxAdditive = additive;
+    this.boxMoved = false;
+    this.boxOrigin = { x: event.clientX - rect.left, y: event.clientY - rect.top };
+  }
+
+  private updateBoxSelection(event: MouseEvent): void {
+    const rect = (this.threeContainer.nativeElement as HTMLElement).getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+    const width = Math.abs(x - this.boxOrigin.x);
+    const height = Math.abs(y - this.boxOrigin.y);
+    if (width > 4 || height > 4) {
+      this.boxMoved = true;
+      this.selectionBox.set({
+        left: Math.min(x, this.boxOrigin.x),
+        top: Math.min(y, this.boxOrigin.y),
+        width,
+        height,
+      });
+    }
+  }
+
+  private finishBoxSelection(): void {
+    const box = this.selectionBox();
+    const additive = this.boxAdditive;
+    const moved = this.boxMoved;
+    this.isBoxSelecting = false;
+    this.boxMoved = false;
+    this.selectionBox.set(null);
+    if (!box || !moved || !this.camera) return;
+
+    const container = this.threeContainer.nativeElement as HTMLElement;
+    const width = container.clientWidth;
+    const height = container.clientHeight;
+    this.packagesGroup.updateMatrixWorld(true);
+    this.plateGroup?.updateMatrixWorld(true);
+
+    const hit: string[] = [];
+    const v = new THREE.Vector3();
+    const test = (pkg: PackageData) => {
+      if (!pkg.mesh) return;
+      pkg.mesh.getWorldPosition(v);
+      v.project(this.camera);
+      if (v.z > 1) return;
+      const sx = (v.x * 0.5 + 0.5) * width;
+      const sy = (-v.y * 0.5 + 0.5) * height;
+      if (sx >= box.left && sx <= box.left + box.width && sy >= box.top && sy <= box.top + box.height) {
+        hit.push(pkg.pkgId);
+      }
+    };
+    this.processedPackagesSignal().forEach(test);
+    this.packagesStateService.deletedPackages().forEach(test);
+
+    let ids = this.expandWithGroups(hit);
+    if (additive) {
+      const base = this.multiSet.size > 0 ? this.multiSet : this.currentSingleIds();
+      ids = Array.from(new Set([...base, ...ids]));
+    }
+    if (ids.length === 0) {
+      if (!additive) this.clearSelection();
+      return;
+    }
+    this.setMultiSelection(ids);
+  }
+
+  // ---------- Grup tanımlama ----------
+
+  /** Çoklu seçimi `no` numaralı gruba atar (Shift+rakam). */
+  assignGroup(no: number | string): void {
+    if (!this.hasChangePerm()) return;
+    const ids = Array.from(this.multiSet);
+    if (ids.length < 2) {
+      this.toastService.warning(this.translate.instant('TRUCK_VISUALIZATION.GROUP_NEED_SELECTION'));
+      return;
+    }
+    const locations = new Set(ids.map(id => !!this.packagesStateService.getDeletedPackageById(id)));
+    if (locations.size > 1) {
+      this.toastService.warning(this.translate.instant('TRUCK_VISUALIZATION.GROUP_MIXED_LOCATION'));
+      return;
+    }
+    const existing = this.groupsSignal()[String(no)];
+    if (existing) {
+      const selected = new Set(ids);
+      const same = existing.length === selected.size && existing.every(id => selected.has(id));
+      if (!same) {
+        // Numara başka bir grupta kullanılıyor: sessizce bozup yenisini kurma, uyar.
+        this.toastService.warning(this.translate.instant('TRUCK_VISUALIZATION.GROUP_NUMBER_TAKEN', { no }));
+      }
+      return;
+    }
+    this.store.dispatch(PackageGroupsActions.assignGroup({ no: this.groupKey(no), ids }));
+    this.toastService.success(this.translate.instant('TRUCK_VISUALIZATION.GROUP_CREATED', { no }));
+  }
+
+  /** Seçimdeki paketleri içeren tüm grupları bozar (paketler yerinde kalır). */
+  dissolveSelectedGroups(): void {
+    const ids = this.multiSet;
+    const nos = Object.entries(this.groupsSignal())
+      .filter(([, members]) => members.some(id => ids.has(id)))
+      .map(([no]) => no);
+    nos.forEach(no => this.store.dispatch(PackageGroupsActions.dissolveGroup({ no: this.groupKey(no) })));
+    if (nos.length) {
+      this.toastService.info(this.translate.instant('TRUCK_VISUALIZATION.GROUP_DISSOLVED'));
+    }
+  }
+
+  private selectGroupByNo(no: string): void {
+    const members = this.groupsSignal()[no];
+    if (!members) return;
+    this.setMultiSelection(members);
+  }
+
+  /** Grup(lar)ı dağıtır — otomatik yerleştirme sonrası kullanılır. */
+  private clearAllGroups(notify: boolean, allShipments = false): void {
+    const current = Object.keys(this.groupsSignal());
+    const had = allShipments ? Object.keys(this.rawGroupsSignal()).length > 0 : current.length > 0;
+    if (!had) return;
+    if (allShipments) {
+      this.store.dispatch(PackageGroupsActions.clearGroups());
+    } else {
+      current.forEach(no => this.store.dispatch(PackageGroupsActions.dissolveGroup({ no: this.groupKey(no) })));
+    }
+    if (notify) this.toastService.info(this.translate.instant('TRUCK_VISUALIZATION.GROUPS_CLEARED'));
+  }
+
+  // ---------- Toplu silme (plate'e alma) ----------
+
+  deleteMultiSelection(): void {
+    if (!this.hasChangePerm()) return;
+    const members = Array.from(this.multiSet)
+      .map(id => this.packagesStateService.getProcessedPackageById(id))
+      .filter((p): p is PackageData => !!p);
+    if (members.length === 0) {
+      this.toastService.info(this.translate.instant('TRUCK_VISUALIZATION.MULTI_ONLY_UNPLACED'));
+      return;
+    }
+
+    const entries = members.map(m => ({ m, px: m.x, py: m.y, pz: m.z }));
+    const z0 = Math.min(...entries.map(e => e.pz));
+    entries.forEach(e => (e.pz -= z0));
+    const shift = this.findFreePlateGroupShift(entries, new Set(members.map(m => m.pkgId)));
+
+    this.saveSnapshot();
+    this.isLocalOperation = true;
+    this.moveEntriesToPlate(entries, shift);
+    this.clearMultiSelection();
+    this.orderResultChange();
+    this.applyGravityToAllPackages();
+  }
+
+  /** Tırdaki paketleri (konumlar entries'te) plate'e koyar ve store'u günceller. */
+  private moveEntriesToPlate(
+    entries: { m: PackageData; px: number; py: number; pz: number }[],
+    shift: { sx: number; sy: number }
+  ): void {
+    entries.forEach(e => {
+      e.m.x = Math.round(e.px + shift.sx);
+      e.m.y = Math.round(e.py + shift.sy);
+      e.m.z = 0;
+      e.m.plateZ = e.pz > 0 ? e.pz : undefined;
+    });
+    entries.forEach(e => {
+      const m = e.m;
+      this.packagesStateService.moveToDeleted(m.pkgId);
+      this.store.dispatch(StepperResultActions.removePackageFromTruck({ pkgId: m.pkgId }));
+      const row: PackagePosition = [-1, -1, -1, m.length, m.width, m.height, m.id, m.weight, m.pkgId];
+      this.store.dispatch(StepperResultActions.addDeletedPackage({ row }));
+    });
+  }
+
+  /**
+   * Plate'te (2B ayak izi) çakışmayan, istenen yere en yakın grup kaydırmasını bulur.
+   * entries: üyelerin plate-yerel konumları (px,py) ve grup içi göreli yüksekliği (pz).
+   */
+  private findFreePlateGroupShift(
+    entries: { m: PackageData; px: number; py: number; pz: number }[],
+    memberIds: Set<string>
+  ): { sx: number; sy: number } {
+    const truckDims = this.truckDimension();
+    const plateWidth = Math.max(truckDims[0], 1000);
+    const others = this.packagesStateService.deletedPackages()
+      .filter(p => !memberIds.has(p.pkgId) && p.x >= 0 && p.y >= 0);
+
+    const minPx = Math.min(...entries.map(e => e.px));
+    const maxPx = Math.max(...entries.map(e => e.px + e.m.length));
+    const minPy = Math.min(...entries.map(e => e.py));
+
+    // Sınırlar: x plate genişliği içinde, y >= 0
+    let sx0 = 0;
+    if (minPx < 0) sx0 = -minPx;
+    if (maxPx + sx0 > plateWidth) sx0 = plateWidth - maxPx;
+    const sy0 = Math.max(0, -minPy);
+
+    const free = (sx: number, sy: number): boolean => {
+      for (const e of entries) {
+        const x = e.px + sx;
+        const y = e.py + sy;
+        if (x < -0.5 || x + e.m.length > plateWidth + 0.5 || y < -0.5) return false;
+        for (const o of others) {
+          if (x < o.x + o.length && x + e.m.length > o.x && y < o.y + o.width && y + e.m.width > o.y) {
+            return false;
+          }
+        }
+      }
+      return true;
+    };
+
+    if (free(sx0, sy0)) return { sx: sx0, sy: sy0 };
+
+    const step = 80;
+    const maxRadius = 5000;
+    for (let r = step; r <= maxRadius; r += step) {
+      const candidates: Array<{ sx: number; sy: number }> = [];
+      for (let d = -r; d <= r; d += step) {
+        candidates.push({ sx: sx0 + d, sy: sy0 - r }, { sx: sx0 + d, sy: sy0 + r });
+      }
+      for (let d = -r + step; d <= r - step; d += step) {
+        candidates.push({ sx: sx0 - r, sy: sy0 + d }, { sx: sx0 + r, sy: sy0 + d });
+      }
+      candidates.sort((a, b) =>
+        (Math.abs(a.sx - sx0) + Math.abs(a.sy - sy0)) - (Math.abs(b.sx - sx0) + Math.abs(b.sy - sy0))
+      );
+      for (const c of candidates) {
+        if (free(c.sx, c.sy)) return c;
+      }
+    }
+
+    // Hiç boşluk yok: tüm plate paketlerinin altına
+    const bottom = others.reduce((mx, o) => Math.max(mx, o.y + o.width), 0) + this.PLATE_ITEM_GAP;
+    return { sx: sx0, sy: Math.max(sy0, bottom - minPy) };
+  }
+
+  // ---------- Toplu sürükleme ----------
+
+  private initiateGroupDragging(ids: string[]): void {
+    const found = ids
+      .map(id => this.findAnyPackage(id))
+      .filter((f): f is { pkg: PackageData; isPlate: boolean } => !!f && !!f.pkg.mesh);
+    if (found.length < 2) return;
+
+    if (new Set(found.map(f => f.isPlate)).size > 1) {
+      this.toastService.warning(this.translate.instant('TRUCK_VISUALIZATION.GROUP_MIXED_LOCATION'));
+      return;
+    }
+    const fromPlate = found[0].isPlate;
+    const offY = fromPlate ? this.truckDimension()[1] + this.PLATE_GAP : 0;
+
+    this.raycaster.setFromCamera(this.mouse, this.camera);
+    const pointer = new THREE.Vector3();
+    if (!this.raycaster.ray.intersectPlane(this.dragPlane, pointer)) return;
+
+    const members = found.map(f => f.pkg);
+    const start = new Map<string, { x: number; y: number; lz: number }>();
+    const startMesh = new Map<string, THREE.Vector3>();
+    members.forEach(m => {
+      start.set(m.pkgId, { x: m.x, y: m.y + offY, lz: fromPlate ? (m.plateZ ?? 0) : m.z });
+      startMesh.set(m.pkgId, m.mesh!.position.clone());
+    });
+
+    this.groupDrag = {
+      members,
+      fromPlate,
+      start,
+      startMesh,
+      startPointer: pointer,
+      bbox: {
+        minX: Math.min(...members.map(m => start.get(m.pkgId)!.x)),
+        maxX: Math.max(...members.map(m => start.get(m.pkgId)!.x + m.length)),
+        minY: Math.min(...members.map(m => start.get(m.pkgId)!.y)),
+        maxY: Math.max(...members.map(m => start.get(m.pkgId)!.y + m.width)),
+      },
+      moved: false,
+      dx: 0,
+      dy: 0,
+      overPlate: fromPlate,
+      valid: true,
+    };
+    this.renderer.domElement.style.cursor = 'grabbing';
+  }
+
+  private updateGroupDrag(): void {
+    const gd = this.groupDrag;
+    if (!gd) return;
+
+    this.raycaster.setFromCamera(this.mouse, this.camera);
+    const pt = new THREE.Vector3();
+    if (!this.raycaster.ray.intersectPlane(this.dragPlane, pt)) return;
+
+    let dx = pt.x - gd.startPointer.x;
+    let dy = pt.z - gd.startPointer.z;
+    if (!gd.moved) {
+      if (Math.hypot(dx, dy) < 15) return; // tıklama ile sürüklemeyi ayır
+      gd.moved = true;
+      gd.members.forEach(m => {
+        const mat = m.mesh!.material as THREE.MeshStandardMaterial;
+        mat.wireframe = true;
+      });
+    }
+
+    const truck = this.truckDimension();
+    const plateZEnd = truck[1] + this.PLATE_GAP + Math.max(this.plateDepthCurrent, this.PLATE_MIN_DEPTH);
+    const b = gd.bbox;
+    const rawCenterY = (b.minY + b.maxY) / 2 + dy;
+    const overPlate = rawCenterY > truck[1];
+
+    // Dünya sınırları (X hep tır boyu; Y tır + plate bölgesi)
+    dx = Math.max(-b.minX, Math.min(truck[0] - b.maxX, dx));
+    dy = Math.max(-b.minY, Math.min(plateZEnd - b.maxY, dy));
+    if (!overPlate) {
+      // Tır bölgesinde grup tır içinde kalsın (sığıyorsa)
+      if (b.maxY - b.minY <= truck[1]) dy = Math.max(-b.minY, Math.min(truck[1] - b.maxY, dy));
+      const snapped = this.snapGroupDelta(gd, dx, dy);
+      dx = snapped.dx;
+      dy = snapped.dy;
+    }
+
+    gd.dx = dx;
+    gd.dy = dy;
+    gd.overPlate = overPlate;
+
+    gd.members.forEach(m => {
+      const s = gd.startMesh.get(m.pkgId)!;
+      m.mesh!.position.x = s.x + dx;
+      m.mesh!.position.z = s.z + dy;
+    });
+
+    gd.valid = overPlate ? true : this.resolveTruckDrop(gd, dx, dy) !== null;
+    gd.members.forEach(m => {
+      const mat = m.mesh!.material as THREE.MeshStandardMaterial;
+      mat.emissive.setHex(gd.valid ? 0x888888 : 0xff0000);
+    });
+    if (gd.valid) this.clearCollisionWarning();
+    else this.showCollisionWarningBriefly();
+  }
+
+  /** Grup sınırlarını tır duvarlarına / diğer paketlerin kenarlarına 50 mm içinde yapıştırır. */
+  private snapGroupDelta(
+    gd: GroupDragState,
+    dx: number,
+    dy: number
+  ): { dx: number; dy: number } {
+    const T = 50;
+    const truck = this.truckDimension();
+    const memberIds = new Set(gd.members.map(m => m.pkgId));
+    const xs: number[] = [0, truck[0]];
+    const ys: number[] = [0, truck[1]];
+    this.processedPackagesSignal().forEach(p => {
+      if (memberIds.has(p.pkgId)) return;
+      xs.push(p.x, p.x + p.length);
+      ys.push(p.y, p.y + p.width);
+    });
+    const b = gd.bbox;
+    const pick = (edges: number[], lo: number, hi: number): number => {
+      let best = 0;
+      let bestAbs = Infinity;
+      for (const e of edges) {
+        for (const m of [lo, hi]) {
+          const d = e - m;
+          if (Math.abs(d) <= T && Math.abs(d) < bestAbs) {
+            best = d;
+            bestAbs = Math.abs(d);
+          }
+        }
+      }
+      return best;
+    };
+    return {
+      dx: dx + pick(xs, b.minX + dx, b.maxX + dx),
+      dy: dy + pick(ys, b.minY + dy, b.maxY + dy),
+    };
+  }
+
+  /**
+   * Grubu (dx,dy) kadar kaydırınca tırda geçerli bir yere oturup oturmadığını çözer.
+   * Geçerliyse dikey kayma (shift: zemine/alttaki pakete oturtma) döner, değilse null.
+   * Üyelerin birbirine göre x/y/z konumu DEĞİŞMEZ; sadece grup bir bütün olarak yükselir/iner.
+   */
+  private resolveTruckDrop(
+    gd: GroupDragState,
+    dx: number,
+    dy: number
+  ): { shift: number } | null {
+    const truck = this.truckDimension();
+    const memberIds = new Set(gd.members.map(m => m.pkgId));
+    const others = this.processedPackagesSignal().filter(p => !memberIds.has(p.pkgId));
+    const pos = gd.members.map(m => {
+      const s = gd.start.get(m.pkgId)!;
+      return { m, x: s.x + dx, y: s.y + dy, lz: s.lz };
+    });
+
+    for (const p of pos) {
+      if (p.m.isForcePlaced) continue;
+      if (p.x < -0.5 || p.y < -0.5 ||
+        p.x + p.m.length > truck[0] + 0.5 || p.y + p.m.width > truck[1] + 0.5) return null;
+    }
+
+    const z0 = Math.min(...pos.map(p => p.lz));
+    const floors = new Set<number>([0]);
+    for (const o of others) {
+      const overlapsGroup = pos.some(p =>
+        p.x < o.x + o.length && p.x + p.m.length > o.x &&
+        p.y < o.y + o.width && p.y + p.m.width > o.y);
+      if (overlapsGroup) floors.add(o.z + o.height);
+    }
+
+    for (const f of Array.from(floors).sort((a, b) => a - b)) {
+      const shift = f - z0;
+      const ok = pos.every(p => {
+        const z = p.lz + shift;
+        if (z < -0.5) return false;
+        if (!p.m.isForcePlaced && z + p.m.height > truck[2] + 0.5) return false;
+        return !this.checkCollisionPrecise(p.m, { x: p.x, y: p.y, z }, others);
+      });
+      if (ok) return { shift };
+    }
+    return null;
+  }
+
+  private restoreGroupMeshes(gd: GroupDragState): void {
+    gd.members.forEach(m => {
+      const s = gd.startMesh.get(m.pkgId);
+      if (m.mesh && s) m.mesh.position.copy(s);
+    });
+  }
+
+  private resetGroupDragVisuals(gd: GroupDragState): void {
+    gd.members.forEach(m => {
+      if (!m.mesh) return;
+      const mat = m.mesh.material as THREE.MeshStandardMaterial;
+      mat.wireframe = this.wireframeMode;
+      mat.emissive.setHex(this.multiSet.has(m.pkgId) ? 0x666666 : 0x000000);
+    });
+  }
+
+  private completeGroupDrag(): void {
+    const gd = this.groupDrag;
+    if (!gd) return;
+    this.groupDrag = null;
+    this.renderer.domElement.style.cursor = 'default';
+    this.resetGroupDragVisuals(gd);
+    this.clearCollisionWarning();
+    if (!gd.moved) return; // sadece tıklandı
+
+    if (gd.overPlate) {
+      this.dropGroupOnPlate(gd);
+    } else {
+      this.dropGroupOnTruck(gd);
+    }
+    this.renderManager.requestRender();
+    this.cdr.markForCheck();
+  }
+
+  private dropGroupOnTruck(gd: GroupDragState): void {
+    const res = this.resolveTruckDrop(gd, gd.dx, gd.dy);
+    if (!res) {
+      this.restoreGroupMeshes(gd);
+      this.toastService.warning(this.translate.instant('TRUCK_VISUALIZATION.GROUP_CANNOT_PLACE'));
+      return;
+    }
+
+    this.saveSnapshot();
+    this.isLocalOperation = true;
+
+    gd.members.forEach(m => {
+      const s = gd.start.get(m.pkgId)!;
+      m.x = Math.round(s.x + gd.dx);
+      m.y = Math.round(s.y + gd.dy);
+      m.z = Math.max(0, Math.round(s.lz + res.shift));
+      m.plateZ = undefined;
+    });
+
+    if (!gd.fromPlate) {
+      gd.members.forEach(m => {
+        m.mesh?.position.set(m.x + m.length / 2, m.z + m.height / 2, m.y + m.width / 2);
+      });
+    } else {
+      // Plate → tır: listeler arası taşı; mesh addToProcessedPackages callback'inde yeniden kurulur.
+      gd.members.forEach(m => {
+        this.packagesStateService.removeFromDeletedPackages(m.pkgId);
+        this.packagesStateService.addToProcessedPackages(m);
+        const position: PackagePosition = [m.x, m.y, m.z, m.length, m.width, m.height, m.id, m.weight, m.pkgId];
+        this.store.dispatch(StepperResultActions.addPackageToTruck({ position }));
+        this.store.dispatch(StepperResultActions.removeDeletedPackage({ pkgId: m.pkgId }));
+      });
+      this.clearMultiSelection();
+    }
+
+    this.orderResultChange();
+    this.applyGravityToAllPackages();
+  }
+
+  private dropGroupOnPlate(gd: GroupDragState): void {
+    const plateOffsetZ = this.truckDimension()[1] + this.PLATE_GAP;
+    const entries = gd.members.map(m => {
+      const s = gd.start.get(m.pkgId)!;
+      return { m, px: s.x + gd.dx, py: s.y + gd.dy - plateOffsetZ, pz: s.lz };
+    });
+    const z0 = Math.min(...entries.map(e => e.pz));
+    entries.forEach(e => (e.pz -= z0));
+    const shift = this.findFreePlateGroupShift(entries, new Set(gd.members.map(m => m.pkgId)));
+
+    this.saveSnapshot();
+    this.isLocalOperation = true;
+
+    if (gd.fromPlate) {
+      entries.forEach(e => {
+        e.m.x = Math.round(e.px + shift.sx);
+        e.m.y = Math.round(e.py + shift.sy);
+        e.m.z = 0;
+        e.m.plateZ = e.pz > 0 ? e.pz : undefined;
+      });
+      entries.forEach(e => this.refreshSinglePlatePackageMesh(e.m));
+      this.reapplyMultiEmissive();
+    } else {
+      this.moveEntriesToPlate(entries, shift);
+      this.clearMultiSelection();
+      this.orderResultChange();
+      this.applyGravityToAllPackages();
+    }
+  }
+
+  /** Grup rozetlerinin ekran konumunu günceller (overlap rozetleriyle aynı yaklaşım). */
+  private updateGroupBadgePositions(): void {
+    const layer = this.groupBadgeLayerRef?.nativeElement;
+    if (!layer || !this.camera || !this.threeContainer) return;
+    const badges = layer.querySelectorAll<HTMLElement>('.tjs-group-badge');
+    if (!badges.length) return;
+
+    const container = this.threeContainer.nativeElement as HTMLElement;
+    const width = container.clientWidth;
+    const height = container.clientHeight;
+    if (!width || !height) return;
+
+    this.packagesGroup?.updateMatrixWorld(true);
+    this.plateGroup?.updateMatrixWorld(true);
+
+    badges.forEach(el => {
+      const f = this.findAnyPackage(el.dataset['pkg'] ?? '');
+      if (!f?.pkg.mesh) {
+        el.style.display = 'none';
+        return;
+      }
+      f.pkg.mesh.getWorldPosition(this.ringProjectionVector);
+      this.ringProjectionVector.y += f.pkg.height / 2 + 20;
+      this.ringProjectionVector.project(this.camera);
+      if (this.ringProjectionVector.z > 1) {
+        el.style.display = 'none';
+        return;
+      }
+      const x = (this.ringProjectionVector.x * 0.5 + 0.5) * width;
+      const y = (-this.ringProjectionVector.y * 0.5 + 0.5) * height;
+      el.style.display = 'flex';
+      el.style.transform = `translate(${x}px, ${y}px) translate(-50%, -50%)`;
+    });
   }
 
   // ========================================
@@ -3063,6 +3870,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
   }
 
   private selectPackage(pkgId: string): void {
+    this.clearMultiSelection();
     this.clearPlateSelection();
     this.clearHighlights();
     this.packagesStateService.selectPackage(pkgId)
@@ -3071,6 +3879,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
   }
 
   clearSelection(): void {
+    this.clearMultiSelection();
     this.packagesStateService.clearSelection();
     this.clearHighlights();
     this.clearPlateSelection();
@@ -3085,6 +3894,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
    * aksiyonu var (bkz. plate action ring, HTML).
    */
   private selectPlatePackage(pkgId: string): void {
+    this.clearMultiSelection();
     // İki seçim aynı anda anlamlı değil — tır seçimini temizle.
     this.packagesStateService.clearSelection();
     this.clearHighlights();
@@ -3293,6 +4103,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
         pkg.detailLabelMeshes?.forEach(label => (label.visible = false));
       });
     }
+    this.reapplyMultiEmissive();
   }
 
   /**
@@ -3323,7 +4134,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
   }
 
   private updateHoverEffects(): void {
-    if (this.isDragging) return;
+    if (this.isDragging || this.groupDrag) return;
 
     // getIntersectedAny() hem tır (packagesGroup) hem plate (plateGroup)
     // mesh'lerini tarar — eskiden burada sadece tır-özel getIntersectedPackage()
@@ -3332,10 +4143,13 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     // mesh'i yeniden kurulunca (refreshSinglePlatePackageMesh) görünür oluyordu.
     const intersected = this.getIntersectedAny();
     const hoveredPackage = intersected?.pkg ?? null;
+    // El imleci sadece taşınabilir bir paketin üzerindeyken; boş alanda normal ok.
+    this.renderer.domElement.style.cursor =
+      hoveredPackage && this.dragModeEnabled && this.hasChangePerm() ? 'grab' : 'default';
     const selectedPlate = this.selectedPlatePackageSignal();
 
     this.processedPackagesSignal().forEach(pkg => {
-      if (pkg.mesh && pkg !== this.selectedPackageSignal() && !pkg.isBeingDragged) {
+      if (pkg.mesh && pkg !== this.selectedPackageSignal() && !pkg.isBeingDragged && !this.multiSet.has(pkg.pkgId)) {
         const material = pkg.mesh.material as THREE.MeshStandardMaterial;
         if (pkg === hoveredPackage) {
           material.emissive.setHex(0x333333);
@@ -3352,7 +4166,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
 
     // Plate (bekleme alanı) paketleri için de aynı hover/etiket mantığı.
     this.packagesStateService.deletedPackages().forEach(pkg => {
-      if (pkg.mesh && pkg !== selectedPlate && !pkg.isBeingDragged) {
+      if (pkg.mesh && pkg !== selectedPlate && !pkg.isBeingDragged && !this.multiSet.has(pkg.pkgId)) {
         const material = pkg.mesh.material as THREE.MeshStandardMaterial;
         if (pkg === hoveredPackage) {
           material.emissive.setHex(0x333333);
@@ -3963,7 +4777,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
 
   @HostListener('document:keydown', ['$event'])
   handleKeyboardShortcuts(event: KeyboardEvent): void {
-    if (!this.isActive || this.isDragging) return;
+    if (!this.isActive || this.isDragging || this.groupDrag) return;
 
     // Kullanıcı bir metin alanına yazıyorsa ya da bir dialog açıksa kısayollar
     // çalışmasın (aksi halde geri bildirim kutusuna "a"/"d" yazmak seçili
@@ -3986,7 +4800,24 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     // klonlama/silme kısayollarını tetiklemesin; sadece Ctrl+Z/Y bizim.
     if ((event.ctrlKey || event.metaKey) && !['z', 'Z', 'y', 'Y'].includes(event.key)) return;
 
+    // Rakam tuşları: Shift+1..9 = seçimi gruba ata, 1..9 = grubu seç (event.code: klavye düzeninden bağımsız)
+    const digit = /^(?:Digit|Numpad)([1-9])$/.exec(event.code);
+    if (digit && !event.altKey) {
+      event.preventDefault();
+      if (event.shiftKey) this.assignGroup(digit[1]);
+      else this.selectGroupByNo(digit[1]);
+      return;
+    }
+
     switch (event.key) {
+      case 'u':
+      case 'U':
+        if (this.multiSet.size > 1 && this.hasChangePerm()) {
+          event.preventDefault();
+          this.dissolveSelectedGroups();
+        }
+        break;
+
       case 'f':
       case 'F':
         event.preventDefault();
@@ -4008,7 +4839,10 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
       case 'Backspace':
       case 'd':
       case 'D':
-        if (this.selectedPackageSignal() && this.hasChangePerm()) {
+        if (this.multiSet.size > 1 && this.hasChangePerm()) {
+          event.preventDefault();
+          this.deleteMultiSelection();
+        } else if (this.selectedPackageSignal() && this.hasChangePerm()) {
           event.preventDefault();
           this.deleteSelectedPackage();
         } else if (this.selectedPlatePackageSignal() && this.hasChangePerm()) {
@@ -4042,7 +4876,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
         break;
 
       case 'Escape':
-        if (this.selectedPackageSignal() || this.selectedPlatePackageSignal()) {
+        if (this.selectedPackageSignal() || this.selectedPlatePackageSignal() || this.multiSet.size > 0) {
           event.preventDefault();
           this.clearSelection();
         }
@@ -4275,6 +5109,8 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     this.packagesStateService.clearProcessedPackages();
     this.packagesStateService.clearDeletedPackages();
     this.packagesStateService.clearSelection();
+    this.multiSet = new Set();
+    this.store.dispatch(PackageGroupsActions.clearMultiSelection());
     // Undo/redo tüm sahneyi sıfırdan kuruyor — eski plate seçimi artık
     // geçersiz (disposed mesh) bir objeye işaret ediyor olabilir.
     this.selectedPlatePackageSignal.set(null);
@@ -4487,6 +5323,11 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
 
     this.isLoadingSignal.set(false);
     this.isDataLoadingSignal.set(false);
+    this.groupDrag = null;
+    this.isBoxSelecting = false;
+    this.selectionBox.set(null);
+    this.multiSet = new Set();
+    this.store.dispatch(PackageGroupsActions.clearMultiSelection());
     this.packagesStateService.clearProcessedPackages();
     this.packagesStateService.clearSelection();
     // Plate seçimi de sıfırlanmalı — aksi halde sevkiyat değişince (farklı
@@ -4568,7 +5409,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     this.usedColors.clear();
 
     if (this.renderer?.domElement) {
-      this.renderer.domElement.style.cursor = 'grab';
+      this.renderer.domElement.style.cursor = 'default';
     }
 
     if (this.renderManager) {
@@ -4600,6 +5441,9 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     ).filter((p): p is PackageData => p !== null);
 
     this.saveSnapshot();
+    // Otomatik yerleştirme konumları baştan belirler: gruplar bozulur
+    this.clearAllGroups(true);
+    this.clearMultiSelection();
 
     allPackages.sort((a, b) => (b.length * b.width) - (a.length * a.width));
 
@@ -4728,6 +5572,22 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
       } else {
         failedCount++;
       }
+    }
+
+    // Otomatik yerleştirilen paketleri içeren gruplar bozulur
+    if (placedCount > 0) {
+      const placedIds = new Set(deleted
+        .filter(d => !!this.packagesStateService.getProcessedPackageById(d.pkgId))
+        .map(d => d.pkgId));
+      let dissolved = false;
+      for (const [no, members] of Object.entries(this.groupsSignal())) {
+        if (members.some(id => placedIds.has(id))) {
+          this.store.dispatch(PackageGroupsActions.dissolveGroup({ no: this.groupKey(no) }));
+          dissolved = true;
+        }
+      }
+      if (dissolved) this.toastService.info(this.translate.instant('TRUCK_VISUALIZATION.GROUPS_CLEARED'));
+      this.clearMultiSelection();
     }
 
     if (failedCount > 0) {

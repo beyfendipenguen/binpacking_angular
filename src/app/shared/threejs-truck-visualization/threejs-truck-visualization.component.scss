@@ -64,7 +64,7 @@ $c-text-sub:  #64748b;
     user-select: none;
   }
 
-  &.drag-mode canvas { cursor: grab; &:active { cursor: grabbing; } }
+  &.drag-mode canvas { cursor: default; }
   &.is-loading { filter: blur(4px); pointer-events: none; }
 }
 
@@ -1117,4 +1117,103 @@ $c-text-sub:  #64748b;
 
 @media print {
   .tjs-panel, .tjs-toolbar, .tjs-overlay { display: none !important; }
+}
+// ── Çoklu seçim / gruplar ─────────────────────────────────────────────
+
+// Sol tık + sürükle kutu seçimi dikdörtgeni
+.tjs-selection-box {
+  position: absolute;
+  z-index: 15;
+  pointer-events: none;
+  border: 1.5px dashed $c-primary;
+  background: rgba($c-primary, 0.12);
+  border-radius: 2px;
+}
+
+// Grup numarası rozetleri (konum her frame JS ile yazılır)
+.tjs-group-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 13;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.tjs-group-badge {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: none; // ilk frame'den önce görünmesin
+  align-items: center;
+  justify-content: center;
+  min-width: 1.35rem;
+  height: 1.35rem;
+  padding: 0 0.3rem;
+  border-radius: 999px;
+  background: $c-primary-d;
+  color: $c-white;
+  font-size: 0.72rem;
+  font-weight: 700;
+  border: 2px solid $c-white;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+  will-change: transform;
+}
+
+.tjs-group-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  margin: 0.25rem 0 0.5rem;
+}
+
+.tjs-group-chip {
+  width: 1.7rem;
+  height: 1.7rem;
+  border-radius: 50%;
+  border: 1px solid rgba($c-primary, 0.4);
+  background: rgba($c-primary, 0.08);
+  color: $c-primary-d;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+
+  &:hover:not(:disabled) {
+    background: $c-primary-d;
+    color: $c-white;
+  }
+
+  &:disabled { opacity: 0.45; cursor: not-allowed; }
+}
+
+.tjs-multi-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-top: 0.4rem;
+}
+
+.tjs-multi-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.6rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba($c-primary, 0.3);
+  background: rgba($c-primary, 0.06);
+  color: $c-primary-d;
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+
+  mat-icon { font-size: 1rem; width: 1rem; height: 1rem; }
+  &:hover:not(:disabled) { background: rgba($c-primary, 0.14); }
+  &:disabled { opacity: 0.45; cursor: not-allowed; }
+
+  &--danger {
+    border-color: rgba($c-danger, 0.4);
+    background: rgba($c-danger, 0.08);
+    color: $c-danger-d;
+    &:hover:not(:disabled) { background: rgba($c-danger, 0.18); }
+  }
 }

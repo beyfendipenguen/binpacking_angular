@@ -32,6 +32,9 @@ export interface PackageData {
   pkgId: string;
   isForcePlaced?: boolean;
   forcePlaceBorder?: THREE.LineSegments;
+  // Plate'te (bekleme alanı) bir grubun parçası olarak üst üste duran paketlerin
+  // plate zeminine göre yüksekliği (mm). Normal plate paketlerinde tanımsız (0).
+  plateZ?: number;
   // Paketin üst + 4 yan yüzeyine (dik/çapraz/yatay — hangisi sığıyorsa)
   // çizilen ürün adı + adet etiketleri. Üst üste dizilen paketlerde üst
   // yüzey görünmeyebileceği için yanlara da eklenir. Sadece mouse üzerine

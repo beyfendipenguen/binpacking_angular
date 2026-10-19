@@ -4,7 +4,10 @@
     (contextmenu)="$event.preventDefault()">
   </div>
 
-  @if (!isLoadingModels && !isLoadingData && (!piecesDataSignal() || piecesDataSignal().length === 0)) {
+  <!-- Boş ekran SADECE hem tırda hem yerleşmeyenlerde (plate) hiç paket yokken gösterilir;
+       tüm paketler plate'e taşındıysa sahne (plate dahil) görünür kalmalı. -->
+  @if (!isLoadingModels && !isLoadingData && (!piecesDataSignal() || piecesDataSignal().length === 0)
+  && deletedPackagesSignal().length === 0) {
   <div class="tjs-empty">
     <mat-icon class="tjs-empty__icon">local_shipping</mat-icon>
     <p class="tjs-empty__title">{{ 'TRUCK_VISUALIZATION.NO_DATA' | translate }}</p>
@@ -114,6 +117,21 @@
       </div>
       <div class="tjs-shortcuts-list__item">
         <kbd>Esc</kbd><span>{{ 'TRUCK_VISUALIZATION.SHORTCUTS_DESELECT' | translate }}</span>
+      </div>
+      <div class="tjs-shortcuts-list__item">
+        <kbd>Ctrl</kbd>+<kbd>{{ 'TRUCK_VISUALIZATION.SHORTCUTS_CLICK_LABEL' | translate }}</kbd><span>{{ 'TRUCK_VISUALIZATION.SHORTCUTS_MULTI_SELECT' | translate }}</span>
+      </div>
+      <div class="tjs-shortcuts-list__item">
+        <kbd>{{ 'TRUCK_VISUALIZATION.SHORTCUTS_DRAG_LABEL' | translate }}</kbd><span>{{ 'TRUCK_VISUALIZATION.SHORTCUTS_BOX_SELECT' | translate }}</span>
+      </div>
+      <div class="tjs-shortcuts-list__item">
+        <kbd>Shift</kbd>+<kbd>1-9</kbd><span>{{ 'TRUCK_VISUALIZATION.SHORTCUTS_GROUP_ASSIGN' | translate }}</span>
+      </div>
+      <div class="tjs-shortcuts-list__item">
+        <kbd>1-9</kbd><span>{{ 'TRUCK_VISUALIZATION.SHORTCUTS_GROUP_SELECT' | translate }}</span>
+      </div>
+      <div class="tjs-shortcuts-list__item">
+        <kbd>U</kbd><span>{{ 'TRUCK_VISUALIZATION.SHORTCUTS_GROUP_DISSOLVE' | translate }}</span>
       </div>
       <div class="tjs-shortcuts-list__item">
         <kbd>Ctrl+Z</kbd><span>{{ 'TRUCK_VISUALIZATION.SHORTCUTS_UNDO' | translate }}</span>
@@ -266,6 +284,64 @@
   </div>
   }
   }
+
+  <!-- Çoklu seçim paneli: halka/döndürme YOK; sadece grup atama, grubu çözme ve silme (plate'e alma). -->
+  @if (multiInfo(); as mi) {
+  @if (!isLoadingModels && !isLoadingData) {
+  <div class="tjs-panel tjs-panel--info tjs-panel--multi">
+    <div class="tjs-panel__header">
+      <span class="tjs-panel__title">{{ 'TRUCK_VISUALIZATION.MULTI_SELECTED' | translate:{count: mi.count} }}</span>
+      <button class="tjs-close-btn" (click)="clearSelection()">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+    <div class="tjs-panel__body">
+      <div class="tjs-stat-row">
+        <span class="tjs-stat-row__label">{{ 'TRUCK_VISUALIZATION.MULTI_TOTAL_WEIGHT' | translate }}</span>
+        <span class="tjs-stat-row__value tjs-mono">{{ formatWeight(mi.weight) }}</span>
+      </div>
+      @if (mi.groupNo) {
+      <div class="tjs-stat-row tjs-stat-row--accent">
+        <span class="tjs-stat-row__label">{{ 'TRUCK_VISUALIZATION.MULTI_GROUP' | translate:{no: mi.groupNo} }}</span>
+        <span class="tjs-stat-row__value">🔒</span>
+      </div>
+      }
+      <p class="tjs-panel__section-title">{{ 'TRUCK_VISUALIZATION.MULTI_ASSIGN_GROUP' | translate }}</p>
+      <div class="tjs-group-chips">
+        @for (n of groupNumbers; track n) {
+        <button class="tjs-group-chip" (click)="assignGroup(n)" [appDisableAuth]="['orders.change_orderresult']">{{ n }}</button>
+        }
+      </div>
+      <div class="tjs-multi-actions">
+        @if (mi.anyGrouped) {
+        <button class="tjs-multi-btn" (click)="dissolveSelectedGroups()" [appDisableAuth]="['orders.change_orderresult']">
+          <mat-icon>link_off</mat-icon>{{ 'TRUCK_VISUALIZATION.MULTI_DISSOLVE' | translate }}
+        </button>
+        }
+        @if (mi.onTruck) {
+        <button class="tjs-multi-btn tjs-multi-btn--danger" (click)="deleteMultiSelection()"
+          [appDisableAuth]="['orders.change_orderresult']">
+          <mat-icon>delete_outline</mat-icon>{{ 'TRUCK_VISUALIZATION.MULTI_DELETE' | translate }}
+        </button>
+        }
+      </div>
+    </div>
+  </div>
+  }
+  }
+
+  <!-- Kutu seçimi dikdörtgeni (sol tık + sürükle, boş alanda) -->
+  @if (selectionBox(); as sb) {
+  <div class="tjs-selection-box"
+    [style.left.px]="sb.left" [style.top.px]="sb.top" [style.width.px]="sb.width" [style.height.px]="sb.height"></div>
+  }
+
+  <!-- Grup numarası rozetleri (konumlar her frame'de doğrudan style ile yazılır) -->
+  <div #groupBadgeLayer class="tjs-group-layer">
+    @for (b of groupBadges(); track b.pkgId) {
+    <div class="tjs-group-badge" [attr.data-pkg]="b.pkgId">{{ b.no }}</div>
+    }
+  </div>
 
   <!-- Başka bir paketin içinde / tır dışında kalan paketlerin üstündeki
        uyarı rozetleri (bkz. refreshOverlapWarnings / updateOverlapBadgePositions).
