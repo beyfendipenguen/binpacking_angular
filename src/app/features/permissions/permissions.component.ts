@@ -87,8 +87,7 @@ export class PermissionsComponent implements OnInit, OnDestroy {
   isLoadingUsers = signal(false);
 
   // Signals - Permissions
-  allPermissions = signal<IPermission[]>([]);
-  isLoadingPermissions = signal(false);
+  allPermissions = signal<IPermission[]>([]);  isLoadingPermissions = signal(false);
 
   // Signals - Common
   isSaving = signal(false);

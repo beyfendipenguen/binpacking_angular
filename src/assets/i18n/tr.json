@@ -1133,7 +1133,8 @@
       "CONTENTTYPES": "İçerik Tipleri",
       "CORE": "Sistem",
       "ADMIN": "Yönetim Paneli",
-      "USERS": "Kullanıcılar"
+      "USERS": "Kullanıcılar",
+      "MESSAGING": "Mesajlaşma"
     },
     "MODELS": {
       "GROUPPROFILE": "Grup Profili",
@@ -1161,7 +1162,12 @@
       "CONTENTTYPE": "İçerik Tipi",
       "JOB": "İş",
       "LOGENTRY": "Günlük Kaydı",
-      "FILE": "Dosya"
+      "FILE": "Dosya",
+      "NOTIFICATION": "Bildirim",
+      "MESSAGE": "Mesaj",
+      "ORDERREVISION": "Sipariş Revizyonu",
+      "ORDERREVISIONFEEDBACK": "Sipariş Revizyonu Geri Bildirimi",
+      "ORDERFILLANALYSIS": "Sipariş Doluluk Analizi"
     },
     "REQUIRED": "Gerekli Yetkiler",
     "RESTRICTED": "Kısıtlı Yetkiler",

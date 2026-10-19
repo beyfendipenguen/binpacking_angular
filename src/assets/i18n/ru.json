@@ -1133,7 +1133,8 @@
       "CONTENTTYPES": "Типы контента",
       "CORE": "Система",
       "ADMIN": "Панель администратора",
-      "USERS": "Пользователи"
+      "USERS": "Пользователи",
+      "MESSAGING": "Сообщения"
     },
     "MODELS": {
       "GROUPPROFILE": "Профиль группы",
@@ -1161,7 +1162,12 @@
       "CONTENTTYPE": "Тип контента",
       "JOB": "Задача",
       "LOGENTRY": "Запись журнала",
-      "FILE": "Файл"
+      "FILE": "Файл",
+      "NOTIFICATION": "Уведомление",
+      "MESSAGE": "Сообщение",
+      "ORDERREVISION": "Ревизия заказа",
+      "ORDERREVISIONFEEDBACK": "Отзыв о ревизии заказа",
+      "ORDERFILLANALYSIS": "Анализ заполнения заказа"
     },
     "REQUIRED": "Требуемые права",
     "RESTRICTED": "Ограниченные права",

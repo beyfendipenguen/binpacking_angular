@@ -1133,7 +1133,8 @@
       "CONTENTTYPES": "Content Types",
       "CORE": "System",
       "ADMIN": "Admin Panel",
-      "USERS": "Users"
+      "USERS": "Users",
+      "MESSAGING": "Messaging"
     },
     "MODELS": {
       "GROUPPROFILE": "Group Profile",
@@ -1161,7 +1162,12 @@
       "CONTENTTYPE": "Content Type",
       "JOB": "Job",
       "LOGENTRY": "Log Entry",
-      "FILE": "File"
+      "FILE": "File",
+      "NOTIFICATION": "Notification",
+      "MESSAGE": "Message",
+      "ORDERREVISION": "Order Revision",
+      "ORDERREVISIONFEEDBACK": "Order Revision Feedback",
+      "ORDERFILLANALYSIS": "Order Fill Analysis"
     },
     "REQUIRED": "Required Permissions",
     "RESTRICTED": "Restricted Permissions",
