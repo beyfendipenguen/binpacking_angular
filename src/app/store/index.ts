@@ -3,6 +3,7 @@ import { StepperState } from './stepper/stepper.state';
 import { stepperReducer } from './stepper/stepper.reducer';
 import { userReducer } from './user/user.reducer';
 import { statsReducer } from './stats/stats.reducer';
+import { messagingReducer } from './messaging/messaging.reducer';
 
 // App State Interface
 export interface AppState {
@@ -13,7 +14,8 @@ export interface AppState {
 export const reducers: ActionReducerMap<AppState> = {
   stepper: stepperReducer,
   user: userReducer,
-  stats: statsReducer
+  stats: statsReducer,
+  messaging: messagingReducer
 } as ActionReducerMap<AppState>;
 
 // Export all selectors for easy import
@@ -29,6 +31,8 @@ export * from './user/user.actions';
 
 export * from './stats/stats.selectors';
 export * from './stats/stats.actions';
+export * from './messaging/messaging.selectors';
+export * from './messaging/messaging.actions';
 export type { StepperState } from './stepper/stepper.state';
 export type { UserState } from './user/user.state';
 export type { StatsState} from './stats/stats.state'

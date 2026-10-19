@@ -1,4 +1,4 @@
-import { Component, EventEmitter, inject, Input, OnInit, Output, ViewChild, signal, computed } from '@angular/core';
+import { Component, EventEmitter, inject, Input, OnDestroy, OnInit, Output, ViewChild, signal, computed } from '@angular/core';
 import { NavigationEnd, Router, RouterLink } from '@angular/router';
 import { MatMenu, MatMenuModule } from '@angular/material/menu';
 import { MatToolbarModule } from '@angular/material/toolbar';
@@ -14,7 +14,8 @@ import { AuthService } from '@app/core/auth/services/auth.service';
 import { OrderService } from '@app/features/services/order.service';
 import { CancelConfirmationDialogComponent } from '@app/shared/cancel-confirmation-dialog/cancel-confirmation-dialog.component';
 import { SwitchCompanyDialogComponent } from './switch-company-dialog/switch-company-dialog.component';
-import { AppState, selectOrderId, selectUser, StepperUiActions } from '@app/store';
+import { AppState, MessagingActions, selectOrderId, selectUser, StepperUiActions } from '@app/store';
+import { HeaderMessagingComponent } from './messaging/header-messaging.component';
 import { LanguageService, Language } from '@app/core/services/language.service';
 import { DisableAuthDirective } from '@app/core/auth/directives/disable-auth.directive';
 
@@ -32,10 +33,11 @@ import { DisableAuthDirective } from '@app/core/auth/directives/disable-auth.dir
     MatDividerModule,
     TranslateModule,
     DisableAuthDirective,
+    HeaderMessagingComponent,
   ],
   standalone: true,
 })
-export class HeaderComponent implements OnInit {
+export class HeaderComponent implements OnInit, OnDestroy {
   @ViewChild('themeMenu') themeMenu!: MatMenu;
   @Input() isToggleButton!: Boolean;
   @Output() sidenavOpen: EventEmitter<any> = new EventEmitter();
@@ -67,12 +69,17 @@ export class HeaderComponent implements OnInit {
 
   ngOnInit(): void {
     this.getProfilePhoto();
+    this.store.dispatch(MessagingActions.startPolling());
 
     this.router.events.pipe(
       filter(event => event instanceof NavigationEnd)
     ).subscribe((event: NavigationEnd) => {
       this.currentUrl.set(event.url);
     });
+  }
+
+  ngOnDestroy(): void {
+    this.store.dispatch(MessagingActions.stopPolling());
   }
 
   getProfilePhoto() {

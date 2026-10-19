@@ -86,6 +86,23 @@
     "CUSTOMER_MANAGEMENT": "Управление клиентами",
     "PERMISSION_MANAGEMENT": "Управление правами"
   },
+  "MESSAGING": {
+    "NOTIFICATIONS": "Уведомления",
+    "NO_NOTIFICATIONS": "Уведомлений пока нет",
+    "MARK_ALL_READ": "Отметить все как прочитанные",
+    "MESSAGES": "Сообщения",
+    "SUPPORT": "Поддержка",
+    "SUPPORT_HINT": "Переписка с администратором",
+    "SEARCH_PEOPLE": "Поиск людей",
+    "TYPE_MESSAGE": "Введите сообщение…",
+    "SEND": "Отправить",
+    "SELECT_CONVERSATION": "Выберите беседу",
+    "NO_MESSAGES": "Сообщений пока нет",
+    "NO_PEOPLE": "В вашей компании нет других пользователей для переписки",
+    "IMAGE_INVALID": "Недопустимое изображение (jpeg/png/gif/webp, макс. 5 МБ)",
+    "SEND_ERROR": "Не удалось отправить сообщение",
+    "FEEDBACK_REPLY": "Ответ на отзыв"
+  },
   "HEADER": {
     "LOGO_ALT": "Логотип Bin Packing",
     "PROFILE": "Профиль",

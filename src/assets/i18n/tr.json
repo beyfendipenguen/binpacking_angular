@@ -89,6 +89,23 @@
     "CUSTOMER_MANAGEMENT": "Müşteri Yönetimi",
     "PERMISSION_MANAGEMENT": "Yetki Yönetimi"
   },
+  "MESSAGING": {
+    "NOTIFICATIONS": "Bildirimler",
+    "NO_NOTIFICATIONS": "Henüz bildirim yok",
+    "MARK_ALL_READ": "Tümünü okundu işaretle",
+    "MESSAGES": "Mesajlar",
+    "SUPPORT": "Destek",
+    "SUPPORT_HINT": "Yönetici ile yazışma",
+    "SEARCH_PEOPLE": "Kişi ara",
+    "TYPE_MESSAGE": "Mesajınızı yazın…",
+    "SEND": "Gönder",
+    "SELECT_CONVERSATION": "Bir konuşma seçin",
+    "NO_MESSAGES": "Henüz mesaj yok",
+    "NO_PEOPLE": "Şirketinizde mesajlaşılabilecek başka kullanıcı yok",
+    "IMAGE_INVALID": "Geçersiz görsel (jpeg/png/gif/webp, en fazla 5 MB)",
+    "SEND_ERROR": "Mesaj gönderilemedi",
+    "FEEDBACK_REPLY": "Geri bildirim yanıtı"
+  },
   "HEADER": {
     "LOGO_ALT": "Bin Packing Logo",
     "PROFILE": "Profil",

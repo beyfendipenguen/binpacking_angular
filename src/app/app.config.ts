@@ -34,6 +34,7 @@ import { languageInterceptor } from './core/interceptors/language.interceptor';
 
 import { NgxEchartsModule } from 'ngx-echarts';
 import { StatsEffects } from './store/stats/stats.effects';
+import { MessagingEffects } from './store/messaging/messaging.effects';
 import { MatPaginatorIntl } from '@angular/material/paginator';
 import { LanguagePaginatorIntl } from './core/services/paginator-intl.service';
 
@@ -130,7 +131,8 @@ export const appConfig: ApplicationConfig = {
       StepperResultEffects,
       StepperGeneralEffects,
       UserEffects,
-      StatsEffects
+      StatsEffects,
+      MessagingEffects
     ]),
 
     ...(isDevMode() ? [provideStoreDevtools(DEVTOOLS_CONFIG)] : [])

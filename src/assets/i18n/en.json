@@ -89,6 +89,23 @@
     "CUSTOMER_MANAGEMENT": "Customer Management",
     "PERMISSION_MANAGEMENT": "Permission Management"
   },
+  "MESSAGING": {
+    "NOTIFICATIONS": "Notifications",
+    "NO_NOTIFICATIONS": "No notifications yet",
+    "MARK_ALL_READ": "Mark all as read",
+    "MESSAGES": "Messages",
+    "SUPPORT": "Support",
+    "SUPPORT_HINT": "Chat with the administrator",
+    "SEARCH_PEOPLE": "Search people",
+    "TYPE_MESSAGE": "Type your message…",
+    "SEND": "Send",
+    "SELECT_CONVERSATION": "Select a conversation",
+    "NO_MESSAGES": "No messages yet",
+    "NO_PEOPLE": "There are no other users in your company to message",
+    "IMAGE_INVALID": "Invalid image (jpeg/png/gif/webp, max 5 MB)",
+    "SEND_ERROR": "Message could not be sent",
+    "FEEDBACK_REPLY": "Feedback reply"
+  },
   "HEADER": {
     "LOGO_ALT": "Bin Packing Logo",
     "PROFILE": "Profile",
