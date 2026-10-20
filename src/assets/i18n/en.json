@@ -104,6 +104,9 @@
     "NO_PEOPLE": "There are no other users in your company to message",
     "IMAGE_INVALID": "Invalid image (jpeg/png/gif/webp, max 5 MB)",
     "SEND_ERROR": "Message could not be sent",
+    "TOAST_NEW_NOTIFICATIONS": "You have {{count}} unread notification(s)",
+    "TOAST_NEW_MESSAGES": "You have {{count}} unread message(s)",
+    "TOAST_CLICK": "Click to view",
     "FEEDBACK_REPLY": "Feedback reply"
   },
   "HEADER": {

@@ -104,6 +104,9 @@
     "NO_PEOPLE": "Şirketinizde mesajlaşılabilecek başka kullanıcı yok",
     "IMAGE_INVALID": "Geçersiz görsel (jpeg/png/gif/webp, en fazla 5 MB)",
     "SEND_ERROR": "Mesaj gönderilemedi",
+    "TOAST_NEW_NOTIFICATIONS": "{{count}} okunmamış bildiriminiz var",
+    "TOAST_NEW_MESSAGES": "{{count}} okunmamış mesajınız var",
+    "TOAST_CLICK": "Görmek için tıklayın",
     "FEEDBACK_REPLY": "Geri bildirim yanıtı"
   },
   "HEADER": {
