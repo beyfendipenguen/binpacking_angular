@@ -1,3 +1,4 @@
+import { COMMON_TEST_PROVIDERS } from '../../testing/test-providers';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { LayoutComponent } from './layout.component';
@@ -8,7 +9,8 @@ describe('LayoutComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ LayoutComponent ]
+      imports: [LayoutComponent],
+      providers: [...COMMON_TEST_PROVIDERS]
     })
     .compileComponents();
 

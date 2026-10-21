@@ -1,3 +1,4 @@
+import { COMMON_TEST_PROVIDERS } from '../../testing/test-providers';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { CancelConfirmationDialogComponent } from './cancel-confirmation-dialog.component';
@@ -8,7 +9,8 @@ describe('CancelConfirmationDialogComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [CancelConfirmationDialogComponent]
+      imports: [CancelConfirmationDialogComponent],
+      providers: [...COMMON_TEST_PROVIDERS]
     })
     .compileComponents();
 

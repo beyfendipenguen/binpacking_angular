@@ -1,3 +1,4 @@
+import { COMMON_TEST_PROVIDERS } from '../../testing/test-providers';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { ContractWarningDialogComponent } from './contract-warning-dialog.component';
@@ -8,7 +9,8 @@ describe('ContractWarningDialogComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ContractWarningDialogComponent]
+      imports: [ContractWarningDialogComponent],
+      providers: [...COMMON_TEST_PROVIDERS]
     })
     .compileComponents();
 

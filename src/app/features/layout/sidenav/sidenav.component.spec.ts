@@ -1,3 +1,4 @@
+import { COMMON_TEST_PROVIDERS } from '../../../testing/test-providers';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { SidenavComponent } from './sidenav.component';
@@ -8,7 +9,8 @@ describe('SidenavComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ SidenavComponent ]
+      imports: [SidenavComponent],
+      providers: [...COMMON_TEST_PROVIDERS]
     })
     .compileComponents();
 

@@ -1,3 +1,4 @@
+import { COMMON_TEST_PROVIDERS } from '../../../../../testing/test-providers';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { OrderDetailAddDialogComponent } from './order-detail-add-dialog.component';
@@ -8,7 +9,8 @@ describe('OrderDetailAddDialogComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [OrderDetailAddDialogComponent]
+      imports: [OrderDetailAddDialogComponent],
+      providers: [...COMMON_TEST_PROVIDERS]
     })
     .compileComponents();
 

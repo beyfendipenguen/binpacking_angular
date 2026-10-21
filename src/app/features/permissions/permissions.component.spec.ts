@@ -1,3 +1,4 @@
+import { COMMON_TEST_PROVIDERS } from '../../testing/test-providers';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { PermissionsComponent } from './permissions.component';
@@ -8,7 +9,8 @@ describe('PermissionsComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [PermissionsComponent]
+      imports: [PermissionsComponent],
+      providers: [...COMMON_TEST_PROVIDERS]
     })
     .compileComponents();
 

@@ -1,3 +1,4 @@
+import { COMMON_TEST_PROVIDERS } from '../../../../testing/test-providers';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { ResultStepComponent } from './result-step.component';
@@ -8,7 +9,8 @@ describe('ResultStepComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ResultStepComponent]
+      imports: [ResultStepComponent],
+      providers: [...COMMON_TEST_PROVIDERS]
     })
     .compileComponents();
 

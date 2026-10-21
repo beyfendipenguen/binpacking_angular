@@ -1,3 +1,4 @@
+import { COMMON_TEST_PROVIDERS } from '../../../../testing/test-providers';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { InvoiceUploadComponent } from './invoice-upload.component';
@@ -8,7 +9,8 @@ describe('InvoiceUploadComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [InvoiceUploadComponent]
+      imports: [InvoiceUploadComponent],
+      providers: [...COMMON_TEST_PROVIDERS]
     })
     .compileComponents();
 

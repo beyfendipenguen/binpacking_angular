@@ -1,3 +1,4 @@
+import { COMMON_TEST_PROVIDERS } from '../../../../testing/test-providers';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { FilesDialogComponent } from './files-dialog.component';
@@ -8,7 +9,8 @@ describe('FilesDialogComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [FilesDialogComponent]
+      imports: [FilesDialogComponent],
+      providers: [...COMMON_TEST_PROVIDERS]
     })
     .compileComponents();
 

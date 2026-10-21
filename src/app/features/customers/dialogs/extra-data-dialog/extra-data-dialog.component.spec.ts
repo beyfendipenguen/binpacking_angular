@@ -1,3 +1,4 @@
+import { COMMON_TEST_PROVIDERS } from '../../../../testing/test-providers';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { ExtraDataDialogComponent } from './extra-data-dialog.component';
@@ -8,7 +9,8 @@ describe('ExtraDataDialogComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ExtraDataDialogComponent]
+      imports: [ExtraDataDialogComponent],
+      providers: [...COMMON_TEST_PROVIDERS]
     })
       .compileComponents();
 

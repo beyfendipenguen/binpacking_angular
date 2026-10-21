@@ -1,3 +1,4 @@
+import { COMMON_TEST_PROVIDERS } from '../../../../testing/test-providers';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { PalletControlComponent } from './pallet-control.component';
@@ -8,7 +9,8 @@ describe('PalletControlComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [PalletControlComponent]
+      imports: [PalletControlComponent],
+      providers: [...COMMON_TEST_PROVIDERS]
     })
     .compileComponents();
 

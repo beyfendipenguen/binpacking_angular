@@ -1,3 +1,4 @@
+import { COMMON_TEST_PROVIDERS } from '../../../testing/test-providers';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { FilterDialogComponent } from './filter-dialog.component';
@@ -8,7 +9,8 @@ describe('FilterDialogComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [FilterDialogComponent]
+      imports: [FilterDialogComponent],
+      providers: [...COMMON_TEST_PROVIDERS]
     })
     .compileComponents();
 

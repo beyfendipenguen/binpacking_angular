@@ -1,3 +1,4 @@
+import { COMMON_TEST_PROVIDERS } from '../../../testing/test-providers';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { ForgotPasswordDialogComponent } from './forgot-password-dialog.component';
@@ -8,7 +9,8 @@ describe('ForgotPasswordDialogComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ForgotPasswordDialogComponent]
+      imports: [ForgotPasswordDialogComponent],
+      providers: [...COMMON_TEST_PROVIDERS]
     })
     .compileComponents();
 
