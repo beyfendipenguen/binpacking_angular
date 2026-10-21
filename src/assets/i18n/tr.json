@@ -1302,7 +1302,12 @@
     },
     "HIGH": "Yüksek",
     "LOW": "Düşük",
-    "ORDER_DISTRIBUTION": "Sipariş Dağılımı"
+    "ORDER_DISTRIBUTION": "Sipariş Dağılımı",
+    "LOAD_ERROR": "Veriler yüklenemedi",
+    "RETRY": "Tekrar dene",
+    "MAP_LOAD_ERROR": "Harita yüklenemedi",
+    "UNIT_HOUR": "s",
+    "UNIT_MINUTE": "dk"
   },
   "PAGINATOR": {
     "ITEMS_PER_PAGE": "Sayfa başına kayıt:",

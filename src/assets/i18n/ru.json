@@ -1302,7 +1302,12 @@
     },
     "HIGH": "Высокий",
     "LOW": "низкий",
-    "ORDER_DISTRIBUTION": "Распределение заказов"
+    "ORDER_DISTRIBUTION": "Распределение заказов",
+    "LOAD_ERROR": "Не удалось загрузить данные",
+    "RETRY": "Повторить",
+    "MAP_LOAD_ERROR": "Не удалось загрузить карту",
+    "UNIT_HOUR": "ч",
+    "UNIT_MINUTE": "мин"
   },
   "PAGINATOR": {
     "ITEMS_PER_PAGE": "Записей на странице:",

@@ -42,7 +42,25 @@ import {
   selectTopCompaniesLoading,
   selectTimeSavingLoading,
   selectProductsByCustomerLoading,
+  selectOverviewError,
+  selectTrendError,
+  selectTopProductsError,
+  selectGeographyError,
+  selectTopCompaniesError,
+  selectTimeSavingError,
+  selectProductsByCustomerError,
 } from '@app/store/stats/stats.selectors';
+import { ISO2_TO_MAP_NAME } from './country-map-names';
+import { TrendParams } from '@app/features/services/stats.service';
+
+type TrendPeriod = 'daily' | 'weekly' | 'monthly' | 'yearly';
+type StatsSection =
+  | 'overview' | 'trend' | 'products' | 'customerProducts' | 'geography' | 'companies' | 'timeSaving';
+
+const TOP_LIMIT = 10;
+
+/** Dünya haritası (echarts formatı) uygulama içinde servis edilir; CDN'e bağımlılık yok. */
+const WORLD_MAP_URL = 'assets/maps/world.json';
 
 
 @Component({
@@ -85,18 +103,32 @@ export class StatsDashboardComponent implements OnInit, OnDestroy, AfterViewInit
   readonly timeSavingPeriod = toSignal(this.store.select(selectTimeSavingByPeriod));
   readonly timeSavingConfig = toSignal(this.store.select(selectTimeSavingConfig));
 
+  // ─── HATA DURUMLARI (boş veri ile "yüklenemedi" ayrımı için) ──
+  readonly overviewError = toSignal(this.store.select(selectOverviewError), { initialValue: null });
+  readonly trendError = toSignal(this.store.select(selectTrendError), { initialValue: null });
+  readonly productsError = toSignal(this.store.select(selectTopProductsError), { initialValue: null });
+  readonly geoError = toSignal(this.store.select(selectGeographyError), { initialValue: null });
+  readonly companiesError = toSignal(this.store.select(selectTopCompaniesError), { initialValue: null });
+  readonly timeSavingError = toSignal(this.store.select(selectTimeSavingError), { initialValue: null });
+  readonly customerProductsError = toSignal(this.store.select(selectProductsByCustomerError), { initialValue: null });
+
   // ─── SELECTED TREND PERIOD ──────────────────────────────
-  selectedPeriod = signal<'daily' | 'weekly' | 'monthly' | 'yearly'>('monthly');
+  selectedPeriod = signal<TrendPeriod>('monthly');
 
   // ─── MAP REGISTERED ─────────────────────────────────────
   mapRegistered = signal(false);
+  mapFailed = signal(false);
 
   // ─── CHART OPTIONS (computed) ───────────────────────────
   readonly trendChartOption = computed<EChartsOption>(() => {
     const data = this.trendData();
+    const zoomable = data.length > 31;
     return {
       tooltip: { trigger: 'axis' },
-      grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true },
+      grid: { left: '3%', right: '4%', bottom: zoomable ? '14%' : '3%', containLabel: true },
+      dataZoom: zoomable
+        ? [{ type: 'inside' }, { type: 'slider', height: 18, bottom: 4 }]
+        : undefined,
       xAxis: {
         type: 'category',
         data: data.map((d) => d.label),
@@ -257,8 +289,7 @@ export class StatsDashboardComponent implements OnInit, OnDestroy, AfterViewInit
             label: { show: true, color: '#004A4A', fontWeight: 'bold' },
           },
           data: data.map((d) => ({
-            // ← BURASI DEĞİŞTİ: her kelimenin ilk harfi büyük
-            name: this.toTitleCase(d.country),
+            name: this.mapRegionName(d.country, d.country_code),
             value: d.order_count ?? 0,
           })),
           itemStyle: {
@@ -275,35 +306,90 @@ export class StatsDashboardComponent implements OnInit, OnDestroy, AfterViewInit
   ngOnInit(): void {
     this.store.dispatch(
       StatsActions.loadAllStats({
-        trendParams: { period: 'monthly' },
-        topLimit: 10,
+        trendParams: this.trendParamsFor('monthly'),
+        topLimit: TOP_LIMIT,
       })
     );
   }
 
   ngAfterViewInit(): void {
-    // World map JSON'u CDN'den al ve register et
-    fetch('https://cdn.jsdelivr.net/npm/echarts/map/json/world.json')
-      .then((r) => r.json())
-      .then((worldJson) => {
-        echarts.registerMap('world', worldJson);
-        this.mapRegistered.set(true);
-      })
-      .catch(() => {
-
-      });
+    this.loadWorldMap();
   }
 
   ngOnDestroy(): void {
     this.store.dispatch(StatsActions.resetStats());
   }
 
+  /** Harita JSON'u uygulama içinden yüklenir; başarısız olursa kullanıcıya yeniden dene seçeneği sunulur. */
+  loadWorldMap(): void {
+    this.mapFailed.set(false);
+    if (echarts.getMap('world')) {
+      this.mapRegistered.set(true);
+      return;
+    }
+    fetch(WORLD_MAP_URL)
+      .then((r) => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json();
+      })
+      .then((worldJson) => {
+        echarts.registerMap('world', worldJson);
+        this.mapRegistered.set(true);
+      })
+      .catch(() => this.mapFailed.set(true));
+  }
+
   // ─── PERIOD CHANGE ───────────────────────────────────────
-  onPeriodChange(period: 'daily' | 'weekly' | 'monthly' | 'yearly'): void {
+  onPeriodChange(period: TrendPeriod): void {
     this.selectedPeriod.set(period);
     this.store.dispatch(
-      StatsActions.loadOrdersTrend({ params: { period } })
+      StatsActions.loadOrdersTrend({ params: this.trendParamsFor(period) })
     );
+  }
+
+  /**
+   * Günlük ve haftalık görünümde tüm geçmişi çizmek okunaksız ve ağır olur;
+   * bu yüzden varsayılan olarak son 90 gün / 52 hafta istenir.
+   */
+  private trendParamsFor(period: TrendPeriod): TrendParams {
+    const days = period === 'daily' ? 90 : period === 'weekly' ? 364 : 0;
+    if (!days) return { period };
+    const from = new Date();
+    from.setDate(from.getDate() - days);
+    const pad = (n: number) => String(n).padStart(2, '0');
+    return {
+      period,
+      date_from: `${from.getFullYear()}-${pad(from.getMonth() + 1)}-${pad(from.getDate())}`,
+    };
+  }
+
+  // ─── YENİDEN DENE ────────────────────────────────────────
+  retry(section: StatsSection): void {
+    switch (section) {
+      case 'overview':
+        this.store.dispatch(StatsActions.loadOverview());
+        break;
+      case 'trend':
+        this.store.dispatch(
+          StatsActions.loadOrdersTrend({ params: this.trendParamsFor(this.selectedPeriod()) })
+        );
+        break;
+      case 'products':
+        this.store.dispatch(StatsActions.loadTopProducts({ limit: TOP_LIMIT }));
+        break;
+      case 'customerProducts':
+        this.store.dispatch(StatsActions.loadProductsByCustomer({ limit: TOP_LIMIT }));
+        break;
+      case 'geography':
+        this.store.dispatch(StatsActions.loadGeography());
+        break;
+      case 'companies':
+        this.store.dispatch(StatsActions.loadTopCompanies({ limit: TOP_LIMIT }));
+        break;
+      case 'timeSaving':
+        this.store.dispatch(StatsActions.loadTimeSaving());
+        break;
+    }
   }
 
   getFlagUrl(code: string): string {
@@ -317,38 +403,36 @@ export class StatsDashboardComponent implements OnInit, OnDestroy, AfterViewInit
 
   // ─── HELPERS ─────────────────────────────────────────────
   formatHours(hours: number): string {
-    if (!hours) return '0s';
+    const hUnit = this.translate.instant('STATS.UNIT_HOUR');
+    const mUnit = this.translate.instant('STATS.UNIT_MINUTE');
+    if (!hours) return `0${hUnit}`;
     const h = Math.floor(hours);
     const m = Math.round((hours - h) * 60);
-    return m > 0 ? `${h}s ${m}dk` : `${h}s`;
+    return m > 0 ? `${h}${hUnit} ${m}${mUnit}` : `${h}${hUnit}`;
   }
 
-  private readonly COUNTRY_NAME_MAP: Record<string, string> = {
-    'turkey': 'Turkey',
-    'türkiye': 'Turkey',
-    'turkiye': 'Turkey',
-    'russia': 'Russia',
-    'russian federation': 'Russia',
-    'south korea': 'South Korea',
-    'north korea': 'North Korea',
-    'united states': 'United States',
-    'usa': 'United States',
-    'united kingdom': 'United Kingdom',
-    'uk': 'United Kingdom',
-    'united arab emirates': 'United Arab Emirates',
-    'uae': 'United Arab Emirates',
-  };
+  /** '2026-10' → '2026 Ekim' (seçili dile göre). */
+  formatMonth(value: string | null | undefined): string {
+    if (!value) return '-';
+    const [y, m] = value.split('-').map(Number);
+    if (!y || !m) return value;
+    const lang = this.translate.currentLang || this.translate.defaultLang || 'tr';
+    return new Date(y, m - 1, 1).toLocaleDateString(lang, { month: 'long', year: 'numeric' });
+  }
+
+  /** Backend ülke kodunu echarts harita bölge adına çevirir; bulunamazsa adı düzenleyerek dener. */
+  private mapRegionName(country: string, code: string | null): string {
+    const byCode = code ? ISO2_TO_MAP_NAME[code.toUpperCase()] : undefined;
+    return byCode ?? this.toTitleCase(country);
+  }
+
   toTitleCase(str: string): string {
     if (!str) return '';
-    const lower = str.toLowerCase().trim();
-    // Önce mapping'e bak
-    if (this.COUNTRY_NAME_MAP[lower]) {
-      return this.COUNTRY_NAME_MAP[lower];
-    }
-    // Yoksa genel title case
-    return lower
+    return str
+      .toLowerCase()
+      .trim()
       .split(' ')
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
       .join(' ');
   }
 }

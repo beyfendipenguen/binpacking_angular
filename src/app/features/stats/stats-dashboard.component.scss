@@ -238,6 +238,27 @@ $text-mid: #374151;
     }
 
     // Empty state
+    .error-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      min-height: 160px;
+      color: $neutral;
+
+      mat-icon {
+        font-size: 40px;
+        width: 40px;
+        height: 40px;
+        color: #c0392b;
+      }
+
+      span {
+        font-size: 14px;
+      }
+    }
+
     .empty-state {
       display: flex;
       flex-direction: column;
@@ -682,6 +703,26 @@ $text-mid: #374151;
           display: none;
         }
       }
+    }
+  }
+
+  .error-banner {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 16px;
+    margin-bottom: 16px;
+    border-radius: 8px;
+    background: #fdecea;
+    color: #8a2a1f;
+    font-size: 14px;
+
+    mat-icon {
+      color: #c0392b;
+    }
+
+    span {
+      flex: 1;
     }
   }
 }

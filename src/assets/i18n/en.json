@@ -1302,7 +1302,12 @@
     },
     "HIGH": "High",
     "LOW": "Low",
-    "ORDER_DISTRIBUTION": "Order Distribution"
+    "ORDER_DISTRIBUTION": "Order Distribution",
+    "LOAD_ERROR": "Failed to load data",
+    "RETRY": "Retry",
+    "MAP_LOAD_ERROR": "Failed to load the map",
+    "UNIT_HOUR": "h",
+    "UNIT_MINUTE": "min"
   },
   "PAGINATOR": {
     "ITEMS_PER_PAGE": "Items per page:",

@@ -16,6 +16,14 @@
   <!-- ═══════════════════════════════════════════
        KPI KARTLARI
   ═══════════════════════════════════════════ -->
+  @if (overviewError()) {
+  <div class="error-banner">
+    <mat-icon>error_outline</mat-icon>
+    <span>{{ 'STATS.LOAD_ERROR' | translate }}</span>
+    <button mat-stroked-button (click)="retry('overview')">{{ 'STATS.RETRY' | translate }}</button>
+  </div>
+  }
+
   <div class="kpi-grid">
 
     <!-- Toplam Sipariş -->
@@ -87,7 +95,7 @@
         <mat-icon>star</mat-icon>
       </div>
       <div class="kpi-content">
-        <span class="kpi-value">{{ bestMonth()?.month ?? '-' }}</span>
+        <span class="kpi-value">{{ formatMonth(bestMonth()?.month) }}</span>
         <span class="kpi-label">
           {{ 'STATS.BEST_MONTH' | translate }}
           @if (bestMonth()) {
@@ -112,6 +120,12 @@
     @if (timeSavingLoading()) {
     <div class="chart-loading">
       <mat-spinner [diameter]="36"></mat-spinner>
+    </div>
+    } @else if (timeSavingError()) {
+    <div class="error-state">
+      <mat-icon>error_outline</mat-icon>
+      <span>{{ 'STATS.LOAD_ERROR' | translate }}</span>
+      <button mat-stroked-button (click)="retry('timeSaving')">{{ 'STATS.RETRY' | translate }}</button>
     </div>
     } @else {
     <div class="time-saving-grid">
@@ -164,7 +178,7 @@
         <mat-icon>av_timer</mat-icon>
         <div class="time-saving-content">
           <span class="time-value">
-            {{ timeSavingSummary()?.avg_saved_minutes_per_order ?? 0 | number:'1.0-0' }} dk
+            {{ timeSavingSummary()?.avg_saved_minutes_per_order ?? 0 | number:'1.0-0' }} {{ 'STATS.UNIT_MINUTE' | translate }}
           </span>
           <span class="time-label">{{ 'STATS.AVG_PER_ORDER' | translate }}</span>
         </div>
@@ -216,6 +230,12 @@
     <div class="chart-loading">
       <mat-spinner [diameter]="36"></mat-spinner>
     </div>
+    } @else if (trendError()) {
+    <div class="error-state">
+      <mat-icon>error_outline</mat-icon>
+      <span>{{ 'STATS.LOAD_ERROR' | translate }}</span>
+      <button mat-stroked-button (click)="retry('trend')">{{ 'STATS.RETRY' | translate }}</button>
+    </div>
     } @else if (trendData().length === 0) {
     <div class="empty-state">
       <mat-icon>show_chart</mat-icon>
@@ -241,7 +261,19 @@
       }
     </div>
 
-    @if (geoLoading() || !mapRegistered()) {
+    @if (geoError()) {
+    <div class="error-state">
+      <mat-icon>error_outline</mat-icon>
+      <span>{{ 'STATS.LOAD_ERROR' | translate }}</span>
+      <button mat-stroked-button (click)="retry('geography')">{{ 'STATS.RETRY' | translate }}</button>
+    </div>
+    } @else if (mapFailed()) {
+    <div class="error-state">
+      <mat-icon>map</mat-icon>
+      <span>{{ 'STATS.MAP_LOAD_ERROR' | translate }}</span>
+      <button mat-stroked-button (click)="loadWorldMap()">{{ 'STATS.RETRY' | translate }}</button>
+    </div>
+    } @else if (geoLoading() || !mapRegistered()) {
     <div class="chart-loading">
       <mat-spinner [diameter]="36"></mat-spinner>
     </div>
@@ -289,6 +321,12 @@
       <div class="chart-loading">
         <mat-spinner [diameter]="36"></mat-spinner>
       </div>
+      } @else if (productsError()) {
+      <div class="error-state">
+        <mat-icon>error_outline</mat-icon>
+        <span>{{ 'STATS.LOAD_ERROR' | translate }}</span>
+        <button mat-stroked-button (click)="retry('products')">{{ 'STATS.RETRY' | translate }}</button>
+      </div>
       } @else if (topProductsData().length === 0) {
       <div class="empty-state">
         <mat-icon>inventory_2</mat-icon>
@@ -310,6 +348,12 @@
       @if (companiesLoading()) {
       <div class="chart-loading">
         <mat-spinner [diameter]="36"></mat-spinner>
+      </div>
+      } @else if (companiesError()) {
+      <div class="error-state">
+        <mat-icon>error_outline</mat-icon>
+        <span>{{ 'STATS.LOAD_ERROR' | translate }}</span>
+        <button mat-stroked-button (click)="retry('companies')">{{ 'STATS.RETRY' | translate }}</button>
       </div>
       } @else if (topCompanies().length === 0) {
       <div class="empty-state">
@@ -336,6 +380,12 @@
     @if (customerProductsLoading()) {
     <div class="chart-loading">
       <mat-spinner [diameter]="36"></mat-spinner>
+    </div>
+    } @else if (customerProductsError()) {
+    <div class="error-state">
+      <mat-icon>error_outline</mat-icon>
+      <span>{{ 'STATS.LOAD_ERROR' | translate }}</span>
+      <button mat-stroked-button (click)="retry('customerProducts')">{{ 'STATS.RETRY' | translate }}</button>
     </div>
     } @else if (productsByCustomer().length === 0) {
     <div class="empty-state">
