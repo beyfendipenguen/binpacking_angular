@@ -348,6 +348,10 @@ $white: #ffffff;
           height: 14px;
           color: $white;
         }
+
+        .unsaved-badge__arrow {
+          margin-left: 2px;
+        }
       }
 
       .report-files-chips {
@@ -394,9 +398,12 @@ $white: #ffffff;
             background: rgba($warning-amber, 0.08);
           }
 
+          // Kaydedilmemiş değişiklik varken (isDirty) rapora tıklamak değişiklikleri
+          // kaydedip raporları günceller; bu yüzden soluk/"bekle" değil, davetkâr görünür.
           &.saving {
-            cursor: wait;
-            opacity: 0.7;
+            cursor: pointer;
+            border-color: $warning-amber;
+            animation: chip-save-glow 1.8s ease-in-out infinite;
           }
 
           .file-icon {
@@ -1029,6 +1036,18 @@ $white: #ffffff;
 
     50% {
       box-shadow: 0 4px 16px rgba($success-green, 0.5);
+    }
+  }
+
+  @keyframes chip-save-glow {
+
+    0%,
+    100% {
+      box-shadow: 0 0 0 0 rgba($warning-amber, 0.55);
+    }
+
+    50% {
+      box-shadow: 0 0 0 6px rgba($warning-amber, 0);
     }
   }
 

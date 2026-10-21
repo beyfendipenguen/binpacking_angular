@@ -68,28 +68,29 @@ export class StepperResultEffects {
         // sorusunu değil. selectStep2IsDirty kalıcı (sticky) bir bayrak;
         // upsertManySuccess sonrası originalPackages == packages olsa da
         // false'a dönmez (bkz. applyBackendPackagesAfterSave).
-        if (isEditMode && !hasRevised && isPackagesDirty) {
-          return this.orderService.reviseOrder(action.orderId).pipe(
+        const save$ = (isEditMode && !hasRevised && isPackagesDirty)
+          ? this.orderService.reviseOrder(action.orderId).pipe(
             tap(() => {
               this.store.dispatch(StepperUiActions.reviseOrderSuccess());
             }),
             switchMap(() =>
               this.repositoryService.partialUpdateOrderResult(orderResultId, action.orderResult)
             ),
-            map(() => action)
-          );
-        }
+          )
+          : this.repositoryService.partialUpdateOrderResult(orderResultId, action.orderResult);
 
-        return this.repositoryService.partialUpdateOrderResult(orderResultId, action.orderResult).pipe(
-          map(() => action)
+        // catchError İÇERİDE olmalı: dış akışta olursa tek bir kaydetme hatası
+        // (ağ kesintisi, 4xx/5xx) effect'i tamamlar ve sayfa yenilenene kadar
+        // hiçbir "kaydet" isteği gönderilmez (düzenlemeler sessizce kaybolur).
+        return save$.pipe(
+          map(() => StepperResultActions.createReportFile({ orderId: action.orderId })),
+          catchError((error) =>
+            of(StepperUiActions.setGlobalError({
+              error: { message: error.message, stepIndex: 3 }
+            }))
+          )
         );
       }),
-      map((action) => StepperResultActions.createReportFile({ orderId: action.orderId })),
-      catchError((error) =>
-        of(StepperUiActions.setGlobalError({
-          error: { message: error.message, stepIndex: 3 }
-        }))
-      )
     )
   );
 

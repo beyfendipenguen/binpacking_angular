@@ -37,6 +37,12 @@
         font-weight: 600;
         margin: 0;
         letter-spacing: 0.3px;
+        // Uzun başlıklar kesilmesin: kalan genişliği al ve alt satıra sarsın
+        flex: 1;
+        min-width: 0;
+        white-space: normal;
+        overflow-wrap: anywhere;
+        line-height: 1.3;
       }
     }
 

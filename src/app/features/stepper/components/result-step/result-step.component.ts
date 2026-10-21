@@ -162,8 +162,8 @@ export class ResultStepComponent implements OnInit, OnDestroy {
   // Her isDirty'de değil, en fazla FILES_HINT_INTERVAL_MS'de bir gösterilir;
   // 8 sn sonra kendiliğinden kapanır, kullanıcı da kapatabilir.
   private static readonly FILES_HINT_KEY = 'resultFilesHintLastShown';
-  private static readonly FILES_HINT_INTERVAL_MS = 10 * 60 * 1000;
-  private static readonly FILES_HINT_DURATION_MS = 8000;
+  private static readonly FILES_HINT_INTERVAL_MS = 2 * 60 * 1000;
+  private static readonly FILES_HINT_DURATION_MS = 12000;
   readonly showFilesHint = signal(false);
   private filesHintTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -233,7 +233,64 @@ export class ResultStepComponent implements OnInit, OnDestroy {
   // ========================================
   // BINPACKING CALCULATION
   // ========================================
+  /**
+   * "Optimizasyonu Çalıştır" tıklaması. Sonuç zaten varsa ve kullanıcı elle
+   * düzenleme yaptıysa (kaydedilmemiş: isDirty, kaydedilmiş: backend'in
+   * algoritma çıktısı ile güncel yerleşim farkı) önce onay istenir; yeniden
+   * hesaplama manuel değişiklikleri sıfırlar ve raporları baştan üretir.
+   */
   calculateBinpacking(): void {
+    if (!this.hasResultsSignal()) {
+      this.runBinpackingCalculation();
+      return;
+    }
+
+    if (this.isDirtySignal()) {
+      this.confirmRecalculation();
+      return;
+    }
+
+    const orderId = this.orderIdSignal();
+    if (!orderId) {
+      this.runBinpackingCalculation();
+      return;
+    }
+
+    this.feedbackService.getStatus(orderId, true).pipe(take(1), takeUntil(this.destroy$)).subscribe({
+      next: (status) => {
+        if (status?.placement?.changed) {
+          this.confirmRecalculation();
+        } else {
+          this.runBinpackingCalculation();
+        }
+      },
+      // Durum alınamazsa kullanıcıyı bloklama
+      error: () => this.runBinpackingCalculation(),
+    });
+  }
+
+  private confirmRecalculation(): void {
+    this.dialog.open(CancelConfirmationDialogComponent, {
+      width: '440px',
+      maxWidth: '95vw',
+      disableClose: true,
+      panelClass: 'cancel-confirmation-dialog',
+      data: {
+        header: 'RESULT_STEP.RECALC_HEADER',
+        title: 'RESULT_STEP.RECALC_TITLE',
+        info: 'RESULT_STEP.RECALC_INFO',
+        confirmButtonText: 'RESULT_STEP.RECALC_CONFIRM',
+        rejectButtonText: 'RESULT_STEP.RECALC_CANCEL',
+        showYesButton: true,
+      },
+    }).afterClosed().pipe(takeUntil(this.destroy$)).subscribe((confirmed) => {
+      if (confirmed === true) {
+        this.runBinpackingCalculation();
+      }
+    });
+  }
+
+  private runBinpackingCalculation(): void {
 
     this.isLoading = true;
     this.isLoadingSignal.set(true);
