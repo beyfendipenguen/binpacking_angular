@@ -132,7 +132,7 @@
         class="inventory-list" (cdkDropListDropped)="dropPackageDetailToPackage($event)">
         @for(packageDetail of remainingProducts(); track packageDetail.id){
         <div class="product-item" cdkDrag (cdkDragStarted)="dragStarted($event)" (cdkDragEnded)="dragEnded()"
-          [appDisableAuth]="['products.change_product']" [cdkDragData]="packageDetail">
+          [appDisableAuth]="['orders.drag_order_product']" [cdkDragData]="packageDetail">
           <div class="product-icon"></div>
           <div class="product-info">
             <span class="product-name">{{ packageDetail.product.name }}</span>
@@ -140,7 +140,7 @@
               <input matInput class="product-count-input" type="number" min="1" [value]="packageDetail.count"
                 (keydown.enter)="$event.preventDefault()" inputmode="numeric" (focus)="$event.target.select()"
                 (change)="updatePackageDetailCount(packageDetail, $event)" id="productCount-{{packageDetail.id}}"
-                name="productCount-{{packageDetail.id}}" [appDisableAuth]="['products.change_product']" />
+                name="productCount-{{packageDetail.id}}" [appDisableAuth]="['orders.drag_order_product']" />
               <span class="count-label">{{ 'INVOICE_UPLOAD.TABLE.COUNT' | translate }}</span>
             </div>
           </div>
@@ -154,7 +154,7 @@
                 );
                 splitInput.value = ''
               " [matTooltip]="'PALLET_CONTROL.HOW_MANY_SPLIT'| translate" id="splitInput-{{packageDetail.id}}"
-              name="splitInput-{{packageDetail.id}}" [appDisableAuth]="['products.change_product']" />
+              name="splitInput-{{packageDetail.id}}" [appDisableAuth]="['orders.split_order_product']" />
 
             <button mat-icon-button class="action-button split-button" (click)="
                 splitProduct(
@@ -163,13 +163,13 @@
                 );
                 splitInput.value = ''"
                 [matTooltip]="'PALLET_CONTROL.SPLIT_PRODUCT'| translate"
-                [appDisableAuth]="['products.change_product']">
+                [appDisableAuth]="['orders.split_order_product']">
               <mat-icon>content_cut</mat-icon>
             </button>
           </div>
           <div class="split-product-container">
             <button mat-icon-button class="action-button" (click)="deleteRemainingProducts([packageDetail.id])"
-              [matTooltip]="'PALLET_CONTROL.DELETE_PRODUCT'| translate" [appDisableAuth]="['products.delete_product']">
+              [matTooltip]="'PALLET_CONTROL.DELETE_PRODUCT'| translate" [appDisableAuth]="['orders.remove_order_product']">
               <mat-icon>close</mat-icon>
             </button>
           </div>
@@ -193,7 +193,7 @@
         <div class="order-products-list">
           @for(orderDetail of orderDetails(); track orderDetail.id){
           <button type="button" class="order-product-item" (click)="addOrderProductToRemaining(orderDetail.id)"
-            [matTooltip]="'PALLET_CONTROL.ADD_TO_INVENTORY' | translate" [appDisableAuth]="['products.change_product']">
+            [matTooltip]="'PALLET_CONTROL.ADD_TO_INVENTORY' | translate" [appDisableAuth]="['orders.add_order_product']">
             <div class="product-icon small"></div>
             <div class="product-info">
               <span class="product-name">{{ orderDetail.product.name }}</span>
@@ -505,7 +505,7 @@
 
         <div cdkDropList #palletsList="cdkDropList" id="availablePalletsList" [cdkDropListData]="displayedPallets()"
           [cdkDropListConnectedTo]="packageDropListIds()" class="pallets-list"
-          (cdkDropListDropped)="dropPalletToPackage($event)" [appDisableAuth]="['logistics.change_package']">
+          (cdkDropListDropped)="dropPalletToPackage($event)" [appDisableAuth]="['logistics.drag_order_pallet']">
 
           @for(pallet of displayedPallets(); track pallet.ui_id){
           <div class="pallet-item" cdkDrag>
@@ -532,7 +532,7 @@
 
         <div cdkDropList id="orderPalletsList" [cdkDropListData]="orderPlacedPallets()"
           [cdkDropListConnectedTo]="packageDropListIds()" class="pallets-list"
-          (cdkDropListDropped)="dropPalletToPackage($event)" [appDisableAuth]="['logistics.change_package']">
+          (cdkDropListDropped)="dropPalletToPackage($event)" [appDisableAuth]="['logistics.drag_order_pallet']">
 
           @for(pallet of orderPlacedPallets(); track pallet.ui_id){
           <div class="pallet-item" cdkDrag>
