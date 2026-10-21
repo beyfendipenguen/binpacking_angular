@@ -16,7 +16,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
 
       - name: Install dependencies
@@ -32,7 +32,8 @@ jobs:
           username: ${{ secrets.VDS_USER }}
           key: ${{ secrets.VDS_SSH_KEY }}
           script: |
-            mkdir -p /var/www/trunam_box_ui
+            rm -rf /var/www/trunam_box_ui_new
+            mkdir -p /var/www/trunam_box_ui_new
 
       - name: Copy dist to VDS
         uses: appleboy/scp-action@v0.1.7
@@ -41,5 +42,22 @@ jobs:
           username: ${{ secrets.VDS_USER }}
           key: ${{ secrets.VDS_SSH_KEY }}
           source: "dist/binpacking/browser/*"
-          target: "/var/www/trunam_box_ui"
+          target: "/var/www/trunam_box_ui_new"
           strip_components: 3
+
+      # Yeni build tamamen yüklendikten sonra klasörü değiştir:
+      # eski hash'li dosyalar temizlenir, yükleme sırasında site boş kalmaz.
+      # Bir önceki sürüm geri dönüş için trunam_box_ui_old'da tutulur.
+      - name: Swap release
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VDS_HOST }}
+          username: ${{ secrets.VDS_USER }}
+          key: ${{ secrets.VDS_SSH_KEY }}
+          script: |
+            set -e
+            cd /var/www
+            test -f trunam_box_ui_new/index.html
+            rm -rf trunam_box_ui_old
+            if [ -d trunam_box_ui ]; then mv trunam_box_ui trunam_box_ui_old; fi
+            mv trunam_box_ui_new trunam_box_ui
