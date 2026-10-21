@@ -1,76 +1,69 @@
 import { Routes } from '@angular/router';
-import { CustomersComponent } from './customers/customers.component';
-import { OrdersComponent } from './orders/orders.component';
-import { ProductsComponent } from './products/products.component';
-import { ProfileComponent } from './profile/profile.component';
-import { StepperComponent } from './stepper/stepper.component';
 import { feedbackExitGuard } from './stepper/guards/feedback-exit.guard';
-import { PalletsComponent } from './pallets/pallets.component';
-import { TrucksComponent } from './trucks/trucks.component';
-import { PermissionsComponent } from './permissions/permissions.component';
 import { permissionGuard } from '@app/core/auth/guards/permission.guard';
-import { StatsDashboardComponent } from './stats/stats-dashboard.component';
-import { IntegrationComponent } from './integration/integration.component';
 
+// Sayfalar lazy yüklenir: three.js (stepper) ve echarts (stats) gibi ağır
+// kütüphaneler ilk açılış (login) paketine girmez, sayfa açılınca inen ayrı
+// parçalara (chunk) ayrılır.
 const ADMIN_ROUTES: Routes = [
   {
     path: '',
-    component: StepperComponent,
+    loadComponent: () => import('./stepper/stepper.component').then(m => m.StepperComponent),
     canActivate: [permissionGuard],
     canDeactivate: [feedbackExitGuard],
     data: { permission: 'orders.view_order' }
   },
   {
     path: 'orders',
-    component: OrdersComponent,
+    loadComponent: () => import('./orders/orders.component').then(m => m.OrdersComponent),
     canActivate: [permissionGuard],
     data: { permission: ['orders.view_order'] }
   },
   {
     path: 'pallets',
-    component: PalletsComponent,
+    loadComponent: () => import('./pallets/pallets.component').then(m => m.PalletsComponent),
     canActivate: [permissionGuard],
     data: { permission: ['logistics.view_pallet'] }
   },
   {
     path: 'products',
-    component: ProductsComponent,
+    loadComponent: () => import('./products/products.component').then(m => m.ProductsComponent),
     canActivate: [permissionGuard],
     data: { permission: ['products.view_product'] }
   },
   {
     path: 'trucks',
-    component: TrucksComponent,
+    loadComponent: () => import('./trucks/trucks.component').then(m => m.TrucksComponent),
     canActivate: [permissionGuard],
     data: { permission: ['logistics.view_truck'] }
   },
   {
     path: 'customers',
-    component: CustomersComponent,
+    loadComponent: () => import('./customers/customers.component').then(m => m.CustomersComponent),
     canActivate: [permissionGuard],
     data: { permission: 'organizations.view_companyrelation' }
   },
   {
     path: 'permissions',
-    component: PermissionsComponent,
+    loadComponent: () => import('./permissions/permissions.component').then(m => m.PermissionsComponent),
     canActivate: [permissionGuard],
     data: { permission: 'access_control.view_permissionpage' }
   },
   {
     path: 'integration',
-    component: IntegrationComponent,
+    loadComponent: () => import('./integration/integration.component').then(m => m.IntegrationComponent),
     canActivate: [permissionGuard],
     data: { permission: 'organizations.view_erpcredential' }
   },
   {
     path: 'stats',
-    component: StatsDashboardComponent,
+    loadComponent: () => import('./stats/stats-dashboard.component').then(m => m.StatsDashboardComponent),
     canActivate: [permissionGuard],
     data: { permission: 'access_control.view_statspage' }
   },
   {
     path: 'profile',
-    component: ProfileComponent
+    loadComponent: () => import('./profile/profile.component').then(m => m.ProfileComponent)
   },
 ];
 

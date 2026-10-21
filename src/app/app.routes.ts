@@ -5,7 +5,6 @@ import ADMIN_ROUTES from './features/admin.routes';
 import { LayoutComponent } from './features/layout/layout.component';
 import { ErrorComponent } from './shared/error/error.component';
 import { PermissionDeniedComponent } from './shared/permission-denied/permission-denied.component';
-import { PublicOrderViewComponent } from './features/order-public-view/public-order-view.component';
 
 export const routes: Routes = [
     {
@@ -14,7 +13,8 @@ export const routes: Routes = [
     },
     {
         path: 'order-view/:guid',
-        component: PublicOrderViewComponent,
+        loadComponent: () => import('./features/order-public-view/public-order-view.component')
+            .then(m => m.PublicOrderViewComponent),
         title: 'TrunamBox',
     },
     {
