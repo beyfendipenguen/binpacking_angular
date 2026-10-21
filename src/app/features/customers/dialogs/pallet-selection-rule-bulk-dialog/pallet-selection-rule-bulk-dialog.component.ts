@@ -1,5 +1,5 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { getApiErrorMessage } from '@app/core/utils/api-error.util';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatDialogRef, MatDialogModule } from '@angular/material/dialog';
@@ -33,7 +33,6 @@ import { PalletSelectionRule } from '@app/features/interfaces/pallet-selection-r
   selector: 'app-pallet-selection-rule-bulk-dialog',
   standalone: true,
   imports: [
-    CommonModule,
     FormsModule,
     ReactiveFormsModule,
     MatDialogModule,
@@ -46,8 +45,8 @@ import { PalletSelectionRule } from '@app/features/interfaces/pallet-selection-r
     MatChipsModule,
     MatTooltipModule,
     MatPaginatorModule,
-    TranslateModule,
-  ],
+    TranslateModule
+],
   templateUrl: './pallet-selection-rule-bulk-dialog.component.html',
   styleUrl: './pallet-selection-rule-bulk-dialog.component.scss'
 })

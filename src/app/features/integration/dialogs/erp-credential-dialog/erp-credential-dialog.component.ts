@@ -1,5 +1,5 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -33,7 +33,6 @@ const ERP_TYPE_LABELS: Record<string, string> = {
   selector: 'app-erp-credential-dialog',
   standalone: true,
   imports: [
-    CommonModule,
     ReactiveFormsModule,
     MatDialogModule,
     MatFormFieldModule,
@@ -43,8 +42,8 @@ const ERP_TYPE_LABELS: Record<string, string> = {
     MatProgressSpinnerModule,
     MatSlideToggleModule,
     MatTooltipModule,
-    TranslateModule,
-  ],
+    TranslateModule
+],
   templateUrl: './erp-credential-dialog.component.html',
   styleUrl: './erp-credential-dialog.component.scss',
 })

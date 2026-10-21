@@ -4,56 +4,54 @@
 
       <!-- Logo/Header Section -->
       <!-- <div class="sidenav-header">
-        <div class="logo">
+      <div class="logo">
         <img src="industricode-b.png" alt="IndustriCode" class="logo-png">
       </div>
-      </div> -->
+    </div> -->
 
-      <mat-divider></mat-divider>
+    <mat-divider></mat-divider>
 
-      <!-- Navigation Menu -->
-      <mat-nav-list class="nav-list">
-        <ng-container *ngFor="let item of navItems()">
-
-          <!-- Level 1 - Simple Item (No Children) -->
+    <!-- Navigation Menu -->
+    <mat-nav-list class="nav-list">
+      @for (item of navItems(); track item) {
+        <!-- Level 1 - Simple Item (No Children) -->
+        @if (!hasChildren(item)) {
           <mat-list-item
-            *ngIf="!hasChildren(item)"
             [routerLink]="item.routerLink"
             [class.active]="isActive(item)"
             class="nav-item">
             <mat-icon matListItemIcon class="nav-icon">{{ item.icon }}</mat-icon>
             <span matListItemTitle class="nav-title">{{ item.title | translate  }}</span>
           </mat-list-item>
-
-          <!-- Level 1 - Parent Item (Has Children) -->
-          <ng-container *ngIf="hasChildren(item)">
-            <mat-list-item
-              (click)="toggleExpand(item.title)"
-              [class.is-expanded]="isExpanded(item.title)"
-              class="nav-item parent-item">
-              <mat-icon matListItemIcon class="nav-icon">{{ item.icon }}</mat-icon>
-              <span matListItemTitle class="nav-title">{{ item.title | translate }}</span>
-              <mat-icon class="expand-icon">
-                {{ isExpanded(item.title) ? 'expand_less' : 'expand_more' }}
-              </mat-icon>
-            </mat-list-item>
-
-            <!-- Level 2 Children -->
-            <div *ngIf="isExpanded(item.title)" class="children-container level-2">
-              <ng-container *ngFor="let child of item.children">
-
+        }
+        <!-- Level 1 - Parent Item (Has Children) -->
+        @if (hasChildren(item)) {
+          <mat-list-item
+            (click)="toggleExpand(item.title)"
+            [class.is-expanded]="isExpanded(item.title)"
+            class="nav-item parent-item">
+            <mat-icon matListItemIcon class="nav-icon">{{ item.icon }}</mat-icon>
+            <span matListItemTitle class="nav-title">{{ item.title | translate }}</span>
+            <mat-icon class="expand-icon">
+              {{ isExpanded(item.title) ? 'expand_less' : 'expand_more' }}
+            </mat-icon>
+          </mat-list-item>
+          <!-- Level 2 Children -->
+          @if (isExpanded(item.title)) {
+            <div class="children-container level-2">
+              @for (child of item.children; track child) {
                 <!-- Level 2 - Simple Item (No Children) -->
-                <mat-list-item
-                  *ngIf="!hasChildren(child)"
-                  [routerLink]="child.routerLink"
-                  [class.active]="isActive(child)"
-                  class="nav-item">
-                  <mat-icon matListItemIcon class="nav-icon">{{ child.icon }}</mat-icon>
-                  <span matListItemTitle class="nav-title">{{ child.title | translate }}</span>
-                </mat-list-item>
-
+                @if (!hasChildren(child)) {
+                  <mat-list-item
+                    [routerLink]="child.routerLink"
+                    [class.active]="isActive(child)"
+                    class="nav-item">
+                    <mat-icon matListItemIcon class="nav-icon">{{ child.icon }}</mat-icon>
+                    <span matListItemTitle class="nav-title">{{ child.title | translate }}</span>
+                  </mat-list-item>
+                }
                 <!-- Level 2 - Parent Item (Has Children) -->
-                <ng-container *ngIf="hasChildren(child)">
+                @if (hasChildren(child)) {
                   <mat-list-item
                     (click)="toggleExpand(child.title)"
                     [class.is-expanded]="isExpanded(child.title)"
@@ -64,31 +62,32 @@
                       {{ isExpanded(child.title) ? 'expand_less' : 'expand_more' }}
                     </mat-icon>
                   </mat-list-item>
-
                   <!-- Level 3 Children (Grandchildren) -->
-                  <div *ngIf="isExpanded(child.title)" class="children-container level-3">
-                    <mat-list-item
-                      *ngFor="let grandchild of child.children"
-                      [routerLink]="grandchild.routerLink"
-                      [class.active]="isActive(grandchild)"
-                      class="nav-item">
-                      <mat-icon matListItemIcon class="nav-icon">{{ grandchild.icon }}</mat-icon>
-                      <span matListItemTitle class="nav-title">{{ grandchild.title | translate }}</span>
-                    </mat-list-item>
-                  </div>
-                </ng-container>
-
-              </ng-container>
+                  @if (isExpanded(child.title)) {
+                    <div class="children-container level-3">
+                      @for (grandchild of child.children; track grandchild) {
+                        <mat-list-item
+                          [routerLink]="grandchild.routerLink"
+                          [class.active]="isActive(grandchild)"
+                          class="nav-item">
+                          <mat-icon matListItemIcon class="nav-icon">{{ grandchild.icon }}</mat-icon>
+                          <span matListItemTitle class="nav-title">{{ grandchild.title | translate }}</span>
+                        </mat-list-item>
+                      }
+                    </div>
+                  }
+                }
+              }
             </div>
-          </ng-container>
+          }
+        }
+      }
+    </mat-nav-list>
 
-        </ng-container>
-      </mat-nav-list>
+  </mat-sidenav>
 
-    </mat-sidenav>
-
-    <mat-sidenav-content cdkScrollable class="main-content">
-      <ng-content></ng-content>
-    </mat-sidenav-content>
-  </mat-sidenav-container>
+  <mat-sidenav-content cdkScrollable class="main-content">
+    <ng-content></ng-content>
+  </mat-sidenav-content>
+</mat-sidenav-container>
 </div>

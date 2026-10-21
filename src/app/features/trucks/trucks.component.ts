@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { Component, OnInit, inject } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
@@ -13,13 +13,12 @@ import { MatDialog } from '@angular/material/dialog';
 @Component({
   selector: 'app-trucks',
   imports: [
-    CommonModule,
     GenericTableComponent,
     MatButtonModule,
     MatIconModule,
     TranslateModule,
     HasPermissionDirective
-  ],
+],
   templateUrl: './trucks.component.html',
   styleUrl: './trucks.component.scss'
 })

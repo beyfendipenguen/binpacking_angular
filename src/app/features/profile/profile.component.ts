@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { Component, inject, OnDestroy, OnInit } from '@angular/core';
 import {
@@ -31,22 +31,7 @@ import { HasPermissionDirective } from '@app/core/auth/directives/has-permission
 
 @Component({
   selector: 'app-profile',
-  imports: [CommonModule,
-    ReactiveFormsModule,
-    MatCardModule,
-    MatButtonModule,
-    MatInputModule,
-    MatFormFieldModule,
-    MatIconModule,
-    MatTabsModule,
-    MatProgressSpinnerModule,
-    MatDividerModule,
-    MatDialogModule,
-    MatSelectModule,
-    TranslateModule,
-    HasPermissionDirective,
-    DisableAuthDirective
-  ],
+  imports: [ReactiveFormsModule, MatCardModule, MatButtonModule, MatInputModule, MatFormFieldModule, MatIconModule, MatTabsModule, MatProgressSpinnerModule, MatDividerModule, MatDialogModule, MatSelectModule, TranslateModule, HasPermissionDirective, DisableAuthDirective],
   templateUrl: './profile.component.html',
   styleUrl: './profile.component.scss',
 })

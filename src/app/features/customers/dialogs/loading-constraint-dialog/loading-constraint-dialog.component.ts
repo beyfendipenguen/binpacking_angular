@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy, inject, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, FormControl } from '@angular/forms';
 import { MatDialog, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -33,7 +33,6 @@ type ProductCode = ProductType;
   selector: 'app-loading-constraint-dialog',
   standalone: true,
   imports: [
-    CommonModule,
     ReactiveFormsModule,
     MatDialogModule,
     MatFormFieldModule,
@@ -43,8 +42,8 @@ type ProductCode = ProductType;
     MatProgressSpinnerModule,
     MatAutocompleteModule,
     MatTooltipModule,
-    TranslateModule,
-  ],
+    TranslateModule
+],
   templateUrl: './loading-constraint-dialog.component.html',
   styleUrl: './loading-constraint-dialog.component.scss',
 })

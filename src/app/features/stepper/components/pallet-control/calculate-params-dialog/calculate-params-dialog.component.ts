@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+
 import { Component, inject } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -13,14 +13,7 @@ import { TranslateModule } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-calculate-params-dialog',
-  imports: [CommonModule,
-    MatDialogModule,
-    MatButtonModule,
-    MatInputModule,
-    MatCheckboxModule,
-    MatFormFieldModule,
-    ReactiveFormsModule,
-    TranslateModule, MatIconModule],
+  imports: [MatDialogModule, MatButtonModule, MatInputModule, MatCheckboxModule, MatFormFieldModule, ReactiveFormsModule, TranslateModule, MatIconModule],
   templateUrl: './calculate-params-dialog.component.html',
   styleUrl: './calculate-params-dialog.component.scss'
 })

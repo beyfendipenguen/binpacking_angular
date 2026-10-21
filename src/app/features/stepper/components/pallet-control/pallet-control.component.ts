@@ -33,7 +33,7 @@ import {
   CdkDropList,
   CdkDragStart,
 } from '@angular/cdk/drag-drop';
-import { CommonModule } from '@angular/common';
+
 import { UiPallet } from '../ui-models/ui-pallet.model';
 import { UiPackage } from '../ui-models/ui-package.model';
 import { Store } from '@ngrx/store';
@@ -109,28 +109,7 @@ import { NavigationEnd, Router } from '@angular/router';
 
 @Component({
   selector: 'app-pallet-control',
-  imports: [FormsModule,
-    ReactiveFormsModule,
-    MatFormFieldModule,
-    MatStepperModule,
-    MatButtonModule,
-    MatInputModule,
-    MatTableModule,
-    MatCardModule,
-    CommonModule,
-    CdkDropList,
-    CdkDrag,
-    MatIconModule,
-    MatProgressSpinnerModule,
-    MatOption,
-    MatAutocompleteModule,
-    MatTooltipModule,
-    MatCheckboxModule,
-    TranslateModule,
-    HasPermissionDirective,
-    DisableAuthDirective,
-    FeedbackReactionComponent
-  ],
+  imports: [FormsModule, ReactiveFormsModule, MatFormFieldModule, MatStepperModule, MatButtonModule, MatInputModule, MatTableModule, MatCardModule, CdkDropList, CdkDrag, MatIconModule, MatProgressSpinnerModule, MatOption, MatAutocompleteModule, MatTooltipModule, MatCheckboxModule, TranslateModule, HasPermissionDirective, DisableAuthDirective, FeedbackReactionComponent],
   templateUrl: './pallet-control.component.html',
   styleUrl: './pallet-control.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

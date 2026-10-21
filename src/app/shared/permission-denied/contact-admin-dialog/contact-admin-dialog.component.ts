@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+
 import { Component, Inject, inject } from '@angular/core';
 import { ReactiveFormsModule, FormGroup, FormBuilder, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -21,18 +21,7 @@ export interface PermissionRequestData {
 
 @Component({
   selector: 'app-contact-admin',
-  imports: [CommonModule,
-    ReactiveFormsModule,
-    MatDialogModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatButtonModule,
-    MatIconModule,
-    MatSelectModule,
-    MatSnackBarModule,
-    TranslateModule,
-    PermissionTranslatePipe
-  ],
+  imports: [ReactiveFormsModule, MatDialogModule, MatFormFieldModule, MatInputModule, MatButtonModule, MatIconModule, MatSelectModule, MatSnackBarModule, TranslateModule, PermissionTranslatePipe],
   templateUrl: './contact-admin-dialog.component.html',
   styleUrl: './contact-admin-dialog.component.scss'
 })

@@ -1,5 +1,5 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { getApiErrorMessage } from '@app/core/utils/api-error.util';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatDialogRef, MatDialogModule } from '@angular/material/dialog';
@@ -25,7 +25,6 @@ import { LoadingConstraint } from '@app/features/interfaces/loading-constraint.i
   selector: 'app-loading-constraint-bulk-dialog',
   standalone: true,
   imports: [
-    CommonModule,
     FormsModule,
     ReactiveFormsModule,
     MatDialogModule,
@@ -38,8 +37,8 @@ import { LoadingConstraint } from '@app/features/interfaces/loading-constraint.i
     MatChipsModule,
     MatTooltipModule,
     MatPaginatorModule,
-    TranslateModule,
-  ],
+    TranslateModule
+],
   templateUrl: './loading-constraint-bulk-dialog.component.html',
   styleUrl: './loading-constraint-bulk-dialog.component.scss'
 })

@@ -1,6 +1,6 @@
 import { Component, inject, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { CommonModule } from '@angular/common';
+
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
@@ -29,19 +29,7 @@ import { ErpIntegrationService } from '@app/features/services/erp-integration.se
 @Component({
   selector: 'app-orders',
   standalone: true,
-  imports: [CommonModule,
-    ReactiveFormsModule,
-    MatButtonModule,
-    MatIconModule,
-    MatDialogModule,
-    MatMenuModule,
-    MatTooltipModule,
-    MatFormFieldModule,
-    MatInputModule,
-    GenericTableComponent,
-    HasPermissionDirective,
-    TranslateModule,
-  ],
+  imports: [ReactiveFormsModule, MatButtonModule, MatIconModule, MatDialogModule, MatMenuModule, MatTooltipModule, MatFormFieldModule, MatInputModule, GenericTableComponent, HasPermissionDirective, TranslateModule],
   templateUrl: './orders.component.html',
   styleUrl: './orders.component.scss'
 })

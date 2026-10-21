@@ -16,7 +16,7 @@ import {
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { MatButton } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { CommonModule } from '@angular/common';
+
 import { Subject } from 'rxjs';
 import { takeUntil, finalize, take, withLatestFrom } from 'rxjs/operators';
 
@@ -44,14 +44,7 @@ import { FeedbackDialogComponent, FeedbackDialogResult } from '../feedback-dialo
 @Component({
   selector: 'app-result-step',
   standalone: true,
-  imports: [CommonModule,
-    MatButton,
-    MatIconModule,
-    ThreeJSTruckVisualizationComponent,
-    TranslateModule,
-    DisableAuthDirective, HasPermissionDirective,
-    FeedbackReactionComponent
-  ],
+  imports: [MatButton, MatIconModule, ThreeJSTruckVisualizationComponent, TranslateModule, DisableAuthDirective, HasPermissionDirective, FeedbackReactionComponent],
   templateUrl: './result-step.component.html',
   styleUrl: './result-step.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush

@@ -1,7 +1,7 @@
 import {
   Component, OnInit, inject, signal
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import {
   FormBuilder, FormGroup, Validators,
   ReactiveFormsModule, FormsModule
@@ -23,7 +23,6 @@ import { ToastService } from '@app/core/services/toast.service';
   selector: 'app-weight-category-dialog',
   standalone: true,
   imports: [
-    CommonModule,
     ReactiveFormsModule,
     FormsModule,
     MatDialogModule,
@@ -34,8 +33,8 @@ import { ToastService } from '@app/core/services/toast.service';
     MatProgressSpinnerModule,
     MatDividerModule,
     MatTooltipModule,
-    TranslateModule,
-  ],
+    TranslateModule
+],
   templateUrl: './weight-category-dialog.component.html',
   styleUrl: './weight-category-dialog.component.scss',
 })

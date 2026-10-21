@@ -1,7 +1,7 @@
 import { Component, inject, OnInit, Inject } from '@angular/core';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { getApiErrorMessage } from '@app/core/utils/api-error.util';
-import { CommonModule } from '@angular/common';
+
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef, MatDialog } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -20,14 +20,13 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
   selector: 'app-generic-bulk-upload-dialog',
   standalone: true,
   imports: [
-    CommonModule,
     MatDialogModule,
     MatButtonModule,
     MatIconModule,
     MatProgressSpinnerModule,
     TranslateModule,
     MatProgressBarModule
-  ],
+],
   template: `
     <div class="dialog-container">
       <div class="dialog-header">

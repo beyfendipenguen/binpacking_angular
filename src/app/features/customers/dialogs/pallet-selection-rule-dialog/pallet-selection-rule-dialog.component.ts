@@ -1,5 +1,5 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatDialog, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -31,7 +31,6 @@ import { ConfirmDialogComponent } from '@app/shared/generic-table/confirm-dialog
   selector: 'app-pallet-selection-rule-dialog',
   standalone: true,
   imports: [
-    CommonModule,
     ReactiveFormsModule,
     MatDialogModule,
     MatFormFieldModule,
@@ -41,8 +40,8 @@ import { ConfirmDialogComponent } from '@app/shared/generic-table/confirm-dialog
     MatIconModule,
     MatProgressSpinnerModule,
     MatTooltipModule,
-    TranslateModule,
-  ],
+    TranslateModule
+],
   templateUrl: './pallet-selection-rule-dialog.component.html',
   styleUrl: './pallet-selection-rule-dialog.component.scss',
 })

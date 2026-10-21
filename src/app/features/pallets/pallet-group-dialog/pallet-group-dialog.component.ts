@@ -1,6 +1,6 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { CommonModule } from '@angular/common';
+
 import { MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -21,21 +21,7 @@ import { DisableAuthDirective } from '@app/core/auth/directives/disable-auth.dir
 @Component({
   selector: 'app-pallet-group-dialog',
   standalone: true,
-  imports: [CommonModule,
-    FormsModule,
-    ReactiveFormsModule,
-    MatDialogModule,
-    MatButtonModule,
-    MatIconModule,
-    MatInputModule,
-    MatCheckboxModule,
-    MatChipsModule,
-    MatListModule,
-    MatProgressSpinnerModule,
-    TranslateModule,
-    MatTooltipModule,
-    DisableAuthDirective
-  ],
+  imports: [FormsModule, ReactiveFormsModule, MatDialogModule, MatButtonModule, MatIconModule, MatInputModule, MatCheckboxModule, MatChipsModule, MatListModule, MatProgressSpinnerModule, TranslateModule, MatTooltipModule, DisableAuthDirective],
   templateUrl: './pallet-group-dialog.component.html',
   styleUrls: ['./pallet-group-dialog.component.scss']
 })

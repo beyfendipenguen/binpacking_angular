@@ -18,237 +18,233 @@
           </button>
         </div>
 
-        <div class="groups-list" *ngIf="!isLoadingGroups; else loadingGroups">
-          <mat-list>
-            <mat-list-item *ngFor="let group of groups" [class.selected]="selectedGroup?.id === group.id"
-              [class.global-group]="group.is_global" (click)="selectGroup(group)">
-              <div class="group-item">
-                <div class="group-info">
-                  <span class="group-name">{{ group.name }}</span>
-                  <span class="group-badge" *ngIf="group.is_global">
-                    <mat-icon>lock</mat-icon>{{ 'PALLET.GLOBAL' | translate }}</span>
-                </div>
-                <span class="group-count">{{ group.pallet_count }} {{'PALLET.PALLET' | translate}}</span>
-              </div>
-            </mat-list-item>
-          </mat-list>
-
-          <div class="empty-state" *ngIf="groups.length === 0">
-            <mat-icon>folder_open</mat-icon>
-            <p>{{ 'PALLET.NO_GROUPS' | translate }}</p>
-            <p class="hint">{{ 'PALLET.CREATE_GROUP_TIP' | translate }}</p>
-          </div>
-        </div>
-
-        <ng-template #loadingGroups>
-          <div class="loading-state">
-            <mat-spinner diameter="40"></mat-spinner>
-            <p>{{ 'PALLET.LOADING_GROUPS' | translate }}</p>
-          </div>
-        </ng-template>
-      </div>
-
-      <!-- Sağ Panel: Grup Detayları -->
-      <div class="details-panel">
-        <div *ngIf="selectedGroup || isNewGroup; else noSelection">
-          <div class="panel-header">
-            <h3>{{ (isNewGroup ? 'PALLET.NEW_GROUP' : 'PALLET.GROUP_DETAILS') | translate }}</h3>
-            <span class="global-warning" *ngIf="isGlobalGroup()">
-              <mat-icon>lock</mat-icon>{{ 'PALLET.VIEW_ONLY' | translate }}</span>
-          </div>
-
-          <form [formGroup]="groupForm" class="group-form">
-            <!-- Grup Adı -->
-            <mat-form-field appearance="outline" class="full-width">
-              <mat-label>{{ 'PALLET.GROUP_NAME' | translate }}</mat-label>
-              <input matInput formControlName="name" [placeholder]="'PALLET.GROUP_NAME_PLACEHOLDER' | translate"
-                [appDisableAuth]="['logistics.add_palletgroup','logistics.change_palletgroup']">
-              <mat-error *ngIf="groupForm.get('name')?.hasError('required')">{{ 'PALLET.GROUP_NAME_REQUIRED' | translate
-                }}</mat-error>
-            </mat-form-field>
-
-            <!-- Açıklama -->
-            <mat-form-field appearance="outline" class="full-width">
-              <mat-label>{{ 'COMMON.DESCRIPTION' | translate }}</mat-label>
-              <textarea matInput formControlName="description" rows="2"
-                [appDisableAuth]="['logistics.add_palletgroup','logistics.change_palletgroup']"
-                [placeholder]="'PALLET.GROUP_DESCRIPTION' | translate"></textarea>
-            </mat-form-field>
-
-            <!-- Paletler Bölümü -->
-            <div class="pallets-section">
-              <div class="section-header">
-                <h4>{{ 'PALLET.PALLETS' | translate }}</h4>
-                <span class="selection-count">
-                  {{ selectedPallets.length }} / {{ allPallets.length }} {{ 'COMMON.SELECTED' | translate }}
-                </span>
-              </div>
-
-              <div class="dual-list-container" *ngIf="!isLoadingPallets; else loadingPallets">
-                <!-- Sol Liste: Mevcut Paletler -->
-                <div class="pallet-list-box">
-                  <div class="list-header">
-                    <span class="list-title">{{ 'PALLET.AVAILABLE_PALLETS' | translate }}</span>
-                    <span class="list-count">{{ availablePallets.length }}</span>
-                  </div>
-                  <div class="search-box">
-                    <mat-icon class="search-icon">search</mat-icon>
-                    <input type="text" class="search-input" [placeholder]="'PALLET.SEARCH_PALLETS' | translate"
-                      [formControl]="searchAvailableControl">
-                    @if (searchAvailableControl.value) {
-                    <button mat-icon-button class="clear-btn" (click)="clearAvailableSearch()">
-                      <mat-icon>close</mat-icon>
-                    </button>
-                    }
-
-                  </div>
-                  <div class="pallet-items">
-                    @for(pallet of availablePallets;track pallet.id){
-                    <div class="pallet-item" [class.selected]="tempSelectedAvailable.has(pallet.id)"
-                      (click)="toggleAvailableSelection(pallet.id)" (dblclick)="addSinglePallet(pallet.id)">
-                      <mat-checkbox [checked]="tempSelectedAvailable.has(pallet.id)" [disabled]="isGlobalGroup()"
-                        (click)="$event.stopPropagation()" (change)="toggleAvailableSelection(pallet.id)"
-                        [appDisableAuth]="['logistics.add_palletgroup','logistics.change_palletgroup']">
-                      </mat-checkbox>
-                      <div class="pallet-info">
-                        <span class="pallet-dimensions">
-                          {{ pallet.dimension.width }} x {{ pallet.dimension.depth }} x {{ pallet.dimension.height }} cm
-                        </span>
-                        <span class="pallet-weight">{{ pallet.weight }} kg</span>
+        @if (!isLoadingGroups) {
+          <div class="groups-list">
+            <mat-list>
+              @for (group of groups; track group) {
+                <mat-list-item [class.selected]="selectedGroup?.id === group.id"
+                  [class.global-group]="group.is_global" (click)="selectGroup(group)">
+                  <div class="group-item">
+                    <div class="group-info">
+                      <span class="group-name">{{ group.name }}</span>
+                      @if (group.is_global) {
+                        <span class="group-badge">
+                          <mat-icon>lock</mat-icon>{{ 'PALLET.GLOBAL' | translate }}</span>
+                        }
                       </div>
+                      <span class="group-count">{{ group.pallet_count }} {{'PALLET.PALLET' | translate}}</span>
                     </div>
-                    }
-                    @if (availablePallets.length === 0) {
-                    <div class="empty-list">
-                      <mat-icon>{{ searchAvailableControl.value ? 'search_off' : 'check_circle' }}</mat-icon>
-                      <p>{{ (searchAvailableControl.value ? 'COMMON.NO_RESULTS' : 'PALLET.ALL_ADDED') | translate}}</p>
-                    </div>
-                    }
-
-                  </div>
+                  </mat-list-item>
+                }
+              </mat-list>
+              @if (groups.length === 0) {
+                <div class="empty-state">
+                  <mat-icon>folder_open</mat-icon>
+                  <p>{{ 'PALLET.NO_GROUPS' | translate }}</p>
+                  <p class="hint">{{ 'PALLET.CREATE_GROUP_TIP' | translate }}</p>
                 </div>
-
-                <!-- Ortada: Transfer Butonları -->
-                <div class="transfer-buttons">
-                  <button mat-icon-button class="transfer-btn" (click)="addSelectedToGroup()"
-                    [disabled]="tempSelectedAvailable.size === 0 || isGlobalGroup()"
-                    [matTooltip]="'COMMON.ADD_SELECTED' | translate"
-                    [appDisableAuth]="['logistics.add_palletgroup','logistics.change_palletgroup']">
-                    <mat-icon>arrow_forward</mat-icon>
-                  </button>
-
-                  <button mat-icon-button class="transfer-btn" (click)="addAllToGroup()"
-                    [disabled]="availablePallets.length === 0 || isGlobalGroup()"
-                    [matTooltip]="'COMMON.ADD_ALL' | translate"
-                    [appDisableAuth]="['logistics.add_palletgroup','logistics.change_palletgroup']">
-                    <mat-icon>keyboard_double_arrow_right</mat-icon>
-                  </button>
-
-                  <button mat-icon-button class="transfer-btn" (click)="removeSelectedFromGroup()"
-                    [disabled]="tempSelectedInGroup.size === 0 || isGlobalGroup()"
-                    [matTooltip]="'COMMON.REMOVE_SELECTED' | translate"
-                    [appDisableAuth]="['logistics.add_palletgroup','logistics.change_palletgroup']">
-                    <mat-icon>arrow_back</mat-icon>
-                  </button>
-
-                  <button mat-icon-button class="transfer-btn" (click)="removeAllFromGroup()"
-                    [disabled]="selectedPallets.length === 0 || isGlobalGroup()"
-                    [matTooltip]="'COMMON.REMOVE_ALL' | translate"
-                    [appDisableAuth]="['logistics.add_palletgroup','logistics.change_palletgroup']">
-                    <mat-icon>keyboard_double_arrow_left</mat-icon>
-                  </button>
-                </div>
-
-                <!-- Sağ Liste: Seçili Paletler -->
-                <div class="pallet-list-box">
-                  <div class="list-header">
-                    <span class="list-title">{{ 'PALLET.GROUP_PALLETS' | translate }}</span>
-                    <span class="list-count">{{ selectedPallets.length }}</span>
-                  </div>
-
-                  <!-- ARAMA KUTUSU - SAĞ -->
-                  <div class="search-box">
-                    <mat-icon class="search-icon">search</mat-icon>
-                    <input type="text" class="search-input" [placeholder]="'PALLET.SEARCH_PALLETS' | translate"
-                      [formControl]="searchSelectedControl">
-                    @if (searchSelectedControl.value) {
-                    <button mat-icon-button class="clear-btn" (click)="clearSelectedSearch()"
-                      [appDisableAuth]="['logistics.add_palletgroup','logistics.change_palletgroup']">
-                      <mat-icon>close</mat-icon>
-                    </button>
-                    }
-
-                  </div>
-
-                  <div class="pallet-items">
-                    @for (pallet of selectedPallets; track pallet.id) {
-                    <div class="pallet-item" [class.selected]="tempSelectedInGroup.has(pallet.id)"
-                      (click)="toggleSelectedSelection(pallet.id)" (dblclick)="removeSinglePallet(pallet.id)">
-                      <mat-checkbox [checked]="tempSelectedInGroup.has(pallet.id)" [disabled]="isGlobalGroup()"
-                        (click)="$event.stopPropagation()" (change)="toggleSelectedSelection(pallet.id)"
-                        [appDisableAuth]="['logistics.add_palletgroup','logistics.change_palletgroup']">
-                      </mat-checkbox>
-                      <div class="pallet-info">
-                        <span class="pallet-dimensions">
-                          {{ pallet.dimension.width }} x {{ pallet.dimension.depth }} x {{ pallet.dimension.height }} cm
-                        </span>
-                        <span class="pallet-weight">{{ pallet.weight }} kg</span>
-                      </div>
-                    </div>
-                    }
-                    @if (selectedPallets.length === 0) {
-                    <div class="empty-list">
-                      <mat-icon>{{ searchSelectedControl.value ? 'search_off' : 'inbox' }}</mat-icon>
-                      <p>{{ (searchSelectedControl.value ? 'PALLET.NO_RESULTS' : 'PALLET.NO_PALLETS_ADDED') | translate
-                        }}</p>
-                    </div>
-                    }
-
-                  </div>
-                </div>
-              </div>
-
-              <ng-template #loadingPallets>
-                <div class="loading-state small">
-                  <mat-spinner diameter="30"></mat-spinner>
-                  <p>{{ 'PALLET.LOADING_PALLETS' | translate }}</p>
-                </div>
-              </ng-template>
+              }
             </div>
-          </form>
+          } @else {
+            <div class="loading-state">
+              <mat-spinner diameter="40"></mat-spinner>
+              <p>{{ 'PALLET.LOADING_GROUPS' | translate }}</p>
+            </div>
+          }
+
         </div>
 
-        <ng-template #noSelection>
-          <div class="no-selection">
-            <mat-icon>touch_app</mat-icon>
-            <p>{{ 'PALLET.SELECT_GROUP_TO_EDIT' | translate }}</p>
-            <p class="hint">{{ 'PALLET.OR_CREATE_NEW' | translate }}</p>
-          </div>
-        </ng-template>
-      </div>
-    </div>
-  </mat-dialog-content>
-  @if (selectedGroup || isNewGroup) {
-  <mat-dialog-actions class="dialog-actions">
-    <div class="actions-left">
-      @if(!isNewGroup && selectedGroup && !isGlobalGroup()){
-      <button mat-stroked-button color="warn" (click)="deleteGroup()" [disabled]="isSaving"
-        [appDisableAuth]="['logistics.delete_palletgroup']">
-        <mat-icon>delete</mat-icon>{{ 'COMMON.DELETE' | translate }}</button>
-      }
+        <!-- Sağ Panel: Grup Detayları -->
+        <div class="details-panel">
+          @if (selectedGroup || isNewGroup) {
+            <div>
+              <div class="panel-header">
+                <h3>{{ (isNewGroup ? 'PALLET.NEW_GROUP' : 'PALLET.GROUP_DETAILS') | translate }}</h3>
+                @if (isGlobalGroup()) {
+                  <span class="global-warning">
+                    <mat-icon>lock</mat-icon>{{ 'PALLET.VIEW_ONLY' | translate }}</span>
+                  }
+                </div>
+                <form [formGroup]="groupForm" class="group-form">
+                  <!-- Grup Adı -->
+                  <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>{{ 'PALLET.GROUP_NAME' | translate }}</mat-label>
+                    <input matInput formControlName="name" [placeholder]="'PALLET.GROUP_NAME_PLACEHOLDER' | translate"
+                      [appDisableAuth]="['logistics.add_palletgroup','logistics.change_palletgroup']">
+                      @if (groupForm.get('name')?.hasError('required')) {
+                        <mat-error>{{ 'PALLET.GROUP_NAME_REQUIRED' | translate
+                        }}</mat-error>
+                      }
+                    </mat-form-field>
+                    <!-- Açıklama -->
+                    <mat-form-field appearance="outline" class="full-width">
+                      <mat-label>{{ 'COMMON.DESCRIPTION' | translate }}</mat-label>
+                      <textarea matInput formControlName="description" rows="2"
+                        [appDisableAuth]="['logistics.add_palletgroup','logistics.change_palletgroup']"
+                      [placeholder]="'PALLET.GROUP_DESCRIPTION' | translate"></textarea>
+                    </mat-form-field>
+                    <!-- Paletler Bölümü -->
+                    <div class="pallets-section">
+                      <div class="section-header">
+                        <h4>{{ 'PALLET.PALLETS' | translate }}</h4>
+                        <span class="selection-count">
+                          {{ selectedPallets.length }} / {{ allPallets.length }} {{ 'COMMON.SELECTED' | translate }}
+                        </span>
+                      </div>
+                      @if (!isLoadingPallets) {
+                        <div class="dual-list-container">
+                          <!-- Sol Liste: Mevcut Paletler -->
+                          <div class="pallet-list-box">
+                            <div class="list-header">
+                              <span class="list-title">{{ 'PALLET.AVAILABLE_PALLETS' | translate }}</span>
+                              <span class="list-count">{{ availablePallets.length }}</span>
+                            </div>
+                            <div class="search-box">
+                              <mat-icon class="search-icon">search</mat-icon>
+                              <input type="text" class="search-input" [placeholder]="'PALLET.SEARCH_PALLETS' | translate"
+                                [formControl]="searchAvailableControl">
+                                @if (searchAvailableControl.value) {
+                                  <button mat-icon-button class="clear-btn" (click)="clearAvailableSearch()">
+                                    <mat-icon>close</mat-icon>
+                                  </button>
+                                }
+                              </div>
+                              <div class="pallet-items">
+                                @for(pallet of availablePallets;track pallet.id){
+                                  <div class="pallet-item" [class.selected]="tempSelectedAvailable.has(pallet.id)"
+                                    (click)="toggleAvailableSelection(pallet.id)" (dblclick)="addSinglePallet(pallet.id)">
+                                    <mat-checkbox [checked]="tempSelectedAvailable.has(pallet.id)" [disabled]="isGlobalGroup()"
+                                      (click)="$event.stopPropagation()" (change)="toggleAvailableSelection(pallet.id)"
+                                      [appDisableAuth]="['logistics.add_palletgroup','logistics.change_palletgroup']">
+                                    </mat-checkbox>
+                                    <div class="pallet-info">
+                                      <span class="pallet-dimensions">
+                                        {{ pallet.dimension.width }} x {{ pallet.dimension.depth }} x {{ pallet.dimension.height }} cm
+                                      </span>
+                                      <span class="pallet-weight">{{ pallet.weight }} kg</span>
+                                    </div>
+                                  </div>
+                                }
+                                @if (availablePallets.length === 0) {
+                                  <div class="empty-list">
+                                    <mat-icon>{{ searchAvailableControl.value ? 'search_off' : 'check_circle' }}</mat-icon>
+                                    <p>{{ (searchAvailableControl.value ? 'COMMON.NO_RESULTS' : 'PALLET.ALL_ADDED') | translate}}</p>
+                                  </div>
+                                }
+                              </div>
+                            </div>
+                            <!-- Ortada: Transfer Butonları -->
+                            <div class="transfer-buttons">
+                              <button mat-icon-button class="transfer-btn" (click)="addSelectedToGroup()"
+                                [disabled]="tempSelectedAvailable.size === 0 || isGlobalGroup()"
+                                [matTooltip]="'COMMON.ADD_SELECTED' | translate"
+                                [appDisableAuth]="['logistics.add_palletgroup','logistics.change_palletgroup']">
+                                <mat-icon>arrow_forward</mat-icon>
+                              </button>
+                              <button mat-icon-button class="transfer-btn" (click)="addAllToGroup()"
+                                [disabled]="availablePallets.length === 0 || isGlobalGroup()"
+                                [matTooltip]="'COMMON.ADD_ALL' | translate"
+                                [appDisableAuth]="['logistics.add_palletgroup','logistics.change_palletgroup']">
+                                <mat-icon>keyboard_double_arrow_right</mat-icon>
+                              </button>
+                              <button mat-icon-button class="transfer-btn" (click)="removeSelectedFromGroup()"
+                                [disabled]="tempSelectedInGroup.size === 0 || isGlobalGroup()"
+                                [matTooltip]="'COMMON.REMOVE_SELECTED' | translate"
+                                [appDisableAuth]="['logistics.add_palletgroup','logistics.change_palletgroup']">
+                                <mat-icon>arrow_back</mat-icon>
+                              </button>
+                              <button mat-icon-button class="transfer-btn" (click)="removeAllFromGroup()"
+                                [disabled]="selectedPallets.length === 0 || isGlobalGroup()"
+                                [matTooltip]="'COMMON.REMOVE_ALL' | translate"
+                                [appDisableAuth]="['logistics.add_palletgroup','logistics.change_palletgroup']">
+                                <mat-icon>keyboard_double_arrow_left</mat-icon>
+                              </button>
+                            </div>
+                            <!-- Sağ Liste: Seçili Paletler -->
+                            <div class="pallet-list-box">
+                              <div class="list-header">
+                                <span class="list-title">{{ 'PALLET.GROUP_PALLETS' | translate }}</span>
+                                <span class="list-count">{{ selectedPallets.length }}</span>
+                              </div>
+                              <!-- ARAMA KUTUSU - SAĞ -->
+                              <div class="search-box">
+                                <mat-icon class="search-icon">search</mat-icon>
+                                <input type="text" class="search-input" [placeholder]="'PALLET.SEARCH_PALLETS' | translate"
+                                  [formControl]="searchSelectedControl">
+                                  @if (searchSelectedControl.value) {
+                                    <button mat-icon-button class="clear-btn" (click)="clearSelectedSearch()"
+                                      [appDisableAuth]="['logistics.add_palletgroup','logistics.change_palletgroup']">
+                                      <mat-icon>close</mat-icon>
+                                    </button>
+                                  }
+                                </div>
+                                <div class="pallet-items">
+                                  @for (pallet of selectedPallets; track pallet.id) {
+                                    <div class="pallet-item" [class.selected]="tempSelectedInGroup.has(pallet.id)"
+                                      (click)="toggleSelectedSelection(pallet.id)" (dblclick)="removeSinglePallet(pallet.id)">
+                                      <mat-checkbox [checked]="tempSelectedInGroup.has(pallet.id)" [disabled]="isGlobalGroup()"
+                                        (click)="$event.stopPropagation()" (change)="toggleSelectedSelection(pallet.id)"
+                                        [appDisableAuth]="['logistics.add_palletgroup','logistics.change_palletgroup']">
+                                      </mat-checkbox>
+                                      <div class="pallet-info">
+                                        <span class="pallet-dimensions">
+                                          {{ pallet.dimension.width }} x {{ pallet.dimension.depth }} x {{ pallet.dimension.height }} cm
+                                        </span>
+                                        <span class="pallet-weight">{{ pallet.weight }} kg</span>
+                                      </div>
+                                    </div>
+                                  }
+                                  @if (selectedPallets.length === 0) {
+                                    <div class="empty-list">
+                                      <mat-icon>{{ searchSelectedControl.value ? 'search_off' : 'inbox' }}</mat-icon>
+                                      <p>{{ (searchSelectedControl.value ? 'PALLET.NO_RESULTS' : 'PALLET.NO_PALLETS_ADDED') | translate
+                                      }}</p>
+                                    </div>
+                                  }
+                                </div>
+                              </div>
+                            </div>
+                          } @else {
+                            <div class="loading-state small">
+                              <mat-spinner diameter="30"></mat-spinner>
+                              <p>{{ 'PALLET.LOADING_PALLETS' | translate }}</p>
+                            </div>
+                          }
+                        </div>
+                      </form>
+                    </div>
+                  } @else {
+                    <div class="no-selection">
+                      <mat-icon>touch_app</mat-icon>
+                      <p>{{ 'PALLET.SELECT_GROUP_TO_EDIT' | translate }}</p>
+                      <p class="hint">{{ 'PALLET.OR_CREATE_NEW' | translate }}</p>
+                    </div>
+                  }
 
-    </div>
-    <div class="actions-right">
-      <button mat-button (click)="close()" [disabled]="isSaving">{{ 'COMMON.CANCEL' | translate }}</button>
-      <button mat-raised-button color="primary" (click)="saveGroup()"
-        [disabled]="groupForm.invalid || isSaving || isGlobalGroup()"
-        [appDisableAuth]="['logistics.change_palletgroup']">
-        @if (!isSaving) {
-        <span>{{ (isNewGroup ? 'COMMON.CREATE' : 'COMMON.UPDATE') | translate }}</span>
-        }
+                </div>
+              </div>
+            </mat-dialog-content>
+            @if (selectedGroup || isNewGroup) {
+              <mat-dialog-actions class="dialog-actions">
+                <div class="actions-left">
+                  @if(!isNewGroup && selectedGroup && !isGlobalGroup()){
+                    <button mat-stroked-button color="warn" (click)="deleteGroup()" [disabled]="isSaving"
+                      [appDisableAuth]="['logistics.delete_palletgroup']">
+                      <mat-icon>delete</mat-icon>{{ 'COMMON.DELETE' | translate }}</button>
+                    }
 
-      </button>
-    </div>
-  </mat-dialog-actions>
-  }
-</div>
+                  </div>
+                  <div class="actions-right">
+                    <button mat-button (click)="close()" [disabled]="isSaving">{{ 'COMMON.CANCEL' | translate }}</button>
+                    <button mat-raised-button color="primary" (click)="saveGroup()"
+                      [disabled]="groupForm.invalid || isSaving || isGlobalGroup()"
+                      [appDisableAuth]="['logistics.change_palletgroup']">
+                      @if (!isSaving) {
+                        <span>{{ (isNewGroup ? 'COMMON.CREATE' : 'COMMON.UPDATE') | translate }}</span>
+                      }
+
+                    </button>
+                  </div>
+                </mat-dialog-actions>
+              }
+            </div>

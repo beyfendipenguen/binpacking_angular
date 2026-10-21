@@ -1,5 +1,5 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -20,7 +20,6 @@ import { CompanyReportProfile, ExtraHeaderField } from '@app/features/interfaces
   selector: 'app-report-profile-dialog',
   standalone: true,
   imports: [
-    CommonModule,
     ReactiveFormsModule,
     MatDialogModule,
     MatFormFieldModule,
@@ -30,8 +29,8 @@ import { CompanyReportProfile, ExtraHeaderField } from '@app/features/interfaces
     MatProgressSpinnerModule,
     MatSelectModule,
     MatTooltipModule,
-    TranslateModule,
-  ],
+    TranslateModule
+],
   templateUrl: './report-profile-dialog.component.html',
   styleUrl: './report-profile-dialog.component.scss',
 })

@@ -6,7 +6,7 @@ import {
   signal,
   computed
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormBuilder, FormGroup, FormControl, Validators, ReactiveFormsModule } from '@angular/forms';
 import { forkJoin, Subject } from 'rxjs';
 import { takeUntil, finalize } from 'rxjs/operators';
@@ -47,7 +47,6 @@ interface CompanyUser {
   selector: 'app-permissions',
   standalone: true,
   imports: [
-    CommonModule,
     ReactiveFormsModule,
     MatCardModule,
     MatButtonModule,
@@ -62,7 +61,7 @@ interface CompanyUser {
     TranslateModule,
     DisableAuthDirective,
     HasPermissionDirective
-  ],
+],
   templateUrl: './permissions.component.html',
   styleUrl: './permissions.component.scss'
 })

@@ -1,5 +1,5 @@
 import { Component, OnDestroy, OnInit, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatButtonModule } from '@angular/material/button';
@@ -24,7 +24,6 @@ import { MatTooltipModule } from '@angular/material/tooltip';
   selector: 'app-merge-orders-dialog',
   standalone: true,
   imports: [
-    CommonModule,
     FormsModule,
     ReactiveFormsModule,
     MatDialogModule,
@@ -37,7 +36,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
     MatProgressSpinnerModule,
     TranslateModule,
     MatTooltipModule
-  ],
+],
   templateUrl: './merge-orders-dialog.component.html',
   styleUrl: './merge-orders-dialog.component.scss',
 })

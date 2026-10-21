@@ -1,5 +1,5 @@
 import { Component, Inject, OnInit, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import {
   FormBuilder,
   FormGroup,
@@ -36,7 +36,6 @@ const PHONE_REGEX = /^[0-9+\-\s()]{7,20}$/;
   selector: 'app-add-or-update-dialog',
   standalone: true,
   imports: [
-    CommonModule,
     ReactiveFormsModule,
     FormsModule,
     MatDialogModule,
@@ -49,7 +48,7 @@ const PHONE_REGEX = /^[0-9+\-\s()]{7,20}$/;
     MatSelectModule,
     MatIconModule,
     TranslateModule
-  ],
+],
   templateUrl: './add-or-update-dialog.component.html',
   styleUrl: './add-or-update-dialog.component.scss'
 })

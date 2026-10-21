@@ -1,5 +1,5 @@
 import { Component, inject, Inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -16,13 +16,12 @@ interface ResultDialogData {
   selector: 'app-generic-bulk-upload-result-dialog',
   standalone: true,
   imports: [
-    CommonModule,
     MatDialogModule,
     MatButtonModule,
     MatIconModule,
     MatTableModule,
     TranslateModule
-  ],
+],
   template: `
     <div class="dialog-container">
   <div class="dialog-header">

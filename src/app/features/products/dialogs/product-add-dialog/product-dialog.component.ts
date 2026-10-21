@@ -1,5 +1,5 @@
 import { Component, Inject, OnInit, inject, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef, MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -36,7 +36,6 @@ export interface ProductDialogResult {
   selector: 'app-product-dialog',
   standalone: true,
   imports: [
-    CommonModule,
     ReactiveFormsModule,
     FormsModule,
     MatDialogModule,
@@ -47,8 +46,8 @@ export interface ProductDialogResult {
     MatIconModule,
     MatProgressSpinnerModule,
     MatDividerModule,
-    TranslateModule,
-  ],
+    TranslateModule
+],
   templateUrl: './product-dialog.component.html',
   styleUrl: './product-dialog.component.scss',
 })

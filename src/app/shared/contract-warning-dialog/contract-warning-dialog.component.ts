@@ -1,5 +1,5 @@
 import { Component, Inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { TranslateModule } from '@ngx-translate/core';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
@@ -13,12 +13,11 @@ export interface ContractWarningData {
 @Component({
   selector: 'app-contract-warning-dialog',
   imports: [
-    CommonModule,
     MatDialogModule,
     MatButtonModule,
     MatIconModule,
-    TranslateModule,
-  ],
+    TranslateModule
+],
   templateUrl: './contract-warning-dialog.component.html',
   styleUrl: './contract-warning-dialog.component.scss',
 })

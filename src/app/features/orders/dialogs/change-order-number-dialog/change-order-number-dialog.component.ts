@@ -1,5 +1,5 @@
 import { Component, OnDestroy, OnInit, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormControl, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatButtonModule } from '@angular/material/button';
@@ -27,7 +27,6 @@ interface ParsedOrderName {
   selector: 'app-change-order-number-dialog',
   standalone: true,
   imports: [
-    CommonModule,
     FormsModule,
     ReactiveFormsModule,
     MatDialogModule,
@@ -38,8 +37,8 @@ interface ParsedOrderName {
     MatButtonModule,
     MatIconModule,
     MatProgressSpinnerModule,
-    TranslateModule,
-  ],
+    TranslateModule
+],
   templateUrl: './change-order-number-dialog.component.html',
   styleUrl: './change-order-number-dialog.component.scss',
 })

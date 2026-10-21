@@ -1,5 +1,5 @@
 import { Component, inject, Input } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { TranslateModule } from '@ngx-translate/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -9,7 +9,7 @@ import { PermissionTranslatePipe } from './pipes/permission-translate.pipe';
 
 @Component({
   selector: 'app-permission-denied',
-  imports: [CommonModule, TranslateModule, MatButtonModule, MatIconModule,PermissionTranslatePipe],
+  imports: [TranslateModule, MatButtonModule, MatIconModule, PermissionTranslatePipe],
   templateUrl: './permission-denied.component.html',
   styleUrl: './permission-denied.component.scss'
 })

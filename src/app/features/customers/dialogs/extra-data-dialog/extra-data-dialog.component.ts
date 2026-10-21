@@ -1,5 +1,5 @@
 import { Component, OnInit, ViewChild, inject, OnDestroy } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { getApiErrorMessage } from '@app/core/utils/api-error.util';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormControl } from '@angular/forms';
 import { FormsModule } from '@angular/forms';
@@ -45,7 +45,6 @@ interface DynamicField {
   selector: 'app-extra-data-dialog',
   standalone: true,
   imports: [
-    CommonModule,
     FormsModule,
     ReactiveFormsModule,
     MatDialogModule,
@@ -61,10 +60,10 @@ interface DynamicField {
     MatChipsModule,
     MatTooltipModule,
     MatPaginatorModule,
-    MatSlideToggleModule, // ← EKLE
+    MatSlideToggleModule,
     TranslateModule,
     DisableAuthDirective
-  ],
+],
   templateUrl: './extra-data-dialog.component.html',
   styleUrl: './extra-data-dialog.component.scss'
 })

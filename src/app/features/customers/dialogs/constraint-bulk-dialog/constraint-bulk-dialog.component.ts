@@ -1,5 +1,5 @@
 import { Component, OnInit, ViewChild, inject, OnDestroy } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { getApiErrorMessage } from '@app/core/utils/api-error.util';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { MatDialogRef, MatDialogModule } from '@angular/material/dialog';
@@ -24,7 +24,6 @@ import { debounceTime, distinctUntilChanged, takeUntil } from 'rxjs/operators';
   selector: 'app-constraint-bulk-dialog',
   standalone: true,
   imports: [
-    CommonModule,
     ReactiveFormsModule,
     MatDialogModule,
     MatFormFieldModule,
@@ -36,8 +35,8 @@ import { debounceTime, distinctUntilChanged, takeUntil } from 'rxjs/operators';
     MatChipsModule,
     MatPaginatorModule,
     TranslateModule,
-    ConstraintFormComponent,
-  ],
+    ConstraintFormComponent
+],
   templateUrl: './constraint-bulk-dialog.component.html',
   styleUrl: './constraint-bulk-dialog.component.scss'
 })

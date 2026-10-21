@@ -1,6 +1,6 @@
 // features/stepper/components/feedback-reaction/feedback-reaction.component.ts
 import { Component, Input, OnChanges, SimpleChanges, inject, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialog } from '@angular/material/dialog';
@@ -19,7 +19,7 @@ import { FeedbackDialogComponent } from '../feedback-dialog/feedback-dialog.comp
 @Component({
   selector: 'app-feedback-reaction',
   standalone: true,
-  imports: [CommonModule, MatIconModule, MatTooltipModule, TranslateModule],
+  imports: [MatIconModule, MatTooltipModule, TranslateModule],
   template: `
     <span class="fb-reaction">
       <button type="button" class="fb-reaction__btn" [class.liked]="liked() === true"

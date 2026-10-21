@@ -1,6 +1,6 @@
 import { Component, OnInit, ViewChild, inject } from '@angular/core';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { CommonModule } from '@angular/common';
+
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { GenericTableComponent } from '@shared/generic-table/generic-table.component';
@@ -23,7 +23,6 @@ import { ConfirmDialogComponent } from '@app/shared/generic-table/confirm-dialog
 @Component({
   selector: 'app-products',
   imports: [
-    CommonModule,
     GenericTableComponent,
     MatButtonModule,
     MatIconModule,
@@ -31,7 +30,7 @@ import { ConfirmDialogComponent } from '@app/shared/generic-table/confirm-dialog
     TranslateModule,
     MatMenuModule,
     HasPermissionDirective
-  ],
+],
   templateUrl: './products.component.html',
   styleUrl: './products.component.scss'
 })

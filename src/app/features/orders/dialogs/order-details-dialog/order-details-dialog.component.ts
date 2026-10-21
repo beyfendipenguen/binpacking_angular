@@ -1,6 +1,6 @@
 import { Component, Inject, OnInit, inject } from '@angular/core';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { CommonModule } from '@angular/common';
+
 import { MAT_DIALOG_DATA, MatDialogRef, MatDialogModule } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -13,14 +13,7 @@ import { ColumnDefinition } from '@app/shared/generic-table/interfaces/column-de
 @Component({
   selector: 'app-order-details-dialog',
   standalone: true,
-  imports: [CommonModule,
-    MatDialogModule,
-    MatButtonModule,
-    MatIconModule,
-    MatProgressSpinnerModule,
-    GenericTableComponent,
-    TranslateModule
-  ],
+  imports: [MatDialogModule, MatButtonModule, MatIconModule, MatProgressSpinnerModule, GenericTableComponent, TranslateModule],
   templateUrl: './order-details-dialog.component.html',
   styleUrl: './order-details-dialog.component.scss'
 })

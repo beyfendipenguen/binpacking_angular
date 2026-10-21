@@ -3,7 +3,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { MatSidenav, MatSidenavContent, MatSidenavModule } from '@angular/material/sidenav';
 import { MatDrawerMode } from '@angular/material/sidenav';
 import { RouterModule, Router, NavigationEnd } from '@angular/router';
-import { CommonModule } from '@angular/common';
+
 import { MatListModule } from "@angular/material/list";
 import { MatButtonModule } from '@angular/material/button';
 import { MatDividerModule } from '@angular/material/divider';
@@ -93,9 +93,8 @@ const NAV_LIST_ITEM: INavListItem[] = [
     MatSidenavContent,
     RouterModule,
     MatIconModule,
-    CommonModule,
     TranslateModule
-  ]
+]
 })
 export class SidenavComponent {
 

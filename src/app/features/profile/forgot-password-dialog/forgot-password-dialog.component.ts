@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { Component, inject, Optional, Inject } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
@@ -27,17 +27,7 @@ export interface ForgotPasswordDialogData {
 @Component({
   selector: 'app-forgot-password-dialog',
   standalone: true,
-  imports: [CommonModule,
-    MatDialogModule,
-    MatButtonModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatIconModule,
-    MatProgressSpinnerModule,
-    ReactiveFormsModule,
-    MatSnackBarModule,
-    TranslateModule
-  ],
+  imports: [MatDialogModule, MatButtonModule, MatFormFieldModule, MatInputModule, MatIconModule, MatProgressSpinnerModule, ReactiveFormsModule, MatSnackBarModule, TranslateModule],
   templateUrl: './forgot-password-dialog.component.html',
   styleUrl: './forgot-password-dialog.component.scss'
 })

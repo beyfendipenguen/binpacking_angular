@@ -4,7 +4,7 @@ import { PalletService } from '../services/pallet.service';
 import { BulkUploadConfig } from '@app/shared/bulk-upload-dialog/bulk-upload.config';
 import { createPalletBulkConfig } from './config/pallet-bulk.config';
 import { GenericTableComponent } from "@app/shared/generic-table/generic-table.component";
-import { CommonModule } from '@angular/common';
+
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
@@ -19,7 +19,6 @@ import { ConfirmDialogComponent } from '@app/shared/generic-table/confirm-dialog
 @Component({
   selector: 'app-pallets',
   imports: [
-    CommonModule,
     GenericTableComponent,
     MatButtonModule,
     MatIconModule,
@@ -27,8 +26,8 @@ import { ConfirmDialogComponent } from '@app/shared/generic-table/confirm-dialog
     MatDialogModule,
     BulkUploadButtonDirective,
     TranslateModule,
-    HasPermissionDirective,
-  ],
+    HasPermissionDirective
+],
   templateUrl: './pallets.component.html',
   styleUrl: './pallets.component.scss'
 })

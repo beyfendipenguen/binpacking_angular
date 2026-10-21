@@ -1,6 +1,6 @@
 // features/stepper/components/feedback-dialog/feedback-dialog.component.ts
 import { Component, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
@@ -53,7 +53,7 @@ const REASONS: Record<FeedbackSectionKey, string[]> = {
 @Component({
   selector: 'app-feedback-dialog',
   standalone: true,
-  imports: [CommonModule, FormsModule, MatDialogModule, MatButtonModule, MatIconModule, MatCheckboxModule, MatTooltipModule, TranslateModule],
+  imports: [FormsModule, MatDialogModule, MatButtonModule, MatIconModule, MatCheckboxModule, MatTooltipModule, TranslateModule],
   templateUrl: './feedback-dialog.component.html',
   styleUrl: './feedback-dialog.component.scss',
 })

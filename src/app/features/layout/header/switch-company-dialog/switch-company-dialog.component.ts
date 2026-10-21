@@ -1,5 +1,5 @@
 import { Component, OnDestroy, OnInit, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialogModule, MatDialogRef } from '@angular/material/dialog';
@@ -20,7 +20,6 @@ import { AuthService } from '@app/core/auth/services/auth.service';
   selector: 'app-switch-company-dialog',
   standalone: true,
   imports: [
-    CommonModule,
     ReactiveFormsModule,
     MatDialogModule,
     MatFormFieldModule,
@@ -28,8 +27,8 @@ import { AuthService } from '@app/core/auth/services/auth.service';
     MatButtonModule,
     MatIconModule,
     MatProgressSpinnerModule,
-    TranslateModule,
-  ],
+    TranslateModule
+],
   templateUrl: './switch-company-dialog.component.html',
   styleUrl: './switch-company-dialog.component.scss',
 })

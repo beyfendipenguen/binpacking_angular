@@ -12,7 +12,7 @@ import {
   AfterViewInit,
   signal,
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -53,7 +53,7 @@ const COLOR_PALETTE = [
 @Component({
   selector: 'app-public-order-view',
   standalone: true,
-  imports: [CommonModule, FormsModule, TranslateModule],
+  imports: [FormsModule, TranslateModule],
   templateUrl: './public-order-view.component.html',
   styleUrl: './public-order-view.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

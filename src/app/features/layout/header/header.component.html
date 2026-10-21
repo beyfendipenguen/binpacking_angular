@@ -1,8 +1,10 @@
 <mat-toolbar>
   <mat-toolbar-row color="primary">
-    <button id="tour-sidenav-toggle" *ngIf="isToggleButton" mat-icon-button (click)="sidenavOpen.emit(null)">
-      <mat-icon>menu</mat-icon>
-    </button>
+    @if (isToggleButton) {
+      <button id="tour-sidenav-toggle" mat-icon-button (click)="sidenavOpen.emit(null)">
+        <mat-icon>menu</mat-icon>
+      </button>
+    }
 
     <!-- Logo kısmı -->
     <div class="logo-container">
@@ -11,13 +13,13 @@
 
     <!-- Superuser "başka şirket olarak görüntüleniyor" banner'ı -->
     @if (actingCompany$ | async; as actingCompany) {
-    <div class="acting-as-banner">
-      <mat-icon>visibility</mat-icon>
-      <span>{{ 'HEADER.ACTING_AS' | translate:{company: actingCompany.company_name} }}</span>
-      <button mat-button (click)="returnToOwnAccount()" class="return-button">
-        {{ 'HEADER.RETURN_TO_OWN_ACCOUNT' | translate }}
-      </button>
-    </div>
+      <div class="acting-as-banner">
+        <mat-icon>visibility</mat-icon>
+        <span>{{ 'HEADER.ACTING_AS' | translate:{company: actingCompany.company_name} }}</span>
+        <button mat-button (click)="returnToOwnAccount()" class="return-button">
+          {{ 'HEADER.RETURN_TO_OWN_ACCOUNT' | translate }}
+        </button>
+      </div>
     }
 
     <mat-divider></mat-divider>
@@ -30,18 +32,18 @@
 
     <!-- İptal Butonu - Sadece stepper sayfasında göster -->
     @if (showCancelButton()) {
-    <div class="navbar-button-group">
-      <button mat-stroked-button class="navbar-group-button navbar-cancel-button" (click)="onCancelClick()"
-        [appDisableAuth]="['orders.delete_order']">
-        <mat-icon>delete_forever</mat-icon>
-        <span class="button-text">{{ 'COMMON.CANCEL' | translate }}</span>
-      </button>
+      <div class="navbar-button-group">
+        <button mat-stroked-button class="navbar-group-button navbar-cancel-button" (click)="onCancelClick()"
+          [appDisableAuth]="['orders.delete_order']">
+          <mat-icon>delete_forever</mat-icon>
+          <span class="button-text">{{ 'COMMON.CANCEL' | translate }}</span>
+        </button>
 
-      <button mat-stroked-button class="navbar-group-button navbar-cancel-button" (click)="onExitClick()">
-        <mat-icon>exit_to_app</mat-icon>
-        <span class="button-text">{{ 'HEADER.EXIT' | translate }}</span>
-      </button>
-    </div>
+        <button mat-stroked-button class="navbar-group-button navbar-cancel-button" (click)="onExitClick()">
+          <mat-icon>exit_to_app</mat-icon>
+          <span class="button-text">{{ 'HEADER.EXIT' | translate }}</span>
+        </button>
+      </div>
     }
 
     <!-- Bildirim + mesaj ikonları -->
@@ -82,10 +84,14 @@
 
 <!-- Dil Alt Menüsü (Submenu) - ✅ SVG KULLANIMI -->
 <mat-menu #languageMenu="matMenu" class="language-submenu">
-  <button mat-menu-item *ngFor="let lang of languages" (click)="onLanguageChange(lang.code)"
-    [class.active-language]="(currentLanguage$ | async) === lang.code" class="language-submenu-item">
-    <img [src]="lang.flag" class="flag-icon-img" alt="{{ lang.name }}" />
-    <span class="language-name">{{ lang.name }}</span>
-    <mat-icon *ngIf="(currentLanguage$ | async) === lang.code" class="check-icon">check_circle</mat-icon>
-  </button>
+  @for (lang of languages; track lang) {
+    <button mat-menu-item (click)="onLanguageChange(lang.code)"
+      [class.active-language]="(currentLanguage$ | async) === lang.code" class="language-submenu-item">
+      <img [src]="lang.flag" class="flag-icon-img" alt="{{ lang.name }}" />
+      <span class="language-name">{{ lang.name }}</span>
+      @if ((currentLanguage$ | async) === lang.code) {
+        <mat-icon class="check-icon">check_circle</mat-icon>
+      }
+    </button>
+  }
 </mat-menu>

@@ -19,7 +19,7 @@ import {
   Input
 } from '@angular/core';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import * as THREE from 'three';
 import { Store } from '@ngrx/store';
@@ -62,10 +62,7 @@ interface GroupDragState {
 @Component({
   selector: 'app-threejs-truck-visualization',
   standalone: true,
-  imports: [CommonModule, FormsModule,
-    TranslateModule,
-    DisableAuthDirective, MatIconModule,MatTooltipModule
-  ],
+  imports: [FormsModule, TranslateModule, DisableAuthDirective, MatIconModule, MatTooltipModule],
   templateUrl: './threejs-truck-visualization.component.html',
   styleUrl: './threejs-truck-visualization.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
