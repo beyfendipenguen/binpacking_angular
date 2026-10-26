@@ -45,8 +45,8 @@ export class SigninComponent implements OnInit, OnDestroy {
     // ✅ Service inject edildiğinde constructor çalışır ve dil ayarlanır
 
     this.signinForm = this.fb.group({
-      username: [environment.production ? '' : 'muhammed', [Validators.required]],
-      password: [environment.production ? '' : '1911Ahmet.', [Validators.required]]
+      username: [environment.production ? '' : '', [Validators.required]],
+      password: [environment.production ? '' : '', [Validators.required]]
     });
   }
 
