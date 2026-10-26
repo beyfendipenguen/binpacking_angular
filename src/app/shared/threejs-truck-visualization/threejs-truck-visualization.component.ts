@@ -5026,7 +5026,10 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
 
     this.ngZone.run(() => {
       if (this.skipStoreSync) {
-        if (!this.isDirty()) {
+        // Plate'teki (yerleşmeyen) bir paket sürüklenirken dirty açılmaz:
+        // dirty ancak yerleşmeyen sayısı değişince (bırakma anında
+        // finalizeDragFromPlate/finalizeDragToPlate) açılır.
+        if (!this.isDirty() && !this.draggedFromPlate) {
           this.store.dispatch(StepperUiActions.setStep3IsDirty());
         }
         return;

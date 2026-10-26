@@ -26,7 +26,7 @@ import { ToastService } from '@core/services/toast.service';
 import { CancelConfirmationDialogComponent } from '@shared/cancel-confirmation-dialog/cancel-confirmation-dialog.component';
 import { ThreeJSTruckVisualizationComponent } from '@shared/threejs-truck-visualization/threejs-truck-visualization.component';
 
-import { AppState, selectRemainingProducts, selectStep3IsDirty, selectOrderId, selectIsEditMode, selectHasRevisedOrder, selectOrderResult, selectOrderResultId, selectStep3CurrentViewType, selectStep3ReportFiles, selectActiveShipmentIndex, selectIsMultiShipment, selectShipments, selectCurrentStep, selectStep2IsDirty } from '@app/store';
+import { AppState, selectRemainingProducts, selectStep3IsDirty, selectOrderId, selectIsEditMode, selectHasRevisedOrder, selectOrderResult, selectOrderResultId, selectStep3CurrentViewType, selectStep3ReportFiles, selectActiveShipmentIndex, selectIsMultiShipment, selectShipments, selectCurrentStep, selectStep2IsDirty, selectAllowUnplaced } from '@app/store';
 import { StepperUiActions } from '@app/store/stepper/actions/stepper-ui.actions';
 import { StepperResultActions } from '@app/store/stepper/actions/stepper-result.actions';
 import { ReportFile, ResultStepService } from './result-step.service';
@@ -93,6 +93,8 @@ export class ResultStepComponent implements OnInit, OnDestroy {
     !!this.orderResultIdSignal()
   );
   readonly isDirtySignal = this.store.selectSignal(selectStep3IsDirty);
+  /** Şirket politikası (backend şema politikası): yerleşmeyen paletlerle kayıt/rapor serbest mi (örn. Sanica). */
+  readonly allowUnplaced = this.store.selectSignal(selectAllowUnplaced);
   readonly remainingProducts = this.store.selectSignal(selectRemainingProducts);
 
   readonly orderResultSignal = this.store.selectSignal(selectOrderResult);
@@ -369,9 +371,9 @@ export class ResultStepComponent implements OnInit, OnDestroy {
           this.toastService.success(this.translate.instant('RESULT_STEP.PACKAGING_SUCCESS'));
           this.calcVersion.update(v => v + 1);
 
-          if (deletedRows.length > 0) {
-            this.store.dispatch(StepperResultActions.setIsDirty({ isDirty: true }));
-          }
+          // Not: yerleşmeyen palet olması tek başına isDirty YAPMAZ — sonuç
+          // backend'den yeni geldi ve zaten kayıtlı. isDirty sadece kullanıcı
+          // yerleşmeyen sayısını değiştirdiğinde (tır⇄plate) açılır.
 
           this.cdr.markForCheck();
 
@@ -534,8 +536,9 @@ export class ResultStepComponent implements OnInit, OnDestroy {
   private requestFeedbackThenComplete(): void {
     const orderId = this.orderIdSignal();
     const screenDirty = this.isDirtySignal();
-    // Yerleşmeyen palet varsa tamamlama zaten uyarıyla bloklanır — önce onu çöz.
-    if ((this.threeJSComponent?.deletedPackagesSignal()?.length ?? 0) > 0) {
+    // Yerleşmeyen palet varsa (ve şirket buna izin vermiyorsa) tamamlama zaten
+    // uyarıyla bloklanır — önce onu çöz.
+    if (!this.allowUnplaced() && (this.threeJSComponent?.deletedPackagesSignal()?.length ?? 0) > 0) {
       this.completeOrder(true);
       return;
     }
@@ -548,7 +551,9 @@ export class ResultStepComponent implements OnInit, OnDestroy {
       next: (status) => {
         const sections: FeedbackSectionKey[] = [];
         if (status.packages.changed) sections.push('packages');
-        if (screenDirty || status.placement.changed || status.placement.unplaced_now > 0) {
+        // Yerleşmeyen palet kendi başına geri bildirim sebebi, ama izinli şirketlerde değil.
+        const unplacedNeedsFeedback = !this.allowUnplaced() && status.placement.unplaced_now > 0;
+        if (screenDirty || status.placement.changed || unplacedNeedsFeedback) {
           sections.push('placement');
         }
         if (!(screenDirty || status.required) || sections.length === 0) {
@@ -595,10 +600,14 @@ export class ResultStepComponent implements OnInit, OnDestroy {
     try {
       const deletedPackages = this.threeJSComponent?.deletedPackagesSignal() || [];
 
-      if (deletedPackages.length > 0) {
+      if (deletedPackages.length > 0 && !this.allowUnplaced()) {
         await this.warningDialog();
       } else {
-        const formatted = await this.resultStepService.formatAllShipmentsForResult();
+        // İzinli şirketlerde yerleşmeyenler -1 satırı olarak kaydedilir (raporlar
+        // bunları OrderResult'tan okur); diğerlerinde buraya hiç düşmez.
+        const formatted = this.allowUnplaced()
+          ? await this.resultStepService.buildPersistPayload()
+          : await this.resultStepService.formatAllShipmentsForResult();
         this.submitOrderResult(formatted, resetStepper);
       }
     } catch (error) {

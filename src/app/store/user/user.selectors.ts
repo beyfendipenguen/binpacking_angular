@@ -20,7 +20,13 @@ export const selectPostCompleteAction = createSelector(
   (user: User | null) => user?.company?.report_profile?.post_complete_action ?? ''
 );
 
-export const selectUserLoading = createSelector(
+// Yerleşmeyen paletlerle kayıt/rapor serbest mi (örn. Sanica) — backend politikası.
+export const selectAllowUnplaced = createSelector(
+  selectUser,
+  (user: User | null) => !!user?.company?.report_profile?.allow_unplaced
+);
+
+export const selectUserLoading =createSelector(
   selectUserState,
   (state: UserState) => state.loading
 );

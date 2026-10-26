@@ -15,4 +15,6 @@ export interface CompanyReportProfile {
   template_schema: string;
   report_config: ReportConfig;
   post_complete_action?: PostCompleteAction;
+  /** Yerleşmeyen paletlerle kayıt/rapora izin (backend şema politikasından türetilir, salt okunur). */
+  allow_unplaced?: boolean;
 }
