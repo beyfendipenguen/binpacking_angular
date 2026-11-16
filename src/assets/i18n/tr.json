@@ -945,6 +945,8 @@
     "UPDATE_IN_USE_WARNING": "Bu {{model}} {{count}} siparişte kullanılıyor: {{orders}}. Güncelleme devam ederse sipariş verileri etkilenecek (raporlar değişmeyecek). Devam etmek istiyor musunuz?"
   },
   "TRUCK_VISUALIZATION": {
+    "TIP_PALLET": "Palet",
+    "TIP_LOAD_HEIGHT": "Yük yüksekliği",
     "NO_DATA": "Henüz Yükleme Verisi Yok",
     "NO_DATA_MESSAGE": "Tır yükleme algoritması çalıştırıldıktan sonra 3D görselleştirme burada görünecek.",
     "FIRST": "İlk",

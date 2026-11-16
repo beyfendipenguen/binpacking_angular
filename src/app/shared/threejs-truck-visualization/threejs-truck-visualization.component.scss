@@ -55,6 +55,8 @@ $c-text-sub:  #64748b;
   height: 100%;
   position: relative;
   transition: opacity 0.3s;
+  // Sahne şeffaf çizilir; arka plan burada (ekran görüntüsü de aynı tonları kullanır)
+  background: linear-gradient(180deg, #eef3f2 0%, #f9fbfa 100%);
 
   canvas {
     display: block;
@@ -1086,7 +1088,29 @@ $c-text-sub:  #64748b;
   .tjs-panel--deleted { bottom: 0.5rem; max-height: 80vh; }
 }
 
+.tjs-hover-tip {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 5;
+  display: none;
+  pointer-events: none;
+  padding: 4px 9px;
+  border-radius: 6px;
+  background: rgba(#0d5c52, 0.94);
+  color: $c-white;
+  font-size: 0.72rem;
+  font-weight: 500;
+  line-height: 1.35;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+}
+
 @media (prefers-color-scheme: dark) {
+  .tjs-canvas {
+    background: linear-gradient(180deg, #1b2725 0%, #121a19 100%);
+  }
+
   .tjs-panel {
     background: rgba(30, 40, 50, 0.97);
     border-color: rgba($c-primary, 0.2);

@@ -367,6 +367,8 @@ export class ResultStepComponent implements OnInit, OnDestroy {
 
           this.threeJSComponent?.reset();
           this.threeJSComponent?.safeProcessData();
+          // Yeni hesap: paletler arka kapıdan sırayla içeri kayar (sadece görsel)
+          this.threeJSComponent?.playLoadAnimation();
 
           this.toastService.success(this.translate.instant('RESULT_STEP.PACKAGING_SUCCESS'));
           this.calcVersion.update(v => v + 1);

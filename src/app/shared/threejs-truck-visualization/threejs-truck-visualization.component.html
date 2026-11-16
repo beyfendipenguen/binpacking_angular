@@ -3,6 +3,8 @@
   <div #threeContainer class="tjs-canvas" [class.drag-mode]="dragModeEnabled" [class.is-loading]="isLoadingModels"
     (contextmenu)="$event.preventDefault()">
   </div>
+  <!-- İmleç yanındaki palet ipucu (içerik/konum bileşen tarafından doğrudan DOM'a yazılır) -->
+  <div #hoverTip class="tjs-hover-tip"></div>
 
   <!-- Boş ekran SADECE hem tırda hem yerleşmeyenlerde (plate) hiç paket yokken gösterilir;
   tüm paketler plate'e taşındıysa sahne (plate dahil) görünür kalmalı. -->

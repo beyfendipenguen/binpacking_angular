@@ -21,6 +21,8 @@
   <!-- ══ CANVAS ═════════════════════════════════════════════════════════════ -->
   <div #threeContainer class="pov-canvas" [class.pov-canvas--hidden]="isLoading() || hasError()">
   </div>
+  <!-- İmleç yanındaki palet ipucu (içerik/konum bileşen tarafından doğrudan DOM'a yazılır) -->
+  <div #hoverTip class="pov-hover-tip"></div>
 
   <!-- ══ UI OVERLAYS ════════════════════════════════════════════════════════ -->
   @if (!isLoading() && !hasError() && orderData) {

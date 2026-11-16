@@ -22,6 +22,24 @@ $bg: #0d1117; // koyu arka plan — 3D sahneyi güzel gösterir
   -webkit-font-smoothing: antialiased;
 }
 
+// ── İmleç ipucu ──────────────────────────────────────────────────────────────
+.pov-hover-tip {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 5;
+  display: none;
+  pointer-events: none;
+  padding: 4px 9px;
+  border-radius: 6px;
+  background: rgba(#0d5c52, 0.94);
+  color: $white;
+  font-size: 0.75rem;
+  font-weight: 500;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba($black, 0.18);
+}
+
 // ── Canvas ───────────────────────────────────────────────────────────────────
 .pov-canvas {
   width: 100vw;
@@ -30,6 +48,8 @@ $bg: #0d1117; // koyu arka plan — 3D sahneyi güzel gösterir
   touch-action: none;
   user-select: none;
   cursor: grab;
+  // Sahne şeffaf çizilir — düzenleme ekranıyla aynı açık gradient
+  background: linear-gradient(180deg, #eef3f2 0%, #f9fbfa 100%);
 
   &:active {
     cursor: grabbing;

@@ -18,7 +18,14 @@ import { ActivatedRoute } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { Subject, takeUntil } from 'rxjs';
 import * as THREE from 'three';
-import { ThreeJSInitializationService, ThreeJSComponents } from '@app/shared/threejs-truck-visualization/services/threejs-initialization.service';
+import {
+  DECK_TOP_Y, FOV_SENSITIVITY_SCALE, ThreeJSInitializationService, ThreeJSComponents, VIEW_DISTANCE_FACTOR,
+} from '@app/shared/threejs-truck-visualization/services/threejs-initialization.service';
+import { getQualityProfile } from '@app/shared/threejs-truck-visualization/services/threejs-quality';
+import {
+  CameraTransition, LoadAnimation, PackageHighlighter,
+  boxEdges, buildLoadGeometry, buildPalletGeometries, createLoadMaterial, packageMeshPosition,
+} from '@app/shared/threejs-truck-visualization/services/threejs-visuals';
 import { ThreeJSRenderManagerService } from '@app/shared/threejs-truck-visualization/services/threejs-render-manager.service';
 import { PublicOrderViewData, PackagePosition } from '../interfaces/order.interface';
 import { OrderResultService } from '../services/order-result.service';
@@ -61,6 +68,7 @@ const COLOR_PALETTE = [
 export class PublicOrderViewComponent implements OnInit, AfterViewInit, OnDestroy {
 
   @ViewChild('threeContainer', { static: true }) threeContainer!: ElementRef;
+  @ViewChild('hoverTip', { static: true }) private hoverTipRef!: ElementRef<HTMLDivElement>;
 
   private readonly route = inject(ActivatedRoute);
   private readonly orderResultService = inject(OrderResultService);
@@ -111,6 +119,20 @@ export class PublicOrderViewComponent implements OnInit, AfterViewInit, OnDestro
   private resizeObserver?: ResizeObserver;
   private destroy$ = new Subject<void>();
 
+  // Görsel katman — düzenleme ekranıyla ORTAK yapı taşları (services/threejs-visuals.ts)
+  private readonly quality = getQualityProfile();
+  private readonly highlighter = new PackageHighlighter();
+  private readonly camTransition = new CameraTransition();
+  private readonly loadAnimation = new LoadAnimation();
+  private readonly reducedMotion =
+    typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+  private hoveredPackage: PackageData | null = null;
+  private palletGeometryCache = new Map<string, {
+    light: THREE.BufferGeometry; dark: THREE.BufferGeometry; height: number;
+  }>();
+  private palletMaterials: { light: THREE.Material; dark: THREE.Material } | null = null;
+  private readonly onVisibilityChange = () => this.renderManager.setPaused(document.hidden);
+
   shipments: ShipmentData[] = [];
   activeShipmentIndex = signal(0);
 
@@ -137,11 +159,32 @@ export class PublicOrderViewComponent implements OnInit, AfterViewInit, OnDestro
     this.destroy$.next();
     this.destroy$.complete();
     this.isDestroyed = true;
+    document.removeEventListener('visibilitychange', this.onVisibilityChange);
+    this.renderManager.setPaused(false);
     this.renderManager.cleanup();
+    this.camTransition.cancel();
+    this.loadAnimation.cancel();
+    if (this.packagesGroup) this.disposeTree(this.packagesGroup);
     if (this.threeComponents) this.initService.cleanup(this.threeComponents);
-    this.packages.forEach(p => {
-      p.mesh?.geometry.dispose();
-      (p.mesh?.material as THREE.Material)?.dispose();
+    this.highlighter.dispose();
+    this.palletGeometryCache.forEach(e => { e.light.dispose(); e.dark.dispose(); });
+    this.palletGeometryCache.clear();
+    this.palletMaterials?.light.dispose();
+    this.palletMaterials?.dark.dispose();
+    this.palletMaterials = null;
+  }
+
+  /** Alt ağacın geometri/materyal/texture kaynaklarını serbest bırakır (paylaşılanlar hariç). */
+  private disposeTree(root: THREE.Object3D): void {
+    root.traverse(obj => {
+      const o = obj as THREE.Mesh;
+      if (o.geometry && !o.geometry.userData?.['shared']) o.geometry.dispose();
+      const mats = Array.isArray(o.material) ? o.material : o.material ? [o.material] : [];
+      mats.forEach(m => {
+        if (m.userData?.['shared']) return;
+        (m as THREE.MeshBasicMaterial).map?.dispose();
+        m.dispose();
+      });
     });
   }
 
@@ -198,6 +241,11 @@ export class PublicOrderViewComponent implements OnInit, AfterViewInit, OnDestro
 
   private buildPackages(positions: PackagePosition[]): void {
     if (!this.packagesGroup) return;
+    this.loadAnimation.cancel();
+    this.hoveredPackage = null;
+    this.selectedPackage.set(null);
+    this.updateHoverTip(null);
+    this.disposeTree(this.packagesGroup);
     this.packagesGroup.clear();
     this.packages = [];
     this.usedColors.clear();
@@ -217,6 +265,7 @@ export class PublicOrderViewComponent implements OnInit, AfterViewInit, OnDestro
         this.packages.push(pkg);
       });
 
+    this.playLoadAnimation();
     this.renderManager.requestRender();
     this.ngZone.run(() => this.cdr.markForCheck());
   }
@@ -239,16 +288,17 @@ export class PublicOrderViewComponent implements OnInit, AfterViewInit, OnDestro
       this.renderer.domElement.style.height = '100%';
       this.packagesGroup = this.threeComponents.packagesGroup;
 
-      this.cameraTarget.set(truckDims[0] / 2, truckDims[2] / 2 + 1100, truckDims[1] / 2);
-      this.renderManager.startRenderLoop(this.renderer, this.scene, this.camera);
+      this.cameraTarget.set(truckDims[0] / 2, truckDims[2] / 2 + DECK_TOP_Y, truckDims[1] / 2);
+      this.renderManager.startRenderLoop(this.renderer, this.scene, this.camera, () => this.onFrame());
       this.setupEvents();
+      document.addEventListener('visibilitychange', this.onVisibilityChange);
 
       this.resizeObserver = new ResizeObserver(() =>
         this.ngZone.runOutsideAngular(() => this.onResize())
       );
       this.resizeObserver.observe(this.threeContainer.nativeElement);
 
-      this.setView('isometric');
+      this.setView('isometric', false);
       this.isViewReady = true;
       this.renderManager.requestRender();
 
@@ -257,29 +307,59 @@ export class PublicOrderViewComponent implements OnInit, AfterViewInit, OnDestro
     }
   }
 
+  /** Her karede (render döngüsü): kamera geçişi + yükleme animasyonu. */
+  private onFrame(): void {
+    const now = performance.now();
+    let dirty = this.camTransition.tick(now, this.camera, this.cameraTarget);
+    dirty = this.loadAnimation.tick(now, this.resolveLoadTarget) || dirty;
+    if (dirty) this.renderManager.requestRender();
+  }
+
+  private readonly resolveLoadTarget = (id: string, out: THREE.Vector3): THREE.Object3D | null => {
+    const pkg = this.packages.find(p => p.pkgId === id);
+    if (!pkg?.mesh) return null;
+    packageMeshPosition(pkg, out);
+    return pkg.mesh;
+  };
+
+  /** Paletler arka kapıdan sırayla içeri kayar (açılışta ve sevkiyat değişince). */
+  private playLoadAnimation(): void {
+    if (this.reducedMotion || this.packages.length === 0) return;
+    const d = this.orderData?.truck_dimensions ?? [7000, 2400, 2600];
+    const ids = [...this.packages]
+      .sort((p, q) => (p.x - q.x) || (p.z - q.z) || (p.y - q.y))
+      .map(p => p.pkgId);
+    this.loadAnimation.start(ids, d[0] + 3500);
+    this.loadAnimation.tick(performance.now(), this.resolveLoadTarget);
+  }
+
+  private finishLoadAnimation(): void {
+    if (!this.loadAnimation.active) return;
+    this.loadAnimation.finish(this.resolveLoadTarget);
+    this.renderManager.requestRender();
+  }
+
+  /** Palet + katmanlı yük — düzenleme ekranıyla aynı görünüm (bkz. threejs-visuals.ts). */
   private createMesh(pkg: PackageData): void {
     const { group: palletGroup, palletHeight } = this.createPalletMesh(pkg.length, pkg.width);
     const visualHeight = pkg.height - palletHeight;
+    const shadows = this.quality.shadows;
 
-    const geometry = new THREE.BoxGeometry(pkg.length, visualHeight, pkg.width);
-    const material = new THREE.MeshStandardMaterial({
-      color: pkg.color, roughness: 0.65, metalness: 0.01,
-    });
-
-    const mesh = new THREE.Mesh(geometry, material);
-    mesh.position.set(
-      pkg.x + pkg.length / 2,
-      pkg.z + palletHeight + visualHeight / 2,
-      pkg.y + pkg.width / 2
+    const mesh = new THREE.Mesh(
+      buildLoadGeometry(pkg.length, visualHeight, pkg.width, pkg.color),
+      createLoadMaterial(this.quality.cheapMaterials)
     );
-    mesh.castShadow = true;
-    mesh.receiveShadow = true;
+    packageMeshPosition(pkg, mesh.position);
+    mesh.castShadow = shadows;
+    mesh.receiveShadow = shadows;
     mesh.userData = { packageData: pkg };
 
-    mesh.add(new THREE.LineSegments(
-      new THREE.EdgesGeometry(geometry),
-      new THREE.LineBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.20 })
-    ));
+    const outline = new THREE.LineSegments(
+      boxEdges(pkg.length, visualHeight, pkg.width),
+      new THREE.LineBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.12 })
+    );
+    outline.raycast = () => { /* seçimi etkilemesin */ };
+    mesh.add(outline);
 
     palletGroup.position.set(-pkg.length / 2, -pkg.height / 2 - palletHeight / 2, -pkg.width / 2);
     mesh.add(palletGroup);
@@ -289,43 +369,36 @@ export class PublicOrderViewComponent implements OnInit, AfterViewInit, OnDestro
     this.packagesGroup.add(mesh);
   }
 
+  /** Ahşap palet: boyuta göre önbelleklenen 2 birleşik geometri, paylaşılan materyaller. */
   private createPalletMesh(pkgLength: number, pkgWidth: number): { group: THREE.Group, palletHeight: number } {
-    const group = new THREE.Group();
-    const BOARD_THICK = Math.max(18, pkgWidth * 0.018);
-    const BLOCK_H = Math.max(70, pkgLength * 0.045);
-    const PALLET_H = BOARD_THICK * 2 + BLOCK_H;
-    const BOARD_GAP = pkgWidth * 0.03;
-    const BOARD_COUNT = 7;
-    const BLOCK_W = Math.min(pkgLength * 0.10, 120);
-
-    const matLight = new THREE.MeshStandardMaterial({ color: 0xC4A265, roughness: 0.92, metalness: 0 });
-    const matDark = new THREE.MeshStandardMaterial({ color: 0xA07840, roughness: 0.95, metalness: 0 });
-
-    const add = (w: number, h: number, d: number, x: number, y: number, z: number, mat: THREE.MeshStandardMaterial) => {
-      const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
-      m.position.set(x, y, z);
-      m.castShadow = true; m.receiveShadow = true;
-      group.add(m);
-    };
-
-    const boardDepth = (pkgWidth - BOARD_GAP * (BOARD_COUNT - 1)) / BOARD_COUNT;
-    const topY = PALLET_H - BOARD_THICK / 2;
-
-    for (let i = 0; i < BOARD_COUNT; i++) {
-      add(pkgLength, BOARD_THICK, boardDepth, pkgLength / 2, topY,
-        boardDepth / 2 + i * (boardDepth + BOARD_GAP), i % 2 === 0 ? matLight : matDark);
+    const key = `${Math.round(pkgLength)}x${Math.round(pkgWidth)}`;
+    let entry = this.palletGeometryCache.get(key);
+    if (!entry) {
+      entry = buildPalletGeometries(pkgLength, pkgWidth);
+      this.palletGeometryCache.set(key, entry);
+    }
+    if (!this.palletMaterials) {
+      const make = (color: number, roughness: number): THREE.Material => {
+        const m = this.quality.cheapMaterials
+          ? new THREE.MeshLambertMaterial({ color })
+          : new THREE.MeshStandardMaterial({ color, roughness, metalness: 0 });
+        m.userData['shared'] = true;
+        return m;
+      };
+      this.palletMaterials = { light: make(0xC4A265, 0.92), dark: make(0xA07840, 0.95) };
     }
 
-    const bx = [pkgLength * 0.12, pkgLength * 0.50, pkgLength * 0.88];
-    const bz = [pkgWidth * 0.12, pkgWidth * 0.50, pkgWidth * 0.88];
-
-    for (const x of bx) for (const z of bz)
-      add(BLOCK_W, BLOCK_H, BLOCK_W, x, BOARD_THICK + BLOCK_H / 2, z, matDark);
-
-    for (const rz of bz)
-      add(pkgLength, BOARD_THICK, BLOCK_W * 1.1, pkgLength / 2, BOARD_THICK / 2, rz, matLight);
-
-    return { group, palletHeight: PALLET_H };
+    const group = new THREE.Group();
+    [
+      new THREE.Mesh(entry.light, this.palletMaterials.light),
+      new THREE.Mesh(entry.dark, this.palletMaterials.dark),
+    ].forEach(m => {
+      m.castShadow = this.quality.shadows;
+      m.receiveShadow = this.quality.shadows;
+      m.raycast = () => { /* tıklama yük gövdesinden algılanır */ };
+      group.add(m);
+    });
+    return { group, palletHeight: entry.height };
   }
 
   private createLabel(pkg: PackageData): THREE.Sprite {
@@ -351,35 +424,47 @@ export class PublicOrderViewComponent implements OnInit, AfterViewInit, OnDestro
     sprite.renderOrder = 999;
     sprite.scale.set(600, 300, 1);
     sprite.position.set(0, pkg.height / 2 + 100, 0);
+    sprite.raycast = () => { /* etiket tıklamayı kesmesin */ };
     return sprite;
   }
 
   // ─── Kamera ────────────────────────────────────────────────────────────────
 
-  setView(viewType: string): void {
+  setView(viewType: string, animate = true): void {
     if (!this.camera) return;
     this.currentView = viewType;
     const d = this.orderData?.truck_dimensions ?? [7000, 2400, 2600];
-    this.cameraTarget.set(d[0] / 2, d[2] / 2 + 1100, d[1] / 2);
-    const dist = Math.max(...d) * 1.5;
+    const target = new THREE.Vector3(d[0] / 2, d[2] / 2 + DECK_TOP_Y, d[1] / 2);
+    const dist = Math.max(...d) * VIEW_DISTANCE_FACTOR;
     this.cameraBaseDistance = dist;
 
+    const position = new THREE.Vector3();
     switch (viewType) {
-      case 'front': this.camera.position.set(dist, this.cameraTarget.y, this.cameraTarget.z); break;
-      case 'side': this.camera.position.set(this.cameraTarget.x, this.cameraTarget.y, dist); break;
-      case 'top': this.camera.position.set(this.cameraTarget.x, dist, this.cameraTarget.z); break;
+      case 'front': position.set(dist, target.y, target.z); break;
+      case 'side': position.set(target.x, target.y, dist); break;
+      // Tam tepe (phi = 0) lookAt için tekil — çok az eğim
+      case 'top': position.set(target.x, dist, target.z + dist * 0.0005); break;
       default:
-        this.camera.position.set(
-          this.cameraTarget.x + dist * 0.4,
-          this.cameraTarget.y + dist * 0.4,
-          this.cameraTarget.z + dist * 0.4
-        );
+        position.set(target.x + dist * 0.4, target.y + dist * 0.4, target.z + dist * 0.4);
     }
-    this.camera.lookAt(this.cameraTarget);
+
+    // Üstten bakışta gölge zemini gizlenir
+    const ground = this.threeComponents?.groundMesh;
+    if (ground) ground.visible = viewType !== 'top';
+
+    if (animate && !this.reducedMotion && this.isViewReady) {
+      this.camTransition.start(this.camera, this.cameraTarget, position, target);
+    } else {
+      this.camTransition.cancel();
+      this.cameraTarget.copy(target);
+      this.camera.position.copy(position);
+      this.camera.lookAt(this.cameraTarget);
+    }
     this.renderManager.requestRender();
   }
 
   applyZoom(value: number): void {
+    this.camTransition.cancel();
     this.zoomLevel = Math.max(this.minZoom, Math.min(this.maxZoom, Math.round(value)));
     const dir = new THREE.Vector3().subVectors(this.camera.position, this.cameraTarget).normalize();
     if (!this.cameraBaseDistance)
@@ -415,6 +500,7 @@ export class PublicOrderViewComponent implements OnInit, AfterViewInit, OnDestro
     c.addEventListener('click', this.onClick.bind(this), { passive: false });
     c.addEventListener('wheel', this.onWheel.bind(this), { passive: false });
     c.addEventListener('contextmenu', (e) => e.preventDefault(), { passive: false });
+    c.addEventListener('mouseleave', () => this.setHovered(null));
     c.addEventListener('touchstart', this.onTouchStart.bind(this), { passive: false });
     c.addEventListener('touchmove', this.onTouchMove.bind(this), { passive: false });
     c.addEventListener('touchend', this.onTouchEnd.bind(this), { passive: false });
@@ -441,7 +527,10 @@ export class PublicOrderViewComponent implements OnInit, AfterViewInit, OnDestro
     this.mouseDownTime = Date.now();
     this.mouseMoved = false;
     this.updateMouse(e);
+    this.updateHoverTip(null);
+    this.finishLoadAnimation();
     if (e.button === 1 || e.button === 2) {
+      this.camTransition.cancel();
       this.isRotatingCamera = e.button === 2 && !e.ctrlKey;
       this.isPanningCamera = e.button === 1 || (e.button === 2 && e.ctrlKey);
       this.lastMouseX = this.lastPanMouseX = e.clientX;
@@ -468,7 +557,7 @@ export class PublicOrderViewComponent implements OnInit, AfterViewInit, OnDestro
     if (this.isPanningCamera) {
       this.camera.updateMatrixWorld();
       const dist = this.camera.position.distanceTo(this.cameraTarget);
-      const sens = dist * 0.001;
+      const sens = dist * 0.001 * FOV_SENSITIVITY_SCALE;
       const right = new THREE.Vector3().setFromMatrixColumn(this.camera.matrix, 0);
       const up = new THREE.Vector3().setFromMatrixColumn(this.camera.matrix, 1);
       const offset = right.multiplyScalar(-(e.clientX - this.lastPanMouseX) * sens)
@@ -481,16 +570,40 @@ export class PublicOrderViewComponent implements OnInit, AfterViewInit, OnDestro
       return;
     }
 
-    // Hover highlight
-    const hovered = this.hitTest();
-    this.packages.forEach(p => {
-      if (p.mesh)
-        (p.mesh.material as THREE.MeshStandardMaterial).emissive.setHex(
-          p === hovered ? 0x333333 : 0x000000
-        );
-    });
+    // Hover: teal çerçeve + ipucu
+    const hovered = this.loadAnimation.active ? null : this.hitTest();
+    this.setHovered(hovered);
     this.renderer.domElement.style.cursor = hovered ? 'pointer' : 'grab';
+  }
+
+  private setHovered(pkg: PackageData | null): void {
+    this.updateHoverTip(pkg);
+    if (pkg === this.hoveredPackage) return;
+    this.highlighter.detach(this.hoveredPackage?.mesh, 'hover');
+    this.hoveredPackage = pkg;
+    if (pkg?.mesh && pkg !== this.selectedPackage()) {
+      this.highlighter.attach(pkg.mesh, pkg, 'hover');
+    }
     this.renderManager.requestRender();
+  }
+
+  /** İmleç yanında kısa bilgi: "Palet N · L × W mm · Yük yüksekliği H mm". */
+  private updateHoverTip(pkg: PackageData | null): void {
+    const el = this.hoverTipRef?.nativeElement;
+    if (!el) return;
+    if (!pkg || this.isRotatingCamera || this.isPanningCamera) {
+      el.style.display = 'none';
+      return;
+    }
+    el.textContent =
+      `${this.translate.instant('TRUCK_VISUALIZATION.TIP_PALLET')} ${pkg.id} · ` +
+      `${Math.round(pkg.length)} × ${Math.round(pkg.width)} mm · ` +
+      `${this.translate.instant('TRUCK_VISUALIZATION.TIP_LOAD_HEIGHT')} ${Math.round(pkg.height)} mm`;
+    const canvas = this.renderer.domElement;
+    const x = (this.mouse.x * 0.5 + 0.5) * canvas.clientWidth;
+    const y = (-this.mouse.y * 0.5 + 0.5) * canvas.clientHeight;
+    el.style.display = 'block';
+    el.style.transform = `translate(${Math.round(x + 14)}px, ${Math.round(y + 16)}px)`;
   }
 
   private onMouseUp(e: MouseEvent): void {
@@ -513,6 +626,8 @@ export class PublicOrderViewComponent implements OnInit, AfterViewInit, OnDestro
 
   private onTouchStart(e: TouchEvent): void {
     e.preventDefault();
+    this.camTransition.cancel();
+    this.finishLoadAnimation();
     for (let i = 0; i < e.changedTouches.length; i++)
       this.activeTouches.set(e.changedTouches[i].identifier, e.changedTouches[i]);
     if (e.touches.length === 2) {
@@ -561,22 +676,19 @@ export class PublicOrderViewComponent implements OnInit, AfterViewInit, OnDestro
   // ─── Seçim ─────────────────────────────────────────────────────────────────
 
   private selectPackage(pkg: PackageData): void {
-    this.packages.forEach(p => {
-      if (p.mesh)
-        (p.mesh.material as THREE.MeshStandardMaterial).emissive.setHex(0x000000);
-    });
-    if (pkg.mesh)
-      (pkg.mesh.material as THREE.MeshStandardMaterial).emissive.setHex(0x666666);
+    const previous = this.selectedPackage();
+    this.highlighter.detach(previous?.mesh, 'selected');
+    if (pkg.mesh) {
+      this.highlighter.detach(pkg.mesh, 'hover');
+      this.highlighter.attach(pkg.mesh, pkg, 'selected');
+    }
     this.selectedPackage.set(pkg);
     this.renderManager.requestRender();
     this.ngZone.run(() => this.cdr.markForCheck());
   }
 
   clearSelection(): void {
-    this.packages.forEach(p => {
-      if (p.mesh)
-        (p.mesh.material as THREE.MeshStandardMaterial).emissive.setHex(0x000000);
-    });
+    this.highlighter.detach(this.selectedPackage()?.mesh, 'selected');
     this.selectedPackage.set(null);
     this.renderManager.requestRender();
     this.ngZone.run(() => this.cdr.markForCheck());

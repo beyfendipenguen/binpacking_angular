@@ -24,6 +24,8 @@ export class ThreeJSRenderManagerService {
   private animationFrameId: number | null = null;
   private needsRender = false;
   private isRendering = false;
+  /** Sekme gizli / bileşen ekran dışında: çizim ve kare geri çağrısı atlanır. */
+  private paused = false;
 
   // Performance tracking
   private frameCount = 0;
@@ -58,6 +60,14 @@ export class ThreeJSRenderManagerService {
 
         this.animationFrameId = requestAnimationFrame(animate);
 
+        // Görünmüyorken hiçbir iş yapma (istek bayrağı korunur, dönünce çizilir)
+        if (this.paused) return;
+
+        // Kare geri çağrısı ÖNCE: animasyonlar konumu günceller, aynı karede çizilir
+        if (onFrameCallback) {
+          onFrameCallback();
+        }
+
         // Sadece gerektiğinde render et
         if (this.needsRender) {
           renderer.render(scene, camera);
@@ -66,11 +76,6 @@ export class ThreeJSRenderManagerService {
 
           // Performance stats güncelle
           this.updatePerformanceStats(timestamp);
-        }
-
-        // Frame callback (optional)
-        if (onFrameCallback) {
-          onFrameCallback();
         }
       };
 
@@ -98,6 +103,16 @@ export class ThreeJSRenderManagerService {
       return;
     }
     this.needsRender = true;
+  }
+
+  /**
+   * Çizimi duraklat/sürdür (sekme gizli ya da bileşen ekran dışında).
+   * Sürdürülürken tek kare istenir.
+   */
+  setPaused(paused: boolean): void {
+    if (this.paused === paused) return;
+    this.paused = paused;
+    if (!paused) this.needsRender = true;
   }
 
   /**
@@ -165,6 +180,7 @@ export class ThreeJSRenderManagerService {
    */
   cleanup(): void {
     this.stopRenderLoop();
+    this.paused = false;
     this.resetStats();
   }
 }

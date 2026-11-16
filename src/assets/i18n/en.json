@@ -945,6 +945,8 @@
     "UPDATE_IN_USE_WARNING": "This {{model}} is used in {{count}} orders: {{orders}}. If the update proceeds, order data will be affected (reports will not change). Do you want to continue?"
   },
   "TRUCK_VISUALIZATION": {
+    "TIP_PALLET": "Pallet",
+    "TIP_LOAD_HEIGHT": "Load height",
     "NO_DATA": "No Loading Data Yet",
     "NO_DATA_MESSAGE": "3D visualization will appear here after the truck loading algorithm is run.",
     "FIRST": "First",

@@ -28,8 +28,13 @@ import { AppState, PackageGroupsActions, selectMultiSelectedIds, selectPackageGr
 import { StepperUiActions } from '@app/store/stepper/actions/stepper-ui.actions';
 import { StepperPackageActions } from '@app/store/stepper/actions/stepper-package.actions';
 import { ThreeJSRenderManagerService } from './services/threejs-render-manager.service';
-import { ThreeJSComponents, ThreeJSInitializationService } from './services/threejs-initialization.service';
+import { DECK_TOP_Y, FOV_SENSITIVITY_SCALE, ThreeJSComponents, ThreeJSInitializationService, VIEW_DISTANCE_FACTOR } from './services/threejs-initialization.service';
 import { getQualityProfile } from './services/threejs-quality';
+import {
+  CameraTransition, LoadAnimation, PackageHighlighter,
+  boxEdges, buildLoadGeometry, buildPalletGeometries, createLoadMaterial,
+  getPalletHeight, packageMeshPosition,
+} from './services/threejs-visuals';
 import { PackagesStateService } from './services/packages-state.service';
 import { PackageData, PackagePosition, PackageSnapshot } from '@app/features/interfaces/order-result.interface';
 import { toObservable } from '@angular/core/rxjs-interop';
@@ -112,6 +117,23 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     light: THREE.BufferGeometry; dark: THREE.BufferGeometry; height: number;
   }>();
   private sharedPalletMaterials: { light: THREE.Material; dark: THREE.Material } | null = null;
+
+  // ---- Görsel katman: vurgu, kamera geçişi, yükleme animasyonu --------
+  // (yapı taşları services/threejs-visuals.ts'te; müşteri görüntüleyicisiyle ortak)
+  private readonly highlighter = new PackageHighlighter();
+  private readonly camTransition = new CameraTransition();
+  private readonly loadAnimation = new LoadAnimation();
+  private outlinedSelected: THREE.Object3D | null = null;
+  private outlinedHover: THREE.Object3D | null = null;
+  /** Çoklu seçimde vurgulanan mesh'ler (pkgId → mesh). */
+  private outlinedMulti = new Map<string, THREE.Object3D>();
+  private hoveredPkg: PackageData | null = null;
+  private readonly reducedMotion =
+    typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+  private intersectionObserver?: IntersectionObserver;
+  private isOnScreen = true;
+  private readonly onDocVisibilityChange = () => this.updateRenderPaused();
+  @ViewChild('hoverTip') private hoverTipRef?: ElementRef<HTMLDivElement>;
   showWeightDisplay: boolean = true;
   weightCalculationDepth: number = 3000;
   private resizeObserver?: ResizeObserver;
@@ -619,6 +641,9 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     document.removeEventListener('touchcancel', this.onDocTouchEnd);
     document.removeEventListener('fullscreenchange', this.onDocFullscreenChange);
     this.resizeObserver?.disconnect();
+    this.intersectionObserver?.disconnect();
+    document.removeEventListener('visibilitychange', this.onDocVisibilityChange);
+    this.renderManager.setPaused(false);
     this.destroy$.next();
     this.destroy$.complete();
     this.isDestroyed = true;
@@ -832,8 +857,8 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
   private addForcePlaceBorder(packageData: PackageData): void {
     if (!packageData.mesh || packageData.forcePlaceBorder) return;
 
-    const geometry = packageData.mesh.geometry;
-    const edges = new THREE.EdgesGeometry(geometry);
+    const visualHeight = packageData.height - this.getPalletHeight(packageData.length, packageData.width);
+    const edges = boxEdges(packageData.length, visualHeight, packageData.width);
 
     const borderMaterial = new THREE.LineBasicMaterial({
       color: 0x000000,      // Siyah
@@ -899,7 +924,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
       // Setup camera target
       this.cameraTarget.set(
         truckDims[0] / 2,
-        truckDims[2] / 2 + 1100,
+        truckDims[2] / 2 + DECK_TOP_Y,
         truckDims[1] / 2
       );
 
@@ -918,6 +943,10 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
         this.scene,
         this.camera,
         () => {
+          const now = performance.now();
+          this.tickCameraAnimation(now);
+          this.tickLoadAnimation(now);
+          this.syncOutlines();
           this.updateActionRingPosition();
           this.updatePlateActionRingPosition();
           this.updateOverlapBadgePositions();
@@ -936,6 +965,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
 
       // Force initial render
       this.renderManager.requestRender();
+      this.setupVisibilityTracking();
 
       // Process data if available
       if (this.piecesDataSignal() && (Array.isArray(this.piecesDataSignal()) ? this.piecesDataSignal().length > 0 : true)) {
@@ -1098,7 +1128,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     const truckDims = this.truckDimension();
     this.plateGroup.position.set(
       0,
-      this.packagesGroup?.position.y ?? 1100,
+      this.packagesGroup?.position.y ?? DECK_TOP_Y,
       truckDims[1] + this.PLATE_GAP
     );
   }
@@ -1190,8 +1220,8 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     const floorHeight = 200;
     const geometry = new THREE.BoxGeometry(width, floorHeight, depth);
     const material = new THREE.MeshStandardMaterial({
-      color: 0x5c6b73,
-      metalness: 0.2,
+      color: 0xb4bebc,
+      metalness: 0,
       roughness: 0.85
     });
 
@@ -1345,28 +1375,17 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
 
     const visualHeight = packageData.height - palletHeight;
 
-    const geometry = new THREE.BoxGeometry(
-      packageData.length,
-      visualHeight,
-      packageData.width
+    // Gövde: düz kutu yerine katmanlı "gerçek yük" (çizgili ürün katmanları +
+    // köşe korumaları + üst kapak) — TEK birleşik geometri, renkler vertex color.
+    // Dış ölçüler (length × visualHeight × width) aynı kaldığı için seçim,
+    // sürükleme, çarpışma ve etiket mantığı etkilenmez.
+    const geometry = buildLoadGeometry(
+      packageData.length, visualHeight, packageData.width, packageData.color ?? '#9aa7a5'
     );
 
-    // Geometry'yi palet kadar yukarı kaydır (mesh position değişmez)
-
-    // Düşük kalite modunda ucuz (Lambert) materyal: ortam haritası/PBR hesabı yok.
-    // Seçim/hover vurgusu sadece `emissive` kullanıyor — iki materyalde de var.
-    // (Materyal paket başına ayrı: emissive paket bazında değişiyor, paylaşılamaz.)
-    const material: THREE.MeshStandardMaterial = this.quality.cheapMaterials
-      ? (new THREE.MeshLambertMaterial({
-          color: packageData.color,
-          wireframe: this.wireframeMode
-        }) as unknown as THREE.MeshStandardMaterial)
-      : new THREE.MeshStandardMaterial({
-          color: packageData.color,
-          roughness: 0.65,
-          metalness: 0.01,
-          wireframe: this.wireframeMode
-        });
+    // Düşük kalite modunda ucuz (Lambert) materyal. Renk vertex color'dan gelir;
+    // materyal paket başına ayrı (emissive/wireframe paket bazında değişiyor).
+    const material = createLoadMaterial(this.quality.cheapMaterials, this.wireframeMode);
 
     const mesh = new THREE.Mesh(geometry, material);
 
@@ -1380,11 +1399,13 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     mesh.receiveShadow = this.quality.shadows;
     mesh.userData = { packageData };
 
-    const edges = new THREE.EdgesGeometry(geometry);
+    // Dış hat: yükün zarfı (katmanların değil) — çok hafif
     const lineMat = new THREE.LineBasicMaterial({
-      color: 0x000000, transparent: true, opacity: 0.20
+      color: 0x000000, transparent: true, opacity: 0.12
     });
-    mesh.add(new THREE.LineSegments(edges, lineMat));
+    mesh.add(new THREE.LineSegments(
+      boxEdges(packageData.length, visualHeight, packageData.width), lineMat
+    ));
 
     // Palet mesh merkezine göre tam alta
     palletGroup.position.set(
@@ -1423,9 +1444,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
 
   /** Palet yüksekliği — createPalletMesh ile AYNI formül (etiket/boyut hesapları için). */
   private getPalletHeight(pkgLength: number, pkgWidth: number): number {
-    const boardThick = Math.max(18, pkgWidth * 0.018);
-    const blockH = Math.max(70, pkgLength * 0.045);
-    return boardThick * 2 + blockH;
+    return getPalletHeight(pkgLength, pkgWidth);
   }
 
   /**
@@ -1816,7 +1835,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     const key = `${Math.round(pkgLength)}x${Math.round(pkgWidth)}`;
     let entry = this.palletGeometryCache.get(key);
     if (!entry) {
-      entry = this.buildPalletGeometries(pkgLength, pkgWidth);
+      entry = buildPalletGeometries(pkgLength, pkgWidth);
       this.palletGeometryCache.set(key, entry);
     }
 
@@ -1848,100 +1867,6 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     return { group, palletHeight: entry.height };
   }
 
-  /** Verilen boyuta göre açık/koyu tahta birleşik palet geometrilerini üretir. */
-  private buildPalletGeometries(
-    pkgLength: number,
-    pkgWidth: number
-  ): { light: THREE.BufferGeometry; dark: THREE.BufferGeometry; height: number } {
-    // --- Boyutlar ---
-    const BOARD_THICK = Math.max(18, pkgWidth * 0.018); // üst/alt tahta kalınlığı
-    const BLOCK_H = Math.max(70, pkgLength * 0.045); // blok yüksekliği
-    const PALLET_H = BOARD_THICK * 2 + BLOCK_H;       // toplam palet yüksekliği ~140mm
-    const BOARD_GAP = pkgWidth * 0.03;                 // tahtalar arası boşluk
-    const BOARD_COUNT = 7;
-    const BLOCK_W = Math.min(pkgLength * 0.10, 120); // blok eni
-
-    type Box = { w: number; h: number; d: number; x: number; y: number; z: number };
-    const light: Box[] = [];
-    const dark: Box[] = [];
-
-    // ── 1. ÜST TAHTALAR ─────────────────────────────────────────────────────
-    // 7 tahta, Z ekseninde eşit aralıklı, length boyunca uzanıyor
-    const totalGap = BOARD_GAP * (BOARD_COUNT - 1);
-    const boardDepth = (pkgWidth - totalGap) / BOARD_COUNT;
-    const topY = PALLET_H - BOARD_THICK / 2; // palet tepesi
-
-    for (let i = 0; i < BOARD_COUNT; i++) {
-      const zPos = boardDepth / 2 + i * (boardDepth + BOARD_GAP);
-      (i % 2 === 0 ? light : dark).push({
-        w: pkgLength, h: BOARD_THICK, d: boardDepth,
-        x: pkgLength / 2, y: topY, z: zPos,
-      });
-    }
-
-    // ── 2. ORTA DESTEK BLOKLARI ──────────────────────────────────────────────
-    // 3×3 grid — hem X hem Z ekseninde 3 sıra
-    const blockXPositions = [pkgLength * 0.12, pkgLength * 0.50, pkgLength * 0.88];
-    const blockZPositions = [pkgWidth * 0.12, pkgWidth * 0.50, pkgWidth * 0.88];
-    const blockY = BOARD_THICK + BLOCK_H / 2;
-
-    for (const bx of blockXPositions) {
-      for (const bz of blockZPositions) {
-        dark.push({ w: BLOCK_W, h: BLOCK_H, d: BLOCK_W, x: bx, y: blockY, z: bz });
-      }
-    }
-
-    // ── 3. ALT KIZAKLAR ──────────────────────────────────────────────────────
-    // 3 kızak, length boyunca uzanıyor, Z ekseninde blok hizasında
-    const runnerW = BLOCK_W * 1.1; // bloktan biraz geniş
-    const runnerY = BOARD_THICK / 2;
-
-    for (const rz of blockZPositions) {
-      light.push({ w: pkgLength, h: BOARD_THICK, d: runnerW, x: pkgLength / 2, y: runnerY, z: rz });
-    }
-
-    const lightGeo = this.mergeBoxes(light);
-    const darkGeo = this.mergeBoxes(dark);
-    lightGeo.userData['shared'] = true;
-    darkGeo.userData['shared'] = true;
-    return { light: lightGeo, dark: darkGeo, height: PALLET_H };
-  }
-
-  /** Kutu listesini tek bir BufferGeometry'de birleştirir (üç.js sürümünden bağımsız). */
-  private mergeBoxes(
-    boxes: Array<{ w: number; h: number; d: number; x: number; y: number; z: number }>
-  ): THREE.BufferGeometry {
-    const positions: number[] = [];
-    const normals: number[] = [];
-    const uvs: number[] = [];
-    const indices: number[] = [];
-    let offset = 0;
-
-    for (const b of boxes) {
-      const g = new THREE.BoxGeometry(b.w, b.h, b.d);
-      g.translate(b.x, b.y, b.z);
-      const p = g.getAttribute('position');
-      const n = g.getAttribute('normal');
-      const t = g.getAttribute('uv');
-      const ix = g.getIndex()!;
-      for (let i = 0; i < p.count; i++) {
-        positions.push(p.getX(i), p.getY(i), p.getZ(i));
-        normals.push(n.getX(i), n.getY(i), n.getZ(i));
-        uvs.push(t.getX(i), t.getY(i));
-      }
-      for (let i = 0; i < ix.count; i++) indices.push(ix.getX(i) + offset);
-      offset += p.count;
-      g.dispose();
-    }
-
-    const merged = new THREE.BufferGeometry();
-    merged.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-    merged.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
-    merged.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
-    merged.setIndex(indices);
-    return merged;
-  }
-
   /** Paylaşılan palet geometri/materyallerini serbest bırakır (bileşen yok edilirken). */
   private disposeSharedPalletResources(): void {
     this.palletGeometryCache.forEach(e => {
@@ -1966,6 +1891,10 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     canvas.addEventListener('wheel', this.handleWheel.bind(this), { passive: false });
     canvas.addEventListener('contextmenu', (e) => { e.preventDefault(); }, { passive: false });
     canvas.addEventListener('click', this.handleMouseClick.bind(this), { passive: false });
+    canvas.addEventListener('mouseleave', () => {
+      this.hoveredPkg = null;
+      this.updateHoverTip(null);
+    });
 
     // mouseup ve touchend'i document üzerinde dinle
     // böylece canvas dışında bırakılsa da yakalanır
@@ -1988,6 +1917,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
 
   private handleTouchStart(event: TouchEvent): void {
     event.preventDefault();
+    if (this.loadAnimation.active) this.finishLoadAnimation();
 
     // Touch'ları kaydet
     for (let i = 0; i < event.changedTouches.length; i++) {
@@ -2075,7 +2005,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
 
       if (Math.abs(panDeltaX) > 1 || Math.abs(panDeltaY) > 1) {
         const distance = this.camera.position.distanceTo(this.cameraTarget);
-        const panSensitivity = distance * 0.001;
+        const panSensitivity = distance * 0.001 * FOV_SENSITIVITY_SCALE;
 
         const cameraRight = new THREE.Vector3().setFromMatrixColumn(this.camera.matrix, 0);
         const cameraUp = new THREE.Vector3().setFromMatrixColumn(this.camera.matrix, 1);
@@ -2157,6 +2087,12 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
 
   private handleMouseDown(event: MouseEvent): void {
     event.preventDefault();
+    this.updateHoverTip(null);
+    if (this.loadAnimation.active) {
+      // Yükleme animasyonu sürerken ilk tıklama sadece animasyonu bitirir
+      this.finishLoadAnimation();
+      return;
+    }
 
     this.mouseDownTime = Date.now();
     this.mouseMoved = false;
@@ -2396,6 +2332,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
   // ========================================
 
   private startCameraRotation(event: MouseEvent): void {
+    this.camTransition.cancel();
     this.isRotatingCamera = true;
     this.lastMouseX = event.clientX;
     this.lastMouseY = event.clientY;
@@ -2420,6 +2357,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
   }
 
   private startCameraPanning(event: MouseEvent): void {
+    this.camTransition.cancel();
     this.isPanningCamera = true;
     this.lastPanMouseX = event.clientX;
     this.lastPanMouseY = event.clientY;
@@ -2435,7 +2373,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     const deltaY = event.clientY - this.lastPanMouseY;
 
     const distance = this.camera.position.distanceTo(this.cameraTarget);
-    const panSensitivity = distance * 0.001;
+    const panSensitivity = distance * 0.001 * FOV_SENSITIVITY_SCALE;
 
     const cameraRight = new THREE.Vector3();
     const cameraUp = new THREE.Vector3();
@@ -2492,6 +2430,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
   }
 
   private setZoomLevelPreserveTarget(value: number): void {
+    this.camTransition.cancel();
     this.zoomLevel = Math.max(this.minZoom, Math.min(this.maxZoom, Math.round(value)));
 
     const direction = new THREE.Vector3();
@@ -3002,7 +2941,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     this.multiSet.forEach(id => {
       const f = this.findAnyPackage(id);
       if (f?.pkg.mesh && !f.pkg.isBeingDragged) {
-        (f.pkg.mesh.material as THREE.MeshStandardMaterial).emissive.setHex(0x666666);
+        (f.pkg.mesh.material as THREE.MeshStandardMaterial).emissive.setHex(0x0f3d37);
       }
     });
   }
@@ -3901,7 +3840,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
 
     if (pkg?.mesh) {
       const material = pkg.mesh.material as THREE.MeshStandardMaterial;
-      material.emissive.setHex(0x666666);
+      material.emissive.setHex(0x0f3d37);
     }
 
     this.renderManager.requestRender();
@@ -3943,7 +3882,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     // refreshSinglePlatePackageMesh mesh'i yeniden oluşturduğu için seçili
     // paketin emissive vurgusu sıfırlanır — geri uygula.
     if (selected.mesh) {
-      (selected.mesh.material as THREE.MeshStandardMaterial).emissive.setHex(0x666666);
+      (selected.mesh.material as THREE.MeshStandardMaterial).emissive.setHex(0x0f3d37);
     }
     this.cdr.markForCheck();
   }
@@ -4059,7 +3998,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     const selected = this.selectedPackageSignal();
     if (selected?.mesh) {
       const material = selected.mesh.material as THREE.MeshStandardMaterial;
-      material.emissive.setHex(0x666666);
+      material.emissive.setHex(0x0f3d37);
     }
   }
 
@@ -4138,8 +4077,10 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     // kullanılıyordu, bu yüzden plate'teki (deletedPackages) paketlerin ürün
     // detay etiketleri hover'da HİÇ görünmüyordu, sadece paket sürüklenip
     // mesh'i yeniden kurulunca (refreshSinglePlatePackageMesh) görünür oluyordu.
-    const intersected = this.getIntersectedAny();
+    const intersected = this.loadAnimation.active ? null : this.getIntersectedAny();
     const hoveredPackage = intersected?.pkg ?? null;
+    this.hoveredPkg = hoveredPackage;
+    this.updateHoverTip(hoveredPackage);
     // El imleci sadece taşınabilir bir paketin üzerindeyken; boş alanda normal ok.
     this.renderer.domElement.style.cursor =
       hoveredPackage && this.dragModeEnabled && this.hasChangePerm() ? 'grab' : 'default';
@@ -4149,7 +4090,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
       if (pkg.mesh && pkg !== this.selectedPackageSignal() && !pkg.isBeingDragged && !this.multiSet.has(pkg.pkgId)) {
         const material = pkg.mesh.material as THREE.MeshStandardMaterial;
         if (pkg === hoveredPackage) {
-          material.emissive.setHex(0x333333);
+          material.emissive.setHex(0x0a2925);
         } else {
           material.emissive.setHex(0x000000);
         }
@@ -4166,7 +4107,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
       if (pkg.mesh && pkg !== selectedPlate && !pkg.isBeingDragged && !this.multiSet.has(pkg.pkgId)) {
         const material = pkg.mesh.material as THREE.MeshStandardMaterial;
         if (pkg === hoveredPackage) {
-          material.emissive.setHex(0x333333);
+          material.emissive.setHex(0x0a2925);
         } else {
           material.emissive.setHex(0x000000);
         }
@@ -4224,6 +4165,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
   captureScreenshot(maxWidth = 1280, quality = 0.7): string | null {
     try {
       if (!this.renderer || !this.scene || !this.camera) return null;
+      this.finishLoadAnimation();
       this.renderer.render(this.scene, this.camera);
       const src = this.renderer.domElement;
       if (!src.width || !src.height) return null;
@@ -4234,7 +4176,11 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
       out.height = Math.round(src.height * scale);
       const ctx = out.getContext('2d');
       if (!ctx) return null;
-      ctx.fillStyle = '#ffffff';
+      // Sahne şeffaf: ekrandaki CSS gradient'in aynısını arkaya boya
+      const bg = ctx.createLinearGradient(0, 0, 0, out.height);
+      bg.addColorStop(0, '#eef3f2');
+      bg.addColorStop(1, '#f9fbfa');
+      ctx.fillStyle = bg;
       ctx.fillRect(0, 0, out.width, out.height);
       ctx.drawImage(src, 0, 0, out.width, out.height);
       return out.toDataURL('image/jpeg', quality);
@@ -4572,42 +4518,200 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
   // VIEW CONTROLS
   // ========================================
 
-  setView(viewType: string): void {
+  setView(viewType: string, animate = true): void {
     this.currentView = viewType;
     const truckDims = this.truckDimension();
 
-    this.cameraTarget.set(
+    const target = new THREE.Vector3(
       truckDims[0] / 2,
-      truckDims[2] / 2 + 1100,
+      truckDims[2] / 2 + DECK_TOP_Y,
       truckDims[1] / 2
     );
 
     const maxDim = Math.max(...truckDims);
-    const distance = maxDim * 1.5;
+    const distance = maxDim * VIEW_DISTANCE_FACTOR;
     this.cameraBaseDistance = distance;
 
+    const position = new THREE.Vector3();
     switch (viewType) {
       case 'front':
-        this.camera.position.set(distance, this.cameraTarget.y, this.cameraTarget.z);
+        position.set(distance, target.y, target.z);
         break;
       case 'side':
-        this.camera.position.set(this.cameraTarget.x, this.cameraTarget.y, distance);
+        position.set(target.x, target.y, distance);
         break;
       case 'top':
-        this.camera.position.set(this.cameraTarget.x, distance, this.cameraTarget.z);
+        // Tam tepe (phi = 0) lookAt için tekil — çok az eğim
+        position.set(target.x, distance, target.z + distance * 0.0005);
         break;
       case 'isometric':
       default:
-        this.camera.position.set(
-          this.cameraTarget.x + distance * 0.4,
-          this.cameraTarget.y + distance * 0.4,
-          this.cameraTarget.z + distance * 0.4
+        position.set(
+          target.x + distance * 0.4,
+          target.y + distance * 0.4,
+          target.z + distance * 0.4
         );
         break;
     }
 
-    this.camera.lookAt(this.cameraTarget);
+    // Üstten bakışta gölge zemini gizlenir (araç altında koyu leke gibi durur)
+    const ground = this.threeComponents?.groundMesh;
+    if (ground) ground.visible = viewType !== 'top';
+
+    if (animate && !this.reducedMotion && this.isViewReady) {
+      this.camTransition.start(this.camera, this.cameraTarget, position, target);
+    } else {
+      this.camTransition.cancel();
+      this.cameraTarget.copy(target);
+      this.camera.position.copy(position);
+      this.camera.lookAt(this.cameraTarget);
+    }
     this.renderManager.requestRender();
+  }
+
+  private tickCameraAnimation(now: number): void {
+    if (this.camTransition.tick(now, this.camera, this.cameraTarget)) {
+      this.renderManager.requestRender();
+    }
+  }
+
+  // ========================================
+  // YÜKLEME ANİMASYONU
+  // ========================================
+
+  /**
+   * Paletleri yükleme sırasıyla (önden arkaya, alttan üste) arka kapıdan içeri
+   * kaydırır. Sadece GÖRSEL: paket verisi (x/y/z) değişmez; her karede mesh konumu
+   * veriden hesaplanır, bu yüzden araya giren mesh yeniden kurulumlarına dayanıklıdır.
+   * Animasyon sürerken ilk tıklama animasyonu bitirir (bkz. handleMouseDown).
+   */
+  public playLoadAnimation(packages?: PackageData[]): void {
+    if (this.reducedMotion || this.isDestroyed || !this.isViewReady) return;
+    const list = [...(packages ?? this.processedPackagesSignal())]
+      .filter(p => p.x >= 0 && p.y >= 0)
+      .sort((p, q) => (p.x - q.x) || (p.z - q.z) || (p.y - q.y));
+    if (list.length === 0) return;
+
+    this.finishLoadAnimation();   // önceki animasyondan gizli kalan palet olmasın
+    this.clearSelection();
+    this.updateHoverTip(null);
+    this.loadAnimation.start(list.map(p => p.pkgId), this.truckDimension()[0] + 3500);
+    this.tickLoadAnimation(performance.now());
+  }
+
+  /** Animasyon için: paketin güncel mesh'i + veriden hesaplanan nihai konumu. */
+  private readonly resolveLoadTarget = (id: string, out: THREE.Vector3): THREE.Object3D | null => {
+    const pkg = this.packagesStateService.getProcessedPackageById(id);
+    if (!pkg?.mesh || pkg.isBeingDragged) return null;
+    packageMeshPosition(pkg, out);
+    return pkg.mesh;
+  };
+
+  private tickLoadAnimation(now: number): void {
+    if (this.loadAnimation.tick(now, this.resolveLoadTarget)) {
+      this.renderManager.requestRender();
+    }
+  }
+
+  /** Animasyonu anında bitirir: tüm paletler yerinde ve görünür. */
+  private finishLoadAnimation(): void {
+    if (!this.loadAnimation.active) return;
+    this.loadAnimation.finish(this.resolveLoadTarget);
+    this.renderManager.requestRender();
+  }
+
+  // ========================================
+  // SEÇİM / HOVER ÇERÇEVESİ + İPUCU
+  // ========================================
+
+  /**
+   * Seçili, çoklu seçili ve üzerine gelinen paletlerin vurgusunu günceller
+   * (teal çerçeve; seçililerde ayrıca teal ton). Her karede çağrılır ama yalnızca
+   * hedef mesh'ler değiştiğinde iş yapar. Vurgu mesh'in çocuğu olduğundan
+   * sürükleme/animasyonda kendiliğinden takip eder.
+   */
+  private syncOutlines(): void {
+    const selected = this.selectedPackageSignal() ?? this.selectedPlatePackageSignal();
+    // Çoklu seçimdeki paletler 'multi' vurgusunu alır; tekli seçim vurgusu onlarla çakışmasın
+    const selMesh = selected && !this.multiSet.has(selected.pkgId) ? selected.mesh ?? null : null;
+    const hover = this.hoveredPkg && this.hoveredPkg !== selected && !this.multiSet.has(this.hoveredPkg.pkgId)
+      && !this.isDragging && !this.groupDrag && !this.loadAnimation.active
+      ? this.hoveredPkg : null;
+    const hovMesh = hover?.mesh ?? null;
+
+    let changed = false;
+    if (selMesh !== this.outlinedSelected) {
+      this.highlighter.detach(this.outlinedSelected, 'selected');
+      if (selMesh && selected) this.highlighter.attach(selMesh, selected, 'selected');
+      this.outlinedSelected = selMesh;
+      changed = true;
+    }
+    if (hovMesh !== this.outlinedHover) {
+      this.highlighter.detach(this.outlinedHover, 'hover');
+      if (hovMesh && hover) this.highlighter.attach(hovMesh, hover, 'hover');
+      this.outlinedHover = hovMesh;
+      changed = true;
+    }
+
+    // Çoklu seçim: seçimden çıkan / mesh'i yenilenen paletlerin vurgusunu kaldır…
+    this.outlinedMulti.forEach((mesh, id) => {
+      const current = this.multiSet.has(id) ? this.findAnyPackage(id)?.pkg.mesh ?? null : null;
+      if (current !== mesh) {
+        this.highlighter.detach(mesh, 'multi');
+        this.outlinedMulti.delete(id);
+        changed = true;
+      }
+    });
+    // …yeni seçilenlere tak
+    this.multiSet.forEach(id => {
+      if (this.outlinedMulti.has(id)) return;
+      const pkg = this.findAnyPackage(id)?.pkg;
+      if (!pkg?.mesh) return;
+      this.highlighter.attach(pkg.mesh, pkg, 'multi');
+      this.outlinedMulti.set(id, pkg.mesh);
+      changed = true;
+    });
+
+    if (changed) this.renderManager.requestRender();
+  }
+
+  /** İmleç yanında kısa bilgi: "Palet N · L × W mm · Yük yüksekliği H mm". */
+  private updateHoverTip(pkg: PackageData | null): void {
+    const el = this.hoverTipRef?.nativeElement;
+    if (!el) return;
+    if (!pkg || this.isDragging || this.groupDrag || this.loadAnimation.active) {
+      el.style.display = 'none';
+      return;
+    }
+    el.textContent =
+      `${this.translate.instant('TRUCK_VISUALIZATION.TIP_PALLET')} ${pkg.id} · ` +
+      `${Math.round(pkg.length)} × ${Math.round(pkg.width)} mm · ` +
+      `${this.translate.instant('TRUCK_VISUALIZATION.TIP_LOAD_HEIGHT')} ${Math.round(pkg.height)} mm`;
+    const canvas = this.renderer.domElement;
+    const x = (this.mouse.x * 0.5 + 0.5) * canvas.clientWidth;
+    const y = (-this.mouse.y * 0.5 + 0.5) * canvas.clientHeight;
+    el.style.display = 'block';
+    el.style.transform = `translate(${Math.round(x + 14)}px, ${Math.round(y + 16)}px)`;
+  }
+
+  // ========================================
+  // GÖRÜNÜRLÜK TAKİBİ (CPU/GPU tasarrufu)
+  // ========================================
+
+  /** Sekme gizliyken ya da bileşen ekran dışındayken çizim döngüsü duraklatılır. */
+  private setupVisibilityTracking(): void {
+    document.addEventListener('visibilitychange', this.onDocVisibilityChange);
+    if (typeof IntersectionObserver !== 'undefined') {
+      this.intersectionObserver = new IntersectionObserver(entries => {
+        this.isOnScreen = entries.some(e => e.isIntersecting);
+        this.updateRenderPaused();
+      });
+      this.intersectionObserver.observe(this.threeContainer.nativeElement);
+    }
+  }
+
+  private updateRenderPaused(): void {
+    this.renderManager.setPaused(document.hidden || !this.isOnScreen);
   }
 
   resetView(): void {
@@ -4764,7 +4868,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
     this.showCollisionWarning = false;
     if (this.draggedPackage?.mesh) {
       const material = this.draggedPackage.mesh.material as THREE.MeshStandardMaterial;
-      material.emissive.setHex(0x666666);
+      material.emissive.setHex(0x0f3d37);
     }
   }
 
@@ -5284,6 +5388,13 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
       }
     });
     this.disposeSharedPalletResources();
+    this.camTransition.cancel();
+    this.loadAnimation.cancel();
+    this.hoveredPkg = null;
+    this.outlinedSelected = null;
+    this.outlinedHover = null;
+    this.outlinedMulti.clear();
+    this.highlighter.dispose();
 
     // Plate (bekleme alanı) mesh'leri — zemin + paket mesh'leri, hepsi
     // plateGroup'un altında olduğu için tek seferde dispose edilebiliyor.
@@ -5382,14 +5493,15 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
 
       this.cameraTarget.set(
         truckDims[0] / 2,
-        truckDims[2] / 2 + 1100,
+        truckDims[2] / 2 + DECK_TOP_Y,
         truckDims[1] / 2
       );
 
       const maxDim = Math.max(...truckDims);
-      const distance = maxDim * 1.5;
+      const distance = maxDim * VIEW_DISTANCE_FACTOR;
       this.cameraBaseDistance = distance;
       this.zoomLevel = 10;
+      this.camTransition.cancel();
 
       this.camera.position.set(
         this.cameraTarget.x + distance * 0.4,
@@ -5519,6 +5631,7 @@ export class ThreeJSTruckVisualizationComponent implements OnInit, AfterViewInit
       this.toastService.success(this.translate.instant('TRUCK_VISUALIZATION.AUTO_PLACE_SUCCESS'));
     }
 
+    this.playLoadAnimation(placed);
     this.renderManager.requestRender();
     this.cdr.markForCheck();
   }
